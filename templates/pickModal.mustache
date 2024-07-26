@@ -1,0 +1,104 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template tiny_widgethub/modal
+
+    Modal to manage components within the Tiny Editor.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * data-selectable: The selectable state of the button.
+    * data-category: The category of the button.
+
+    Context variables required for this template:
+    * selectMode: The mode of the modal.
+    * elementid: The id of the element.
+    * rid: The random id.
+    * searchText: The text to search.
+    * categories: The categories of the widget.
+
+    Example context (json):
+    {
+        "selectMode": false,
+        "elementid": "elementid",
+        "rid": "rid",
+        "searchText": "searchText",
+        "categories": [
+            {
+                "name": "Category name",
+                "color": "color",
+                "hidden": false,
+                "buttons": [
+                    {
+                        "elementid": "elementid",
+                        "widgetindex": "widgetindex",
+                        "hidden": false,
+                        "selectable": false,
+                        "iconname": "iconname",
+                        "disabled": false,
+                        "widgettitle": "widget title",
+                        "category": "Category",
+                        "widgetkey": "widget key",
+                        "widgetname": "widget name",
+                    }
+                ]
+            }
+        ]
+    }
+}}
+{{< core/modal }}
+    {{$title}}
+        {{#str}} dialogtitle, tiny_widgethub {{/str}}
+        <span style="position:absolute;right:40px;font-size:80%;color:#5960b8;padding:5px;font-weight:bold;" 
+        class="ib-blink{{^selectMode}} tiny_widgethub-hidden{{/selectMode}}">
+            <i class="fa fas fa-object-group"></i> {{#str}} selectmode, tiny_widgethub {{/str}}
+        </span>
+    {{/title}}
+    {{$body}}
+        <div id="{{elementid}}" class="tiny_widgethub-container">
+           <div style="text-align:center;position:relative;vertical-align:middle;">
+                <input id="widget-filter{{rid}}" type="text" placeholder="{{#str}} wsearch, tiny_widgethub {{/str}}" style="width:80%" value="{{searchText}}">
+                <button id="widget-clearfilter-btn{{rid}}" class="btn btn-sm btn-secondary" title="{{#str}} rmfilter, tiny_widgethub {{/str}}">
+                    <i class="fa fas fa-times"></i>
+                </button>
+            </div>
+            <div class="tiny_widgethub-categorycontainer" style="max-height:450px;overflow:auto;">
+            <span class="tiny_widgethub-emptylist tiny_widgethub-hidden">{{#str}} emptylist, tiny_widgethub {{/str}}</span>
+            <div class="tiny_widgethub-recent"></div>
+            {{#categories}}
+            <div class="tiny_widgethub-category{{#hidden}} tiny_widgethub-hidden{{/hidden}}" style="border: 2px solid hsl({{color}},40%);background:hsl({{color}},98%);">
+                <div class="tiny_widgethub-lateral" style="background:hsl({{color}},40%)!important;">
+                    <p class="tiny_widgethub-title">{{name}}</p>
+                </div>
+                <div style="display:table-cell;column-count:1;padding:5px">
+                  {{#buttons}}
+                    <div id="{{elementid}}_{{widgetindex}}" class="tiny_widgethub-buttons mdl-align{{#hidden}} tiny_widgethub-hidden{{/hidden}}"{{#selectable}} data-selectable="true"{{/selectable}}>
+                      <button style="width:85%;{{#disabled}}opacity:0.4;{{/disabled}}" title="{{widgettitle}}" data-category="{{category}}" 
+                      class="tiny_widgethub-btn{{^disabled}} tiny_widgethub-btndisabled{{/disabled}}" data-key="{{widgetkey}}"> 
+                      <span>{{#disabled}}<i class="fa fas fa-ban"></i>{{/disabled}} {{widgetname}} {{{widgetfawesome}}} </span>
+                      </button>
+                    </div>
+                  {{/buttons}}
+                </div>
+            </div>
+            {{/categories}}
+            </div>
+        </div>
+    {{/body}}
+{{/ core/modal }}

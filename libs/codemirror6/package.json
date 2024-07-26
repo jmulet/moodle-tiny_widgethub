@@ -1,0 +1,23 @@
+{
+  "name": "codemirror6",
+  "version": "1.0.0",
+  "description": "Build a UMD packaged version of the codemirror6 editor",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "rollup --config"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "GNU",
+  "dependencies": {
+    "@codemirror/lang-yaml": "^6.1.1",
+    "codemirror": "^6.0.1"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.1.0",
+    "rollup": "^2.68.1"
+  }
+}

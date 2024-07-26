@@ -1,0 +1,12 @@
+.vscode
+node_modules/ 
+coverage/
+presets/*.txt
+TODO
+package-lock.json
+.DS_Store
+scripts/
+jest.config.js
+amd/tests/
+babel.config.json
+styles.scss
