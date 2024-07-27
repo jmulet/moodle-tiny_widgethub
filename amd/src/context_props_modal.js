@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-/* eslint-disable no-bitwise */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -29,30 +27,34 @@ import ModalEvents from 'core/modal_events';
 import {createControlHTML, getParametersFromForm, applyFieldWatchers} from './uiParams';
 import {parseBinding} from './util';
 
-// Create a generic editor dialogue class based on editor field of widget definition
-export default class ContextMenuEditor {
+/*
+ * Create a generic editor dialogue class based on editor field of widget definition
+ *
+ */
+export default class ContextPropsModal {
     /**
-     * @member {ContextMenu} contextMenu
-     * @member {Modal} modal
+     * @member {TinyMCE} #editor
      */
-    _contextMenu;
-    modal;
+    #editor;
+    #modal;
 
-    /**
-     * @param {ContextMenu} contextMenu
-     */
-    constructor(contextMenu) {
-        this._contextMenu = contextMenu;
+    constructor(editor) {
+        this.#editor = editor;
     }
 
-    async _init() {
-        const currentContext = this._contextMenu.currentContext;
-        const edSnpt = currentContext.snpt;
-        const editor = this._contextMenu.editor;
-        const hostId = editor.id;
+    /**
+     * Displays a modal dialog for editing the currentContext
+     * based on contextual
+     * @param {Context} currentContext
+     * @returns void
+     */
+    async show(currentContext) {
+        const widget = currentContext.widget;
+        const hostId = this.#editor.id;
 
-        if (!edSnpt?.hasBindings()) {
-            console.error("Invalid genericEditor widget definition ", edSnpt);
+        if (!widget.hasBindings()) {
+            // eslint-disable-next-line no-console
+            console.error("Invalid genericEditor widget definition ", widget);
             return;
         }
 
@@ -60,65 +62,55 @@ export default class ContextMenuEditor {
         const bindingsDOM = {};
         // Extract param values from DOM
         const paramValues = {};
-        edSnpt.parameters.filter(param => param.bind).forEach((param) => {
-            const binding = parseBinding(param.bind, currentContext.elem, typeof (param.value));
+        widget.parameters.filter(param => param.bind?.trim()).forEach((param) => {
+            const binding = parseBinding(param.bind.trim(), currentContext.elem, typeof (param.value));
             if (binding) {
                 bindingsDOM[param.name] = binding;
                 paramValues[param.name] = binding.getValue();
             }
         });
-        console.log("DETECTED FROM DOM PARAMS ", paramValues);
 
         // Create parameters form controls
         // Filter only those parameters which have default Values
         const controls = [];
-        edSnpt.parameters.filter(param => param.bind).forEach((param) => {
+        widget.parameters.filter(param => param.bind).forEach((param) => {
             controls.push(createControlHTML(hostId, param, paramValues[param.name]));
         });
-        console.log("The generated controls are ", controls);
 
         const data = {
-            name: edSnpt.name,
+            name: widget.name,
             controls: controls
         };
 
         // Create the modal
-        this.modal = await ModalFactory.create({
+        this.#modal = await ModalFactory.create({
             type: IBContextModal.TYPE,
             templateContext: data,
             large: true,
         });
-        this.modal.getRoot().on(ModalEvents.hidden, () => {
-            this.modal.destroy();
+        this.#modal.getRoot().on(ModalEvents.hidden, () => {
+            this.#modal.destroy();
         });
         // Applying watchers to the form elements
-        applyFieldWatchers(this.modal.body, paramValues, edSnpt, false);
+        applyFieldWatchers(this.#modal.body, paramValues, widget, false);
 
         // Bind accept action to modal
-        this.modal.footer.find("button.btn-secondary").on("click", () => {
-            this.modal.destroy();
+        this.#modal.footer.find("button.btn-secondary").on("click", () => {
+            this.#modal.destroy();
         });
-        this.modal.footer.find("button.btn-primary").on("click", () => {
-            const form = this.modal.body.find("form");
-            const updatedValues = getParametersFromForm(edSnpt, form, null);
-            this.modal.destroy();
-            // Set Param Values To DOM
+        this.#modal.footer.find("button.btn-primary").on("click", () => {
+            const form = this.#modal.body.find("form");
+            const updatedValues = getParametersFromForm(widget, form, null);
+            this.#modal.destroy();
+            // Apply Param Values To DOM
             Object.keys(bindingsDOM).forEach(key => {
                 bindingsDOM[key].setValue(updatedValues[key]);
             });
-            editor.focus();
         });
-        console.log("Showing the modal");
-        this.modal.show();
+        this.#modal.show();
     }
 
-    /**
-     * @param {JQuery.Event} evt
-     */
-    show(evt) {
-        evt.preventDefault();
-        this._contextMenu.hide();
-        // Create modal content and actions
-        this._init();
+    close() {
+        this.#modal.destroy();
     }
 }

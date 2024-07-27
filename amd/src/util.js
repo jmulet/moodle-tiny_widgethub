@@ -249,8 +249,8 @@ export function templateRenderer(template, context, translations, engine) {
  * Wrapper for Widget definition
  */
 export class WidgetWrapper {
-    _snpt;
-    _instructionsParsed = false;
+    #widget;
+    #instructionsParsed = false;
 
     /**
      * @param {WidgetWrapper} snpt
@@ -277,68 +277,71 @@ export class WidgetWrapper {
                 }
             }
         });
-        this._snpt = snpt;
+        this.#widget = snpt;
     }
     /**
      * @returns {string}
      */
     get name() {
-        return this._snpt.name;
+        return this.#widget.name;
     }
     /**
      * @returns {string}
      */
     get key() {
-        return this._snpt.key;
+        return this.#widget.key;
     }
+    /**
+     * @returns {Object}
+     */
     get I18n() {
-        return this._snpt.I18n || {};
+        return this.#widget.I18n || {};
     }
     /**
      * @returns {string}
      */
     get template() {
-        return this._snpt.template;
+        return this.#widget.template;
     }
+    /**
+     * @returns {string}
+     */
     get category() {
-        return this._snpt.category || "MISC";
+        return this.#widget.category || "MISC";
     }
     get insertquery() {
-        return this._snpt.insertquery;
+        return this.#widget.insertquery;
     }
+    /**
+     * @returns {string}
+     */
     get selectors() {
-        return this._snpt.selectors;
+        return this.#widget.selectors;
     }
-    get unpack() {
-        return this._snpt.unpack;
-    }
-    get requires() {
-        if (Array.isArray(this._snpt.requires)) {
-            return this._snpt.requires[0];
-        }
-        return this._snpt.requires;
-    }
-    get stars() {
-        return this._snpt.stars;
+    /**
+     * @returns {string}
+     */
+    get unwrap() {
+        return this.#widget.uwrap;
     }
     get version() {
-        return this._snpt.version || "1.0.0";
+        return this.#widget.version || "1.0.0";
     }
     /**
      * @returns {string}
      */
     get instructions() {
-        if (!this._instructionsParsed) {
-            this._snpt.instructions = decodeURIComponent(this._snpt.instructions);
-            this._instructionsParsed = true;
+        if (!this.#instructionsParsed) {
+            this.#widget.instructions = decodeURIComponent(this.#widget.instructions);
+            this.#instructionsParsed = true;
         }
-        return this._snpt.instructions;
+        return this.#widget.instructions;
     }
     /**
-     * @returns {object}
+     * @returns {object[]}
      */
     get parameters() {
-        return this._snpt.parameters || [];
+        return this.#widget.parameters || [];
     }
     /**
      * @returns {object}
@@ -358,21 +361,20 @@ export class WidgetWrapper {
         const defaultsCopy = {...this.defaults};
         const toInterpolate = Object.assign(defaultsCopy, ctx || {});
         // Decide which template engine to use
-        let engine = this._snpt.engine;
+        let engine = this.#widget.engine;
         return templateRenderer(this.template ?? "", toInterpolate,
-            this._snpt.I18n ?? {}, engine);
+            this.#widget.I18n ?? {}, engine);
     }
-
     /**
      * @param {number} userId
      * @returns {boolean}
      */
     isFor(userId) {
         // These are administrators
-        if (this._snpt.hidden === true) {
+        if (this.#widget.hidden === true) {
             return false;
         }
-        let grantStr = (this._snpt.for || '').trim();
+        let grantStr = (this.#widget.for || '').trim();
         if (grantStr === '' || grantStr === '*' || userId <= 2) {
             return true;
         }
@@ -391,7 +393,7 @@ export class WidgetWrapper {
      */
     isUsableInScope(scope) {
         scope = scope || Shared.currentScope;
-        const widgetScopes = this._snpt.scope;
+        const widgetScopes = this.#widget.scope;
         if (!scope || !widgetScopes || widgetScopes === "*") {
             return true;
         }
@@ -409,6 +411,14 @@ export class WidgetWrapper {
      */
     hasBindings() {
         return this.parameters.filter(param => param.bind !== undefined).length > 0;
+    }
+    /**
+     * Recovers the property value named name of the original definition
+     * @param {*} name
+     * @returns {any}
+     */
+    prop(name) {
+        return this.#widget[name];
     }
 }
 

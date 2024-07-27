@@ -50,6 +50,7 @@ $string['rmfilter'] = 'Clear search filter';
 $string['selectmode'] = 'Selection mode';
 $string['settings'] = 'WidgetHub component';
 $string['sharecss'] = 'Share the site CSS within the editor\'s iframe';
+$string['viewplugin'] = 'View widgethub plugin';
 $string['widget'] = 'Widget';
 $string['widgets'] = 'Widgets';
 $string['wsearch'] = 'Search widgets ...';
