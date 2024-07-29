@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -17,18 +18,27 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pmulet@iedib.net>
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-import {component as buttonName} from './common';
+import Common from './common';
 import {addMenubarItem} from 'editor_tiny/utils';
 
+const buttonName = Common.component;
+
+/**
+ * @typedef {Object} Menu
+ * @property {{items: string}} insert
+ */
+/**
+ * @param {Menu} menu
+ * @returns {Menu}
+ */
 const configureMenu = (menu) => {
     const items = menu.insert.items.split(' ');
     const inserted = items.some((item, index) => {
         // Append after the link button.
-        if (item.match(/(link)\b/)) {
+        if (RegExp(/(link)\b/).exec(item)) {
             items.splice(index + 1, 0, buttonName);
             return true;
         }
@@ -44,6 +54,15 @@ const configureMenu = (menu) => {
     return menu;
 };
 
+/**
+ * @typedef {Object} Section
+ * @property {string} name
+ * @property {string[]} items
+ */
+/**
+ * @param {Section[]} toolbar
+ * @returns {Section[]}
+ */
 const configureToolbar = (toolbar) => {
     // The toolbar contains an array of named sections.
     // The Moodle integration ensures that there is a section called 'content'.
@@ -57,9 +76,26 @@ const configureToolbar = (toolbar) => {
     });
 };
 
+/**
+ *
+ * @param {string} contextmenu
+ * @returns {string}
+ */
+const configureContextMenu = (contextmenu) => {
+    contextmenu += ' tiny_widgethub';
+    return contextmenu;
+};
+
+/**
+ *
+ * @param {any} instanceConfig
+ * @returns {object}
+ */
 export const configure = (instanceConfig) => {
+    console.log("instance config is ...", instanceConfig);
     return {
         menu: configureMenu(instanceConfig.menu),
         toolbar: configureToolbar(instanceConfig.toolbar),
+        contextmenu: configureContextMenu(instanceConfig.contextmenu)
     };
 };

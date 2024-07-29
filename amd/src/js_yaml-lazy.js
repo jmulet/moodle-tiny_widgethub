@@ -1,3 +1,4 @@
+// @ts-nocheck
 /* eslint-disable no-unmodified-loop-condition */
 /* eslint-disable complexity */
 /* eslint-disable no-control-regex */
@@ -23,14 +24,14 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pmulet@iedib.net>
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /* ! js-yaml 4.1.0 https://github.com/nodeca/js-yaml @license MIT */
 /**
  *
- * @param subject
+ * @param {*} subject
  */
 function isNothing(subject) {
     return (typeof subject === 'undefined') || (subject === null);
@@ -39,7 +40,7 @@ function isNothing(subject) {
 
 /**
  *
- * @param subject
+ * @param {*} subject
  */
 function isObject(subject) {
     return (typeof subject === 'object') && (subject !== null);
@@ -48,7 +49,7 @@ function isObject(subject) {
 
 /**
  *
- * @param sequence
+ * @param {*} sequence
  */
 function toArray(sequence) {
     if (Array.isArray(sequence)) {
@@ -63,8 +64,8 @@ function toArray(sequence) {
 
 /**
  *
- * @param target
- * @param source
+ * @param {*} target
+ * @param {*} source
  */
 function extend(target, source) {
     let index, length, key, sourceKeys;
@@ -84,8 +85,8 @@ function extend(target, source) {
 
 /**
  *
- * @param string
- * @param count
+ * @param {string} string
+ * @param {number} count
  */
 function repeat(string, count) {
     let result = '',
@@ -101,7 +102,7 @@ function repeat(string, count) {
 
 /**
  *
- * @param number
+ * @param {number} number
  */
 function isNegativeZero(number) {
     return (number === 0) && (Number.NEGATIVE_INFINITY === 1 / number);
@@ -129,8 +130,8 @@ let common = {
 
 /**
  *
- * @param exception
- * @param compact
+ * @param {*} exception
+ * @param {*} compact
  */
 function formatError(exception, compact) {
     let where = '',
@@ -156,8 +157,8 @@ function formatError(exception, compact) {
 
 /**
  *
- * @param reason
- * @param mark
+ * @param {string} reason
+ * @param {*} [mark]
  */
 function YAMLException$1(reason, mark) {
     // Super constructor
@@ -183,7 +184,7 @@ function YAMLException$1(reason, mark) {
 YAMLException$1.prototype = Object.create(Error.prototype);
 YAMLException$1.prototype.constructor = YAMLException$1;
 
-
+/** @param {*} compact */
 YAMLException$1.prototype.toString = function toString(compact) {
     return this.name + ': ' + formatError(this, compact);
 };
@@ -194,11 +195,11 @@ let exception = YAMLException$1;
 // Get widget for a single line, respecting maxLength
 /**
  *
- * @param buffer
- * @param lineStart
- * @param lineEnd
- * @param position
- * @param maxLineLength
+ * @param {*} buffer
+ * @param {number} lineStart
+ * @param {number} lineEnd
+ * @param {number} position
+ * @param {number} maxLineLength
  */
 function getLine(buffer, lineStart, lineEnd, position, maxLineLength) {
     let head = '';
@@ -224,8 +225,8 @@ function getLine(buffer, lineStart, lineEnd, position, maxLineLength) {
 
 /**
  *
- * @param string
- * @param max
+ * @param {string} string
+ * @param {number} max
  */
 function padStart(string, max) {
     return common.repeat(' ', max - string.length) + string;
@@ -234,8 +235,8 @@ function padStart(string, max) {
 
 /**
  *
- * @param mark
- * @param options
+ * @param {*} mark
+ * @param {*} options
  */
 function makeWidget(mark, options) {
     options = Object.create(options || null);
@@ -343,16 +344,20 @@ let YAML_NODE_KINDS = [
 
 /**
  *
- * @param map
+ * @param {*} map
+ * @returns {Object.<string, *>}
  */
 function compileStyleAliases(map) {
+    /** @type {Object.<string, *>} */
     let result = {};
 
     if (map !== null) {
         Object.keys(map).forEach(function(style) {
-            map[style].forEach(function(alias) {
-                result[String(alias)] = style;
-            });
+            map[style].forEach(
+                /** @param {*} alias */
+                function(alias) {
+                    result[String(alias)] = style;
+                });
         });
     }
 
@@ -361,8 +366,8 @@ function compileStyleAliases(map) {
 
 /**
  *
- * @param tag
- * @param options
+ * @param {*} tag
+ * @param {*} options
  */
 function Type$1(tag, options) {
     options = options || {};
@@ -3383,8 +3388,8 @@ function loadAll$1(input, iterator, options) {
 
 /**
  *
- * @param input
- * @param options
+ * @param {string} input
+ * @param {Object?} options
  */
 function load$1(input, options) {
     let documents = loadDocuments(input, options);

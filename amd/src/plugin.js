@@ -1,5 +1,3 @@
-/* eslint-disable max-len */
-/* eslint-disable no-console */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -19,19 +17,24 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pmulet@iedib.net>
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+/**
+ * @typedef {any} TinyMCE
+ **/
 
 import {getTinyMCE} from 'editor_tiny/loader';
 import {getPluginMetadata} from 'editor_tiny/utils';
 
-import {component, pluginName} from './common';
+import Common from './common';
 import {register as registerOptions} from './options';
 import {getSetup as getCommandSetup} from './commands';
 import * as Configuration from './configuration';
 import {initializer} from './initializer';
 
+const {component, pluginName} = Common;
 
 // Setup the Plugin.
 // eslint-disable-next-line no-async-promise-executor
@@ -46,18 +49,20 @@ export default new Promise(async(resolve) => {
         getCommandSetup(),
     ]);
 
-    tinyMCE.PluginManager.add(pluginName, (editor) => {
-        // Register options.
-        registerOptions(editor);
+    tinyMCE.PluginManager.add(pluginName,
+        /** @param {TinyMCE} editor */
+            (editor) => {
+            // Register options.
+            registerOptions(editor);
 
-        // Setup commands.
-        setupCommands(editor);
+            // Setup commands.
+            setupCommands(editor);
 
-        // Custom initialization
-        initializer(editor);
+            // Custom initialization
+            initializer(editor);
 
-        return pluginMetadata;
-    });
+            return pluginMetadata;
+        });
 
     // Resolve the Plugin and include configuration.
     resolve([pluginName, Configuration]);

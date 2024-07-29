@@ -20,16 +20,18 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pmulet@iedib.net>
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import ModalFactory from 'core/modal_factory';
 import {IBParamsModal} from './modal';
 import ModalEvents from 'core/modal_events';
-import {stream, genID, templateRendererMustache, UserStorage, cleanParameterName, scopedEval, applyWidgetFilter} from './util';
+// eslint-disable-next-line no-unused-vars
+import {stream, genID, templateRendererMustache, UserStorage, cleanParameterName, scopedEval, applyWidgetFilter, WidgetWrapper, capitalize} from './util';
 import {getCourseId, getUserId} from './options';
-import {capitalize} from './util';
+// eslint-disable-next-line no-unused-vars
+import {UiPickCtrl} from './uiPick';
 
 const questionPopover = '{{#tooltip}}<a href="javascript:void(0)" data-toggle="popover" data-trigger="hover" data-content="{{tooltip}}"><i class="fa fas fa-question-circle text-info"></i></a>{{/tooltip}}';
 
@@ -70,6 +72,10 @@ export class UiParamsCtrl {
    uiPickCtrl;
    widget;
    editor;
+   /**
+    * @param {UiPickCtrl} uiPickCtrl
+    * @param {import('./util').WidgetWrapper} widget
+    */
    constructor(uiPickCtrl, widget) {
       this.uiPickCtrl = uiPickCtrl;
       this.widget = widget;
@@ -82,12 +88,14 @@ export class UiParamsCtrl {
    async handleAction() {
       // Show modal with buttons.
       const data = await createParametersContext(this.editor, this.widget, this.userStorage);
+      // @ts-ignore
       const modal = await ModalFactory.create({
          type: IBParamsModal.TYPE,
          templateContext: data,
          large: true,
       });
       this.modal = modal;
+      // @ts-ignore
       modal.getRoot().on(ModalEvents.hidden, () => {
          // Simply close
          modal.destroy();
@@ -124,6 +132,10 @@ export class UiParamsCtrl {
       }
    }
 
+   /**
+    * @param {Object.<string, any>} ctxFromDialogue
+    * @returns {Promise<string>}
+    */
    async generateInterpolatedCode(ctxFromDialogue) {
       const sel = this.editor.selection.getContent();
       // Decideix quin mode de selecció estam
@@ -142,12 +154,21 @@ export class UiParamsCtrl {
       return interpoledComponentCode;
    }
 
+   /**
+    * @param {number} idTabpane
+    * @param {Object.<string, any>} ctxFromDialogue
+    * @returns
+    */
    async updatePreview(idTabpane, ctxFromDialogue) {
       const interpoledCode = await this.generateInterpolatedCode(ctxFromDialogue);
       const $previewPanel = this.modal.body.find(`#${idTabpane}_1`);
       $previewPanel.html(interpoledCode);
    }
 
+   /**
+    * @param {Object.<string, any>} ctxFromDialogue
+    * @returns
+    */
    async insertWidget(ctxFromDialogue) {
       const recentWidgets = this.userStorage.getFromSession("recentsnpt", "").split(",").filter(e=>e.trim());
       const pos = recentWidgets.indexOf(this.widget.key);
@@ -174,16 +195,24 @@ export class UiParamsCtrl {
 
 /**
  * Generates the context to render the modal dialogue with mustache template
- * @param {TinyMCE} editor
+ * @param {import('./plugin').TinyMCE} editor
  * @param {WidgetWrapper} widget - the widget for which to show de dialogue
  * @param {UserStorage} userStorage
- * @returns {Promise<object>} - The generated context
+ * @returns {Promise<Object.<string, any>>} - The generated context
  */
 const createParametersContext = async(editor, widget, userStorage) => {
+   /** @type {boolean} */
    const mustSaveAll = userStorage.getFromLocal('saveall', false);
+   /** @type {Object.<string, any>} */
    const saveAllData = userStorage.getFromLocal('saveall_data', {});
+   /** @type {Object.<string, any>} */
    const valors = userStorage.getFromLocal("valors", {});
    const defaults = widget.defaults;
+
+   /**
+    * @param {import('./util').Param} param
+    * @returns {*}
+    */
    const obtainCurrentValue = function(param) {
       const sname = widget.name;
       const pname = param.name;
@@ -217,9 +246,9 @@ const createParametersContext = async(editor, widget, userStorage) => {
 /**
  * Generates the HTML to render the control associated with the parameter
  * @param {string} hostId - The id of the editor
- * @param {WidgetWrapper.Parameter} param - The parameter object defining the control
+ * @param {import('./util').Param} param - The parameter object defining the control
  * @param {any} defaultValue - Default values for all parameters
- * @returns {Promise<string>} - The generated HTML for this control
+ * @returns {string} - The generated HTML for this control
  */
 export const createControlHTML = function(hostId, param, defaultValue) {
    let template = '';
@@ -247,12 +276,15 @@ export const createControlHTML = function(hostId, param, defaultValue) {
    } else if (param.type === 'checkbox') {
       template = templateRendererMustache(Templates.CHECKBOXTEMPLATE, generalCtx);
    } else if (param.type === 'select') {
-      const options = (param.options ?? {}).map(opt => {
-         let label = opt.l;
-         let value = opt.v;
+      const options = (param.options ?? []).map(opt => {
+         let label;
+         let value;
          if (typeof opt === 'string') {
             label = capitalize(opt);
             value = opt;
+         } else {
+            label = opt.l;
+            value = opt.v;
          }
          return {optionLabel: label, optionValue: value, selected: value === defaultValue};
       });
@@ -271,12 +303,14 @@ export const createControlHTML = function(hostId, param, defaultValue) {
  * Obtains the updated parameter values from the modal
  * This is used in insertWidget
  * @param {WidgetWrapper} widget
- * @param {HTMLFormElement} form
+ * @param {JQuery<HTMLElement>} form
  * @param {UserStorage?} userStorage
- * @returns {object} - The updated parameters dict
+ * @returns {Object.<string, any>} - The updated parameters dict
  */
 export const getParametersFromForm = (widget, form, userStorage) => {
+   /** @type {Object.<string, any>}  */
    const ctx = {};
+   /** @type {Object.<string, any>}  */
    const toPersist = {};
    const defaults = widget.defaults;
    widget.parameters.forEach(param => {
@@ -287,6 +321,7 @@ export const getParametersFromForm = (widget, form, userStorage) => {
          ctx[pname] = defaults[pname];
          return;
       }
+      /** @type {*} */
       let value = $elem.val() || "";
       if ($elem.prop("tagName") === "INPUT" && $elem.attr("type") === "checkbox") {
          value = $elem.is(':checked');
@@ -306,6 +341,7 @@ export const getParametersFromForm = (widget, form, userStorage) => {
       // Ha de persistir tots els valors?
       const mustSaveAll = userStorage.getFromLocal('saveall', false);
       if (mustSaveAll) {
+         /** @type {Object.<string, any>}  */
          const previousAllData = userStorage.getFromLocal('saveall_data', {});
          previousAllData[widget.name] = {...ctx};
          userStorage.setToLocal('saveall_data', previousAllData, true);
@@ -316,19 +352,22 @@ export const getParametersFromForm = (widget, form, userStorage) => {
 
 
 /**
- * @param {HTMLElement} $formElem
- * @param {Object} defaultsData
+ * @param {JQuery<HTMLElement>} $formElem
+ * @param {Object.<string, any>} defaultsData
  * @param {WidgetWrapper} widget
  * @param {boolean} selectMode
  */
 export const applyFieldWatchers = function($formElem, defaultsData, widget, selectMode) {
+   /** @type {string[]} */
    const watchedvars = []; // All these variable names must be watched
    /**
     * all these components must be updated when one watcher changes
-    *  condition: string,
-    *  component: YUI_Node,
-    *  type: string,
-    *  indx: number
+    *  @type {{
+    *    condition: string,
+    *    component: JQuery<HTMLElement>,
+    *    type: string,
+    *    indx: number
+    *  }[]}
     */
    const updatableComponents = [];
 
@@ -341,7 +380,7 @@ export const applyFieldWatchers = function($formElem, defaultsData, widget, sele
          const condition = varobj.when;
          const t = varobj.type;
          const control = $formElem.find(`[data-bar="${cleanParameterName(varobj.name)}"]`);
-         if (!control.length) {
+         if (!control.length || !t) {
             continue;
          }
          updatableComponents.push({

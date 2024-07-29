@@ -18,31 +18,32 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pmulet@iedib.net>
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {getButtonImage} from 'editor_tiny/utils';
 import {get_string as getString} from 'core/str';
 import {UiPickCtrl} from './uiPick';
-import {
-    component,
-    icon,
-} from './common';
+import Common from './common';
 
 import {isPluginVisible} from './options';
 
-class WidgetPlugin {
+export class WidgetPlugin {
     editor;
-    _pickCtrl;
+    /** @type {UiPickCtrl | undefined} **/
+    #pickCtrl;
+    /**
+     * @param {import('./plugin').TinyMCE} editor
+     */
     constructor(editor) {
         this.editor = editor;
     }
     get pickCtrl() {
-        if (!this._pickCtrl) {
-            this._pickCtrl = new UiPickCtrl(this);
+        if (!this.#pickCtrl) {
+            this.#pickCtrl = new UiPickCtrl(this);
         }
-        return this._pickCtrl;
+        return this.#pickCtrl;
     }
 }
 
@@ -51,32 +52,29 @@ export const getSetup = async() => {
         widgetNameTitle,
         buttonImage,
     ] = await Promise.all([
-        getString('settings', component),
-        getButtonImage('icon', component),
+        // @ts-ignore
+        getString('settings', Common.component),
+        getButtonImage('icon', Common.component),
     ]);
-
+    /** @param {import('./plugin').TinyMCE} editor */
     return (editor) => {
-
-        // eslint-disable-next-line no-console
-        console.log(editor, isPluginVisible(editor));
-
         const widgetPlugin = new WidgetPlugin(editor);
 
         if (isPluginVisible(editor)) {
             // Register the Icon.
-            editor.ui.registry.addIcon(icon, buttonImage.html);
+            editor.ui.registry.addIcon(Common.icon, buttonImage.html);
 
             // Register the Toolbar Button.
-            editor.ui.registry.addButton(component, {
-                icon,
+            editor.ui.registry.addButton(Common.component, {
+                icon: Common.icon,
                 tooltip: widgetNameTitle,
                 onAction: () => widgetPlugin.pickCtrl.handleAction(),
             });
 
             // Add the Menu Item.
             // This allows it to be added to a standard menu, or a context menu.
-            editor.ui.registry.addMenuItem(component, {
-                icon,
+            editor.ui.registry.addMenuItem(Common.component, {
+                icon: Common.icon,
                 text: widgetNameTitle,
                 onAction: () => widgetPlugin.pickCtrl.handleAction(),
             });

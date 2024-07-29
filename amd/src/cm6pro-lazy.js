@@ -1,3 +1,4 @@
+// @ts-nocheck
 /* eslint-disable */
 /**
 The data structure for documents. @nonabstract

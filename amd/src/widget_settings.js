@@ -4,18 +4,41 @@
 import jQuery from 'jquery';
 import {templateRenderer} from './util';
 import CodeProEditor from './cm6pro-lazy';
-import {load, dump} from './js-yaml-lazy';
+import {load, dump} from './js_yaml-lazy';
 import {get_strings as getStrings} from 'core/str';
 
+/**
+ * @class
+ * @member {any[]} presetdata
+ * */
 export default {
+	/** @type {any[]} */
+	presetdata: [],
+	/**
+	 * @param {number} id
+	 * @returns {{
+	 * 	json: HTMLInputElement | null
+	 * }}
+	 */
 	fetchcontrols: function(id) {
-		const controls = {};
-		controls.json = document.getElementById('id_s_tiny_widgethub_def_' + id);
-		return controls;
+		/** @type {*} */
+		const json = document.getElementById(`id_s_tiny_widgethub_def_${id}`);
+		return {
+			json
+		};
 	},
+	/**
+	 * @param {number} id
+	 * @param {number} presetindex
+	 * @param {any[]} [presetdata]
+	 * @returns
+	 */
 	populateform: function(id, presetindex, presetdata) {
 		// Get all our html controls
 		const controls = this.fetchcontrols(id);
+		if (!controls.json) {
+			return;
+		}
 
 		// What a rip off there was no selection!!!
 		if (!presetindex && !presetdata) {
@@ -29,7 +52,6 @@ export default {
 		}
 		const snpt = presetdata[presetindex];
 
-		controls.key.value = snpt.key;
 		// Try to see JSON is valid
 		try {
 			JSON.parse(snpt.json);
@@ -39,15 +61,20 @@ export default {
 			controls.json.value = '';
 		}
 	},
+	/**
+	 * @param {number} id
+	 * @param {*} codeProEditor
+	 * @returns
+	 */
 	updateYaml: function(id, codeProEditor) {
 		const controls = this.fetchcontrols(id);
-		if (!controls.json.value.trim()) {
+		if (!controls.json?.value?.trim()) {
 			codeProEditor.setValue('');
 			return;
 		}
 		try {
 			const obj = JSON.parse(controls.json.value);
-			const yml = dump(obj);
+			const yml = dump(obj, {});
 			codeProEditor.setValue(yml);
 		} catch (ex) {
 			console.error(ex);
@@ -55,44 +82,55 @@ export default {
 			codeProEditor.setValue('');
 		}
 	},
+	/**
+	 * @param {number} id
+	 * @param {*} templatedata
+	 */
 	dopopulate: function(id, templatedata) {
 		console.info("dopopulate", id, templatedata);
 		this.populateform(id, 0, new Array(templatedata));
 	},
-
+	/**
+	 * @param {string} yml
+	 * @param {{id: number, keys: string[], partials: any}} opts
+	 * @returns
+	 */
 	validate: async function(yml, opts) {
-		const validation = {msg: '', html: ''};
+		/**
+		 * @type {{
+		 * 	msg: string,
+		 *  html: string,
+		 *  json: string | undefined
+		 * }}
+		 * */
+		const validation = {msg: '', html: '', json: undefined};
 		try {
 			// The code is a valid Yaml
-			let jsonObj = {};
+			/** @type {import('./util').Widget | undefined} */
+			let jsonObj;
 			try {
-				jsonObj = load(yml) ?? {};
+				jsonObj = load(yml, null) ?? {};
 			} catch (ex) {
 				validation.msg = "Yaml syntax error:: " + ex;
 			}
 			validation.json = JSON.stringify(jsonObj, null, 0);
 			// The structure is correct
-			if (!jsonObj.key) {
+			if (!jsonObj?.key) {
 				validation.msg = "Yaml file must contain a 'key' property. ";
 			} else if (jsonObj.key === "partials") {
 				return validation;
-			} else {
-				if (jsonObj.key !== 'partials' && (!jsonObj.name || !jsonObj.template)) {
-					validation.msg += "Widgets must have 'name' and 'template' properties. ";
-				}
-				if (jsonObj.requires && typeof jsonObj.requires !== "string") {
-					validation.msg += "The property 'requires' must be a string. ";
-				}
+			} else if (jsonObj.key !== 'partials' && (!jsonObj.name || !jsonObj.template)) {
+				validation.msg += "Widgets must have 'name' and 'template' properties. ";
 			}
 			// Check for duplicated keys
-			if (opts.id === 0) {
+			if (opts.id === 0 && jsonObj?.key) {
 				const keys = opts.keys || [];
 				if (keys.includes(jsonObj.key)) {
 					validation.msg += `Key ${jsonObj.key} is already in use. Please rename it. `;
 				}
 			}
 			// Handle partials in parameters
-			const partials = this.getPartials();
+			const partials = opts.partials;
 			const paramsCopy = (jsonObj?.parameters || []).map(param => {
 				let pc = {...param};
 				if (pc.partial && partials[pc.partial]) {
@@ -101,13 +139,14 @@ export default {
 				return pc;
 			});
 			// Try to parse the template with mustache renderer
-			const translations = jsonObj?.I18n?.en || {};
+			const translations = jsonObj?.I18n || {};
+			/** @type {Object.<string, any>} */
 			const ctx = {};
 			paramsCopy.forEach(param => {
 				ctx[param.name] = param.value;
 			});
-			const engine = jsonObj.engine;
-			const htmlRendered = await templateRenderer(jsonObj.template, ctx, translations, engine);
+			const engine = jsonObj?.engine;
+			const htmlRendered = await templateRenderer(jsonObj?.template || '', ctx, translations, engine);
 			validation.html = htmlRendered;
 		} catch (ex) {
 			validation.msg = "Renderer error:: " + ex;
@@ -115,20 +154,11 @@ export default {
 		return validation;
 	},
 
-	getPartials: function() {
-		let partials = null;
-		let i = 0;
-		const len = (this.presetdata || []).length;
-		while (partials === null && i < len) {
-			if (this.presetdata[i].key === "partials") {
-				partials = this.presetdata[i];
-			}
-			i++;
-		}
-		return partials || {};
-	},
-
-	// Load all widget stuff and stash all our constiables
+	/**
+	 * Load all widgets
+	 * @param {{id: number, keys: string[], partials: any}} opts
+	 * @returns
+	 */
 	init: async function(opts) {
 		console.info("Init AMD called with opts ", JSON.stringify(opts));
 		const i18n = await getStrings([
@@ -136,7 +166,6 @@ export default {
 			{key: 'delete', component: 'tiny_widgethub'}
 		]);
 
-		this.presetdata = [];
 		// Hide the control that handles JSON and it is actually saved
 		const $controlMain = jQuery('#id_s_tiny_widgethub_def_' + opts.id);
 		$controlMain.css("display", "none");
@@ -157,7 +186,7 @@ export default {
 				alert(validation.msg);
 			} else {
 				$previewPanel.removeClass('d-none');
-				$controlMain.val(validation.json);
+				$controlMain.val(validation.json ?? '');
 				$previewPanel.html(validation.html);
 			}
 		});
@@ -182,12 +211,19 @@ export default {
 
 		// Handle the select box change event
 		jQuery("select[name='tiny_widgethub/hub']").on('change', function() {
-			console.info(jQuery(this).val());
-			self.populateform(opts.id, jQuery(this).val());
+			/** @type {any} */
+			const choosen = jQuery(this).val();
+			console.info(choosen);
+			if (!choosen) {
+				return;
+			}
+			self.populateform(opts.id, choosen);
 			self.updateYaml(opts.id, codeProEditor);
 		});
 
-		$controlMain.closest("form").on("submit", async(ev) => {
+		$controlMain.closest("form").on("submit",
+			/** @param {*} ev */
+			async(ev) => {
 			// Must update the content from the Yaml control
 			const yml = codeProEditor.getValue();
 			// First validate the definition of the widget
@@ -197,7 +233,7 @@ export default {
 					alert(validation.msg);
 					ev.preventDefault();
 				} else {
-					$controlMain.val(validation.json);
+					$controlMain.val(validation.json ?? '');
 				}
 				return validation.msg === '';
 			}

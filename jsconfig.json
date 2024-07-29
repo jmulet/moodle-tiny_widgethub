@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "checkJs": true,
+        "target": "ESNext",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "strict": true,
+        "lib": ["esnext"],
+        "esModuleInterop": true,
+        "paths": {
+            "editor_tiny/utils": ["../../amd/src/utils"],
+            "editor_tiny/loader": ["../../amd/src/loader"],
+            "editor_tiny/options": ["../../amd/src/options"],
+            "core/str": ["../../../../amd/src/str.js"],
+            "core/config": ["../../../../amd/src/config.js"],
+            "core/mustache": ["../../../../amd/src/mustache.js"],
+            "core/modal_factory": ["../../../../amd/src/modal_factory.js"],
+            "core/modal_events": ["../../../../amd/src/modal_events.js"],
+            "core/modal": ["../../../../amd/src/modal.js"],
+            "core/modal_registry": ["../../../../amd/src/modal_registry.js"],
+        }
+    },
+    
+  }

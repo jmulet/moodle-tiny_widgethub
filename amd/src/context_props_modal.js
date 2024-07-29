@@ -17,7 +17,7 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pmulet@iedib.net>
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,17 +27,21 @@ import ModalEvents from 'core/modal_events';
 import {createControlHTML, getParametersFromForm, applyFieldWatchers} from './uiParams';
 import {parseBinding} from './util';
 
-/*
- * Create a generic editor dialogue class based on editor field of widget definition
- *
+/**
+ * @class
+ * @classdesc Create a generic editor dialogue class based on editor field of widget definition
  */
 export default class ContextPropsModal {
     /**
      * @member {TinyMCE} #editor
      */
     #editor;
+    // @ts-ignore
     #modal;
 
+    /**
+     * @param {import('./plugin').TinyMCE} editor
+     */
     constructor(editor) {
         this.#editor = editor;
     }
@@ -45,25 +49,29 @@ export default class ContextPropsModal {
     /**
      * Displays a modal dialog for editing the currentContext
      * based on contextual
-     * @param {Context} currentContext
-     * @returns void
+     * @param {import('./context_init').PathResult} currentContext
+     * @returns
      */
     async show(currentContext) {
         const widget = currentContext.widget;
         const hostId = this.#editor.id;
+        const elem = currentContext.elem;
 
-        if (!widget.hasBindings()) {
+        if (!elem || !widget?.hasBindings()) {
             // eslint-disable-next-line no-console
             console.error("Invalid genericEditor widget definition ", widget);
             return;
         }
 
         // Create bindings
+        /** @type {Object.<string, any>} */
         const bindingsDOM = {};
         // Extract param values from DOM
+        /** @type {Object.<string, any>} */
         const paramValues = {};
         widget.parameters.filter(param => param.bind?.trim()).forEach((param) => {
-            const binding = parseBinding(param.bind.trim(), currentContext.elem, typeof (param.value));
+            const bindSrc = (param.bind ?? '').trim();
+            const binding = parseBinding(bindSrc, elem, typeof (param.value));
             if (binding) {
                 bindingsDOM[param.name] = binding;
                 paramValues[param.name] = binding.getValue();
@@ -72,6 +80,7 @@ export default class ContextPropsModal {
 
         // Create parameters form controls
         // Filter only those parameters which have default Values
+        /** @type {string[]} */
         const controls = [];
         widget.parameters.filter(param => param.bind).forEach((param) => {
             controls.push(createControlHTML(hostId, param, paramValues[param.name]));
@@ -83,11 +92,13 @@ export default class ContextPropsModal {
         };
 
         // Create the modal
+        // @ts-ignore
         this.#modal = await ModalFactory.create({
             type: IBContextModal.TYPE,
             templateContext: data,
             large: true,
         });
+        // @ts-ignore
         this.#modal.getRoot().on(ModalEvents.hidden, () => {
             this.#modal.destroy();
         });

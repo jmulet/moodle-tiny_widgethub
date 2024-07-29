@@ -1,12 +1,12 @@
 /* eslint-disable no-console */
 /* eslint-disable max-len */
-import { getAddCustomElements, getAddValidElements, getAdditionalCss } from './options';
+import {getAddCustomElements, getAddValidElements, getAdditionalCss} from './options';
 import * as cfg from 'core/config';
 import jQuery from 'jquery';
-import { initContextActions } from './context_init';
+import {initContextActions} from './context_init';
 
 /**
- * @param {TinyMCE} editor
+ * @param {import('./plugin').TinyMCE} editor
  */
 export function initializer(editor) {
     // Before setting the first content, we must extend the number of valid HTML tags
@@ -26,6 +26,7 @@ export function initializer(editor) {
         // http://localhost:4141/theme/styles.php/boost/1721728984_1/all
         // TODO: Missing themesubrevision
         const subversion = 1;
+        // @ts-ignore
         const allCss = `${cfg.wwwroot}/theme/styles.php/${cfg.theme}/${cfg.themerev}_${subversion}/all`;
         editor.dom.loadCSS(allCss);
 
@@ -37,6 +38,7 @@ export function initializer(editor) {
         const head = editor.getDoc().querySelector("head");
         scriptJQ.onload = () => {
             // Cannot load BS until JQ is fully loaded
+            // @ts-ignore
             const bsVersion = jQuery.fn.tooltip?.Constructor?.VERSION ?? '4.6.2';
             const scriptBS = editor.dom.create("script",
                 { src: `https://cdn.jsdelivr.net/npm/bootstrap@${bsVersion}/dist/js/bootstrap.bundle.min.js` });

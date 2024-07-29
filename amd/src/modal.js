@@ -1,3 +1,4 @@
+// @ts-nocheck
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -17,14 +18,14 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pmulet@iedib.net>
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import Modal from 'core/modal';
 import ModalRegistry from 'core/modal_registry';
 
-export const IBPickModal = class extends Modal {
+export class IBPickModal extends Modal {
     static TYPE = 'tiny_widgethub/pickModal';
     static TEMPLATE = 'tiny_widgethub/pickModal';
 
@@ -32,11 +33,11 @@ export const IBPickModal = class extends Modal {
         // Call the parent registration.
         super.registerEventListeners();
     }
-};
+}
 ModalRegistry.register(IBPickModal.TYPE, IBPickModal, IBPickModal.TEMPLATE);
 
 
-export const IBParamsModal = class extends Modal {
+export class IBParamsModal extends Modal {
     static TYPE = 'tiny_widgethub/paramsModal';
     static TEMPLATE = 'tiny_widgethub/paramsModal';
 
@@ -44,10 +45,10 @@ export const IBParamsModal = class extends Modal {
         // Call the parent registration.
         super.registerEventListeners();
     }
-};
+}
 ModalRegistry.register(IBParamsModal.TYPE, IBParamsModal, IBParamsModal.TEMPLATE);
 
-export const IBContextModal = class extends Modal {
+export class IBContextModal extends Modal {
     static TYPE = 'tiny_widgethub/contexModal';
     static TEMPLATE = 'tiny_widgethub/contextModal';
 
@@ -55,5 +56,5 @@ export const IBContextModal = class extends Modal {
         // Call the parent registration.
         super.registerEventListeners();
     }
-};
+}
 ModalRegistry.register(IBContextModal.TYPE, IBContextModal, IBContextModal.TEMPLATE);

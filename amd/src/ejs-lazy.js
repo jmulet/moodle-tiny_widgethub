@@ -1,3 +1,4 @@
+// @ts-nocheck
 /* eslint-disable complexity */
 /* eslint-disable no-new-func */
 /* eslint-disable no-console */
@@ -21,7 +22,7 @@
  * An adaptation of the EJS templating engine as AMD module.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pmulet@iedib.net>
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -42,12 +43,6 @@
  * limitations under the License.
  *
 */
-
-/**
- * Private utility functions
- * @module utils
- * @private
- */
 
 const utils = {};
 (function(mod) {

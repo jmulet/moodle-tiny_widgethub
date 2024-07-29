@@ -23,14 +23,19 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pmulet@iedib.net>
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import Mustache from 'core/mustache';
 
+import Mustache from 'core/mustache';
 import {get_strings as getStrings} from 'core/str';
 
 // Load on demand the template engines
+/**
+ * @typedef {Object} EJS
+ * @property {(template: string, ctx: Object.<string,any>) => string} render
+ */
+/** @type {EJS} */
 let Ejs;
 /**
  * @returns {Promise<EJS>}
@@ -40,6 +45,7 @@ function getEJS() {
         return Promise.resolve(Ejs);
     }
     return new Promise((resolve, reject) => {
+        // @ts-ignore
         require(['tiny_widgethub/ejs-lazy'], (ejsModule) => {
             Ejs = ejsModule;
             resolve(Ejs);
@@ -72,7 +78,7 @@ export function genID() {
 }
 
 /**
- * @param {object} ctx
+ * @param {Object.<string, any>} ctx
  * @param {string} expr
  * @returns {any} The evaluated expression within the context ctx
  */
@@ -96,6 +102,11 @@ export function scopedEval(ctx, expr) {
     return evaluator(...listVals);
 }
 
+/**
+ * @param {string} text
+ * @param {Object.<string, any>} ctx2
+ * @returns {string}
+ */
 const defineVar = function(text, ctx2) {
     const pos = text.indexOf("=");
     const varname = text.substring(0, pos).trim();
@@ -106,11 +117,17 @@ const defineVar = function(text, ctx2) {
 
 /**
  * Extends Mustache templates with some helpers
- * @param {object} ctx
- * @param {object} translations
+ * @param {Object.<string, any>} ctx
+ * @param {Object.<string, Object.<string, string>} translations
  */
 const applyMustacheHelpers = function(ctx, translations) {
-    ctx["if"] = () => function(text, render) {
+
+    ctx["if"] = () =>
+        /**
+         * @param {string} text
+         * @param {Mustache.render} render
+         */
+        function(text, render) {
         const pos = text.indexOf("]");
         const condition = text.substring(0, pos).trim().substring(1);
         const show = scopedEval(ctx, condition);
@@ -118,19 +135,36 @@ const applyMustacheHelpers = function(ctx, translations) {
             return render(text.substring(pos + 1).trim());
         }
         return "";
-    };
-    ctx["var"] = () => function(text) {
-        defineVar(text, ctx);
-    };
-    ctx["eval"] = () => function(text) {
-        return scopedEval(ctx, text) + "";
-    };
-    ctx["I18n"] = () => function(text, render) {
-        const key = render(text).trim();
-        const dict = translations[key] || {};
-        return dict[ctx["LANG"]] || dict["en"] || dict["ca"] || key;
-    };
-    ctx["each"] = () => function(text) {
+        };
+    ctx["var"] = () =>
+         /**
+         * @param {string} text
+         */
+        function(text) {
+            defineVar(text, ctx);
+        };
+    ctx["eval"] = () =>
+        /**
+         * @param {string} text
+         */
+        function(text) {
+            return scopedEval(ctx, text) + "";
+        };
+    ctx["I18n"] = () =>
+        /**
+         * @param {string} text
+         * @param {Mustache.render} render
+         */
+        function(text, render) {
+            const key = render(text).trim();
+            const dict = translations[key] || {};
+            return dict[ctx["LANG"]] || dict["en"] || dict["ca"] || key;
+        };
+    ctx["each"] = () =>
+        /**
+         * @param {string} text
+         */
+        function(text) {
         const pos = text.indexOf("]");
         const cond = text.substring(0, pos).trim().substring(1);
         const components = cond.split(",");
@@ -138,7 +172,7 @@ const applyMustacheHelpers = function(ctx, translations) {
         const maxValues = new Array(dim);
         const loopVars = new Array(dim);
         let total = 1;
-        const cc = 'i'.charCodeAt();
+        const cc = 'i'.charCodeAt(0);
         components.forEach((def, i) => {
             const parts = def.split("=");
             if (parts.length === 1) {
@@ -153,6 +187,7 @@ const applyMustacheHelpers = function(ctx, translations) {
         });
         let output = [];
         for (let _ei = 0; _ei < total; _ei++) {
+            // @ts-ignore
             output.push(Mustache.render(text.substring(pos + 1), ctx));
             let currentDim = dim - 1;
             let incrUp;
@@ -165,8 +200,12 @@ const applyMustacheHelpers = function(ctx, translations) {
             } while (currentDim >= 0 && incrUp);
         }
         return output.join('');
-    };
-    ctx["for"] = () => function(text) {
+        };
+    ctx["for"] = () =>
+         /**
+         * @param {string} text
+         */
+        function(text) {
         const pos = text.indexOf("]");
         const condition = text.substring(0, pos).trim().substring(1);
         const parts = condition.split(";");
@@ -174,9 +213,10 @@ const applyMustacheHelpers = function(ctx, translations) {
         let output = "";
         let maxIter = 0; // Prevent infinite loop imposing a limit of 1000
         while (scopedEval(ctx, parts[1]) && maxIter < 1000) {
+            // @ts-ignore
             output += Mustache.render(text.substring(pos + 1), ctx);
             if (parts.length === 3 && parts[2].trim()) {
-                defineVar(loopvar + "=" + parts[2]);
+                defineVar(loopvar + "=" + parts[2], ctx);
             } else {
                 ctx[loopvar] = ctx[loopvar] + 1;
             }
@@ -184,12 +224,12 @@ const applyMustacheHelpers = function(ctx, translations) {
         }
         return output;
     };
-};
+    };
 
 /**
  * @param {string} template
- * @param {object} context
- * @param {object | undefined} translations
+ * @param {Object.<string, any>} context
+ * @param {Object.<string, Object.<string, string>>} [translations]
  * @returns {string} The interpolated template given a context and translations map
  */
 export function templateRendererMustache(template, context, translations) {
@@ -199,18 +239,20 @@ export function templateRendererMustache(template, context, translations) {
             ctx[key] = genID();
         }
     });
-    applyMustacheHelpers(ctx, translations || {});
+    applyMustacheHelpers(ctx, translations ?? {});
+    // @ts-ignore
     return Mustache.render(template, ctx);
 }
 
 
 /**
  * @param {string} template
- * @param {object} context
- * @param {object} translations
+ * @param {Object.<string, any>} context
+ * @param {Object.<string, Object.<string, any>>} translations
  * @returns {Promise<string>} The interpolated template given a context and translations map
  */
 async function templateRendererEJS(template, context, translations) {
+    /** @type {Object.<string, any>} */
     const ctx = {...context, I18n: {}};
     Object.keys(ctx).forEach(key => {
         if (ctx[key] === "$RND") {
@@ -228,10 +270,10 @@ async function templateRendererEJS(template, context, translations) {
 
 /**
  * @param {string} template
- * @param {object} context
- * @param {object} translations
- * @param {string} engine (ejs | mustache) optional
- * @returns {Promise<string>} The interpolated template given a context and translations map
+ * @param {Object.<string, any>} context
+ * @param {Object.<string, Object.<string, any>>} translations
+ * @param {string=} engine - (ejs | mustache) optional
+ * @returns {Promise<string>} - The interpolated template given a context and translations map
  */
 export function templateRenderer(template, context, translations, engine) {
     if (!engine) {
@@ -246,26 +288,75 @@ export function templateRenderer(template, context, translations, engine) {
 }
 
 /**
- * Wrapper for Widget definition
+ * @typedef {Object} ParamOption
+ * @property {string} l
+ * @property {string} v
+ */
+/**
+ * @typedef {Object} Param
+ * @property {string=} partial
+ * @property {string} name
+ * @property {string} title
+ * @property {'textfield' | 'numeric' | 'checkbox' | 'select' | 'textarea' | 'image' | 'color'} [type]
+ * @property {(ParamOption | string)[]} [options]
+ * @property {any} value
+ * @property {string=} tip
+ * @property {string=} tooltip
+ * @property {number=} min
+ * @property {number=} max
+ * @property {string=} transform
+ * @property {string=} bind
+ * @property {string=} when
+ * @property {boolean} [hidden]
+ * @property {boolean} [editable]
+ */
+/**
+ * @typedef {Object} Widget
+ * @property {number} id
+ * @property {string} key
+ * @property {string} category
+ * @property {string=} scope - Regex for idenfying allowed body ids
+ * @property {string} name
+ * @property {string=} instructions
+ * @property {'mustache' | 'ejs'} [engine]
+ * @property {string} template
+ * @property {Param[]=} parameters
+ * @property {Object.<string, Object<string, string>>} [I18n]
+ * @property {string | string[]} [selectors]
+ * @property {string=} insertquery
+ * @property {string=} unwrap
+ * @property {string=} for
+ * @property {string} version
+ * @property {string} author
+ * @property {boolean=} hidden
+ */
+/**
+ * @class
+ * @classdesc Wrapper for Widget definition
  */
 export class WidgetWrapper {
     #widget;
     #instructionsParsed = false;
 
     /**
-     * @param {WidgetWrapper} snpt
-     * @param {Object} partials
+     * @param {Widget} widget
+     * @param {Object.<string, any>} partials
      */
-    constructor(snpt, partials) {
+    constructor(widget, partials) {
+        this.#widget = widget;
+        const parameters = widget.parameters;
+        if (!parameters) {
+            return;
+        }
         // Do some fixes on parameters
-        snpt.parameters?.forEach((param, i) => {
+        parameters.forEach((param, i) => {
             // Case of a partial
             if (param.partial) {
                 if (!partials[param.partial]) {
                     console.error("Cannot find partial for ", param.partial, partials);
                     return;
                 }
-                snpt.parameters[i] = partials[param.partial];
+                parameters[i] = partials[param.partial];
             }
             if (!param.type) {
                 if (typeof param.value === "boolean") {
@@ -277,7 +368,6 @@ export class WidgetWrapper {
                 }
             }
         });
-        this.#widget = snpt;
     }
     /**
      * @returns {string}
@@ -307,23 +397,29 @@ export class WidgetWrapper {
      * @returns {string}
      */
     get category() {
-        return this.#widget.category || "MISC";
+        return this.#widget.category ?? "MISC";
     }
+    /**
+     * @returns {string=}
+     */
     get insertquery() {
         return this.#widget.insertquery;
     }
     /**
-     * @returns {string}
+     * @returns {string | string[] =}
      */
     get selectors() {
         return this.#widget.selectors;
     }
     /**
-     * @returns {string}
+     * @returns {string=}
      */
     get unwrap() {
-        return this.#widget.uwrap;
+        return this.#widget.unwrap;
     }
+    /**
+     * @returns {string}
+    */
     get version() {
         return this.#widget.version || "1.0.0";
     }
@@ -331,22 +427,23 @@ export class WidgetWrapper {
      * @returns {string}
      */
     get instructions() {
-        if (!this.#instructionsParsed) {
+        if (this.#widget.instructions && !this.#instructionsParsed) {
             this.#widget.instructions = decodeURIComponent(this.#widget.instructions);
             this.#instructionsParsed = true;
         }
-        return this.#widget.instructions;
+        return this.#widget.instructions ?? '';
     }
     /**
-     * @returns {object[]}
+     * @returns {Param[]}
      */
     get parameters() {
-        return this.#widget.parameters || [];
+        return this.#widget.parameters ?? [];
     }
     /**
-     * @returns {object}
+     * @returns {Object.<string, any>}
      */
     get defaults() {
+        /** @type {Object.<string, any> } */
         const obj = {};
         this.parameters.forEach((param) => {
             obj[param.name] = param.value;
@@ -388,11 +485,11 @@ export class WidgetWrapper {
         return isAllowed;
     }
     /**
-     * @param {string} scope
+     * @param {string=} scope
      * @returns {boolean}
      */
     isUsableInScope(scope) {
-        scope = scope || Shared.currentScope;
+        scope = scope ?? Shared.currentScope ?? '';
         const widgetScopes = this.#widget.scope;
         if (!scope || !widgetScopes || widgetScopes === "*") {
             return true;
@@ -414,10 +511,11 @@ export class WidgetWrapper {
     }
     /**
      * Recovers the property value named name of the original definition
-     * @param {*} name
-     * @returns {any}
+     * @param {string} name
+     * @returns {*}
      */
     prop(name) {
+        // @ts-ignore
         return this.#widget[name];
     }
 }
@@ -441,8 +539,8 @@ export function hashCode(s) {
 }
 
 /**
- * Defines local and session storage classes for a given
- * context (user & course)
+ * @class
+ * @classdesc Defines local and session storage classes for a given context (user & course)
  */
 export class UserStorage {
     static _instances = {};
@@ -459,12 +557,16 @@ export class UserStorage {
      */
     static getInstance(userId, courseId) {
         const key = userId + "_" + courseId;
+        // @ts-ignore
         if (!UserStorage._instances[key]) {
+            // @ts-ignore
             UserStorage._instances[key] = new UserStorage(userId, courseId);
         }
+        // @ts-ignore
         return UserStorage._instances[key];
     }
     // Private constructor
+    // @ts-ignore
     constructor(userId, courseId) {
         this._userId = userId;
         this._courseId = courseId;
@@ -488,7 +590,9 @@ export class UserStorage {
             }
         }
         // Added storage for this _course
+        // @ts-ignore
         if (!this._localStore["_" + this._courseId]) {
+            // @ts-ignore
             this._localStore["_" + this._courseId] = {};
         }
         if (typeof window.sessionStorage !== 'undefined') {
@@ -512,11 +616,14 @@ export class UserStorage {
         if (!this._localStore) {
             return defaultValue;
         }
+        // @ts-ignore
         const MLSC = this._localStore["_" + this._courseId]; // Almost everything goes here
         const MLS = this._localStore; // Only configuration params
         if (MLSC) {
+            // @ts-ignore
             return MLSC[key] || MLS[key] || defaultValue;
         } else if (MLS) {
+            // @ts-ignore
             return MLS[key] || defaultValue;
         }
         return defaultValue;
@@ -528,6 +635,7 @@ export class UserStorage {
      * @returns {T}
      */
     getFromSession(key, defaultValue) {
+        // @ts-ignore
         return (this._sessionStore[key] != null ? this._sessionStore[key] : defaultValue);
     }
     /**
@@ -558,26 +666,33 @@ export class UserStorage {
         if (this._localStore == null) {
             return;
         }
+        // @ts-ignore
         const MLSC = this._localStore["_" + this._courseId]; // Almost everything goes here
         const MLS = this._localStore; // Only configuration params
 
+        // @ts-ignore
         if (typeof (theValueMap) === 'object') {
             if (MLSC && key === 'saveall_data' || key === 'valors') {
                 MLSC[key] = MLSC[key] || {};
             } else {
+                // @ts-ignore
                 MLS[key] = MLS[key] || {};
             }
+            // @ts-ignore
             const keys = Object.keys(value);
             for (let i = 0, len = keys.length; i < len; i++) {
                 const theKey = keys[i];
+                // @ts-ignore
                 const val = value[theKey];
                 if (MLSC && key === 'saveall_data' || key === 'valors') {
                     MLSC[key][theKey] = val;
                 } else {
+                    // @ts-ignore
                     MLS[key][theKey] = val;
                 }
             }
         } else {
+            // @ts-ignore
             MLS[key] = value;
         }
         if (persist) {
@@ -593,14 +708,19 @@ export class UserStorage {
      */
     setToSession(key, value, persist) {
         if (typeof (value) === 'object') {
+            // @ts-ignore
             this._sessionStore[key] = this._sessionStore[key] || {};
+            // @ts-ignore
             const keys = Object.keys(value);
             for (let i = 0, len = keys.length; i < len; i++) {
                 const theKey = keys[i];
+                // @ts-ignore
                 const val = value[theKey];
+                // @ts-ignore
                 this._sessionStore[key][theKey] = val;
             }
         } else {
+            // @ts-ignore
             this._sessionStore[key] = value;
         }
         if (persist) {
@@ -638,15 +758,19 @@ export function searchComp(str1, needle) {
 
 /** Default transformers */
 const Transformers = {
+    // @ts-ignore
     "toUpperCase": function(txt) {
         return (txt + "").toUpperCase();
     },
+    // @ts-ignore
     "toLowerCase": function(txt) {
         return (txt + "").toLowerCase();
     },
+    // @ts-ignore
     "trim": function(txt) {
         return (txt + "").trim();
     },
+    // @ts-ignore
     "ytId": function(txt) {
         // Finds the youtubeId in a text
         const rx = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/;
@@ -656,6 +780,7 @@ const Transformers = {
         }
         return txt;
     },
+    // @ts-ignore
     "vimeoId": function(txt) {
         const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?(\d+)/;
         const match = (txt || "").match(regExp);
@@ -664,6 +789,7 @@ const Transformers = {
         }
         return txt;
     },
+    // @ts-ignore
     "serveGDrive": function(txt) {
         // Expecting https://drive.google.com/file/d/1DDUzcFrOlzWb3CBdFPJ1NCNXClvPbm5B/preview
         const res = (txt + "").match(/https:\/\/drive.google.com\/file\/d\/([a-zA-Z0-9_]+)\//);
@@ -673,9 +799,11 @@ const Transformers = {
         }
         return txt;
     },
+    // @ts-ignore
     "removeHTML": function(txt) {
         return (txt || '').replace(/<[^>]*>?/gm, '');
     },
+    // @ts-ignore
     "escapeHTML": function(txt) {
         return (txt || '').replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
@@ -683,9 +811,12 @@ const Transformers = {
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
     },
+    // @ts-ignore
     "encodeHTML": function(txt) {
+        // @ts-ignore
         return this.encodeURIComponent(txt || "");
     },
+    // @ts-ignore
     "escapeQuotes": function(txt) {
         return (txt || '').replace(/"/gm, "'");
     }
@@ -694,11 +825,13 @@ const Transformers = {
 
 class Builder {
     transSeq;
+    // @ts-ignore
     constructor(transformStr) {
         const parts = transformStr.split('|');
         this.transSeq = [];
         for (let j = 0, lenj = parts.length; j < lenj; j++) {
             const prts = parts[j].trim();
+            // @ts-ignore
             const transfunc = Transformers[prts];
             if (transfunc != null) {
                 this.transSeq.push(transfunc);
@@ -708,6 +841,7 @@ class Builder {
         }
     }
 
+    // @ts-ignore
     reduce(text) {
         for (let j = 0, lenj = this.transSeq.length; j < lenj; j++) {
             const transfunc = this.transSeq[j];
@@ -750,11 +884,11 @@ export function createFilterFunction(filterCode) {
     return userWidgetFilter;
 }
 /**
- * @param {tinyMCE} editor
+ * @param {import('./plugin').TinyMCE} editor
  * @param {string} widgetTemplate
  * @param {boolean} silent
  * @param {object?} mergevars
- * @returns {boolean} - True if the filter can be compiled
+ * @returns {Promise<boolean>} - True if the filter can be compiled
  */
 export async function applyWidgetFilter(editor, widgetTemplate, silent, mergevars) {
     const translations = await getStrings([
@@ -772,6 +906,7 @@ export async function applyWidgetFilter(editor, widgetTemplate, silent, mergevar
         });
         return false;
     }
+    // @ts-ignore
     const handleFilterResult = function(res) {
         const out = res[0];
         let msg = res[1];
@@ -845,8 +980,8 @@ export function convertInt(str, def) {
 /**
  * Finds the parameter with a given name within the list of objects
  * @param {string} varname
- * @param {WidgetParameter[]} listVars
- * @returns {WidgetParameter | null}
+ * @param {Param[]} listVars
+ * @returns {Param | null}
  */
 export function findVariableByName(varname, listVars) {
     if (!listVars) {
@@ -900,9 +1035,9 @@ export function addBaseToUrl(base, url) {
 /**
  * Creates a script tag and adds it to the head section. It handles loading and error cases
  * @param {string} url
- * @param {string | undefined} id
- * @param {function() | undefined} onSuccess
- * @param {function() | undefined} onError
+ * @param {string} [id]
+ * @param {() => void} [onSuccess]
+ * @param {() => void} [onError]
  */
 export function addScript(url, id, onSuccess, onError) {
     if (id && document.head.querySelector('script#' + id) != null) {
@@ -930,6 +1065,7 @@ export function addScript(url, id, onSuccess, onError) {
     document.head.append(newScript);
 }
 
+// @ts-ignore
 const performCasting = function(value, type) {
     switch (type) {
         case ("boolean"):
@@ -955,6 +1091,7 @@ const performCasting = function(value, type) {
 
 const BindingFactory = {
     "hasClass": class {
+        // @ts-ignore
         constructor(elem, className, castTo, neg) {
             this.elem = elem;
             this.castTo = castTo;
@@ -966,6 +1103,7 @@ const BindingFactory = {
             const res = this.neg ^ this.elem.classList.contains(this.className);
             return this.castTo === 'boolean' ? Boolean(res) : res;
         }
+        // @ts-ignore
         setValue(bool) {
             if (this.neg ^ bool) {
                 this.elem.classList.add(this.className);
@@ -975,6 +1113,7 @@ const BindingFactory = {
         }
     },
     "classRegex": class {
+        // @ts-ignore
         constructor(elem, classExpr, castTo) {
             this.elem = elem;
             this.castTo = castTo;
@@ -982,6 +1121,7 @@ const BindingFactory = {
         }
         getValue() {
             let ret = "";
+            // @ts-ignore
             this.elem.classList.forEach(c => {
                 const match = c.match(this.classExpr);
                 if (match?.[1] && typeof (match[1]) === "string") {
@@ -990,8 +1130,10 @@ const BindingFactory = {
             });
             return performCasting(ret, this.castTo);
         }
+        // @ts-ignore
         setValue(val) {
             const cl = this.elem.classList;
+            // @ts-ignore
             cl.forEach(c => {
                 if (c.match(this.classExpr)) {
                     cl.remove(c);
@@ -1001,6 +1143,7 @@ const BindingFactory = {
         }
     },
     "attr": class {
+        // @ts-ignore
         constructor(elem, attrName, castTo) {
             this.elem = elem;
             this.castTo = castTo;
@@ -1009,6 +1152,7 @@ const BindingFactory = {
         getValue() {
             return performCasting(this.elem.getAttribute(this.attrName), this.castTo);
         }
+        // @ts-ignore
         setValue(val) {
             if (typeof val === "boolean") {
                 val = val ? 1 : 0;
@@ -1017,6 +1161,7 @@ const BindingFactory = {
         }
     },
     "hasAttr": class {
+        // @ts-ignore
         constructor(elem, attr, castTo, neg) {
             this.elem = elem;
             this.castTo = castTo;
@@ -1032,6 +1177,7 @@ const BindingFactory = {
             if (this.attrValue) {
                 found = found && this.elem.getAttribute(this.attrName) === this.attrValue;
             }
+            // @ts-ignore
             const res = this.neg ^ found;
             if (this.castTo === "boolean") {
                 return Boolean(res);
@@ -1039,6 +1185,7 @@ const BindingFactory = {
                 return res;
             }
         }
+        // @ts-ignore
         setValue(bool) {
             if (this.neg ^ bool) {
                 this.elem.setAttribute(this.attrName, this.attrValue || '');
@@ -1048,6 +1195,7 @@ const BindingFactory = {
         }
     },
     "attrRegex": class {
+        // @ts-ignore
         constructor(elem, attr, castTo) {
             this.elem = elem;
             this.castTo = castTo;
@@ -1068,11 +1216,13 @@ const BindingFactory = {
             }
             return null;
         }
+        // @ts-ignore
         setValue(val) {
             this.elem.setAttribute(this.attrName, this.attrValue.replace("(.*)", val + ""));
         }
     },
     "hasStyle": class {
+        // @ts-ignore
         constructor(elem, attr, castTo, neg) {
             this.elem = elem;
             this.castTo = castTo;
@@ -1086,6 +1236,7 @@ const BindingFactory = {
         getValue() {
             const st = this.elem.style;
             const has = st.getPropertyValue(this.styName) === this.styValue;
+            // @ts-ignore
             const res = has ^ this.neg;
             if (this.castTo === "boolean") {
                 return Boolean(res);
@@ -1093,6 +1244,7 @@ const BindingFactory = {
                 return res;
             }
         }
+        // @ts-ignore
         setValue(bool) {
             if (bool ^ this.neg) {
                 this.elem.style.setProperty(this.styName, this.styValue);
@@ -1102,6 +1254,7 @@ const BindingFactory = {
         }
     },
     "styleRegex": class {
+        // @ts-ignore
         constructor(elem, attr, castTo) {
             this.elem = elem;
             this.castTo = castTo;
@@ -1123,6 +1276,7 @@ const BindingFactory = {
             }
             return null;
         }
+        // @ts-ignore
         setValue(val) {
             this.elem.style.setProperty(this.styName, this.styValue.replace("(.*)", val + ""));
         }
@@ -1130,13 +1284,19 @@ const BindingFactory = {
 };
 
 /**
+ * @typedef {Object} Binding
+ * @property {() => any} getValue
+ * @property {(value: any) => void} setValue
+ */
+/**
  * @param {string} definition
  * @param {HTMLElement} elem  - The root of widget
  * @param {string} castTo  - The type that must be returned
- * @returns {BindingFactory}
+ * @returns {Binding}
  */
 export const parseBinding = (definition, elem, castTo) => {
     if (!definition || !elem) {
+        // @ts-ignore
         return null;
     }
     const regex = /^\s*(?:<([^<>]+)>)?\s*(not\s+)?(classRegex|hasClass|styleRegex|hasStyle|attr|attrRegex|hasAttr)\s+<([^<>]+)>\s*$/g;
@@ -1144,13 +1304,16 @@ export const parseBinding = (definition, elem, castTo) => {
     if (m) {
         if (m[1]) {
             // Rule applied to a child of the main widget node
+            // @ts-ignore
             elem = elem.querySelector(m[1]);
         }
         const neg = m[2] !== undefined;
         const type = m[3];
         const params = m[4];
+        // @ts-ignore
         return new BindingFactory[type](elem, params, castTo, neg);
     }
+    // @ts-ignore
     return null;
 };
 

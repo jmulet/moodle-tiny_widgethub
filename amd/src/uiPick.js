@@ -1,5 +1,3 @@
-/* eslint-disable max-len */
-/* eslint-disable no-alert */
 /* eslint-disable no-eq-null */
 /* eslint-disable no-console */
 // This file is part of Moodle - http://moodle.org/
@@ -21,14 +19,17 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pmulet@iedib.net>
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import ModalFactory from 'core/modal_factory';
 import {IBPickModal} from './modal';
 import {getCourseId, getWidgetDict, getUserId} from './options';
-import {UserStorage, genID, hashCode, searchComp, Shared, templateRendererMustache} from './util';
+// eslint-disable-next-line no-unused-vars
+import {UserStorage, genID, hashCode, searchComp, templateRendererMustache, WidgetWrapper} from './util';
 import {UiParamsCtrl} from './uiParams';
+// eslint-disable-next-line no-unused-vars
+import {WidgetPlugin} from './commands';
 
 /**
  * Convert a simple input element in a typeahead widget
@@ -36,22 +37,28 @@ import {UiParamsCtrl} from './uiParams';
 class TypeAheadInput {
     _inputElem;
     _listener;
+    /** @type {number | undefined} */
     _sfTimeout;
+    /**
+     * @param {HTMLElement} inputElem
+     * @param {Function} callback
+     * @param {number=} delay
+     */
     constructor(inputElem, callback, delay) {
         this._inputElem = inputElem;
         this._listener = () => {
             if (this._sfTimeout) {
                 window.clearTimeout(this._sfTimeout);
-                this._sfTimeout = null;
+                this._sfTimeout = undefined;
             }
-            this._sfTimeout = window.setTimeout(() => callback(), delay || 800);
+            this._sfTimeout = window.setTimeout(() => callback(), delay ?? 800);
         };
         this._inputElem.addEventListener('keyup', this._listener);
     }
     off() {
         if (this._sfTimeout) {
             window.clearTimeout(this._sfTimeout);
-            this._sfTimeout = null;
+            this._sfTimeout = undefined;
         }
         if (this._listener) {
             this._inputElem.removeEventListener('keyup', this._listener);
@@ -80,13 +87,22 @@ const Templates = {
 export class UiPickCtrl {
     widgetPlugin;
     editor;
+    /** @type {UiParamsCtrl | undefined} */
     _uiParamsCtrl;
+    // @ts-ignore
     modal;
+    /**
+     * @param {WidgetPlugin} widgetPlugin
+     */
     constructor(widgetPlugin) {
         this.widgetPlugin = widgetPlugin;
         this.editor = widgetPlugin.editor;
     }
 
+    /**
+     * @param {import('./util').WidgetWrapper} widget
+     * @returns {UiParamsCtrl}
+     */
     getUiParamsCtrl(widget) {
         if (this._uiParamsCtrl) {
             this._uiParamsCtrl.destroy();
@@ -114,12 +130,15 @@ export class UiPickCtrl {
             const widgetSearchElem = this.modal.body.find("input")[0];
             const searchText = (widgetSearchElem.value || '');
             storage.setToSession('searchtext', searchText, true);
+            /** @type {NodeListOf<HTMLElement>} */
             const allbtns = document.querySelectorAll(".tiny_widgethub-buttons");
+            /** @type {NodeListOf<HTMLElement>} */
             const allcatgs = document.querySelectorAll(".tiny_widgethub-category");
 
             // Are we in selectMode, does the widget support it? insertquery
             if (!searchText) {
-                allbtns.forEach((el) => {
+                allbtns.forEach(
+                    (el) => {
                     const visible = !selectMode || (selectMode && el.dataset.selectable === "true");
                     toggleVisible(el, visible);
                     if (visible) {
@@ -130,7 +149,7 @@ export class UiPickCtrl {
                 allbtns.forEach((el) => {
                     let visible = !selectMode || (selectMode && el.dataset.selectable === "true");
                     const el2 = el.querySelector('button');
-                    visible = visible && searchComp(el2.title + "", searchText);
+                    visible = visible && searchComp(el2?.title + "", searchText);
                     toggleVisible(el, visible);
                     if (visible) {
                         numshown++;
@@ -157,10 +176,11 @@ export class UiPickCtrl {
             }
         } else {
             const searchText = storage.getFromSession("searchtext", "");
-            const data = this.getPickTemplateContext(userId, {
+            const data = this.getPickTemplateContext({
                 searchText: searchText
             });
             console.log(" data  is  ", data);
+            // @ts-ignore
             this.modal = await ModalFactory.create({
                 type: IBPickModal.TYPE,
                 templateContext: data,
@@ -175,9 +195,11 @@ export class UiPickCtrl {
                 onSearchKeyup();
             });
             // Click on any widget button
-            this.modal.body[0].addEventListener('click', (event) => {
-                this.handlePickModalClick(event);
-            });
+            this.modal.body[0].addEventListener('click',
+                /** @param {Event} event */
+                (event) => {
+                    this.handlePickModalClick(event);
+                });
 
             this._typeAheadInput = new TypeAheadInput(widgetSearchElem, onSearchKeyup);
         }
@@ -215,12 +237,34 @@ export class UiPickCtrl {
     /**
      * Get the template context for the dialogue.
      *
-     * @param {object} data
-     * @returns {object} data
+     * @param {Object.<string, any>=} data
+     * @returns {Object.<string, any>} data
      */
     getPickTemplateContext(data) {
         const allButtons = Object.values(getWidgetDict(this.editor));
 
+        /**
+         * @typedef {Object} Button
+         * @property {boolean} hidden
+         * @property {string} category
+         * @property {string} widgetkey
+         * @property {string} widgetname
+         * @property {string} widgettitle
+         * @property {string} iconname
+         * @property {boolean} disabled
+         * @property {boolean} selectable
+         * @property {string} widgetfawesome
+         */
+        /**
+         * @typedef {Object} Category
+         * @property {string} name
+         * @property {boolean} hidden
+         * @property {string} color
+         * @property {Button[]} buttons
+         */
+        /**
+         * @type {Object.<string, Category>}
+         **/
         const categories = {};
         allButtons.forEach(btn => {
             const catName = btn.category.toUpperCase();
@@ -229,18 +273,18 @@ export class UiPickCtrl {
                 const color = hashCode(catName) % 360;
                 let sat = '30%';
                 if (catName.toLowerCase() === 'obsolet') {
-                    sat = '0%'; // Gris
+                    sat = '0%'; // Gray
                 }
                 found = {
                     name: catName,
-                    hide: false,
+                    hidden: false,
                     color: `${color},${sat}`,
                     buttons: []
                 };
                 categories[catName] = found;
             }
             found.buttons.push({
-                    hide: false,
+                    hidden: false,
                     category: catName,
                     widgetkey: btn.key,
                     widgetname: btn.name,
@@ -263,26 +307,31 @@ export class UiPickCtrl {
         });
         categoriesList.forEach(cat => {
             cat.buttons.sort();
-            cat.hidden = cat.buttons.filter(btn => !btn.hide).length == 0;
+            cat.hidden = cat.buttons.filter(btn => !btn.hidden).length == 0;
         });
 
         return {rid: genID(),
             selectMode: this.editor.selection.getContent().trim().length > 0,
             elementid: this.editor.id,
-            categories: categoriesList, ...data};
+            categories: categoriesList, ...(data ?? {})};
     }
 
     /**
      * Handle a click within the Modal.
      *
-     * @param {MouseEvent} event The click event
+     * @param {Event} event The click event
      */
     async handlePickModalClick(event) {
-        const button = event.target.closest('button.tiny_widgethub-btn');
-        const aRecent = event.target.closest('a[data-key]');
+        /** @type {any} */
+        const target = event.target;
+        if (!target) {
+            return;
+        }
+        const button = target.closest('button.tiny_widgethub-btn');
+        const aRecent = target.closest('a[data-key]');
         let widget = null;
-        if (button || aRecent) {
-            const selectedButton = (button || aRecent).dataset.key;
+        if (button ?? aRecent) {
+            const selectedButton = (button ?? aRecent).dataset.key;
             widget = getWidgetDict(this.editor)[selectedButton];
         }
         if (!widget) {
@@ -292,12 +341,12 @@ export class UiPickCtrl {
         let confirmMsg = null;
         if (!widget.isUsableInScope()) {
             confirmMsg = "Aquest widget no és adequat per a la pàgina actual. Segur que voleu continuar?";
-        } else if (widget.requires != null && RegExp(/^page-mod-forum/).exec(Shared.currentScope)) {
-            confirmMsg = "Aquest widget necessita JavaScript i no funcionarà en fòrums. Segur que voleu continuar?";
         }
 
         if (confirmMsg) {
-            this.editor.windowManager.confirm(confirmMsg, (state) => {
+            this.editor.windowManager.confirm(confirmMsg,
+            /** @param {*} state */
+            (state) => {
                 if (state) {
                     this.handlePickModalAction(widget);
                 }
@@ -307,13 +356,16 @@ export class UiPickCtrl {
         }
     }
 
+    /**
+     * @param {WidgetWrapper} widget
+     */
     handlePickModalAction(widget) {
         this.modal.hide();
         const paramsController = this.getUiParamsCtrl(widget);
         // Decide whether to show the form or directly doInsert
         if (widget.parameters.length === 0 && !widget.instructions) {
             // Do insert directly
-            paramsController.insert();
+            paramsController.insertWidget({});
         } else {
             paramsController.handleAction();
         }

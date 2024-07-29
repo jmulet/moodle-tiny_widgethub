@@ -87,7 +87,7 @@ class widgettable extends \admin_setting {
             $key_td = new \html_table_cell($item->key);
             $key_td->attributes = array('title' => 'Internal id=' . $item->id);
             $name_td = new \html_table_cell($item->name);
-            $newlink_text = \html_writer::tag('i', '', array('class' => "fa fa-pencil"))
+            $newlink_text = \html_writer::tag('i', '', array('class' => 'fa fa-pencil'))
                 . ' ' . get_string('edit', $tiny_category);
             $editlink = \html_writer::link($item->url, $newlink_text);
             $edit_td = new \html_table_cell($editlink);
@@ -100,7 +100,7 @@ class widgettable extends \admin_setting {
         $row = new \html_table_row();
         $new_url = new \moodle_url( '/admin/settings.php',
                     array('section'=> 'tiny_widgethub_spage_0'));
-        $newlink_text = \html_writer::tag('i', '', array('class' => "fa fa-plus-circle"))
+        $newlink_text = \html_writer::tag('i', '', array('class' => 'fa fa-plus-circle'))
             . ' ' . get_string('createwidget', $tiny_category);
         $newlink = \html_writer::link($new_url, $newlink_text);
         $new_td = new \html_table_cell($newlink);

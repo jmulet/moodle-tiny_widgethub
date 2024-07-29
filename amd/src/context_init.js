@@ -1,26 +1,60 @@
 /* eslint-disable no-console */
 /* eslint-disable max-len */
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Tiny WidgetHub plugin.
+ *
+ * @module      tiny_widgethub/plugin
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 import ContextPropsModal from "./context_props_modal";
 import {getWidgetDict} from "./options";
+import jQuery from 'jquery';
+// eslint-disable-next-line no-unused-vars
+import {WidgetWrapper} from "./util";
 
 /**
  * @param {HTMLElement} elem
- * @param {string | string[]} selectors
+ * @param {string | string[]} [selectors]
  * @returns {boolean}
  */
 const matchesSelectors = function(elem, selectors) {
-    let selector = selectors;
+    if (!selectors) {
+        return false;
+    }
+    /** @type {string} **/
+    let selector;
+    /** @type {string[]} **/
     let extraQuery = [];
     if (Array.isArray(selectors)) {
         selector = selectors[0];
         if (selectors.length > 1) {
             extraQuery = selectors.slice(1);
         }
+    } else {
+        selector = selectors;
     }
+    /* @type {boolean} */
     let match = elem.matches(selector);
     if (match) {
         extraQuery.forEach(e => {
-            match = match && elem.querySelector(e);
+            match = match && elem.querySelector(e) !== null;
         });
     }
     return match;
@@ -30,8 +64,8 @@ const matchesSelectors = function(elem, selectors) {
  * Defines the type PathResult
  * @typedef {Object} PathResult
  * @property {HTMLElement} selectedElement - The DOM element from which the search starts.
- * @property {HTMLElement?} elem - Indicates the element corresponding to the selector of the widget found
- * @property {WidgetWrapper?} widget - The current widget definition associated with the elem
+ * @property {HTMLElement=} elem - Indicates the element corresponding to the selector of the widget found
+ * @property {WidgetWrapper=} widget - The current widget definition associated with the elem
  */
 /**
  * Walks the DOM tree up from the selectedElement and tries
@@ -42,12 +76,15 @@ const matchesSelectors = function(elem, selectors) {
  * @returns {PathResult} The element and widget found in the search.
  */
 const findWidgetOnEventPath = function(widgetList, selectedElement) {
+    /** @type {PathResult} */
     const res = {
         selectedElement: selectedElement
     };
+    /** @type {HTMLElement | null} */
     let elem = selectedElement;
     const n = widgetList.length;
-    while (elem !== null && elem !== undefined && elem.getAttribute("name") !== "BODY" && res.widget === undefined) {
+    while (elem !== null && elem !== undefined && elem !== null &&
+           elem.getAttribute("name") !== "BODY" && res.widget === undefined) {
         let i = 0;
         while (i < n && res.widget === undefined) {
             if (matchesSelectors(elem, widgetList[i].selectors)) {
@@ -73,7 +110,7 @@ const ICONS = {
 
 /**
  * Define icons used in the editor
- * @param {TinyMCE} editor - The tinyMCE editor instance
+ * @param {import("./plugin").TinyMCE} editor - The tinyMCE editor instance
  */
 const defineIcons = function(editor) {
     editor.ui.registry.addIcon(ICONS.gear, '<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 512 512"><path d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6 .3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z"/></svg>');
@@ -87,7 +124,7 @@ const defineIcons = function(editor) {
  * @returns {boolean}
  */
 const needsContextMenu = function(widget) {
-    return widget.hasBindings() || widget.unpack?.trim();
+    return widget.hasBindings() || (widget.unwrap ?? '').trim().length > 0;
 };
 
 const PredefinedActions = {
@@ -96,16 +133,19 @@ const PredefinedActions = {
      * @param {PathResult} context
      */
     unwrap: (context) => {
-        // TODO custom unwraps
-        const toUnpack = context.elem.find(context.widget.unwrap);
-        context.elem.replaceWith(toUnpack);
+        if (!context?.elem || !context?.widget?.unwrap) {
+            return;
+        }
+        const $elem = jQuery(context.elem);
+        const toUnpack = $elem.find(context.widget.unwrap);
+        $elem.replaceWith(toUnpack);
     }
 };
 
 /**
  * Looks for widgets that need to display context toolbars or menus
  * and binds the corresponding actions.
- * @param {TinyMCE} editor
+ * @param {import("./plugin").TinyMCE} editor
  */
 export const initContextActions = function(editor) {
     /** @type {WidgetWrapper[]} */
@@ -114,7 +154,8 @@ export const initContextActions = function(editor) {
     // Define icons
     defineIcons(editor);
 
-    // keep track of the last found context
+    // Keep track of the last found context
+    /** @type {PathResult | undefined} */
     let currentContext;
 
     const contextPropsModal = new ContextPropsModal(editor);
@@ -135,7 +176,7 @@ export const initContextActions = function(editor) {
         icon: ICONS.gear,
         text: 'Properties',
         onAction: async function() {
-            if (!currentContext.widget) {
+            if (!currentContext?.widget) {
                 currentContext = findWidgetOnEventPath(widgetList, editor.selection.getNode());
                 if (!currentContext.widget) {
                     return;
@@ -162,7 +203,7 @@ export const initContextActions = function(editor) {
         icon: ICONS.arrowUpFromBracket,
         text: 'Unwrap',
         onAction: function() {
-            if (!currentContext.widget) {
+            if (!currentContext?.widget) {
                 currentContext = findWidgetOnEventPath(widgetList, editor.selection.getNode());
                 if (!currentContext.widget) {
                     return;
@@ -172,7 +213,9 @@ export const initContextActions = function(editor) {
         }
     });
 
+    console.log("Registry addContextMenu");
     editor.ui.registry.addContextMenu('tiny_widgethub', {
+        /** @param {HTMLElement} element */
         update: (element) => {
             console.log("update contextmenu ", element);
             // Look for a context
@@ -203,6 +246,7 @@ export const initContextActions = function(editor) {
         }
         if (widget.prop('contexttoolbar')) {
             editor.ui.registry.addContextToolbar(`widgethub_ctb_${widget.key}`, {
+                /** @param {HTMLElement} node */
                 predicate: function(node) {
                     return matchesSelectors(node, widget.selectors);
                 },

@@ -17,12 +17,13 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pmulet@iedib.net>
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import * as Config from 'core/config';
 
+// @ts-ignore
 const baseUrl = `${Config.wwwroot}/lib/editor/tiny/plugins/widgethub`;
 const component = 'tiny_widgethub';
 
