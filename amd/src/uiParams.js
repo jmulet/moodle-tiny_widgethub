@@ -28,7 +28,7 @@ import ModalFactory from 'core/modal_factory';
 import {IBParamsModal} from './modal';
 import ModalEvents from 'core/modal_events';
 // eslint-disable-next-line no-unused-vars
-import {stream, genID, templateRendererMustache, UserStorage, cleanParameterName, scopedEval, applyWidgetFilter, WidgetWrapper, capitalize} from './util';
+import {stream, genID, templateRendererMustache, UserStorage, cleanParameterName, evalInContext, applyWidgetFilter, WidgetWrapper, capitalize} from './util';
 import {getCourseId, getUserId} from './options';
 // eslint-disable-next-line no-unused-vars
 import {UiPickCtrl} from './uiPick';
@@ -417,7 +417,7 @@ export const applyFieldWatchers = function($formElem, defaultsData, widget, sele
          // Add to the new variables the internal variables
          novesVariables.SNPT_MODE = selectMode ? "selection" : "insert";
          // Eval JS condition for new variables
-         const showme = scopedEval(novesVariables, condicio);
+         const showme = evalInContext(novesVariables, condicio);
          let theComponent = cc.component;
          if (theComponent) {
             theComponent = theComponent.parent();

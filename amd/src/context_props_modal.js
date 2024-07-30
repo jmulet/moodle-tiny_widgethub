@@ -25,7 +25,7 @@ import {IBContextModal} from './modal';
 import ModalFactory from 'core/modal_factory';
 import ModalEvents from 'core/modal_events';
 import {createControlHTML, getParametersFromForm, applyFieldWatchers} from './uiParams';
-import {parseBinding} from './util';
+import {createBinding} from './util';
 
 /**
  * @class
@@ -69,9 +69,11 @@ export default class ContextPropsModal {
         // Extract param values from DOM
         /** @type {Object.<string, any>} */
         const paramValues = {};
-        widget.parameters.filter(param => param.bind?.trim()).forEach((param) => {
-            const bindSrc = (param.bind ?? '').trim();
-            const binding = parseBinding(bindSrc, elem, typeof (param.value));
+        widget.parameters.filter(param => param.bind != undefined).forEach((param) => {
+            if (!param.bind) {
+                return;
+            }
+            const binding = createBinding(param.bind, elem, typeof (param.value));
             if (binding) {
                 bindingsDOM[param.name] = binding;
                 paramValues[param.name] = binding.getValue();

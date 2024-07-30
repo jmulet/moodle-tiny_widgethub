@@ -140,7 +140,8 @@ export const getWidgetDict = (editor) => {
             widgets = widgets.filter(e => e.key !== 'partials');
         }
         // Create a wrapper for the widget to handle operations
-        const wrappedWidgets = widgets.map((snpt)=> new WidgetWrapper(snpt, partials || {}));
+        const wrappedWidgets = widgets
+            .map(w => new WidgetWrapper(w, partials || {}));
         // Remove those buttons that aren't usable for the current user
         const userId = getUserId(editor);
         wrappedWidgets.filter(w => w.isFor(userId)).forEach(w => {

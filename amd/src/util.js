@@ -82,7 +82,7 @@ export function genID() {
  * @param {string} expr
  * @returns {any} The evaluated expression within the context ctx
  */
-export function scopedEval(ctx, expr) {
+export function evalInContext(ctx, expr) {
     const listArgs = [];
     const listVals = [];
     // Remove functions from ctx
@@ -110,7 +110,7 @@ export function scopedEval(ctx, expr) {
 const defineVar = function(text, ctx2) {
     const pos = text.indexOf("=");
     const varname = text.substring(0, pos).trim();
-    const varvalue = scopedEval(ctx2, text.substring(pos + 1).trim());
+    const varvalue = evalInContext(ctx2, text.substring(pos + 1).trim());
     ctx2[varname] = varvalue;
     return varname;
 };
@@ -118,7 +118,7 @@ const defineVar = function(text, ctx2) {
 /**
  * Extends Mustache templates with some helpers
  * @param {Object.<string, any>} ctx
- * @param {Object.<string, Object.<string, string>} translations
+ * @param {Object.<string, Object.<string, string>>} translations
  */
 const applyMustacheHelpers = function(ctx, translations) {
 
@@ -130,7 +130,7 @@ const applyMustacheHelpers = function(ctx, translations) {
         function(text, render) {
         const pos = text.indexOf("]");
         const condition = text.substring(0, pos).trim().substring(1);
-        const show = scopedEval(ctx, condition);
+        const show = evalInContext(ctx, condition);
         if (show) {
             return render(text.substring(pos + 1).trim());
         }
@@ -148,7 +148,7 @@ const applyMustacheHelpers = function(ctx, translations) {
          * @param {string} text
          */
         function(text) {
-            return scopedEval(ctx, text) + "";
+            return evalInContext(ctx, text) + "";
         };
     ctx["I18n"] = () =>
         /**
@@ -180,7 +180,7 @@ const applyMustacheHelpers = function(ctx, translations) {
             }
             const cname = parts[0].trim();
             loopVars[i] = cname;
-            const dm = scopedEval(ctx, parts[1]);
+            const dm = evalInContext(ctx, parts[1]);
             total = total * dm;
             maxValues[i] = dm;
             ctx[cname] = 1;
@@ -212,7 +212,7 @@ const applyMustacheHelpers = function(ctx, translations) {
         const loopvar = defineVar(parts[0], ctx);
         let output = "";
         let maxIter = 0; // Prevent infinite loop imposing a limit of 1000
-        while (scopedEval(ctx, parts[1]) && maxIter < 1000) {
+        while (evalInContext(ctx, parts[1]) && maxIter < 1000) {
             // @ts-ignore
             output += Mustache.render(text.substring(pos + 1), ctx);
             if (parts.length === 3 && parts[2].trim()) {
@@ -305,10 +305,15 @@ export function templateRenderer(template, context, translations, engine) {
  * @property {number=} min
  * @property {number=} max
  * @property {string=} transform
- * @property {string=} bind
+ * @property {string | {get: string, set: string} } [bind]
  * @property {string=} when
  * @property {boolean} [hidden]
  * @property {boolean} [editable]
+ */
+/**
+ * @typedef {Object} Action
+ * @property {string} predicate
+ * @property {string} actions
  */
 /**
  * @typedef {Object} Widget
@@ -329,6 +334,7 @@ export function templateRenderer(template, context, translations, engine) {
  * @property {string} version
  * @property {string} author
  * @property {boolean=} hidden
+ * @property {Action[]} [contextmenu]
  */
 /**
  * @class
@@ -359,6 +365,7 @@ export class WidgetWrapper {
                 parameters[i] = partials[param.partial];
             }
             if (!param.type) {
+                // Infer type from value
                 if (typeof param.value === "boolean") {
                     param.type = 'checkbox';
                 } else if (typeof param.value === "number") {
@@ -1090,110 +1097,100 @@ const performCasting = function(value, type) {
 };
 
 const BindingFactory = {
-    "hasClass": class {
-        // @ts-ignore
-        constructor(elem, className, castTo, neg) {
-            this.elem = elem;
-            this.castTo = castTo;
-            this.neg = neg;
-            this.className = className;
-        }
-        getValue() {
-            // ^ XOR gate
-            const res = this.neg ^ this.elem.classList.contains(this.className);
-            return this.castTo === 'boolean' ? Boolean(res) : res;
-        }
-        // @ts-ignore
-        setValue(bool) {
-            if (this.neg ^ bool) {
-                this.elem.classList.add(this.className);
-            } else {
-                this.elem.classList.remove(this.className);
-            }
-        }
-    },
-    "classRegex": class {
-        // @ts-ignore
-        constructor(elem, classExpr, castTo) {
-            this.elem = elem;
-            this.castTo = castTo;
-            this.classExpr = classExpr;
-        }
-        getValue() {
-            let ret = "";
+    // @ts-ignore
+    "hasClass": (elem, className, neg) => {
+        return {
             // @ts-ignore
-            this.elem.classList.forEach(c => {
-                const match = c.match(this.classExpr);
-                if (match?.[1] && typeof (match[1]) === "string") {
-                    ret = match[1];
-                }
-            });
-            return performCasting(ret, this.castTo);
-        }
-        // @ts-ignore
-        setValue(val) {
-            const cl = this.elem.classList;
-            // @ts-ignore
-            cl.forEach(c => {
-                if (c.match(this.classExpr)) {
-                    cl.remove(c);
-                }
-            });
-            cl.add(this.classExpr.replace("(.*)", val + ""));
-        }
-    },
-    "attr": class {
-        // @ts-ignore
-        constructor(elem, attrName, castTo) {
-            this.elem = elem;
-            this.castTo = castTo;
-            this.attrName = attrName;
-        }
-        getValue() {
-            return performCasting(this.elem.getAttribute(this.attrName), this.castTo);
-        }
-        // @ts-ignore
-        setValue(val) {
-            if (typeof val === "boolean") {
-                val = val ? 1 : 0;
-            }
-            return this.elem.setAttribute(this.attrName, val + "");
-        }
-    },
-    "hasAttr": class {
-        // @ts-ignore
-        constructor(elem, attr, castTo, neg) {
-            this.elem = elem;
-            this.castTo = castTo;
-            this.neg = neg;
-            const parts = attr.split("=");
-            this.attrName = parts[0].trim();
-            if (parts.length > 1) {
-                this.attrValue = parts[1].replace(/["']/g, '').trim();
-            }
-        }
-        getValue() {
-            let found = this.elem.getAttribute(this.attrName) != null;
-            if (this.attrValue) {
-                found = found && this.elem.getAttribute(this.attrName) === this.attrValue;
-            }
-            // @ts-ignore
-            const res = this.neg ^ found;
-            if (this.castTo === "boolean") {
+            getValue: () => {
+                // ^ XOR gate
+                const res = neg ^ elem.classList.contains(className);
                 return Boolean(res);
-            } else {
-                return res;
+            },
+            // @ts-ignore
+            setValue: (bool) => {
+                if (neg ^ bool) {
+                    elem.classList.add(className);
+                } else {
+                    elem.classList.remove(className);
+                }
             }
-        }
-        // @ts-ignore
-        setValue(bool) {
-            if (this.neg ^ bool) {
-                this.elem.setAttribute(this.attrName, this.attrValue || '');
-            } else {
-                this.elem.removeAttribute(this.attrName);
-            }
-        }
+        };
     },
+    // @ts-ignore
+    "classRegex": (elem, classExpr, castTo) => {
+        return {
+            getValue: () => {
+                let ret = "";
+                // @ts-ignore
+                this.elem.classList.forEach(c => {
+                    const match = c.match(classExpr);
+                    if (match?.[1] && typeof (match[1]) === "string") {
+                        ret = match[1];
+                    }
+                });
+                return performCasting(ret, castTo);
+            },
+            // @ts-ignore
+            setValue: (val) => {
+                const cl = elem.classList;
+                // @ts-ignore
+                cl.forEach(c => {
+                    if (c.match(classExpr)) {
+                        cl.remove(c);
+                    }
+                });
+                cl.add(classExpr.replace("(.*)", val + ""));
+            }
+        };
+    },
+    // @ts-ignore
+    "attr": (elem, attrName, castTo) => {
+        return {
+            getValue: () => {
+                return performCasting(elem.getAttribute(attrName), castTo);
+            },
+            // @ts-ignore
+            setValue: (val) => {
+                if (typeof val === "boolean") {
+                    val = val ? 1 : 0;
+                }
+                return elem.setAttribute(attrName, val + "");
+            }
+        };
+    },
+    // @ts-ignore
+    "hasAttr":  (elem, attr, castTo, neg) => {
+            const parts = attr.split("=");
+            const attrName = parts[0].trim();
+            let attrValue = '';
+            if (parts.length > 1) {
+                attrValue = parts[1].replace(/["']/g, '').trim();
+            }
+        return {
+            getValue: () => {
+                let found = elem.getAttribute(attrName) != null;
+                if (attrValue) {
+                    found = found && elem.getAttribute(attrName) === attrValue;
+                }
+                // @ts-ignore
+                const res = this.neg ^ found;
+                if (castTo === "boolean") {
+                    return Boolean(res);
+                } else {
+                    return res;
+                }
+            },
+            // @ts-ignore
+            setValue: (bool) => {
+                if (neg ^ bool) {
+                    elem.setAttribute(attrName, attrValue || '');
+                } else {
+                    elem.removeAttribute(attrName);
+                }
+            }
+        };
+    },
+    /*
     "attrRegex": class {
         // @ts-ignore
         constructor(elem, attr, castTo) {
@@ -1281,40 +1278,39 @@ const BindingFactory = {
             this.elem.style.setProperty(this.styName, this.styValue.replace("(.*)", val + ""));
         }
     }
+    */
 };
 
 /**
  * @typedef {Object} Binding
- * @property {() => any} getValue
- * @property {(value: any) => void} setValue
+ * @property {() => unknown} getValue
+ * @property {(value: unknown) => void} setValue
  */
 /**
- * @param {string} definition
- * @param {HTMLElement} elem  - The root of widget
+ * @param {string | {get: string, set: string}} definition
+ * @param {JQuery<HTMLElement>} elem  - The root of widget
  * @param {string} castTo  - The type that must be returned
- * @returns {Binding}
+ * @returns {Binding | null}
  */
-export const parseBinding = (definition, elem, castTo) => {
-    if (!definition || !elem) {
-        // @ts-ignore
-        return null;
+export const createBinding = (definition, elem, castTo) => {
+    /** @type {Binding | null} */
+    let bindFn = null;
+    if (typeof (definition) === 'string') {
+        return evalInContext({e: elem, ...BindingFactory}, 'this.' + definition);
+    } else {
+        // The user provides the get and set functions
+        bindFn = {
+            getValue: () => {
+                let v = evalInContext({elem}, `(${definition.get})(elem)`);
+                if (castTo) {
+                    v = performCasting(v, castTo);
+                }
+                return v;
+            },
+            setValue: (v) => evalInContext({elem, v}, `(${definition.set})(elem, v)`)
+        };
     }
-    const regex = /^\s*(?:<([^<>]+)>)?\s*(not\s+)?(classRegex|hasClass|styleRegex|hasStyle|attr|attrRegex|hasAttr)\s+<([^<>]+)>\s*$/g;
-    const m = regex.exec(definition);
-    if (m) {
-        if (m[1]) {
-            // Rule applied to a child of the main widget node
-            // @ts-ignore
-            elem = elem.querySelector(m[1]);
-        }
-        const neg = m[2] !== undefined;
-        const type = m[3];
-        const params = m[4];
-        // @ts-ignore
-        return new BindingFactory[type](elem, params, castTo, neg);
-    }
-    // @ts-ignore
-    return null;
+    return bindFn;
 };
 
 /**

@@ -4,7 +4,7 @@ category: bootstrap
 template: |
   <p></p>
   <div class="m-2 alert alert-{{severity}}{{#closable}} alert-dismissible{{/closable}} fade show" role="alert">
-   {{#closable}}
+    {{#closable}}
      <button type="button" class="btn-close close" data-dismiss="alert" data-bs-dismiss="alert" aria-label="Close">
        <span aria-hidden="true">&times;</span>
      </button>
@@ -12,14 +12,13 @@ template: |
     <p>Lorem ipsum.</p>
   </div>
   <p></p>
-selectors: div.alert
-unpack: '*'
+selectors: div[role="alert"].alert
+unwrap: '*'
 parameters:
   - name: severity
     title: Type of alert
-    type: select
-    value: primary
-    bind: classRegex <alert-(.*)>
+    bind: classRegex(/alert-(.*)/)
+    value: primary    
     options:
       - primary
       - secondary
@@ -31,5 +30,6 @@ parameters:
       - dark
   - name: closable
     title: Closable
-    type: checkbox
     value: false
+author: Josep Mulet <pep.mulet@gmail.com>
+version: 1.0.0

@@ -235,8 +235,10 @@ export default {
 				} else {
 					$controlMain.val(validation.json ?? '');
 				}
+				console.log("Returning validation result", validation.msg);
 				return validation.msg === '';
 			}
+			console.log('Validation skipped');
 			return true;
 		});
 

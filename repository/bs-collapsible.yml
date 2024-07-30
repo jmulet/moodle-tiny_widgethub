@@ -1,0 +1,61 @@
+key: bs-collapsible
+name: Collapsible
+category: bootstrap
+engine: ejs
+template: |
+  <p></p>
+  <div id="acc_<%= id %>" class="collapsible">
+    <% for(var i=1; i<=n; i++) { %>
+    <div class="card">      
+      <div class="card-header" id="head_<%= id %>_<%= i %>">
+        <h5 class="mb-0">
+          <button type="button" class="btn btn-link" data-toggle="collapse" data-bs-toggle="collapse" data-target="#coll_<%= id %>_<%= i %>"
+            data-bs-target="#coll_<%= id %>_<%= i %>" 
+            aria-expanded="<%= i==1 ? 'true' : 'false' %>" aria-controls="coll_<%= id %>_<%= i %>">
+            <span>Label #<%= i %></span>
+          </button>
+        </h5>
+      </div>
+      <div id="coll_<%= id %>_<%= i %>" class="collapse<%= i==1 ? ' show' : '' %>" aria-labelledby="head_<%= id %>_<%= i %>"
+       <%- indp ? '' : ' data-parent="#acc_'+id + '" data-bs-parent="#acc_'+id+'"' %>>
+        <div class="card-body">
+          <p>Lorem ipsum section <%= i %></p>
+        </div>
+      </div>
+    </div>
+    <% } %>
+  </div>
+  <p></p>
+selectors: div.collapsible
+unwrap: .card-header span, .card-body
+parameters:
+  - name: id
+    title: Element id
+    value: $RND
+    hidden: true
+    editable: false
+  - name: 'n'
+    title: Number of collapsibles
+    value: 3
+    min: 1
+  - name: indp
+    title: Independent collapsibles?
+    tooltip: When this options is checked, several cards can be expanded simultaneously
+    value: false
+    bind:
+      get: (e) => e.find('div.collapse[data-parent],div.collapse[data-bs-parent]').length === 0
+      set: |
+        (e, v) => {
+          var $elements = e.find('div.collapse');
+          if(v) {
+            $elements.removeAttr('data-parent data-bs-parent');
+          } else {
+            var id = e.attr('id');
+            $elements.attr('data-parent', '#' + id).attr('data-bs-parent', '#' + id);
+          }
+        }
+contextmenu:
+  - predicate: .card
+    actions: moveup movedown insertafter | remove
+author: Josep Mulet <pep.mulet@gmail.com>
+version: 1.0.0
