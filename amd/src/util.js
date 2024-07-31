@@ -80,15 +80,17 @@ export function genID() {
 /**
  * @param {Object.<string, any>} ctx
  * @param {string} expr
+ * @param {boolean=} keepFns - Keep or not the funcions in the ctx
  * @returns {any} The evaluated expression within the context ctx
  */
-export function evalInContext(ctx, expr) {
+export function evalInContext(ctx, expr, keepFns) {
     const listArgs = [];
     const listVals = [];
-    // Remove functions from ctx
+
     if (ctx) {
         Object.keys(ctx).forEach((key) => {
-            if (typeof ctx[key] !== "function") {
+            // Remove functions from ctx
+            if (keepFns || typeof ctx[key] !== "function") {
                 listArgs.push(key);
                 listVals.push(ctx[key]);
             }
@@ -97,6 +99,8 @@ export function evalInContext(ctx, expr) {
     listArgs.push('expr');
     listArgs.push('return eval(expr)');
     listVals.push(expr);
+    console.log('listArgs', listArgs);
+    console.log('expr', expr, 'listVals', listVals);
 
     const evaluator = new Function(...listArgs);
     return evaluator(...listVals);
@@ -120,7 +124,7 @@ const defineVar = function (text, ctx2) {
  * @param {Object.<string, any>} ctx
  * @param {Object.<string, Object.<string, string>>} translations
  */
-const applyMustacheHelpers = function (ctx, translations) {
+const applyMustacheHelpers = function(ctx, translations) {
 
     ctx["if"] = () =>
         /**
@@ -372,6 +376,24 @@ export class WidgetWrapper {
                     param.type = 'numeric';
                 } else if (typeof param.value === "string") {
                     param.type = param.options ? 'select' : 'textfield';
+                }
+            }
+            if (!param.value) {
+                switch (param.type) {
+                    case ('checkbox'):
+                        param.value = false; break;
+                    case ('numeric'):
+                        param.value = 0; break;
+                    case ('select'):
+                        param.value = param.options?.[0];
+                        if (typeof (param.value) === 'object') {
+                            param.value = param.value.v;
+                        }
+                        break;
+                    case ('color'):
+                        param.value = '#ffffff'; break;
+                    default:
+                        param.value = '';
                 }
             }
         });
@@ -1109,7 +1131,7 @@ const xor = function(a, b) {
  * @param {JQuery<HTMLElement>} $e
  * @returns
  */
-const BindingFactory = function($e) {
+const bindingFactory = function($e) {
     /** @this {Record<string, Function>} */
     const methods = {
         /**
@@ -1119,6 +1141,7 @@ const BindingFactory = function($e) {
          * @returns {Binding}
          */
         "hasClass": (className, query, neg) => {
+            /** @type {JQuery<HTMLElement>} */
             let elem = $e;
             if (query) {
                 elem = $e.find(query);
@@ -1162,7 +1185,8 @@ const BindingFactory = function($e) {
                 getValue: () => {
                     let ret = "";
                     // @ts-ignore
-                    this.elem.classList.forEach(c => {
+                    const cl = elem.attr('class')?.split(/\s+/) ?? [];
+                    cl.forEach(c => {
                         const match = c.match(classExpr);
                         if (match?.[1] && typeof (match[1]) === "string") {
                             ret = match[1];
@@ -1382,7 +1406,7 @@ export const createBinding = (definition, elem, castTo) => {
     /** @type {Binding | null} */
     let bindFn = null;
     if (typeof (definition) === 'string') {
-        return evalInContext({ e: elem, ...BindingFactory }, 'this.' + definition);
+        return evalInContext({...bindingFactory(elem)}, definition, true);
     } else {
         // The user provides the get and set functions
         bindFn = {
