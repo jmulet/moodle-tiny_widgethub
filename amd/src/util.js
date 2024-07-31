@@ -28,7 +28,7 @@
  */
 
 import Mustache from 'core/mustache';
-import {get_strings as getStrings} from 'core/str';
+import { get_strings as getStrings } from 'core/str';
 
 // Load on demand the template engines
 /**
@@ -107,7 +107,7 @@ export function evalInContext(ctx, expr) {
  * @param {Object.<string, any>} ctx2
  * @returns {string}
  */
-const defineVar = function(text, ctx2) {
+const defineVar = function (text, ctx2) {
     const pos = text.indexOf("=");
     const varname = text.substring(0, pos).trim();
     const varvalue = evalInContext(ctx2, text.substring(pos + 1).trim());
@@ -120,34 +120,34 @@ const defineVar = function(text, ctx2) {
  * @param {Object.<string, any>} ctx
  * @param {Object.<string, Object.<string, string>>} translations
  */
-const applyMustacheHelpers = function(ctx, translations) {
+const applyMustacheHelpers = function (ctx, translations) {
 
     ctx["if"] = () =>
         /**
          * @param {string} text
          * @param {Mustache.render} render
          */
-        function(text, render) {
-        const pos = text.indexOf("]");
-        const condition = text.substring(0, pos).trim().substring(1);
-        const show = evalInContext(ctx, condition);
-        if (show) {
-            return render(text.substring(pos + 1).trim());
-        }
-        return "";
+        function (text, render) {
+            const pos = text.indexOf("]");
+            const condition = text.substring(0, pos).trim().substring(1);
+            const show = evalInContext(ctx, condition);
+            if (show) {
+                return render(text.substring(pos + 1).trim());
+            }
+            return "";
         };
     ctx["var"] = () =>
-         /**
-         * @param {string} text
-         */
-        function(text) {
+        /**
+        * @param {string} text
+        */
+        function (text) {
             defineVar(text, ctx);
         };
     ctx["eval"] = () =>
         /**
          * @param {string} text
          */
-        function(text) {
+        function (text) {
             return evalInContext(ctx, text) + "";
         };
     ctx["I18n"] = () =>
@@ -155,7 +155,7 @@ const applyMustacheHelpers = function(ctx, translations) {
          * @param {string} text
          * @param {Mustache.render} render
          */
-        function(text, render) {
+        function (text, render) {
             const key = render(text).trim();
             const dict = translations[key] || {};
             return dict[ctx["LANG"]] || dict["en"] || dict["ca"] || key;
@@ -164,67 +164,67 @@ const applyMustacheHelpers = function(ctx, translations) {
         /**
          * @param {string} text
          */
-        function(text) {
-        const pos = text.indexOf("]");
-        const cond = text.substring(0, pos).trim().substring(1);
-        const components = cond.split(",");
-        const dim = components.length;
-        const maxValues = new Array(dim);
-        const loopVars = new Array(dim);
-        let total = 1;
-        const cc = 'i'.charCodeAt(0);
-        components.forEach((def, i) => {
-            const parts = def.split("=");
-            if (parts.length === 1) {
-                parts.unshift(String.fromCharCode(cc + i));
+        function (text) {
+            const pos = text.indexOf("]");
+            const cond = text.substring(0, pos).trim().substring(1);
+            const components = cond.split(",");
+            const dim = components.length;
+            const maxValues = new Array(dim);
+            const loopVars = new Array(dim);
+            let total = 1;
+            const cc = 'i'.charCodeAt(0);
+            components.forEach((def, i) => {
+                const parts = def.split("=");
+                if (parts.length === 1) {
+                    parts.unshift(String.fromCharCode(cc + i));
+                }
+                const cname = parts[0].trim();
+                loopVars[i] = cname;
+                const dm = evalInContext(ctx, parts[1]);
+                total = total * dm;
+                maxValues[i] = dm;
+                ctx[cname] = 1;
+            });
+            let output = [];
+            for (let _ei = 0; _ei < total; _ei++) {
+                // @ts-ignore
+                output.push(Mustache.render(text.substring(pos + 1), ctx));
+                let currentDim = dim - 1;
+                let incrUp;
+                do {
+                    const oldValue = ctx[loopVars[currentDim]] - 1;
+                    const newValue = (oldValue + 1) % maxValues[currentDim] + 1;
+                    ctx[loopVars[currentDim]] = newValue;
+                    incrUp = newValue < oldValue;
+                    currentDim--;
+                } while (currentDim >= 0 && incrUp);
             }
-            const cname = parts[0].trim();
-            loopVars[i] = cname;
-            const dm = evalInContext(ctx, parts[1]);
-            total = total * dm;
-            maxValues[i] = dm;
-            ctx[cname] = 1;
-        });
-        let output = [];
-        for (let _ei = 0; _ei < total; _ei++) {
-            // @ts-ignore
-            output.push(Mustache.render(text.substring(pos + 1), ctx));
-            let currentDim = dim - 1;
-            let incrUp;
-            do {
-                const oldValue = ctx[loopVars[currentDim]] - 1;
-                const newValue = (oldValue + 1) % maxValues[currentDim] + 1;
-                ctx[loopVars[currentDim]] = newValue;
-                incrUp = newValue < oldValue;
-                currentDim--;
-            } while (currentDim >= 0 && incrUp);
-        }
-        return output.join('');
+            return output.join('');
         };
     ctx["for"] = () =>
-         /**
-         * @param {string} text
-         */
-        function(text) {
-        const pos = text.indexOf("]");
-        const condition = text.substring(0, pos).trim().substring(1);
-        const parts = condition.split(";");
-        const loopvar = defineVar(parts[0], ctx);
-        let output = "";
-        let maxIter = 0; // Prevent infinite loop imposing a limit of 1000
-        while (evalInContext(ctx, parts[1]) && maxIter < 1000) {
-            // @ts-ignore
-            output += Mustache.render(text.substring(pos + 1), ctx);
-            if (parts.length === 3 && parts[2].trim()) {
-                defineVar(loopvar + "=" + parts[2], ctx);
-            } else {
-                ctx[loopvar] = ctx[loopvar] + 1;
+        /**
+        * @param {string} text
+        */
+        function (text) {
+            const pos = text.indexOf("]");
+            const condition = text.substring(0, pos).trim().substring(1);
+            const parts = condition.split(";");
+            const loopvar = defineVar(parts[0], ctx);
+            let output = "";
+            let maxIter = 0; // Prevent infinite loop imposing a limit of 1000
+            while (evalInContext(ctx, parts[1]) && maxIter < 1000) {
+                // @ts-ignore
+                output += Mustache.render(text.substring(pos + 1), ctx);
+                if (parts.length === 3 && parts[2].trim()) {
+                    defineVar(loopvar + "=" + parts[2], ctx);
+                } else {
+                    ctx[loopvar] = ctx[loopvar] + 1;
+                }
+                maxIter++;
             }
-            maxIter++;
-        }
-        return output;
-    };
-    };
+            return output;
+        };
+};
 
 /**
  * @param {string} template
@@ -233,7 +233,7 @@ const applyMustacheHelpers = function(ctx, translations) {
  * @returns {string} The interpolated template given a context and translations map
  */
 export function templateRendererMustache(template, context, translations) {
-    const ctx = {...context};
+    const ctx = { ...context };
     Object.keys(ctx).forEach(key => {
         if (ctx[key] === "$RND") {
             ctx[key] = genID();
@@ -253,7 +253,7 @@ export function templateRendererMustache(template, context, translations) {
  */
 async function templateRendererEJS(template, context, translations) {
     /** @type {Object.<string, any>} */
-    const ctx = {...context, I18n: {}};
+    const ctx = { ...context, I18n: {} };
     Object.keys(ctx).forEach(key => {
         if (ctx[key] === "$RND") {
             ctx[key] = genID();
@@ -462,7 +462,7 @@ export class WidgetWrapper {
      * @returns {Promise<string>} The rendered template
      */
     render(ctx) {
-        const defaultsCopy = {...this.defaults};
+        const defaultsCopy = { ...this.defaults };
         const toInterpolate = Object.assign(defaultsCopy, ctx || {});
         // Decide which template engine to use
         let engine = this.#widget.engine;
@@ -578,8 +578,8 @@ export class UserStorage {
         this._userId = userId;
         this._courseId = courseId;
         this.STORE_KEY = "iedib-widgets_" + userId;
-        this._localStore = {valors: {}};
-        this._sessionStore = {searchtext: ''};
+        this._localStore = { valors: {} };
+        this._sessionStore = { searchtext: '' };
         this.loadStore();
     }
     /**
@@ -766,19 +766,19 @@ export function searchComp(str1, needle) {
 /** Default transformers */
 const Transformers = {
     // @ts-ignore
-    "toUpperCase": function(txt) {
+    "toUpperCase": function (txt) {
         return (txt + "").toUpperCase();
     },
     // @ts-ignore
-    "toLowerCase": function(txt) {
+    "toLowerCase": function (txt) {
         return (txt + "").toLowerCase();
     },
     // @ts-ignore
-    "trim": function(txt) {
+    "trim": function (txt) {
         return (txt + "").trim();
     },
     // @ts-ignore
-    "ytId": function(txt) {
+    "ytId": function (txt) {
         // Finds the youtubeId in a text
         const rx = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/;
         const r = (txt || '').match(rx);
@@ -788,7 +788,7 @@ const Transformers = {
         return txt;
     },
     // @ts-ignore
-    "vimeoId": function(txt) {
+    "vimeoId": function (txt) {
         const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?(\d+)/;
         const match = (txt || "").match(regExp);
         if (match?.[5]) {
@@ -797,7 +797,7 @@ const Transformers = {
         return txt;
     },
     // @ts-ignore
-    "serveGDrive": function(txt) {
+    "serveGDrive": function (txt) {
         // Expecting https://drive.google.com/file/d/1DDUzcFrOlzWb3CBdFPJ1NCNXClvPbm5B/preview
         const res = (txt + "").match(/https:\/\/drive.google.com\/file\/d\/([a-zA-Z0-9_]+)\//);
         if (res?.length) {
@@ -807,11 +807,11 @@ const Transformers = {
         return txt;
     },
     // @ts-ignore
-    "removeHTML": function(txt) {
+    "removeHTML": function (txt) {
         return (txt || '').replace(/<[^>]*>?/gm, '');
     },
     // @ts-ignore
-    "escapeHTML": function(txt) {
+    "escapeHTML": function (txt) {
         return (txt || '').replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
@@ -819,12 +819,12 @@ const Transformers = {
             .replace(/'/g, "&#039;");
     },
     // @ts-ignore
-    "encodeHTML": function(txt) {
+    "encodeHTML": function (txt) {
         // @ts-ignore
         return this.encodeURIComponent(txt || "");
     },
     // @ts-ignore
-    "escapeQuotes": function(txt) {
+    "escapeQuotes": function (txt) {
         return (txt || '').replace(/"/gm, "'");
     }
 };
@@ -899,8 +899,8 @@ export function createFilterFunction(filterCode) {
  */
 export async function applyWidgetFilter(editor, widgetTemplate, silent, mergevars) {
     const translations = await getStrings([
-        {key: 'filterres', component: 'tiny_widgethub'},
-        {key: 'nochanges', component: 'tiny_widgethub'}
+        { key: 'filterres', component: 'tiny_widgethub' },
+        { key: 'nochanges', component: 'tiny_widgethub' }
     ]);
     // Es tracta d'un filtre, no d'un widget i s'ha de tractar de forma diferent
     const userWidgetFilter = createFilterFunction(widgetTemplate);
@@ -914,7 +914,7 @@ export async function applyWidgetFilter(editor, widgetTemplate, silent, mergevar
         return false;
     }
     // @ts-ignore
-    const handleFilterResult = function(res) {
+    const handleFilterResult = function (res) {
         const out = res[0];
         let msg = res[1];
         if (out != null) {
@@ -1063,7 +1063,7 @@ export function addScript(url, id, onSuccess, onError) {
             onSuccess();
         }
     };
-    newScript.onerror = function() {
+    newScript.onerror = function () {
         console.error("Error loading ", url);
         if (onError) {
             onError();
@@ -1073,7 +1073,7 @@ export function addScript(url, id, onSuccess, onError) {
 }
 
 // @ts-ignore
-const performCasting = function(value, type) {
+const performCasting = function (value, type) {
     switch (type) {
         case ("boolean"):
             if (value === 1 || value === "1" || value === true || value === "true") {
@@ -1096,189 +1096,275 @@ const performCasting = function(value, type) {
     return value;
 };
 
-const BindingFactory = {
-    // @ts-ignore
-    "hasClass": (elem, className, neg) => {
-        return {
-            // @ts-ignore
-            getValue: () => {
-                // ^ XOR gate
-                const res = neg ^ elem.classList.contains(className);
-                return Boolean(res);
-            },
-            // @ts-ignore
-            setValue: (bool) => {
-                if (neg ^ bool) {
-                    elem.classList.add(className);
-                } else {
-                    elem.classList.remove(className);
-                }
+/**
+ * @param {unknown} a
+ * @param {unknown} b
+ */
+const xor = function(a, b) {
+    return !a !== !b;
+};
+
+/**
+ *
+ * @param {JQuery<HTMLElement>} $e
+ * @returns
+ */
+const BindingFactory = function($e) {
+    /** @this {Record<string, Function>} */
+    const methods = {
+        /**
+         * @param {string} className
+         * @param {string=} query
+         * @param {boolean=} neg
+         * @returns {Binding}
+         */
+        "hasClass": (className, query, neg) => {
+            let elem = $e;
+            if (query) {
+                elem = $e.find(query);
             }
-        };
-    },
-    // @ts-ignore
-    "classRegex": (elem, classExpr, castTo) => {
-        return {
-            getValue: () => {
-                let ret = "";
+            return {
                 // @ts-ignore
-                this.elem.classList.forEach(c => {
-                    const match = c.match(classExpr);
-                    if (match?.[1] && typeof (match[1]) === "string") {
-                        ret = match[1];
-                    }
-                });
-                return performCasting(ret, castTo);
-            },
-            // @ts-ignore
-            setValue: (val) => {
-                const cl = elem.classList;
+                getValue: () => {
+                    const res = xor(neg, elem.hasClass(className));
+                    return Boolean(res);
+                },
                 // @ts-ignore
-                cl.forEach(c => {
-                    if (c.match(classExpr)) {
-                        cl.remove(c);
+                setValue: (bool) => {
+                    if (xor(neg, bool)) {
+                        elem.addClass(className);
+                    } else {
+                        elem.removeClass(className);
                     }
-                });
-                cl.add(classExpr.replace("(.*)", val + ""));
-            }
-        };
-    },
-    // @ts-ignore
-    "attr": (elem, attrName, castTo) => {
-        return {
-            getValue: () => {
-                return performCasting(elem.getAttribute(attrName), castTo);
-            },
-            // @ts-ignore
-            setValue: (val) => {
-                if (typeof val === "boolean") {
-                    val = val ? 1 : 0;
                 }
-                return elem.setAttribute(attrName, val + "");
+            };
+        },
+        /**
+         * @param {string} className
+         * @param {string=} query
+         * @returns {Binding}
+         */
+        notHasClass: (className, query) => {
+            return methods['hasClass'](className, query, true);
+        },
+        /**
+         * @param {string} classExpr
+         * @param {string=} castTo
+         * @param {string=} query
+         * @returns {Binding}
+         */
+        "classRegex": (classExpr, castTo, query) => {
+            let elem = $e;
+            if (query) {
+                elem = $e.find(query);
             }
-        };
-    },
-    // @ts-ignore
-    "hasAttr":  (elem, attr, castTo, neg) => {
+            return {
+                getValue: () => {
+                    let ret = "";
+                    // @ts-ignore
+                    this.elem.classList.forEach(c => {
+                        const match = c.match(classExpr);
+                        if (match?.[1] && typeof (match[1]) === "string") {
+                            ret = match[1];
+                        }
+                    });
+                    return performCasting(ret, castTo);
+                },
+                // @ts-ignore
+                setValue: (val) => {
+                    const cl = elem.attr('class')?.split(/\s+/) ?? [];
+                    // @ts-ignore
+                    cl.forEach(c => {
+                        if (c.match(classExpr)) {
+                            elem.removeClass(c);
+                        }
+                    });
+                    elem.addClass(classExpr.replace("(.*)", val + ""));
+                }
+            };
+        },
+        /**
+         * @param {string} attrName
+         * @param {string=} castTo
+         * @param {string=} query
+         * @returns {Binding}
+         */
+        "attr": (attrName, castTo, query) => {
+            let elem = $e;
+            if (query) {
+                elem = $e.find(query);
+            }
+            return {
+                getValue: () => {
+                    return performCasting(elem.attr(attrName), castTo);
+                },
+                // @ts-ignore
+                setValue: (val) => {
+                    if (typeof val === "boolean") {
+                        val = val ? 1 : 0;
+                    }
+                    return elem.attr(attrName, val + "");
+                }
+            };
+        },
+        /**
+        * @param {string} attr
+        * @param {string=} query
+        * @param {boolean=} neg
+        * @returns {Binding}
+        */
+        "hasAttr": (attr, query, neg) => {
+            let elem = $e;
+            if (query) {
+                elem = $e.find(query);
+            }
             const parts = attr.split("=");
             const attrName = parts[0].trim();
             let attrValue = '';
             if (parts.length > 1) {
                 attrValue = parts[1].replace(/["']/g, '').trim();
             }
-        return {
-            getValue: () => {
-                let found = elem.getAttribute(attrName) != null;
-                if (attrValue) {
-                    found = found && elem.getAttribute(attrName) === attrValue;
-                }
+            return {
+                getValue: () => {
+                    let found = elem.attr(attrName) != null;
+                    if (attrValue) {
+                        found = found && elem.attr(attrName) === attrValue;
+                    }
+                    return xor(neg, found);
+                },
                 // @ts-ignore
-                const res = this.neg ^ found;
-                if (castTo === "boolean") {
-                    return Boolean(res);
-                } else {
-                    return res;
+                setValue: (bool) => {
+                    if (xor(neg, bool)) {
+                        elem.attr(attrName, attrValue || '');
+                    } else {
+                        elem.removeAttr(attrName);
+                    }
                 }
-            },
-            // @ts-ignore
-            setValue: (bool) => {
-                if (neg ^ bool) {
-                    elem.setAttribute(attrName, attrValue || '');
-                } else {
-                    elem.removeAttribute(attrName);
-                }
+            };
+        },
+         /**
+         * @param {string} attr
+         * @param {string=} query
+         * @returns {Binding}
+         */
+        "notHasAttr": (attr, query) => {
+            return methods['hasAttr'](attr, query, true);
+        },
+        /**
+         * @param {string} attr - Regex of attr
+         * @param {string=} castTo
+         * @param {string=} query
+         * @returns {Binding}
+         */
+        "attrRegex": function(attr, castTo, query) {
+            let elem = $e;
+            if (query) {
+                elem = $e.find(query);
             }
-        };
-    },
-    /*
-    "attrRegex": class {
-        // @ts-ignore
-        constructor(elem, attr, castTo) {
-            this.elem = elem;
-            this.castTo = castTo;
             const parts = attr.split("=");
-            this.attrName = parts[0].trim();
+            const attrName = parts[0].trim();
+            let attrValue = '';
             if (parts.length > 1) {
-                this.attrValue = parts[1].replace(/["']/g, '').trim();
+                attrValue = parts[1].replace(/["']/g, '').trim();
             }
-        }
-        getValue() {
-            let found = this.elem.getAttribute(this.attrName) != null;
-            if (found) {
-                const match = this.elem.getAttribute(this.attrName).match(this.attrValue);
-                if (match?.[1] && typeof (match[1]) === "string") {
-                    return performCasting(match[1], this.castTo);
+            return {
+                getValue() {
+                    let found = elem.attr(attrName) != null;
+                    if (found) {
+                        const match = elem.attr(attrName)?.match(attrValue);
+                        if (match?.[1] && typeof (match[1]) === "string") {
+                            return performCasting(match[1], castTo);
+                        }
+                        return '';
+                    }
+                    return null;
+                },
+                // @ts-ignore
+                setValue(val) {
+                    elem.attr(attrName, attrValue.replace("(.*)", val + ""));
                 }
-                return '';
+            };
+        },
+        /**
+         * @param {string} sty
+         * @param {string=} query
+         * @param {boolean=} neg
+         * @returns {Binding}
+         */
+        "hasStyle": function(sty, query, neg) {
+            let elem = $e;
+            if (query) {
+                elem = $e.find(query);
             }
-            return null;
-        }
-        // @ts-ignore
-        setValue(val) {
-            this.elem.setAttribute(this.attrName, this.attrValue.replace("(.*)", val + ""));
-        }
-    },
-    "hasStyle": class {
-        // @ts-ignore
-        constructor(elem, attr, castTo, neg) {
-            this.elem = elem;
-            this.castTo = castTo;
-            this.neg = neg;
-            const parts = attr.split(":");
-            this.styName = parts[0].trim();
+            const parts = sty.split(":");
+            let styName = parts[0].trim();
+            let styValue = '';
             if (parts.length > 1) {
-                this.styValue = parts[1].replace(/["']/g, '').trim();
+                styValue = parts[1].replace(/["']/g, '').trim();
             }
-        }
-        getValue() {
-            const st = this.elem.style;
-            const has = st.getPropertyValue(this.styName) === this.styValue;
-            // @ts-ignore
-            const res = has ^ this.neg;
-            if (this.castTo === "boolean") {
-                return Boolean(res);
-            } else {
-                return res;
-            }
-        }
-        // @ts-ignore
-        setValue(bool) {
-            if (bool ^ this.neg) {
-                this.elem.style.setProperty(this.styName, this.styValue);
-            } else {
-                this.elem.style.removeProperty(this.styName);
-            }
-        }
-    },
-    "styleRegex": class {
-        // @ts-ignore
-        constructor(elem, attr, castTo) {
-            this.elem = elem;
-            this.castTo = castTo;
-            const parts = attr.split(":");
-            this.styName = parts[0].trim();
-            if (parts.length > 1) {
-                this.styValue = parts[1].replace(/["']/g, '').trim();
-            }
-        }
-        getValue() {
-            const st = this.elem.style;
-            const has = st.getPropertyValue(this.styName) != null;
-            if (has) {
-                const match = st.getPropertyValue(this.styName).match(this.styValue);
-                if (match?.[1] && (typeof match[1]) === "string") {
-                    return performCasting(match[1], this.castTo);
+            return {
+                getValue() {
+                    const st = elem.prop('style');
+                    const has = st.getPropertyValue(styName) === styValue;
+                    return xor(has, neg);
+                },
+                // @ts-ignore
+                setValue(bool) {
+                    if (xor(bool, neg)) {
+                        elem.css(styName, styValue);
+                    } else {
+                        const st = elem.prop('style');
+                        st.removeProperty(styName);
+                    }
                 }
-                return '';
+            };
+        },
+         /**
+         * @param {string} sty
+         * @param {string=} query
+         * @returns {Binding}
+         */
+        "notHasStyle": (sty, query) => {
+            return methods['hasStyle'](sty, query, true);
+        },
+        /**
+         * @param {string} attr
+         * @param {string=} castTo
+         * @param {string=} query
+         * @returns {Binding}
+         */
+        "styleRegex": function(attr, castTo, query) {
+            let elem = $e;
+            if (query) {
+                elem = $e.find(query);
             }
-            return null;
+            const parts = attr.split(":");
+            const styName = parts[0].trim();
+            let styValue = '';
+            if (parts.length > 1) {
+                styValue = parts[1].replace(/["']/g, '').trim();
+            }
+            return {
+                getValue() {
+                    const st = elem.prop('style');
+                    const has = st.getPropertyValue(styName) != null;
+                    if (has) {
+                        const match = st.getPropertyValue(styName).match(styValue);
+                        if (match?.[1] && (typeof match[1]) === "string") {
+                            return performCasting(match[1], castTo);
+                        }
+                        return '';
+                    }
+                    return null;
+                },
+                // @ts-ignore
+                setValue(val) {
+                    elem.css(styName, styValue.replace("(.*)", val + ""));
+                }
+            };
         }
-        // @ts-ignore
-        setValue(val) {
-            this.elem.style.setProperty(this.styName, this.styValue.replace("(.*)", val + ""));
-        }
-    }
-    */
+    };
+    return methods;
 };
 
 /**
@@ -1296,18 +1382,18 @@ export const createBinding = (definition, elem, castTo) => {
     /** @type {Binding | null} */
     let bindFn = null;
     if (typeof (definition) === 'string') {
-        return evalInContext({e: elem, ...BindingFactory}, 'this.' + definition);
+        return evalInContext({ e: elem, ...BindingFactory }, 'this.' + definition);
     } else {
         // The user provides the get and set functions
         bindFn = {
             getValue: () => {
-                let v = evalInContext({elem}, `(${definition.get})(elem)`);
+                let v = evalInContext({ elem }, `(${definition.get})(elem)`);
                 if (castTo) {
                     v = performCasting(v, castTo);
                 }
                 return v;
             },
-            setValue: (v) => evalInContext({elem, v}, `(${definition.set})(elem, v)`)
+            setValue: (v) => evalInContext({ elem, v }, `(${definition.set})(elem, v)`)
         };
     }
     return bindFn;
