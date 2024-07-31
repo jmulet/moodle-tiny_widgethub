@@ -47,13 +47,14 @@ class hubpicker extends \admin_setting
      * @param string $heading heading
      * @param string $information text in box
      */
-    public function __construct($name, $visiblename, $information, $windex, $used_keys)
+    public function __construct($name, $visiblename, $information, $windex, $used_keys, $partials)
     {
         $this->nosave = true;
         $this->visiblename = $visiblename;
         $this->information = $information;
         $this->windex = $windex;
         $this->used_keys = $used_keys;
+        $this->partials = $partials;
         parent::__construct($name, $visiblename, $information, '', $windex);
     }
 
@@ -103,7 +104,7 @@ class hubpicker extends \admin_setting
         $PAGE->requires->js_call_amd(
             'tiny_widgethub/widget_settings',
             'init',
-            array(array('id' => $this->windex, 'keys' => $this->used_keys))
+            array(array('id' => $this->windex, 'keys' => $this->used_keys, 'partials' => $this->partials))
         );
 
         $select = \html_writer::select([], 'tiny_widgethub/presets', '', '** Pick from Hub **');

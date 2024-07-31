@@ -203,6 +203,31 @@ class plugininfo extends plugin implements
     }
 
     /**
+     * Searches the index for a widget with key named partials
+     * @param object $conf
+     * @param array $widget_index (optional)
+     * @return object | null if not found
+     */
+    public static function get_partials($conf, $widget_index): ?object {
+        if (!isset($widget_index)) {
+            $widget_index = self::get_widget_index($conf);
+        }
+        $index_id = array_column($widget_index, null, 'key')['partials'] ?? false;
+        $partials = null;
+        if ($index_id) {
+            $definition = $conf->{'def_' . $index_id};
+            if (!empty($definition)) {
+                $partials = json_decode($definition, false);
+                if (isset($partials)) {
+                    // Also include the internal widget id
+                    $partials->id = $index_id;
+                }
+            }
+        }
+        return $partials;
+    }
+
+    /**
      * Increments the sequence number and returns it
      * @param object $conf
      * @return int

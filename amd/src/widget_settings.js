@@ -93,7 +93,7 @@ export default {
 	/**
 	 * @param {string} yml
 	 * @param {{id: number, keys: string[], partials: any}} opts
-	 * @returns
+	 * @returns {Promise<{msg: string, json?: string, html?: string}>}
 	 */
 	validate: async function(yml, opts) {
 		/**
@@ -105,7 +105,7 @@ export default {
 		 * */
 		const validation = {msg: '', html: '', json: undefined};
 		try {
-			// The code is a valid Yaml
+			// Check if the code is a valid Yaml
 			/** @type {import('./util').Widget | undefined} */
 			let jsonObj;
 			try {
@@ -114,7 +114,8 @@ export default {
 				validation.msg = "Yaml syntax error:: " + ex;
 			}
 			validation.json = JSON.stringify(jsonObj, null, 0);
-			// The structure is correct
+
+			// Check if the structure is correct
 			if (!jsonObj?.key) {
 				validation.msg = "Yaml file must contain a 'key' property. ";
 			} else if (jsonObj.key === "partials") {
@@ -138,7 +139,7 @@ export default {
 				}
 				return pc;
 			});
-			// Try to parse the template with mustache renderer
+			// Try to parse the template with the correct renderer
 			const translations = jsonObj?.I18n || {};
 			/** @type {Object.<string, any>} */
 			const ctx = {};
@@ -146,8 +147,8 @@ export default {
 				ctx[param.name] = param.value;
 			});
 			const engine = jsonObj?.engine;
-			const htmlRendered = await templateRenderer(jsonObj?.template || '', ctx, translations, engine);
-			validation.html = htmlRendered;
+			const html = await templateRenderer(jsonObj?.template || '', ctx, translations, engine);
+			validation.html = html;
 		} catch (ex) {
 			validation.msg = "Renderer error:: " + ex;
 		}
@@ -170,6 +171,11 @@ export default {
 		const $controlMain = jQuery('#id_s_tiny_widgethub_def_' + opts.id);
 		$controlMain.css("display", "none");
 		const $target = $controlMain.parent();
+		const $form = $controlMain.closest("form");
+		const $submitBtn = $form.find('button[type="submit"]');
+		const $saveBtn = $submitBtn.clone().attr('type', 'button').removeAttr('id');
+		$submitBtn.css('display', 'none');
+		$submitBtn.parent().append($saveBtn);
 
 		// Display the secondary editor for Yaml syntax
 		const $controlSecondary = jQuery(`<div id="tiny_widgethub_yc_${opts.id}" class="tiny_widgethub-ymlcontrol"></div>`);
@@ -184,23 +190,28 @@ export default {
 			const validation = await this.validate(yml, opts);
 			if (validation.msg) {
 				alert(validation.msg);
-			} else {
+			} else if (validation.html) {
 				$previewPanel.removeClass('d-none');
+				$controlMain.trigger('focusin');
 				$controlMain.val(validation.json ?? '');
+				$controlMain.trigger('change');
 				$previewPanel.html(validation.html);
 			}
 		});
 		$target.append($previewBtn);
 
 		if (opts.id > 0) {
+			// Only show delete button on saved widgets (id=0 is reserved for new ones)
 			const $deleteBtn = jQuery(`<button type="button" class="btn btn-danger m-1">${i18n[1]}</button>`);
 			$deleteBtn.on('click', async() => {
 				// Clear all the controls
+				$controlMain.trigger('focusin');
 				$controlMain.val('');
+				$controlMain.trigger('change');
 				$controlSecondary.html('');
 				$previewPanel.html('');
 				// Send form by skipping validation
-				$controlMain.closest("form").trigger('submit', {skipValidation: true});
+				$form.trigger('submit');
 			});
 			$target.append($deleteBtn);
 		}
@@ -221,25 +232,23 @@ export default {
 			self.updateYaml(opts.id, codeProEditor);
 		});
 
-		$controlMain.closest("form").on("submit",
-			/** @param {*} ev */
-			async(ev) => {
+		$saveBtn.on("click",
+			async() => {
 			// Must update the content from the Yaml control
 			const yml = codeProEditor.getValue();
 			// First validate the definition of the widget
-			if (!ev.skipValidation) {
-				const validation = await this.validate(yml, opts);
-				if (validation.msg) {
-					alert(validation.msg);
-					ev.preventDefault();
-				} else {
-					$controlMain.val(validation.json ?? '');
-				}
-				console.log("Returning validation result", validation.msg);
-				return validation.msg === '';
+			const validation = await this.validate(yml, opts);
+			if (validation.msg) {
+				alert(validation.msg);
+			} else {
+				// Ensure that there is a change in the form value to force
+				// the set_updatedcallback to be called
+				$controlMain.trigger('focusin');
+				$controlMain.val((validation.json ?? '') + ' ');
+				$controlMain.trigger('change');
+				// Submit form
+				$form.trigger('submit');
 			}
-			console.log('Validation skipped');
-			return true;
 		});
 
 		this.updateYaml(opts.id, codeProEditor);

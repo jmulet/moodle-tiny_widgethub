@@ -82,34 +82,36 @@ class widgettable extends \admin_setting {
         );
         $table->headspan = array(1,1,1);
         
+        
         foreach ($list_widget_config as $item) {
             $row = new \html_table_row();
             $key_td = new \html_table_cell($item->key);
-            $key_td->attributes = array('title' => 'Internal id=' . $item->id);
             $name_td = new \html_table_cell($item->name);
-            $newlink_text = \html_writer::start_span('fa fa-pencil') . \html_writer::end_span()
+            $newlink_text = \html_writer::tag('i', '', array('class'=>'fa fa-pencil'))
                 . ' ' . get_string('edit', $tiny_category);
             $editlink = \html_writer::link($item->url, $newlink_text);
             $edit_td = new \html_table_cell($editlink);
+            $edit_td->attributes = array('title' => 'Internal id=' . $item->id, 'class' => '');           
             $row->cells = array(
                 $key_td, $name_td, $edit_td
             );
             $table->data[] = $row;
         }
+        
         // Add an additional row for adding a new widget
         $row = new \html_table_row();
         $new_url = new \moodle_url( '/admin/settings.php',
                     array('section'=> 'tiny_widgethub_spage_0'));
-        $newlink_text = \html_writer::start_span('fa fa-plus-circle') . \html_writer::end_span()
+        $newlink_text = \html_writer::tag('i', '', array('class'=>'fa fa-plus-circle'))
             . ' ' . get_string('createwidget', $tiny_category);
         $newlink = \html_writer::link($new_url, $newlink_text);
         $new_td = new \html_table_cell($newlink);
         $new_td->colspan = 3;
         $row->cells = array($new_td);
         $table->data[] = $row;
-
+        
         $snippet_table= \html_writer::table($table);
-
+        
 		return format_admin_setting($this, $this->visiblename,
 			$snippet_table,
 			$this->information, true, '','', $query);

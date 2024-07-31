@@ -80,17 +80,15 @@ class settingsutil
 		$widget_index = plugininfo::get_widget_index($conf);
 		$widget_list = plugininfo::get_widget_list($conf, $widget_index);
 		$used_keys = array();
-		foreach($widget_index as $index) {
-			$used_keys[] = $index['key'];
-		}
+		$partials = plugininfo::get_partials($conf, $widget_index);
 
 		$pages = array();
 		// Create a page for new widget
 		$empty_widget = new \stdClass();
 		$empty_widget->id = 0;
-		$pages[] = self::create_page_for_widget($empty_widget, $used_keys);
+		$pages[] = self::create_page_for_widget($empty_widget, $used_keys, $partials);
 		foreach($widget_list as $widget) {
-			$pages[] = self::create_page_for_widget($widget, $used_keys);
+			$pages[] = self::create_page_for_widget($widget, $used_keys, $partials);
 		}
 		return $pages;
 	}
@@ -101,7 +99,7 @@ class settingsutil
 	 * @param array $used_keys
 	 * @return \admin_settingpage
 	 */
-	private static function create_page_for_widget($widget, $used_keys)
+	private static function create_page_for_widget($widget, $used_keys, $partials)
 	{
 		$windx = $widget->id;
 		$title = get_string('createwidget', 'tiny_widgethub');
@@ -126,7 +124,8 @@ class settingsutil
 				get_string('hub', 'tiny_widgethub'),
 				get_string('hub_desc', 'tiny_widgethub'),
 				$windx,
-				$used_keys
+				$used_keys,
+				$partials
 			)
 		);
 		$json_setting = new \admin_setting_configtextarea(
