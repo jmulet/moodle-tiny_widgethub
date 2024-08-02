@@ -1095,7 +1095,7 @@ export function addScript(url, id, onSuccess, onError) {
 }
 
 // @ts-ignore
-const performCasting = function (value, type) {
+const performCasting = function(value, type) {
     switch (type) {
         case ("boolean"):
             if (value === 1 || value === "1" || value === true || value === "true") {

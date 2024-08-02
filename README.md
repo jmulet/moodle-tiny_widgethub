@@ -2,6 +2,36 @@
 
 Create, share and use fully customizable widget components in the tiny editor.
 
+# Spec of the Yaml file
+
+Optional keywords are marked with []
+
+- **key**: string - A unique identifier for the widget
+- **name**: string - The name that appears in the button to select it
+- **category**: string - The category in which the widget will appear
+- **[instructions]**: string - A details explanation of the purpose and use of the widget.
+- **[selectors]**: string | string [] - In case that the widget uses bindings (see below), it is mandatory to define the css selector that identifies the root of your widget.
+- **[engine]**: 'mustache' | 'ejs' - Defaults to mustache. Defines which template engine must be used to render the template.
+- **template**: string - HTML markup that will be interpolated and renderered in the Tiny editor.
+- **[unwrap]**: string - A query selector of the elements within the selectors element that must be extracted. Use '*' if all elements must be extracted. As you can see requires that the selectors keyword is defined.
+- **[parameters]** - Are compulsory if the template uses variables. It consists of a list of objects that may contain the following properties
+  - **name**: string - Must match the name used in the template
+  - **title**: string - A human readable name of the widget
+  - **[tooltip]**: string - Provide further information about the parameter
+  - **value**: unknown - The default value that must have
+  - **[type]**: 'textfield' | 'textarea' | 'numeric' | 'select' | 'checkbox' | 'color'  - In most cases it can be inferered from the default value and other parameters.
+  - **options**: string[] | {l: string, v: string}[] - A list of options for the checkbox type.
+  - **[min]**: number - The min value allowed in a numeric control
+  - **[max]**: number - The max value allowed in a numeric control
+  - **[bind]**: string | {get: string, set: string} - 
+- **[contextmenu]**
+  - **predicate**: css query identifying under which element the right click must display the context menu with the passed actions.
+  - **actions**: 'movebefore' | 'moveafter' | 'insert' | 'remove' | '|'
+- **[contexttoolbar]**: boolean - whether to display a context toolbar instead for a contextmenu.
+- **author**: string - Use this format: Your Name <your@email.com>
+- **version**: string - Version in format major.minor.revision
+
+
 # Creating widgets
 
 The following sections will walk through the process of creating new widgets by using the yaml API.
@@ -33,7 +63,7 @@ parameters:
     editable: true
     # (Optional) is hidden?
     hidden: false
-author: Your name <your.email@com>
+author: Your name <your.email@domain.com>
 version: 1.0.0 
 ````
 
@@ -81,7 +111,7 @@ parameters:
   - name: useBold
     title: should text be in bold face?
     value: true
-author: Your name <your.email@com>
+author: Your name <your.email@domain.com>
 version: 1.0.0 
 ````
 
@@ -109,7 +139,7 @@ parameters:
       - warning
       # You may want to use a custom label and value
       - {l: 'Be careful', v: 'danger'}
-author: Your name <your.email@com>
+author: Your name <your.email@domain.com>
 version: 1.0.0 
 ````
 
@@ -137,7 +167,7 @@ parameters:
       - success
       - warning
       - {l: 'Be careful', v: 'danger'}
-author: Your name <your.email@com>
+author: Your name <your.email@domain.com>
 version: 1.1.0 
 ````
 
@@ -183,7 +213,7 @@ parameters:
     title: Number of columns
     value: 3
     min: 1
-author: Your name <your.email@com>
+author: Your name <your.email@domain.com>
 version: 1.1.0 
 ````
 
@@ -218,13 +248,13 @@ parameters:
     title: Number of columns
     value: 3
     min: 1
-author: Your name <your.email@com>
+author: Your name <your.email@domain.com>
 version: 1.1.0 
 ````
 
 ### Example 5. Widgets that require id's
 
-For every id that you need, create a parameter visibility hidden and having the special value $RND to ensure that every instance will have a different id.
+For every id that you need, create a parameter visibility hidden and having the special value `$RND` to ensure that every instance will have a different id.
 
 ````yml
 parameters:
@@ -235,3 +265,106 @@ parameters:
 
 
 ### Example 6. Introduction to bindings
+
+After you have inserted a widget into the editor you may want to edit it. This is achieved through the context menus and context toolbars that are provided by the Tiny editor API. Therefore, in this example we will see how to enable one of these context menus.
+
+Before start
+
+Let's start be modifying the example 3
+
+````yml
+key: tut_select2
+name: (Tutorial 3) list of options with context menu
+category: tutorials
+template: |
+  <p><span class="badge bg-{{severity}}">Content</span></p>
+parameters:
+  - name: severity
+    title: Type of badge
+    options:
+      - primary
+      - success
+      - warning
+      - danger
+    # Here comes the new keyword!
+    bind: classRegex('bg-(.*)')
+# And you must tell how to identify this widget with a query selector
+# This is regarded as the root of the component
+selectors: 'span.badge'
+# You may also want to unwrap the component, i.e., in this 
+# example means that the span is replaced by all '*' its contents
+unwrap: '*'
+author: Your name <your.email@domain.com>
+version: 1.0.0 
+````
+
+Other bind functions available are:
+
+- `hasClass(className: string, query?: string): boolean` - Returns true if the node has the class or classes passed in the first argument. The second argument is optional and it allows to look for the class in a HTML node diferent than the widget root (defined by the keyword selectors).
+
+````
+HTML: <p class="widget1"><span class="badge bg-info">Content</span></p>
+Selector: .widget1 
+Binding: hasClass('badge', 'span') is true
+````
+
+- `notHasClass(className: string, query?: string): boolean` - The same as the previous function but produces a negated result.
+
+- `classRegex(classExpr: string, castTo?: string, query?: string): string | boolean | number` - Extracts a part of the class property of the element that maches the classExpr. Optionally the result can be cast to types (`boolean`, `number`, `string`).
+
+
+- `hasAttr(attrName: string, query?: string): boolean` - Returns true if the HTML element has an attribute named attrName. If the attrName has the following syntax name=value, then returns true if the element has an atribute named name with value value.
+
+````
+HTML: <p><span class="badge" data-animate="true">Content</span></p>
+Selector: span.badge 
+Binding: hasAttr('data-animate=true', 'boolean') is true
+````
+
+- `hasAttr(attrName: string, query?: string): boolean` - Negated version of the previous function
+
+- `attr(attrName: string, castTo?: string, query?: string): string | boolean | number` - Returns the value of an attribute named attrName
+
+````
+HTML: <p><span class="badge" data-type="info">Content</span></p>
+Selector: span.badge 
+Binding: attr('data-type') is info
+````
+
+-  `attrRegex(attrExpr: string, castTo?: string, query?: string): string | boolean | number` - attrExpr has the form attrName=attrValueRegex. Therefore this function extracts a part of the value of an atributed named attrName.
+
+````
+HTML: <p><span class="badge" data-type="info-4">Content</span></p>
+Selector: span.badge 
+Binding: attrRegex('data-type=info-(.*)', 'number') is 4
+````
+
+- `hasStyle(sty: string, query?: string): boolean` - Looks if the sytle property has the key sty set.
+
+````
+HTML: <p><span class="badge" style="font-size: 14px;">Content</span></p>
+Selector: span.badge 
+Binding: hasStyle('font-size') is true, but hasStyle('color') is false.
+````
+
+- `notHasStyle(sty: string, query?: string): boolean` - The negated version of the previous function.
+
+These functions may be suitable for most of the cases, but, in some ocassions there might be situacions that are not enough. In these cases, the widget dessigner can provide its own logic using plain javascript. The syntax is
+
+````yaml
+binding:
+  get: ($e) => /* return whatever you need from the jQuery element $e */
+  set: ($e, v) => /* update all you need of the element $e with the new value v */
+````
+
+For example, let's see how to hasClass function might be implemented using this API
+
+````yaml
+# Example of how hasClass can be simulated (assuming that the root is in the p element)
+binding:
+  get: ($e) => $e.find('span').hasClass('badge')
+  set: |
+      ($e, v) => {
+        v ? $e.addClass('badge') : $e.removeClass('badge')    
+      }
+````
