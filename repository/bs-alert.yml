@@ -9,10 +9,13 @@ template: |
        <span aria-hidden="true">&times;</span>
      </button>
     {{/closable}}
-    <p>Lorem ipsum.</p>
+    <div class="alert-content">
+      <p>Lorem ipsum.</p>
+    </div>
   </div>
   <p></p>
 selectors: div[role="alert"].alert
+insertquery: div[role="alert"].alert .alert-content
 unwrap: '*'
 parameters:
   - name: severity

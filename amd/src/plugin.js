@@ -34,6 +34,7 @@ import {getSetup as getCommandSetup} from './commands';
 import * as Configuration from './configuration';
 import {initializer} from './initializer';
 
+const documentationUrl = 'https://github.com/jmulet/moodle_tiny-widgethub';
 const {component, pluginName} = Common;
 
 // Setup the Plugin.
@@ -45,7 +46,7 @@ export default new Promise(async(resolve) => {
         setupCommands,
     ] = await Promise.all([
         getTinyMCE(),
-        getPluginMetadata(component, pluginName),
+        getPluginMetadata(component, pluginName, documentationUrl),
         getCommandSetup(),
     ]);
 

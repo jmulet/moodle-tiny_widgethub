@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable max-len */
-import {getAddCustomElements, getAddValidElements, getAdditionalCss} from './options';
+import {getAdditionalCss} from './options';
 import * as cfg from 'core/config';
 import jQuery from 'jquery';
 import {initContextActions} from './context_init';
@@ -9,16 +9,6 @@ import {initContextActions} from './context_init';
  * @param {import('./plugin').TinyMCE} editor
  */
 export function initializer(editor) {
-    // Before setting the first content, we must extend the number of valid HTML tags
-    editor.once('BeforeSetContent', () => {
-        // Prevent the editor from removing certain tags
-        // Allow custom elements, e.g., script tag and SVG in the editor.
-        const validElem = getAddValidElements(editor);
-        editor.schema.addValidElements(validElem);
-        const addElem = getAddCustomElements(editor);
-        editor.schema.addCustomElements(addElem);
-    });
-    // To remove editor.once('SetContent', () => {});
     // Add the bootstrap, CSS, etc... into the editor's iframe
     editor.on('init', () => {
         // On init editor.dom is ready

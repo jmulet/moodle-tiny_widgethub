@@ -52,21 +52,6 @@ class settingsutil
 			'',
 			PARAM_RAW
 		);
-		// Prevent the editor from stripping out certain elements
-		$items[] = new \admin_setting_configtextarea(
-			'tiny_widgethub/addvalidelements',
-			'tiny_widgethub_addvalidelements',
-			get_string('addvalidelements', 'tiny_widgethub'),
-			'',
-			PARAM_RAW
-		);
-		$items[] = new \admin_setting_configtextarea(
-			'tiny_widgethub/addcustomelements',
-			'tiny_widgethub_addcustomelements',
-			get_string('addcustomelements', 'tiny_widgethub'),
-			'',
-			PARAM_RAW
-		);
 		return $items;
 	}
 

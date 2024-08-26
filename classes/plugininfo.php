@@ -77,7 +77,7 @@ class plugininfo extends plugin implements
         ?\editor_tiny\editor $editor = null
     ): array {
 
-        global $USER, $COURSE, $PAGE;
+        global $USER, $COURSE;
 
         // Obtain the configuration options for the plugin from the config table
         $conf = get_config('tiny_widgethub');
@@ -102,8 +102,6 @@ class plugininfo extends plugin implements
             // configuration
             $params['sharecss'] = $conf->sharecss;
             $params['additionalcss'] = $conf->additionalcss;
-            $params['addvalidelements'] = $conf->addvalidelements;
-            $params['addcustomelements'] = $conf->addcustomelements;
         }
         return $params;
     }

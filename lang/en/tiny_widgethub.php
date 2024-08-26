@@ -21,11 +21,8 @@
  * @copyright   2024 Josep Mulet <pep.mulet@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-$string['accept'] = 'Accept';
-$string['addcustomelements'] = 'Add custom HTML elements';
 $string['additionalcss'] = 'Additional CSS for the editor iframe';
-$string['addvalidelements'] = 'Extend the list of valid HTML elements';
+$string['accept'] = 'Accept';
 $string['cancel'] = 'Cancel';
 $string['createwidget'] = 'Create new widget';
 $string['def'] = 'Yml definition';
@@ -35,6 +32,7 @@ $string['dialogtitle'] = 'Select a widget';
 $string['edit'] = 'Edit';
 $string['emptylist'] = 'No widgets have been found for the search criteria';
 $string['filterres'] = 'Result of the filter';
+$string['helplinktext'] = 'WidgetHub';
 $string['hub'] = 'Widgets available online';
 $string['hub_desc'] = 'Choose from a list of widgets available online';
 $string['insert'] = 'Insert';
@@ -54,5 +52,3 @@ $string['viewplugin'] = 'View widgethub plugin';
 $string['widget'] = 'Widget';
 $string['widgets'] = 'Widgets';
 $string['wsearch'] = 'Search widgets ...';
-
-

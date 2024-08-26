@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-/* eslint-disable max-len */
+
 /* eslint-disable no-eq-null */
 /* eslint-disable no-bitwise */
 /* eslint-disable no-new-func */
@@ -28,10 +28,10 @@
  */
 
 import Mustache from 'core/mustache';
-import { get_strings as getStrings } from 'core/str';
+import {get_strings as getStrings} from 'core/str';
 
-// Load on demand the template engines
 /**
+ * Load on demand the template engine EJS
  * @typedef {Object} EJS
  * @property {(template: string, ctx: Object.<string,any>) => string} render
  */
@@ -111,7 +111,7 @@ export function evalInContext(ctx, expr, keepFns) {
  * @param {Object.<string, any>} ctx2
  * @returns {string}
  */
-const defineVar = function (text, ctx2) {
+const defineVar = function(text, ctx2) {
     const pos = text.indexOf("=");
     const varname = text.substring(0, pos).trim();
     const varvalue = evalInContext(ctx2, text.substring(pos + 1).trim());
@@ -131,7 +131,7 @@ const applyMustacheHelpers = function(ctx, translations) {
          * @param {string} text
          * @param {Mustache.render} render
          */
-        function (text, render) {
+        function(text, render) {
             const pos = text.indexOf("]");
             const condition = text.substring(0, pos).trim().substring(1);
             const show = evalInContext(ctx, condition);
@@ -142,16 +142,16 @@ const applyMustacheHelpers = function(ctx, translations) {
         };
     ctx["var"] = () =>
         /**
-        * @param {string} text
-        */
-        function (text) {
+         * @param {string} text
+         */
+        function(text) {
             defineVar(text, ctx);
         };
     ctx["eval"] = () =>
         /**
          * @param {string} text
          */
-        function (text) {
+        function(text) {
             return evalInContext(ctx, text) + "";
         };
     ctx["I18n"] = () =>
@@ -159,7 +159,7 @@ const applyMustacheHelpers = function(ctx, translations) {
          * @param {string} text
          * @param {Mustache.render} render
          */
-        function (text, render) {
+        function(text, render) {
             const key = render(text).trim();
             const dict = translations[key] || {};
             return dict[ctx["LANG"]] || dict["en"] || dict["ca"] || key;
@@ -168,7 +168,7 @@ const applyMustacheHelpers = function(ctx, translations) {
         /**
          * @param {string} text
          */
-        function (text) {
+        function(text) {
             const pos = text.indexOf("]");
             const cond = text.substring(0, pos).trim().substring(1);
             const components = cond.split(",");
@@ -207,9 +207,9 @@ const applyMustacheHelpers = function(ctx, translations) {
         };
     ctx["for"] = () =>
         /**
-        * @param {string} text
-        */
-        function (text) {
+         * @param {string} text
+         */
+        function(text) {
             const pos = text.indexOf("]");
             const condition = text.substring(0, pos).trim().substring(1);
             const parts = condition.split(";");
@@ -237,7 +237,7 @@ const applyMustacheHelpers = function(ctx, translations) {
  * @returns {string} The interpolated template given a context and translations map
  */
 export function templateRendererMustache(template, context, translations) {
-    const ctx = { ...context };
+    const ctx = {...context};
     Object.keys(ctx).forEach(key => {
         if (ctx[key] === "$RND") {
             ctx[key] = genID();
@@ -257,7 +257,7 @@ export function templateRendererMustache(template, context, translations) {
  */
 async function templateRendererEJS(template, context, translations) {
     /** @type {Object.<string, any>} */
-    const ctx = { ...context, I18n: {} };
+    const ctx = {...context, I18n: {}};
     Object.keys(ctx).forEach(key => {
         if (ctx[key] === "$RND") {
             ctx[key] = genID();
@@ -448,7 +448,7 @@ export class WidgetWrapper {
     }
     /**
      * @returns {string}
-    */
+     */
     get version() {
         return this.#widget.version || "1.0.0";
     }
@@ -484,7 +484,7 @@ export class WidgetWrapper {
      * @returns {Promise<string>} The rendered template
      */
     render(ctx) {
-        const defaultsCopy = { ...this.defaults };
+        const defaultsCopy = {...this.defaults};
         const toInterpolate = Object.assign(defaultsCopy, ctx || {});
         // Decide which template engine to use
         let engine = this.#widget.engine;
@@ -600,8 +600,8 @@ export class UserStorage {
         this._userId = userId;
         this._courseId = courseId;
         this.STORE_KEY = "iedib-widgets_" + userId;
-        this._localStore = { valors: {} };
-        this._sessionStore = { searchtext: '' };
+        this._localStore = {valors: {}};
+        this._sessionStore = {searchtext: ''};
         this.loadStore();
     }
     /**
@@ -788,19 +788,19 @@ export function searchComp(str1, needle) {
 /** Default transformers */
 const Transformers = {
     // @ts-ignore
-    "toUpperCase": function (txt) {
+    "toUpperCase": function(txt) {
         return (txt + "").toUpperCase();
     },
     // @ts-ignore
-    "toLowerCase": function (txt) {
+    "toLowerCase": function(txt) {
         return (txt + "").toLowerCase();
     },
     // @ts-ignore
-    "trim": function (txt) {
+    "trim": function(txt) {
         return (txt + "").trim();
     },
     // @ts-ignore
-    "ytId": function (txt) {
+    "ytId": function(txt) {
         // Finds the youtubeId in a text
         const rx = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/;
         const r = (txt || '').match(rx);
@@ -810,7 +810,7 @@ const Transformers = {
         return txt;
     },
     // @ts-ignore
-    "vimeoId": function (txt) {
+    "vimeoId": function(txt) {
         const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?(\d+)/;
         const match = (txt || "").match(regExp);
         if (match?.[5]) {
@@ -819,7 +819,7 @@ const Transformers = {
         return txt;
     },
     // @ts-ignore
-    "serveGDrive": function (txt) {
+    "serveGDrive": function(txt) {
         // Expecting https://drive.google.com/file/d/1DDUzcFrOlzWb3CBdFPJ1NCNXClvPbm5B/preview
         const res = (txt + "").match(/https:\/\/drive.google.com\/file\/d\/([a-zA-Z0-9_]+)\//);
         if (res?.length) {
@@ -829,11 +829,11 @@ const Transformers = {
         return txt;
     },
     // @ts-ignore
-    "removeHTML": function (txt) {
+    "removeHTML": function(txt) {
         return (txt || '').replace(/<[^>]*>?/gm, '');
     },
     // @ts-ignore
-    "escapeHTML": function (txt) {
+    "escapeHTML": function(txt) {
         return (txt || '').replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
@@ -841,12 +841,12 @@ const Transformers = {
             .replace(/'/g, "&#039;");
     },
     // @ts-ignore
-    "encodeHTML": function (txt) {
+    "encodeHTML": function(txt) {
         // @ts-ignore
         return this.encodeURIComponent(txt || "");
     },
     // @ts-ignore
-    "escapeQuotes": function (txt) {
+    "escapeQuotes": function(txt) {
         return (txt || '').replace(/"/gm, "'");
     }
 };
@@ -921,8 +921,8 @@ export function createFilterFunction(filterCode) {
  */
 export async function applyWidgetFilter(editor, widgetTemplate, silent, mergevars) {
     const translations = await getStrings([
-        { key: 'filterres', component: 'tiny_widgethub' },
-        { key: 'nochanges', component: 'tiny_widgethub' }
+        {key: 'filterres', component: 'tiny_widgethub'},
+        {key: 'nochanges', component: 'tiny_widgethub'}
     ]);
     // Es tracta d'un filtre, no d'un widget i s'ha de tractar de forma diferent
     const userWidgetFilter = createFilterFunction(widgetTemplate);
@@ -936,7 +936,7 @@ export async function applyWidgetFilter(editor, widgetTemplate, silent, mergevar
         return false;
     }
     // @ts-ignore
-    const handleFilterResult = function (res) {
+    const handleFilterResult = function(res) {
         const out = res[0];
         let msg = res[1];
         if (out != null) {
@@ -976,7 +976,7 @@ export async function applyWidgetFilter(editor, widgetTemplate, silent, mergevar
     if (isPromise) {
         filteredResult.then(handleFilterResult);
     } else {
-        handleFilterResult(filteredResult || [null, "El filter no ha produït canvis"]);
+        handleFilterResult(filteredResult || [null, translations[1]]);
     }
     return true;
 }
@@ -992,7 +992,7 @@ export function convertInt(str, def) {
     if (str && typeof str === 'number') {
         return Math.floor(str);
     }
-    if (!str || !(str + "").trim() || !(str + "").match(/^\s*[+-]?\d+(\.\d*)?\s*$/)) {
+    if (!str || !(str + "").trim() || !RegExp(/^\s*[+-]?\d+(\.\d*)?\s*$/).exec(str + "")) {
         return def;
     }
     try {
@@ -1085,7 +1085,7 @@ export function addScript(url, id, onSuccess, onError) {
             onSuccess();
         }
     };
-    newScript.onerror = function () {
+    newScript.onerror = function() {
         console.error("Error loading ", url);
         if (onError) {
             onError();
@@ -1232,11 +1232,11 @@ const bindingFactory = function($e) {
             };
         },
         /**
-        * @param {string} attr
-        * @param {string=} query
-        * @param {boolean=} neg
-        * @returns {Binding}
-        */
+         * @param {string} attr
+         * @param {string=} query
+         * @param {boolean=} neg
+         * @returns {Binding}
+         */
         "hasAttr": (attr, query, neg) => {
             let elem = $e;
             if (query) {
@@ -1267,10 +1267,10 @@ const bindingFactory = function($e) {
             };
         },
          /**
-         * @param {string} attr
-         * @param {string=} query
-         * @returns {Binding}
-         */
+          * @param {string} attr
+          * @param {string=} query
+          * @returns {Binding}
+          */
         "notHasAttr": (attr, query) => {
             return methods['hasAttr'](attr, query, true);
         },
@@ -1344,10 +1344,10 @@ const bindingFactory = function($e) {
             };
         },
          /**
-         * @param {string} sty
-         * @param {string=} query
-         * @returns {Binding}
-         */
+          * @param {string} sty
+          * @param {string=} query
+          * @returns {Binding}
+          */
         "notHasStyle": (sty, query) => {
             return methods['hasStyle'](sty, query, true);
         },
@@ -1411,13 +1411,13 @@ export const createBinding = (definition, elem, castTo) => {
         // The user provides the get and set functions
         bindFn = {
             getValue: () => {
-                let v = evalInContext({ elem }, `(${definition.get})(elem)`);
+                let v = evalInContext({elem}, `(${definition.get})(elem)`);
                 if (castTo) {
                     v = performCasting(v, castTo);
                 }
                 return v;
             },
-            setValue: (v) => evalInContext({ elem, v }, `(${definition.set})(elem, v)`)
+            setValue: (v) => evalInContext({elem, v}, `(${definition.set})(elem, v)`)
         };
     }
     return bindFn;

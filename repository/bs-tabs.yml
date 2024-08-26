@@ -1,0 +1,52 @@
+key: bs-tabs
+name: Tabs menu
+category: bootstrap
+instructions: >
+  Create a tab menu. You can define the number of tabs (<b>at least 2</b>). 
+  It is important that you write a random ID that is different for each menu created on the page.
+engine: ejs
+template: |
+  <p><br></p>
+  <div class="whb-tabmenu">
+  <ul class="nav nav-tabs" role="tablist">
+  <% for(var i=1; i<=tabs; i++) { %>
+  <li class="nav-item">
+    <a class="nav-link<% i==1 ? ' active' : '' %>" href="<%=ID%>_<%=i%>" data-toggle="tab" role="tab"><span>&nbsp;</span><span>Tab<%=i%></span></a>
+  </li> 
+  <% } %>
+  </ul>
+  <div class="tab-content">
+  <% for(var i=1; i<=tabs; i++) { %>
+  <div class="tab-pane<% effect ? ' ' + effect : '' %><% i==1 ? ' show active' : '' %>" id="<%=ID%>_<%=i%>" role="tabpanel">
+  <p><%=i%> Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+  dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+  consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+  Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+  </div>
+  <% } %>
+  </div>
+  </div> 
+  <p><br></p>
+selectors: div.whb-tabmenu
+unpack: "div.tab-content > div.tab-pane > *"
+parameters: 
+  - name: tabs
+    value: 2
+    title: Number of tabs
+    min: 1
+    max: 6
+    tip: An excessive number of tabs can cause visualization problems on mobile devices.
+  - name: effect
+    title: Transition effect
+    value: ''
+    options:
+      - {l: 'None', v: ''}
+      - {l: 'Fade', v: 'fade'}
+  - name: ID
+    value: $RND
+    hidden: true
+contextmenu:
+  - predicate: a[data-toggle="tab"]
+    actions: movebefore moveafter insertafter | remove
+author: Josep Mulet <pep.mulet@gmail.com>
+version: 1.0.0

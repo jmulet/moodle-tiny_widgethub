@@ -29,7 +29,7 @@ import {createBinding} from './util';
 
 /**
  * @class
- * @classdesc Create a generic editor dialogue class based on editor field of widget definition
+ * @classdesc Defines a generic editor dialogue based on widget definition fields
  */
 export default class ContextPropsModal {
     /**

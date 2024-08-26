@@ -33,8 +33,6 @@ const widgetList = getPluginOptionName(pluginName, 'widgetlist');
 
 const shareStyles = getPluginOptionName(pluginName, 'sharestyles');
 const additionalCss = getPluginOptionName(pluginName, 'additionalcss');
-const addValidElements = getPluginOptionName(pluginName, 'addvalidelements');
-const addCustomElements = getPluginOptionName(pluginName, 'addcustomelements');
 
 /**
  * @param {import('./plugin').TinyMCE} editor
@@ -71,17 +69,6 @@ export const register = (editor) => {
         processor: 'string',
         "default": "",
     });
-
-    registerOption(addValidElements, {
-        processor: 'string',
-        "default": "",
-    });
-
-    registerOption(addCustomElements, {
-        processor: 'string',
-        "default": "",
-    });
-
 };
 
 
@@ -108,18 +95,6 @@ export const getCourseId = (editor) => parseInt(editor.options.get(courseId));
  * @returns {string} - additional css that must be included in a <style> tag in editor's iframe
  */
 export const getAdditionalCss = (editor) => editor.options.get(additionalCss);
-
-/**
- * @param {import('./plugin').TinyMCE} editor
- * @returns {string}
- */
-export const getAddValidElements = (editor) => editor.options.get(addValidElements);
-
-/**
- * @param {import('./plugin').TinyMCE} editor
- * @returns {string}
- */
-export const getAddCustomElements = (editor) => editor.options.get(addCustomElements);
 
 /** @type {Object.<string, WidgetWrapper> | null} */
 let widgetDict = null;

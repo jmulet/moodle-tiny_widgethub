@@ -114,7 +114,7 @@ const ICONS = {
 };
 
 /**
- * Define icons used in the editor
+ * Define icons used by the context menus. Source: FontAwesome 6
  * @param {import("./plugin").TinyMCE} editor - The tinyMCE editor instance
  */
 const defineIcons = function(editor) {
@@ -179,8 +179,8 @@ const PredefinedActions = {
      * Moves the selected element above in the parent container
      * unless it is the first one
      * @param {PathResult} context
-    */
-    moveup: (context) => {
+     */
+    movebefore: (context) => {
         console.log('moveup', context);
         const $e = context?.targetElement;
         if (!$e) {
@@ -195,8 +195,8 @@ const PredefinedActions = {
      * Moves the selected element above in the parent container
      * unless it is the first one
      * @param {PathResult} context
-    */
-    movedown: (context) => {
+     */
+    moveafter: (context) => {
         console.log('movedown', context);
         const $e = context?.targetElement;
         if (!$e) {
@@ -210,15 +210,15 @@ const PredefinedActions = {
     /**
      * Inserts a clone of the selected element after it
      * @param {PathResult} context
-    */
-     insert: (context) => {
+     */
+    insert: (context) => {
         console.log('insert a clone', context);
         const $e = context?.targetElement;
         if (!$e) {
             return;
         }
         const clone = $e.clone();
-        // old - new id map
+        // Old - new id map
         /** @type {Record<string, string>} */
         const idMap = {};
         // Run twice
@@ -233,7 +233,7 @@ const PredefinedActions = {
     /**
      * Removes the selected element
      * @param {PathResult} context
-    */
+     */
     remove: (context) => {
         console.log('remove', context);
         const $e = context?.targetElement;
@@ -300,7 +300,10 @@ export const initContextActions = function(editor) {
                     return;
                 }
             }
-            PredefinedActions[name](currentContext);
+            const action = PredefinedActions[name];
+            if (action) {
+                action(currentContext);
+            }
         };
     }
 
@@ -319,12 +322,12 @@ export const initContextActions = function(editor) {
     editor.ui.registry.addMenuItem('widgethub_moveup_item', {
         icon: ICONS.arrowUp,
         text: 'Move up',
-        onAction: genericAction('moveup')
+        onAction: genericAction('movebefore')
     });
     editor.ui.registry.addMenuItem('widgethub_movedown_item', {
         icon: ICONS.arrowDown,
         text: 'Move down',
-        onAction: genericAction('movedown')
+        onAction: genericAction('moveafter')
     });
     editor.ui.registry.addMenuItem('widgethub_insertafter_item', {
         icon: ICONS.clone,
