@@ -56,7 +56,7 @@ function getEJS() {
 /**
  * @typedef {object} Shared
  * @property {string} currentScope
- * @property {string} SNPT_MODE
+ * @property {boolean} activatePopup
  * @property {object} globalConfig
  * @const
  */
@@ -99,8 +99,8 @@ export function evalInContext(ctx, expr, keepFns) {
     listArgs.push('expr');
     listArgs.push('return eval(expr)');
     listVals.push(expr);
-    console.log('listArgs', listArgs);
-    console.log('expr', expr, 'listVals', listVals);
+    // console.log('listArgs', listArgs);
+    // console.log('expr', expr, 'listVals', listVals);
 
     const evaluator = new Function(...listArgs);
     return evaluator(...listVals);
@@ -350,9 +350,10 @@ export class WidgetWrapper {
 
     /**
      * @param {Widget} widget
-     * @param {Object.<string, any>} partials
+     * @param {Object.<string, any>=} partials
      */
     constructor(widget, partials) {
+        partials = partials ?? {};
         this.#widget = widget;
         const parameters = widget.parameters;
         if (!parameters) {
@@ -688,7 +689,7 @@ export class UserStorage {
      * @template T
      * @param {string} key
      * @param {T} value
-     * @param {boolean} persist
+     * @param {boolean=} persist
      * @returns {void}
      */
     setToLocal(key, value, persist) {
@@ -1031,7 +1032,7 @@ export function findVariableByName(varname, listVars) {
 /**
  * Safely joins two parts of an url
  * @param {string} a
- * @param {string?} b
+ * @param {string=} b
  * @returns {string}
  */
 export function pathJoin(a, b) {
@@ -1049,7 +1050,7 @@ export function pathJoin(a, b) {
 /**
  * Adds the baseurl if the passed url does not start with http or https
  * @param {string} base
- * @param {string?} url
+ * @param {string=} url
  * @returns {string}
  */
 export function addBaseToUrl(base, url) {

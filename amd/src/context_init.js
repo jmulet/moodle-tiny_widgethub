@@ -137,10 +137,12 @@ const needsContextMenu = function(widget) {
 };
 
 /**
- * @param {JQuery<HTMLElement>} $e
- * @param {Record<string, string>}  idMap
+ * When creating a clone of an element must update all its id's
+ * @param {JQuery<HTMLElement>} $e - The element to be treated
+ * @param {JQuery<HTMLElement>} $root - The root element being cloned
+ * @param {Record<string, string>} idMap - A dictionary to store assigned id's
  */
-const treatElementIds = function($e, idMap) {
+const treatElementIds = function($e, $root, idMap) {
     const oldId = $e.prop('id');
     if (oldId) {
         let newId = idMap[oldId];
@@ -152,14 +154,41 @@ const treatElementIds = function($e, idMap) {
             $e.prop('id', newId);
         }
     }
-    ['data-parent', 'data-bs-parent', 'data-target', 'data-bs-target'].forEach((dataX) => {
-        if ($e.attr(dataX)) {
-            const oldId = $e.attr(dataX)?.substring(1);
-            if (oldId && idMap[oldId]) {
+    ['data-parent', 'data-bs-parent', 'data-target', 'data-bs-target', 'href'].forEach((dataX) => {
+        const attr = $e.attr(dataX);
+        if (attr?.startsWith("#")) {
+            const oldId = attr?.substring(1);
+            // Is this element included under the root? So, it has already cloned!
+            if ($root.find(attr)[0] && oldId && idMap[oldId]) {
                 $e.attr(dataX, '#' + idMap[oldId]);
+            } else if (oldId && !idMap[oldId]) {
+                // It must be cloned too
+                const sibling = $root.closest(attr);
+                if (sibling[0]) {
+                   const cloned = sibling.clone();
+                   treatElementIds(cloned, $root, idMap);
+                   cloned.insertAfter(sibling);
+                }
             }
         }
     });
+};
+
+/**
+ * @param {JQuery<HTMLElement>} $e
+ * @param {Record<string,string>} idMap - old vs new id map
+ * @returns {JQuery<HTMLElement>} The cloned element with new id's
+ */
+export const smartClone = ($e, idMap) => {
+    const clone = $e.clone();
+    // Run twice to allow new id's to be detected
+    for (let i = 0; i < 2; i++) {
+        treatElementIds(clone, $e, idMap);
+        clone.find('*').each((_, e) => {
+            treatElementIds(jQuery(e), $e, idMap);
+        });
+    }
+    return clone;
 };
 
 /** @type {Record<string, Function>} */
@@ -211,23 +240,15 @@ const PredefinedActions = {
      * Inserts a clone of the selected element after it
      * @param {PathResult} context
      */
-    insert: (context) => {
+    insertafter: (context) => {
         console.log('insert a clone', context);
         const $e = context?.targetElement;
         if (!$e) {
             return;
         }
-        const clone = $e.clone();
-        // Old - new id map
         /** @type {Record<string, string>} */
         const idMap = {};
-        // Run twice
-        for (let i = 0; i < 2; i++) {
-            treatElementIds(clone, idMap);
-            clone.find('*').each((_, e) => {
-                treatElementIds(jQuery(e), idMap);
-            });
-        }
+        const clone = smartClone($e, idMap);
         clone.insertAfter($e);
     },
     /**
@@ -332,7 +353,7 @@ export const initContextActions = function(editor) {
     editor.ui.registry.addMenuItem('widgethub_insertafter_item', {
         icon: ICONS.clone,
         text: 'Insert',
-        onAction: genericAction('insert')
+        onAction: genericAction('insertafter')
     });
     editor.ui.registry.addMenuItem('widgethub_remove_item', {
         icon: ICONS.remove,

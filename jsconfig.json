@@ -18,6 +18,7 @@
             "core/modal_events": ["../../../../amd/src/modal_events.js"],
             "core/modal": ["../../../../amd/src/modal.js"],
             "core/modal_registry": ["../../../../amd/src/modal_registry.js"],
+            "jquery": ["./amd/tests/node_modules/jquery/dist/jquery.js"]
         }
     },
     

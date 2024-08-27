@@ -7,16 +7,16 @@ template: |
   <a href="javascript:void(0)" data-toggle="popover" data-trigger="click" 
   data-original-title="{{title}}" data-content="{{{anotation}}}" data-html="true" data-container="body"
   data-placement="{{placement}}"><span class="whb-inspoint">{{word}}</span></a>
-insertquery: .whb-inspoint
 selectors: a[data-toggle="popover"]
 unpack: .whb-inspoint
+insertquery: .whb-inspoint
 parameters:
   - name: word
+    title: Word
     value: Moodle
-    title: word
     type: textfield
     tip: When you click on this word, the balloon will appear
-    when: "{{SNPT_MODE}}!='selection'" 
+    when: "!SELECT_MODE" 
   - name: placement
     value: auto
     title: Popover placement

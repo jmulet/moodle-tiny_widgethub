@@ -392,7 +392,7 @@ export const applyFieldWatchers = function($formElem, defaultsData, widget, sele
          const varsInvolved = condition.match(regex);
          varsInvolved?.forEach(evar => {
             evar = evar.replace(/[{}]*/g, '').trim();
-            // Can only watch real variables SNPT_MODE is not a variable
+            // Can only watch real variables SELECT_MODE is not a variable
             console.log("evar", evar, defaultsData);
             if (watchedvars.indexOf(evar) < 0 && defaultsData[evar] != null) {
                console.log("ADDED AS WATCH");
@@ -415,7 +415,7 @@ export const applyFieldWatchers = function($formElem, defaultsData, widget, sele
          const novesVariables = getParametersFromForm(widget, $formElem, null);
          console.log("Obtained the new variables from the form ", novesVariables);
          // Add to the new variables the internal variables
-         novesVariables.SNPT_MODE = selectMode ? "selection" : "insert";
+         novesVariables.SELECT_MODE = selectMode;
          // Eval JS condition for new variables
          const showme = evalInContext(novesVariables, condicio);
          let theComponent = cc.component;
