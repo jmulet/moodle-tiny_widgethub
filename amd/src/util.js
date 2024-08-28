@@ -1433,7 +1433,6 @@ export const createBinding = (definition, elem, castTo) => {
 export const capitalize = s => (s && s[0].toUpperCase() + s.slice(1)) || "";
 
 /**
- * TODO: Aquesta funció no funciona
  * When creating a clone of an element must update all its id's
  * @param {JQuery<HTMLElement>} $e - The element to be treated
  * @param {JQuery<HTMLElement>} $target - The root element being cloned
@@ -1456,7 +1455,6 @@ const treatElementIds = function($e, $target, $root, idMap) {
         const attr = $e.attr(dataX);
         if (attr?.startsWith("#")) {
             $e.removeClass('active show');
-            console.log("attr", attr);
             const rootRef = $root.find(attr);
             const targetRef = $target.find(attr);
             if (rootRef.length) {
@@ -1469,12 +1467,9 @@ const treatElementIds = function($e, $target, $root, idMap) {
                         newId = oldId + ext;
                         idMap[oldId] = newId;
                     }
-                    console.log("Simply rename property", dataX, oldId, "with", newId);
                     $e.attr(dataX, "#" + newId);
-                    console.log("the $e", $e.attr(dataX), $e.prop('outerHTML'));
                 } else {
                     // (TODO: Deep cloning here?) Must clone the reference as well
-                    console.log("Must do cloning");
                     const newId = 'd' + Math.random().toString(32).substring(2);
                     const clonedRef = rootRef.clone().prop("id", newId);
                     $e.prop(dataX, "#" + newId);

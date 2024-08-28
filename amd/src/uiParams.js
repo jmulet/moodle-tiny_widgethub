@@ -36,31 +36,31 @@ import {UiPickCtrl} from './uiPick';
 const questionPopover = '{{#tooltip}}<a href="javascript:void(0)" data-toggle="popover" data-trigger="hover" data-content="{{tooltip}}"><i class="fa fas fa-question-circle text-info"></i></a>{{/tooltip}}';
 
 const Templates = {
-   FIELDTEMPLATE: `<div id="{{elementid}}" class="form-group{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label style="display:inline-block;width:49%;" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
-   <input type="text" style="display:inline-block;width:49%;" id="{{elementid}}_ftmpl" class="form-control" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
+   FIELDTEMPLATE: `<div id="{{elementid}}" class="form-group{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="d-inline-block w-50" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+   <input type="text" id="{{elementid}}_ftmpl" class="form-control d-inline-block w-50" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
    </div>`,
 
-   IMAGETEMPLATE: `<div id="{{elementid}}" class="form-group{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label style="display:inline-block;width:39%;" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
-   <input type="text" style="display:inline-block;width:49%;" id="{{elementid}}_ftmpl" class="form-control" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
-   <button class="ib-image-picker btn btn-sm btn-secondary" title="Cercar" style="inline-block"><i class="fas fa fa-search"></i></button>
+   IMAGETEMPLATE: `<div id="{{elementid}}" class="form-group{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="d-inline-block w-50" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+   <input type="text" id="{{elementid}}_ftmpl" class="form-control d-inline-block w-50" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
+   <button class="whb-image-picker btn btn-sm btn-secondary d-inline-block" title="Search"><i class="fas fa fa-search"></i></button>
    </div>`,
 
-   NUMERICTEMPLATE: `<div id="{{elementid}}" class="form-group{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label style="display:inline-block;width:49%;" for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
-   <input type="number" style="display:inline-block;width:49%;" id="{{elementid}}_fntmpl" class="form-control" data-bar="{{varname}}" {{{minMax}}} {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
+   NUMERICTEMPLATE: `<div id="{{elementid}}" class="form-group{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="d-inline-block w-50"  for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+   <input type="number" id="{{elementid}}_fntmpl" class="form-control d-inline-block w-50" data-bar="{{varname}}" {{{minMax}}} {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
    </div>`,
 
    TEXTAREATEMPLATE: `<div id="{{elementid}}" class="form-group{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label for="{{elementid}}_tatmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <textarea id="{{elementid}}_tatmpl" rows="3" class="form-control" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} {{#tooltip}}title="{{tooltip}}"{{/tooltip}}>{{defaultvalue}}</textarea>
    </div>`,
 
-   CHECKBOXTEMPLATE: `<div id="{{elementid}}" style="display:table;width:96%;margin:5px;"{{#hidden}} class="tiny_widgethub-hidden"{{/hidden}}">
-   <span style="margin-right:10px"><input title="{{varname}}" id="{{elementid}}_cbtmpl" {{#disabled}}disabled{{/disabled}}  type="checkbox" data-bar="{{varname}}" value="{{defaultvalue}}" {{#if}}[defaultvalue==1]checked{{/if}}/></span>
+   CHECKBOXTEMPLATE: `<div id="{{elementid}}" class="d-table w-75 m-2{{#hidden}} tiny_widgethub-hidden{{/hidden}}">
+   <span class="ml-5"><input title="{{varname}}" id="{{elementid}}_cbtmpl" {{#disabled}}disabled{{/disabled}}  type="checkbox" data-bar="{{varname}}" value="{{defaultvalue}}" {{#defaultvalue}}checked{{/defaultvalue}}/></span>
    <span>{{vartitle}}&nbsp;&nbsp;  ${questionPopover}</span>
    </div>`,
 
    SELECTTEMPLATE: `<div id="{{elementid}}" class="form-group{{#hidden}} tiny_widgethub-hidden{{/hidden}}">
-   <label style="display:inline-block;width:49%;" for="{{elementid}}_stmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
-   <select id="{{elementid}}_stmpl" style="display:inline-block;width:49%;" class="form-control" data-bar="{{varname}}" {{#if disabled}}disabled{{/if}}  {{#if tooltip}}title="{{tooltip}}"{{/if}}>
+   <label class="d-inline-block w-50" for="{{elementid}}_stmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+   <select id="{{elementid}}_stmpl" class="form-control d-inline-block w-50" data-bar="{{varname}}" {{#if disabled}}disabled{{/if}} {{#if tooltip}}title="{{tooltip}}"{{/if}}>
    {{#options}}
    <option value="{{optionValue}}"{{#selected}} selected{{/selected}}>{{optionLabel}}</option>
    {{/options}}
@@ -142,12 +142,23 @@ export class UiParamsCtrl {
       console.log("Selection", this.editor.selection, sel);
       let interpoledComponentCode = await this.widget.render(ctxFromDialogue);
       if (sel.trim() && this.widget.insertquery) {
+         let query = this.widget.insertquery.trim();
+         let replaceMode = query.startsWith('r!');
+         if (replaceMode) {
+            query = query.substring(2).trim();
+         }
          // We are in selection mode
          const tmpDiv = document.createElement("div");
          tmpDiv.innerHTML = interpoledComponentCode;
          const insertPoint = tmpDiv.querySelector(this.widget.insertquery);
          if (insertPoint) {
-            insertPoint.innerHTML = sel;
+            if (replaceMode) {
+               // Replace the insertPoint by the interpolated HTML
+               insertPoint.outerHTML = sel;
+            } else {
+               // Inserts the interpolated HTML into the insertPoint
+               insertPoint.innerHTML = sel;
+            }
             interpoledComponentCode = tmpDiv.innerHTML;
          }
       }
