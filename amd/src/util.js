@@ -29,6 +29,7 @@
 
 import Mustache from 'core/mustache';
 import {get_strings as getStrings} from 'core/str';
+import jQuery from 'jquery';
 
 /**
  * Load on demand the template engine EJS
@@ -1430,3 +1431,99 @@ export const createBinding = (definition, elem, castTo) => {
  * @returns {string}
  */
 export const capitalize = s => (s && s[0].toUpperCase() + s.slice(1)) || "";
+
+/**
+ * TODO: Aquesta funció no funciona
+ * When creating a clone of an element must update all its id's
+ * @param {JQuery<HTMLElement>} $e - The element to be treated
+ * @param {JQuery<HTMLElement>} $target - The root element being cloned
+ * @param {JQuery<HTMLElement>} $root - The root element providing the context
+ * @param {Record<string, string>} idMap - A dictionary to store assigned id's
+ */
+const treatElementIds = function($e, $target, $root, idMap) {
+    const oldId = $e.prop('id');
+    if (oldId) {
+        let newId = idMap[oldId];
+        if (!newId) {
+            const ext = Math.random().toString(32).substring(2, 5);
+            newId = oldId + ext;
+            idMap[oldId] = newId;
+        }
+        $e.prop('id', newId);
+    }
+    // Does $e contain references to another elements in the $root which are not in $target?
+    ['data-target', 'data-bs-target', 'href'].forEach((dataX) => {
+        const attr = $e.attr(dataX);
+        if (attr?.startsWith("#")) {
+            $e.removeClass('active show');
+            console.log("attr", attr);
+            const rootRef = $root.find(attr);
+            const targetRef = $target.find(attr);
+            if (rootRef.length) {
+                if (targetRef.length) {
+                    // Simply rename property
+                    const oldId = attr.substring(1);
+                    let newId = idMap[oldId];
+                    if (!newId) {
+                        const ext = Math.random().toString(32).substring(2, 5);
+                        newId = oldId + ext;
+                        idMap[oldId] = newId;
+                    }
+                    console.log("Simply rename property", dataX, oldId, "with", newId);
+                    $e.attr(dataX, "#" + newId);
+                    console.log("the $e", $e.attr(dataX), $e.prop('outerHTML'));
+                } else {
+                    // (TODO: Deep cloning here?) Must clone the reference as well
+                    console.log("Must do cloning");
+                    const newId = 'd' + Math.random().toString(32).substring(2);
+                    const clonedRef = rootRef.clone().prop("id", newId);
+                    $e.prop(dataX, "#" + newId);
+                    clonedRef.insertAfter(rootRef).removeClass("active show");
+                }
+            }
+        }
+    });
+};
+
+/**
+ * @param {JQuery<HTMLElement>} $e - the element that must be cloned
+ * @param {JQuery<HTMLElement>} $root - the root element (widget root)
+ * @param {Record<string,string>} idMap - old vs new id map
+ * @returns {JQuery<HTMLElement>} The cloned element with new id's
+ */
+export const smartClone = ($e, $root, idMap) => {
+    const clone = $e.clone();
+    treatElementIds(clone, $e, $root, idMap);
+    clone.find('*').each((_, e) => {
+        treatElementIds(jQuery(e), $e, $root, idMap);
+    });
+    return clone;
+};
+
+/**
+ * @param {JQuery<HTMLElement>} $e - Look in $e and all its descendants if references any other element in $root
+ * @param {JQuery<HTMLElement>} $root
+ * @returns {JQuery<HTMLElement>[]} - A list of referenced elements in $e
+ */
+export function findReferences($e, $root) {
+    const searchFor = '[data-target^="#"], [data-bs-target^="#"], [href^="#"]';
+    /** @type {HTMLElement[]} */
+    const found = [];
+    if ($e.is(searchFor)) {
+        let attr = $e.attr('data-target') ?? $e.attr('data-bs-target') ?? $e.attr('href');
+        if (attr) {
+            found.push(...$root.find(attr).toArray());
+        }
+    }
+    if (!found.length) {
+        // Look in descendants
+        const $descendants = $e.find(searchFor);
+        if ($descendants.length) {
+            let attr = $descendants.attr('data-target') ?? $descendants.attr('data-bs-target') ?? $descendants.attr('href');
+            if (attr) {
+                found.push(...$root.find(attr).toArray());
+            }
+        }
+    }
+    return found.map(e => jQuery(e));
+}

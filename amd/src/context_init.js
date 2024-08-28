@@ -27,7 +27,7 @@ import ContextPropsModal from "./context_props_modal";
 import {getWidgetDict} from "./options";
 import jQuery from 'jquery';
 // eslint-disable-next-line no-unused-vars
-import {WidgetWrapper} from "./util";
+import {findReferences, smartClone, WidgetWrapper} from "./util";
 
 /**
  * @param {HTMLElement} elem
@@ -136,61 +136,6 @@ const needsContextMenu = function(widget) {
     return widget.hasBindings() || (widget.unwrap ?? '').trim().length > 0;
 };
 
-/**
- * When creating a clone of an element must update all its id's
- * @param {JQuery<HTMLElement>} $e - The element to be treated
- * @param {JQuery<HTMLElement>} $root - The root element being cloned
- * @param {Record<string, string>} idMap - A dictionary to store assigned id's
- */
-const treatElementIds = function($e, $root, idMap) {
-    const oldId = $e.prop('id');
-    if (oldId) {
-        let newId = idMap[oldId];
-        const done = Object.values(idMap).includes(oldId);
-        if (!done && !newId) {
-            const ext = Math.random().toString(32).substring(2, 4);
-            newId = oldId + ext;
-            idMap[oldId] = newId;
-            $e.prop('id', newId);
-        }
-    }
-    ['data-parent', 'data-bs-parent', 'data-target', 'data-bs-target', 'href'].forEach((dataX) => {
-        const attr = $e.attr(dataX);
-        if (attr?.startsWith("#")) {
-            const oldId = attr?.substring(1);
-            // Is this element included under the root? So, it has already cloned!
-            if ($root.find(attr)[0] && oldId && idMap[oldId]) {
-                $e.attr(dataX, '#' + idMap[oldId]);
-            } else if (oldId && !idMap[oldId]) {
-                // It must be cloned too
-                const sibling = $root.closest(attr);
-                if (sibling[0]) {
-                   const cloned = sibling.clone();
-                   treatElementIds(cloned, $root, idMap);
-                   cloned.insertAfter(sibling);
-                }
-            }
-        }
-    });
-};
-
-/**
- * @param {JQuery<HTMLElement>} $e
- * @param {Record<string,string>} idMap - old vs new id map
- * @returns {JQuery<HTMLElement>} The cloned element with new id's
- */
-export const smartClone = ($e, idMap) => {
-    const clone = $e.clone();
-    // Run twice to allow new id's to be detected
-    for (let i = 0; i < 2; i++) {
-        treatElementIds(clone, $e, idMap);
-        clone.find('*').each((_, e) => {
-            treatElementIds(jQuery(e), $e, idMap);
-        });
-    }
-    return clone;
-};
-
 /** @type {Record<string, Function>} */
 const PredefinedActions = {
     /**
@@ -207,33 +152,51 @@ const PredefinedActions = {
     /**
      * Moves the selected element above in the parent container
      * unless it is the first one
+     * If $e or any of its descendants references another element in
+     * the widget, then it also must be moved before its sibling
      * @param {PathResult} context
      */
     movebefore: (context) => {
         console.log('moveup', context);
         const $e = context?.targetElement;
-        if (!$e) {
+        const $root = context?.elem;
+        if (!$e || !$root) {
             return;
         }
         const prev = $e.prev();
         if (prev) {
             prev.insertAfter($e);
+            findReferences($e, $root).forEach($ref => {
+                const prev2 = $ref.prev();
+                if (prev2) {
+                    prev2.insertAfter($ref);
+                }
+            });
         }
     },
     /**
      * Moves the selected element above in the parent container
      * unless it is the first one
+     * If $e or any of its descendants references another element in
+     * the widget, then it also must be moved after its sibling
      * @param {PathResult} context
      */
     moveafter: (context) => {
         console.log('movedown', context);
         const $e = context?.targetElement;
-        if (!$e) {
+        const $root = context?.elem;
+        if (!$e || !$root) {
             return;
         }
         const next = $e.next();
         if (next) {
             next.insertBefore($e);
+            findReferences($e, $root).forEach($ref => {
+                const next2 = $ref.next();
+                if (next2) {
+                    next2.insertBefore($ref);
+                }
+            });
         }
     },
     /**
@@ -243,13 +206,14 @@ const PredefinedActions = {
     insertafter: (context) => {
         console.log('insert a clone', context);
         const $e = context?.targetElement;
-        if (!$e) {
+        const $root = context?.elem;
+        if (!$e || !$root) {
             return;
         }
         /** @type {Record<string, string>} */
         const idMap = {};
-        const clone = smartClone($e, idMap);
-        clone.insertAfter($e);
+        const clone = smartClone($e, $root, idMap);
+        clone.insertAfter($e).removeClass("active show");
     },
     /**
      * Removes the selected element
@@ -258,10 +222,19 @@ const PredefinedActions = {
     remove: (context) => {
         console.log('remove', context);
         const $e = context?.targetElement;
-        if (!$e) {
+        const $root = context?.elem;
+        if (!$e || !$root) {
             return;
         }
+        // Does the $e or its descendants reference another element in the widget?
+        // If so, it must be removed too
+        findReferences($e, $root).forEach($ref => $ref.remove());
+        const $parent = $e.parent();
         $e.remove();
+        if ($parent.children().length === 0) {
+            // Good candidate to remove the entire widget
+            $root.remove();
+        }
     }
 };
 
