@@ -1,6 +1,6 @@
 key: bs-table
 name: Bootstrap table
-category: boostrap
+category: bootstrap
 instructions: >
  Create a table with n rows and m columns
 template: |

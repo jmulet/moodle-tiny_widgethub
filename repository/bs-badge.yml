@@ -2,14 +2,14 @@ key: bs-badge
 name: Badge
 category: bootstrap
 template: |
-  <span class="badge badge-{{#severity}}{{#pill}} badge-pill{{/pill}}">Lorem ipsum</span>
+  <span class="badge badge-{{severity}}{{#pill}} badge-pill{{/pill}}">Lorem ipsum</span>
 selectors: span.badge
 unwrap: '*'
 insertquery: span.badge
 parameters:
   - name: severity
     title: Type of badge
-    bind: classRegex(/badge-(.*)/)
+    bind: classRegex('badge-(.*)')
     value: primary    
     options:
       - primary

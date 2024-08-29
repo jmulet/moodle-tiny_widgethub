@@ -11,13 +11,13 @@ template: |
   <ul class="nav nav-tabs" role="tablist">
   <% for(var i=1; i<=tabs; i++) { %>
   <li class="nav-item">
-    <a class="nav-link<% i==1 ? ' active' : '' %>" href="<%=ID%>_<%=i%>" data-toggle="tab" role="tab"><span>&nbsp;</span><span>Tab<%=i%></span></a>
+    <a class="nav-link<%= i==1 ? ' active' : '' %>" href="#<%=ID%>_<%=i%>" data-toggle="tab" role="tab"><span>&nbsp;</span><span>Tab<%=i%></span></a>
   </li> 
   <% } %>
   </ul>
   <div class="tab-content">
   <% for(var i=1; i<=tabs; i++) { %>
-  <div class="tab-pane<% effect ? ' ' + effect : '' %><% i==1 ? ' show active' : '' %>" id="<%=ID%>_<%=i%>" role="tabpanel">
+  <div class="tab-pane<%= effect ? ' ' + effect : '' %><%= i==1 ? ' show active' : '' %>" id="<%=ID%>_<%=i%>" role="tabpanel">
   <p><%=i%> Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
   dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
   consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
@@ -28,7 +28,7 @@ template: |
   </div> 
   <p><br></p>
 selectors: div.whb-tabmenu
-unpack: "div.tab-content > div.tab-pane > *"
+unwrap: "div.tab-content > div.tab-pane > *"
 parameters: 
   - name: tabs
     value: 2
@@ -42,11 +42,21 @@ parameters:
     options:
       - {l: 'None', v: ''}
       - {l: 'Fade', v: 'fade'}
+    bind:
+      get: (e) => e.find('div.tab-pane').hasClass('fade') ? 'fade':''
+      set: |
+        (e, v) => {
+          if(v) {
+            e.find('div.tab-pane').addClass('fade');
+          } else {
+            e.find('div.tab-pane').removeClass('fade');
+          }
+        }
   - name: ID
     value: $RND
     hidden: true
 contextmenu:
-  - predicate: a[data-toggle="tab"]
-    actions: movebefore moveafter insertafter | remove
+  - predicate: li.nav-item
+    actions: moveleft moveright insertafter | remove
 author: Josep Mulet <pep.mulet@gmail.com>
 version: 1.0.0

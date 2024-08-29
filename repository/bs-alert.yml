@@ -20,7 +20,7 @@ unwrap: '*'
 parameters:
   - name: severity
     title: Type of alert
-    bind: classRegex(/alert-(.*)/)
+    bind: classRegex('alert-(.*)')
     value: primary    
     options:
       - primary

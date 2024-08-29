@@ -55,8 +55,8 @@
     {{$body}}
     <div class="tabbable" style="table-layout: fixed; width:99%;">
         <ul class="nav nav-tabs">
-            <li class="active"><a href="#{{idTabpane}}_0" data-toggle="tab"><span>&nbsp; {{#str}} edit, tiny_widgethub {{/str}}</span></a></li>
-            {{^filter}}<li><a href="#{{idTabpane}}_1" data-toggle="tab"><span>&nbsp; {{#str}} preview, tiny_widgethub {{/str}}</span></a></li>{{/filter}}
+            <li class="nav-item"><a href="#{{idTabpane}}_0" class="nav-link active" role="tab" data-toggle="tab"><span>&nbsp; {{#str}} edit, tiny_widgethub {{/str}}</span></a></li>
+            {{^filter}}<li class="nav-item"><a href="#{{idTabpane}}_1" class="nav-link" role="tab" data-toggle="tab"><span>&nbsp; {{#str}} preview, tiny_widgethub {{/str}}</span></a></li>{{/filter}}
         </ul>
         <div class="tab-content">
             <div class="tab-pane active" id="{{idTabpane}}_0">

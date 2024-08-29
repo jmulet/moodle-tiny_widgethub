@@ -36,17 +36,19 @@ import {UiPickCtrl} from './uiPick';
 const questionPopover = '{{#tooltip}}<a href="javascript:void(0)" data-toggle="popover" data-trigger="hover" data-content="{{tooltip}}"><i class="fa fas fa-question-circle text-info"></i></a>{{/tooltip}}';
 
 const Templates = {
-   FIELDTEMPLATE: `<div id="{{elementid}}" class="form-group{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="d-inline-block w-50" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
-   <input type="text" id="{{elementid}}_ftmpl" class="form-control d-inline-block w-50" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
+   FIELDTEMPLATE: `<div id="{{elementid}}" class="form-group row{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+   <div class="col-sm-7"><input type="text" id="{{elementid}}_ftmpl" class="form-control" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/></div>
    </div>`,
 
-   IMAGETEMPLATE: `<div id="{{elementid}}" class="form-group{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="d-inline-block w-50" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
-   <input type="text" id="{{elementid}}_ftmpl" class="form-control d-inline-block w-50" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
+   IMAGETEMPLATE: `<div id="{{elementid}}" class="form-group row{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+   <div class="col-sm-7">
+   <input type="text" id="{{elementid}}_ftmpl" class="form-control d-inline-block" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
    <button class="whb-image-picker btn btn-sm btn-secondary d-inline-block" title="Search"><i class="fas fa fa-search"></i></button>
+   </div>
    </div>`,
 
-   NUMERICTEMPLATE: `<div id="{{elementid}}" class="form-group{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="d-inline-block w-50"  for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
-   <input type="number" id="{{elementid}}_fntmpl" class="form-control d-inline-block w-50" data-bar="{{varname}}" {{{minMax}}} {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
+   NUMERICTEMPLATE: `<div id="{{elementid}}" class="form-group row{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="col-sm-5 col-form-label"  for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+   <div class="col-sm-7"><input type="number" id="{{elementid}}_fntmpl" class="form-control" data-bar="{{varname}}" {{{minMax}}} {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/></div>
    </div>`,
 
    TEXTAREATEMPLATE: `<div id="{{elementid}}" class="form-group{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label for="{{elementid}}_tatmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
@@ -58,13 +60,15 @@ const Templates = {
    <span>{{vartitle}}&nbsp;&nbsp;  ${questionPopover}</span>
    </div>`,
 
-   SELECTTEMPLATE: `<div id="{{elementid}}" class="form-group{{#hidden}} tiny_widgethub-hidden{{/hidden}}">
-   <label class="d-inline-block w-50" for="{{elementid}}_stmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
-   <select id="{{elementid}}_stmpl" class="form-control d-inline-block w-50" data-bar="{{varname}}" {{#if disabled}}disabled{{/if}} {{#if tooltip}}title="{{tooltip}}"{{/if}}>
+   SELECTTEMPLATE: `<div id="{{elementid}}" class="form-group row{{#hidden}} tiny_widgethub-hidden{{/hidden}}">
+   <label class="col-sm-5 col-form-label" for="{{elementid}}_stmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+   <div class="col-sm-7">
+   <select id="{{elementid}}_stmpl" class="form-control" data-bar="{{varname}}" {{#if disabled}}disabled{{/if}} {{#if tooltip}}title="{{tooltip}}"{{/if}}>
    {{#options}}
    <option value="{{optionValue}}"{{#selected}} selected{{/selected}}>{{optionLabel}}</option>
    {{/options}}
    </select>
+   </div>
    </div>`
 };
 
