@@ -56,7 +56,7 @@ const Templates = {
    </div>`,
 
    CHECKBOXTEMPLATE: `<div id="{{elementid}}" class="d-table w-75 m-2{{#hidden}} tiny_widgethub-hidden{{/hidden}}">
-   <span class="ml-5"><input title="{{varname}}" id="{{elementid}}_cbtmpl" {{#disabled}}disabled{{/disabled}}  type="checkbox" data-bar="{{varname}}" value="{{defaultvalue}}" {{#defaultvalue}}checked{{/defaultvalue}}/></span>
+   <span class="mr-2"><input title="{{varname}}" id="{{elementid}}_cbtmpl" {{#disabled}}disabled{{/disabled}}  type="checkbox" data-bar="{{varname}}" value="{{defaultvalue}}" {{#defaultvalue}}checked{{/defaultvalue}}/></span>
    <span>{{vartitle}}&nbsp;&nbsp;  ${questionPopover}</span>
    </div>`,
 

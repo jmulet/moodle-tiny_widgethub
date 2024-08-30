@@ -8,7 +8,7 @@ template: |
   {{#responsive}}<div class="table-responsive">{{/responsive}}
   <table class="table{{#stripes}} table-striped{{/stripes}}{{#borders}} table-bordered{{/borders}}{{#hover}} table-hover{{/hover}} whb-bstable">
   {{#desc}}
-  <caption>Table: {{desc}}</caption>
+  <caption class="caption-top">Table: {{desc}}</caption>
   {{/desc}}
   {{#headers}}
     <thead>
@@ -55,7 +55,7 @@ parameters:
     value: false
     bind: hasClass('table-striped')
   - name: hover
-    title: Realça fila seleccionada
+    title: Highlight row on mouse over
     value: false
     bind: hasClass('table-hover')
   - name: borders

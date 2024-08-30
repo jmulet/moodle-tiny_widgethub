@@ -8,7 +8,7 @@ template: |
   data-original-title="{{title}}" data-content="{{{anotation}}}" data-html="true" data-container="body"
   data-placement="{{placement}}"><span class="whb-inspoint">{{word}}</span></a>
 selectors: a[data-toggle="popover"]
-unpack: .whb-inspoint
+unwrap: .whb-inspoint
 insertquery: .whb-inspoint
 parameters:
   - name: word
@@ -34,7 +34,7 @@ parameters:
     tip: This parameter is optional. If you add it, the title will appear above the balloon
     bind: attr('data-original-title')
   - name: anotation
-    value: <b>Moodle</b> 
+    value: It's <b>awesome</b> 
     title: Content of popover
     type: textarea 
     transform: escapeQuotes

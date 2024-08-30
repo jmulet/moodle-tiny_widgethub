@@ -18,11 +18,12 @@ template: |
   </div>
   <p><br></p>
 selectors: div.container
-unbind: div.row div > *
+unwrap: div.row div > *
 parameters:
   - name: w1
     title: Width of the first column
     tip: The remaining space is assigned to the second column
+    value: 6
     options:
       - {l: '8%',  v: 1}
       - {l: '16%', v: 2}
@@ -36,14 +37,16 @@ parameters:
       - {l: '83%', v: 10}
       - {l: '92%', v: 11}
     bind:
-      - get: |
-          (e) => {
+      get: |
+        (e) => {
             var className = e.find('div.row > div').first().attr('class');
+            console.log(className);
             var match = new RegExp(/col-sm-(\d+)/).exec(className) || [];
+            console.log(match);
             return parseInt(match[1] || '6');
-          }
-      - set: |
-          (e, v) => {
+        }
+      set: |
+        (e, v) => {
             var col1 = e.find('div.row > div').first();
             var col2 = col1.next();
             var regex = new RegExp(/col-sm-(\d+)/g);
@@ -56,6 +59,6 @@ parameters:
             col2.removeClass(cb);
             col1.addClass('col-sm-' + v);
             col2.addClass('col-sm-' + (12-v));
-          }
+        }
 author: Josep Mulet <pep.mulet@gmail.com>
 version: 1.0.0

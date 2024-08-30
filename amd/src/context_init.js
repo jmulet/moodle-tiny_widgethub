@@ -103,14 +103,20 @@ const findWidgetOnEventPath = function(widgetList, selectedElement) {
  * @typedef {Object} ICONS
  * @property {string} gear
  * @property {string} arrowUpFromBracket
+ * @property {string} arrowUp
+ * @property {string} arrowDown
+ * @property {string} arrowLeft
+ * @property {string} arrowRight
+ * @property {string} remove
+ * @property {string} clone
  */
 const ICONS = {
     gear: 'gear',
     arrowUpFromBracket: 'arrow-up-from-bracket',
     arrowUp: 'arrow-up',
     arrowDown: 'arrow-down',
-    arrowLeft: 'arrow-up',
-    arrowRight: 'arrow-down',
+    arrowLeft: 'arrow-left',
+    arrowRight: 'arrow-right',
     remove: 'trash',
     clone: 'clone'
 };
@@ -151,7 +157,13 @@ const PredefinedActions = {
         if (!context?.elem || !context?.widget?.unwrap) {
             return;
         }
-        const toUnpack = context.elem.find(context.widget.unwrap);
+        /** @type {JQuery<HTMLElement> | string} */
+        let toUnpack = context.elem.find(context.widget.unwrap);
+        if (!toUnpack[0]) {
+            // Create a text element
+            toUnpack = context.elem.text();
+        }
+        console.log('toUnpack', toUnpack, " replace by ", context.elem);
         context.elem.replaceWith(toUnpack);
     },
     /**
@@ -366,8 +378,11 @@ export const initContextActions = function(editor) {
             }
             // Now look for contextmenu property in widget definition
             /** @type {{predicate: string, actions: string}[] | undefined} */
-            const contextmenu = widget.prop('contextmenu');
+            let contextmenu = widget.prop('contextmenu');
             if (contextmenu) {
+                if (!Array.isArray(contextmenu)) {
+                    contextmenu = [contextmenu];
+                }
                 contextmenu.forEach(cm => {
                     // Does the element matches the predicate?
                     /** @type {HTMLElement | null} */

@@ -371,8 +371,10 @@ export class WidgetWrapper {
                 parameters[i] = partials[param.partial];
             }
             if (!param.type) {
-                // Infer type from value
-                if (typeof param.value === "boolean") {
+                if (param.options) {
+                    param.type = 'select';
+                } else if (typeof param.value === "boolean") {
+                    // Infer type from value
                     param.type = 'checkbox';
                 } else if (typeof param.value === "number") {
                     param.type = 'numeric';
