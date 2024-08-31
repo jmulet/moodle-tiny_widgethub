@@ -79,7 +79,7 @@ const toggleVisible = function(el, visible) {
 };
 
 const Templates = {
-    RECENT_SNPT: `<div style="margin:10px 45px;font-size:85%;">{{#recent}} {{#str}} recents, tiny_widgethub {{/str}}:
+    RECENT_SNPT: `<div style="margin:10px 45px;font-size:85%;">{{#str}} recents, tiny_widgethub {{/str}}: {{#recent}} 
     {{#name}}<a href="javascript:void(0)" data-key="{{key}}"><span class="badge badge-secondary">{{name}}</span></a>{{/name}}
     {{/recent}}`
 };
