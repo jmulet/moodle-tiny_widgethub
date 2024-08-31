@@ -100,7 +100,7 @@ export function evalInContext(ctx, expr, keepFns) {
     listArgs.push('expr');
     listArgs.push('return eval(expr)');
     listVals.push(expr);
-    // console.log('listArgs', listArgs);
+    // Console.log('listArgs', listArgs);
     // console.log('expr', expr, 'listVals', listVals);
 
     const evaluator = new Function(...listArgs);
@@ -1176,11 +1176,11 @@ const bindingFactory = function($e) {
         },
         /**
          * @param {string} classExpr
-         * @param {string=} castTo
          * @param {string=} query
+         * @param {string=} castTo
          * @returns {Binding}
          */
-        "classRegex": (classExpr, castTo, query) => {
+        "classRegex": (classExpr, query, castTo) => {
             let elem = $e;
             if (query) {
                 elem = $e.find(query);
@@ -1213,11 +1213,11 @@ const bindingFactory = function($e) {
         },
         /**
          * @param {string} attrName
-         * @param {string=} castTo
          * @param {string=} query
+         * @param {string=} castTo
          * @returns {Binding}
          */
-        "attr": (attrName, castTo, query) => {
+        "attr": (attrName, query, castTo) => {
             let elem = $e;
             if (query) {
                 elem = $e.find(query);
@@ -1280,11 +1280,11 @@ const bindingFactory = function($e) {
         },
         /**
          * @param {string} attr - Regex of attr
-         * @param {string=} castTo
          * @param {string=} query
+         * @param {string=} castTo
          * @returns {Binding}
          */
-        "attrRegex": function(attr, castTo, query) {
+        "attrRegex": function(attr, query, castTo) {
             let elem = $e;
             if (query) {
                 elem = $e.find(query);
@@ -1356,12 +1356,12 @@ const bindingFactory = function($e) {
             return methods['hasStyle'](sty, query, true);
         },
         /**
-         * @param {string} attr
-         * @param {string=} castTo
+         * @param {string} attr - styName:styValue where styValue is a regex with (.*)
          * @param {string=} query
+         * @param {string=} castTo
          * @returns {Binding}
          */
-        "styleRegex": function(attr, castTo, query) {
+        "styleRegex": function(attr, query, castTo) {
             let elem = $e;
             if (query) {
                 elem = $e.find(query);
@@ -1377,9 +1377,14 @@ const bindingFactory = function($e) {
                     const st = elem.prop('style');
                     const has = st.getPropertyValue(styName) != null;
                     if (has) {
-                        const match = st.getPropertyValue(styName).match(styValue);
-                        if (match?.[1] && (typeof match[1]) === "string") {
-                            return performCasting(match[1], castTo);
+                        if (styValue) {
+                            const match = st.getPropertyValue(styName).match(styValue);
+                            if (match?.[1] && (typeof match[1]) === "string") {
+                                return performCasting(match[1], castTo);
+                            }
+                        } else {
+                            const match = st.getPropertyValue(styName);
+                            return performCasting(match, castTo);
                         }
                         return '';
                     }
@@ -1387,7 +1392,12 @@ const bindingFactory = function($e) {
                 },
                 // @ts-ignore
                 setValue(val) {
-                    elem.css(styName, styValue.replace("(.*)", val + ""));
+                    if (styValue) {
+                        elem.css(styName, styValue.replace("(.*)", val + ""));
+                    } else {
+                        // @ts-ignore
+                        elem.css(styName, val);
+                    }
                 }
             };
         }
@@ -1524,3 +1534,18 @@ export function findReferences($e, $root) {
     }
     return found.map(e => jQuery(e));
 }
+
+/**
+ * @param {string} color
+ * @returns {string} - The color in hex format
+ */
+export function toHexColor(color) {
+    if (!color) {
+        return "#000000";
+    } else if (color.trim().startsWith("#")) {
+        return color.trim();
+    }
+    // Assume rgb
+    const a = color.replace(/[^\d,]/g, "").split(",");
+    return "#" + ((1 << 24) + (+a[0] << 16) + (+a[1] << 8) + +a[2]).toString(16).slice(1);
+  }

@@ -28,10 +28,13 @@ import ModalFactory from 'core/modal_factory';
 import {IBParamsModal} from './modal';
 import ModalEvents from 'core/modal_events';
 // eslint-disable-next-line no-unused-vars
-import {stream, genID, templateRendererMustache, UserStorage, cleanParameterName, evalInContext, applyWidgetFilter, WidgetWrapper, capitalize} from './util';
+import {stream, genID, templateRendererMustache, UserStorage, cleanParameterName, evalInContext, applyWidgetFilter, WidgetWrapper, capitalize, toHexColor} from './util';
 import {getCourseId, getUserId} from './options';
 // eslint-disable-next-line no-unused-vars
 import {UiPickCtrl} from './uiPick';
+import { displayFilepicker } from 'editor_tiny/utils';
+import { getFilePicker } from 'editor_tiny/options';
+import jQuery from 'jquery';
 
 const questionPopover = '{{#tooltip}}<a href="javascript:void(0)" data-toggle="popover" data-trigger="hover" data-content="{{tooltip}}"><i class="fa fas fa-question-circle text-info"></i></a>{{/tooltip}}';
 
@@ -42,7 +45,7 @@ const Templates = {
 
    IMAGETEMPLATE: `<div id="{{elementid}}" class="form-group row{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <div class="col-sm-7">
-   <input type="text" id="{{elementid}}_ftmpl" class="form-control d-inline-block" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
+   <input type="text" id="{{elementid}}_ftmpl" class="form-control d-inline-block w-75" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
    <button class="whb-image-picker btn btn-sm btn-secondary d-inline-block" title="Search"><i class="fas fa fa-search"></i></button>
    </div>
    </div>`,
@@ -51,13 +54,18 @@ const Templates = {
    <div class="col-sm-7"><input type="number" id="{{elementid}}_fntmpl" class="form-control" data-bar="{{varname}}" {{{minMax}}} {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/></div>
    </div>`,
 
+   COLORTEMPLATE: `<div id="{{elementid}}" class="form-group row{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="col-sm-5 col-form-label"  for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+   <div class="col-sm-7"><input type="color" id="{{elementid}}_fntmpl" class="form-control" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/></div>
+   </div>`,
+
    TEXTAREATEMPLATE: `<div id="{{elementid}}" class="form-group{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label for="{{elementid}}_tatmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <textarea id="{{elementid}}_tatmpl" rows="3" class="form-control" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} {{#tooltip}}title="{{tooltip}}"{{/tooltip}}>{{defaultvalue}}</textarea>
    </div>`,
 
    CHECKBOXTEMPLATE: `<div id="{{elementid}}" class="d-table w-75 m-2{{#hidden}} tiny_widgethub-hidden{{/hidden}}">
-   <span class="mr-2"><input title="{{varname}}" id="{{elementid}}_cbtmpl" {{#disabled}}disabled{{/disabled}}  type="checkbox" data-bar="{{varname}}" value="{{defaultvalue}}" {{#defaultvalue}}checked{{/defaultvalue}}/></span>
-   <span>{{vartitle}}&nbsp;&nbsp;  ${questionPopover}</span>
+   <label>
+   <input title="{{varname}}" id="{{elementid}}_cbtmpl" {{#disabled}}disabled{{/disabled}} type="checkbox" data-bar="{{varname}}" value="{{defaultvalue}}" {{#defaultvalue}}checked{{/defaultvalue}}/></span>
+   {{vartitle}}</label> <span>&nbsp;&nbsp;  ${questionPopover}</span>
    </div>`,
 
    SELECTTEMPLATE: `<div id="{{elementid}}" class="form-group row{{#hidden}} tiny_widgethub-hidden{{/hidden}}">
@@ -109,6 +117,7 @@ export class UiParamsCtrl {
          const ctxFromDialogue = getParametersFromForm(this.widget, modal.body.find("form"), null);
          await this.updatePreview(data.idTabpane, ctxFromDialogue);
       });
+      attachImagePickers(this.editor, modal.body);
       modal.footer.show();
       modal.footer.find("button.btn-secondary").on("click", async() => {
          // Go back to main menú
@@ -304,6 +313,10 @@ export const createControlHTML = function(hostId, param, defaultValue) {
          return {optionLabel: label, optionValue: value, selected: value === defaultValue};
       });
       template = templateRendererMustache(Templates.SELECTTEMPLATE, {options, ...generalCtx});
+   } else if (param.type === 'color') {
+      // Value must be in hex form
+      generalCtx.defaultvalue = toHexColor(generalCtx.defaultvalue);
+      template = templateRendererMustache(Templates.COLORTEMPLATE, generalCtx);
    } else if (param.type === 'image') {
       template = templateRendererMustache(Templates.IMAGETEMPLATE, generalCtx);
    } else {
@@ -353,7 +366,7 @@ export const getParametersFromForm = (widget, form, userStorage) => {
          // Only those starting with $
          userStorage.setToLocal('valors', toPersist, true);
       }
-      // Ha de persistir tots els valors?
+      // Should all values be persisted?
       const mustSaveAll = userStorage.getFromLocal('saveall', false);
       if (mustSaveAll) {
          /** @type {Object.<string, any>}  */
@@ -365,6 +378,30 @@ export const getParametersFromForm = (widget, form, userStorage) => {
    return ctx;
 };
 
+/**
+ * @param {import('./plugin').TinyMCE} editor
+ * @param {JQuery<HTMLElement>} body - The modal body
+ */
+export const attachImagePickers = function(editor, body) {
+    // console.log('moodle:filepickers', this.editor.options.get('moodle:filepickers'));
+    const canShowFilePicker = typeof getFilePicker(editor, 'image') !== 'undefined';
+    const picker = body.find('button.whb-image-picker').prop('disabled', !canShowFilePicker);
+    if (canShowFilePicker) {
+       // Attach a click handler to any image-picker buttons
+       picker.on("click", /** @param {any} evt */ async(evt) => {
+          evt.preventDefault();
+          try {
+             /** @type {any} */
+             const params = await displayFilepicker(editor, 'image');
+             if (params?.url) {
+                jQuery(evt.currentTarget).parent().find('input').val(params.url);
+             }
+          } catch (ex) {
+             console.error(ex);
+          }
+       });
+   }
+};
 
 /**
  * @param {JQuery<HTMLElement>} $formElem

@@ -24,7 +24,7 @@
 import {IBContextModal} from './modal';
 import ModalFactory from 'core/modal_factory';
 import ModalEvents from 'core/modal_events';
-import {createControlHTML, getParametersFromForm, applyFieldWatchers} from './uiParams';
+import {createControlHTML, getParametersFromForm, applyFieldWatchers, attachImagePickers} from './uiParams';
 import {createBinding} from './util';
 
 /**
@@ -104,6 +104,7 @@ export default class ContextPropsModal {
         this.#modal.getRoot().on(ModalEvents.hidden, () => {
             this.#modal.destroy();
         });
+        attachImagePickers(this.#editor, this.#modal.body);
         // Applying watchers to the form elements
         applyFieldWatchers(this.#modal.body, paramValues, widget, false);
 
