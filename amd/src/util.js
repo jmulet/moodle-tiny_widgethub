@@ -47,7 +47,7 @@ function getEJS() {
     }
     return new Promise((resolve, reject) => {
         // @ts-ignore
-        require(['tiny_widgethub/ejs-lazy'], (ejsModule) => {
+        window.require(['tiny_widgethub/ejs-lazy'], (ejsModule) => {
             Ejs = ejsModule;
             resolve(Ejs);
         }, reject);

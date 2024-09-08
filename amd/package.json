@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "jquery": "^3.7.1",
-    "mustache": "^4.2.0"
+    "mustache": "^4.2.0",
+    "requirejs": "^2.3.7"
   }
 }
