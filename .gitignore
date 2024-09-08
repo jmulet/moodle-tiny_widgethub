@@ -5,8 +5,6 @@ presets/*.txt
 TODO
 package-lock.json
 .DS_Store
-scripts/
-jest.config.js
+scripts/ 
 amd/tests/
-babel.config.json
 styles.scss

@@ -1084,7 +1084,6 @@ export function addScript(url, id, onSuccess, onError) {
         newScript.setAttribute("id", id);
     }
     newScript.onload = () => {
-        console.info("Loaded ", url);
         if (onSuccess) {
             onSuccess();
         }
@@ -1326,20 +1325,21 @@ const bindingFactory = function($e) {
             }
             const parts = sty.split(":");
             let styName = parts[0].trim();
-            let styValue = '';
+            let styValue = undefined;
             if (parts.length > 1) {
                 styValue = parts[1].replace(/["']/g, '').trim();
             }
             return {
                 getValue() {
                     const st = elem.prop('style');
-                    const has = st.getPropertyValue(styName) === styValue;
+                    const pValue = st.getPropertyValue(styName);
+                    const has = styValue === undefined ? pValue !== '' : pValue === styValue;
                     return xor(has, neg);
                 },
                 // @ts-ignore
                 setValue(bool) {
                     if (xor(bool, neg)) {
-                        elem.css(styName, styValue);
+                        elem.css(styName, styValue ?? '');
                     } else {
                         const st = elem.prop('style');
                         st.removeProperty(styName);
@@ -1413,7 +1413,7 @@ const bindingFactory = function($e) {
 /**
  * @param {string | {get: string, set: string}} definition
  * @param {JQuery<HTMLElement>} elem  - The root of widget
- * @param {string} castTo  - The type that must be returned
+ * @param {string=} castTo  - The type that must be returned
  * @returns {Binding | null}
  */
 export const createBinding = (definition, elem, castTo) => {
