@@ -64,10 +64,10 @@ class settingsutil
 	 */
 	public static function create_widget_spages($conf)
 	{
-		$widget_index = plugininfo::get_widget_index($conf);
-		$widgetList = plugininfo::get_widget_list($conf, $widget_index);
+		$widgetIndex = plugininfo::get_widget_index($conf);
+		$widgetList = plugininfo::get_widget_list($conf, $widgetIndex);
 		$usedKeys = array();
-		$partials = plugininfo::get_partials($conf, $widget_index);
+		$partials = plugininfo::get_partials($conf, $widgetIndex);
 
 		$pages = array();
 		// Create a page for new widget

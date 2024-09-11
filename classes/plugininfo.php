@@ -156,7 +156,7 @@ class plugininfo extends plugin implements
             if (!empty($tmpWidget)) {
                 $id = self::update_seq($conf);
                 // Add the widget to the index
-                $widget_index[$id] = [
+                $widgetIndex[$id] = [
                     'key' => $tmpWidget->key,
                     'name' => $tmpWidget->name
                 ];
@@ -178,16 +178,16 @@ class plugininfo extends plugin implements
      * Get the list of widgets
      *
      * @param object $conf
-     * @param array $widget_index (optional)
+     * @param array $widgetIndex (optional)
      * @return array
      */
     public static function get_widget_list($conf, $widgetIndex): array
     {
-        if (!isset($widget_index)) {
+        if (!isset($widgetIndex)) {
             $widgetIndex = self::get_widget_index($conf);
         }
-        $widget_list = [];
-        foreach (array_keys($widget_index) as $id) {
+        $widgetList = [];
+        foreach (array_keys($widgetIndex) as $id) {
             $definition = $conf->{'def_' . $id};
             if (empty($definition)) {
                 continue;
@@ -198,31 +198,31 @@ class plugininfo extends plugin implements
             }
             // Also include the internal widget id
             $json->id = $id;
-            $widget_list[] = $json;
+            $widgetList[] = $json;
         }
-        return $widget_list;
+        return $widgetList;
     }
 
     /**
      * Searches the index for a widget with key named partials
      * @param object $conf
-     * @param array $widget_index (optional)
+     * @param array $widgetIndex (optional)
      * @return object | null if not found
      */
-    public static function get_partials($conf, $widget_index): ?object
+    public static function get_partials($conf, $widgetIndex): ?object
     {
-        if (!isset($widget_index)) {
-            $widget_index = self::get_widget_index($conf);
+        if (!isset($widgetIndex)) {
+            $widgetIndex = self::get_widget_index($conf);
         }
-        $index_id = array_column($widget_index, null, 'key')['partials'] ?? false;
+        $indexId = array_column($widgetIndex, null, 'key')['partials'] ?? false;
         $partials = null;
-        if ($index_id) {
-            $definition = $conf->{'def_' . $index_id};
+        if ($indexId) {
+            $definition = $conf->{'def_' . $indexId};
             if (!empty($definition)) {
                 $partials = json_decode($definition, false);
                 if (isset($partials)) {
                     // Also include the internal widget id
-                    $partials->id = $index_id;
+                    $partials->id = $indexId;
                 }
             }
         }

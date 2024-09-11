@@ -160,10 +160,10 @@ class widgettable extends \admin_setting
     {
         global $CFG;
         $ret = array();
-        $widget_index = plugininfo::get_widget_index($conf);
+        $widgetIndex = plugininfo::get_widget_index($conf);
 
-        foreach (array_keys($widget_index) as $id) {
-            $tindex = $widget_index[$id];
+        foreach (array_keys($widgetIndex) as $id) {
+            $tindex = $widgetIndex[$id];
             $cfg = new \stdClass();
             $cfg->id = $id;
             $cfg->key = $tindex['key'];
