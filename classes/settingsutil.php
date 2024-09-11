@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Tiny WidgetHub plugin.
+ *
+ * @package     tiny_widgethub
+ * @copyright   2024 Josep Mulet <pep.mulet@gmail.com>
+ * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace tiny_widgethub;
 
 defined('MOODLE_INTERNAL') || die();
@@ -22,13 +30,7 @@ defined('MOODLE_INTERNAL') || die();
  *
  * This is a class containing static functions for general snippet filter things
  * like embedding recorders and managing them
- *
- * @package    tiny_widgethub
- * @since      Moodle 3.2
- * @copyright  2024 Josep Mulet Pol (pmulet@iedib.net)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 class settingsutil
 {
 	public static function create_spage_items()
@@ -63,17 +65,17 @@ class settingsutil
 	public static function create_widget_spages($conf)
 	{
 		$widget_index = plugininfo::get_widget_index($conf);
-		$widget_list = plugininfo::get_widget_list($conf, $widget_index);
-		$used_keys = array();
+		$widgetList = plugininfo::get_widget_list($conf, $widget_index);
+		$usedKeys = array();
 		$partials = plugininfo::get_partials($conf, $widget_index);
 
 		$pages = array();
 		// Create a page for new widget
-		$empty_widget = new \stdClass();
-		$empty_widget->id = 0;
-		$pages[] = self::create_page_for_widget($empty_widget, $used_keys, $partials);
-		foreach($widget_list as $widget) {
-			$pages[] = self::create_page_for_widget($widget, $used_keys, $partials);
+		$emptyWidget = new \stdClass();
+		$emptyWidget->id = 0;
+		$pages[] = self::create_page_for_widget($emptyWidget, $usedKeys, $partials);
+		foreach ($widgetList as $widget) {
+			$pages[] = self::create_page_for_widget($widget, $usedKeys, $partials);
 		}
 		return $pages;
 	}
@@ -84,7 +86,7 @@ class settingsutil
 	 * @param array $used_keys
 	 * @return \admin_settingpage
 	 */
-	private static function create_page_for_widget($widget, $used_keys, $partials)
+	private static function create_page_for_widget($widget, $usedKeys, $partials)
 	{
 		$windx = $widget->id;
 		$title = get_string('createwidget', 'tiny_widgethub');
@@ -94,7 +96,7 @@ class settingsutil
 		// Page Settings for every widget
 		$settings_page = new \admin_settingpage('tiny_widgethub_spage_' . $windx, $title, 'moodle/site:config', true);
 
-		if($windx > 0) {
+		if ($windx > 0) {
 			$settings_page->add(
 				new \admin_setting_heading(
 					'tiny_widgethub/heading_' . $windx,
@@ -109,24 +111,23 @@ class settingsutil
 				get_string('hub', 'tiny_widgethub'),
 				get_string('hub_desc', 'tiny_widgethub'),
 				$windx,
-				$used_keys,
+				$usedKeys,
 				$partials
 			)
 		);
 		$json_setting = new \admin_setting_configtextarea(
-				'tiny_widgethub/def_' . $windx,
-				get_string('def', 'tiny_widgethub'),
-				get_string('def_desc', 'tiny_widgethub'),
-				'',
-				PARAM_RAW
+			'tiny_widgethub/def_' . $windx,
+			get_string('def', 'tiny_widgethub'),
+			get_string('def_desc', 'tiny_widgethub'),
+			'',
+			PARAM_RAW
 		);
 		$json_setting->set_updatedcallback(function () use ($windx) {
 			plugininfo::update_widget_index($windx);
 			// Redirect to the category page
-			// TODO: Always or only on delete?
 			redirect(new \moodle_url('/admin/category.php', array('category' => 'tiny_widgethub')));
 		});
-		$settings_page-> add($json_setting);
+		$settings_page->add($json_setting);
 		return $settings_page;
 	}
 

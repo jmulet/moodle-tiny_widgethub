@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Tiny WidgetHub plugin.
+ *
+ * @package     tiny_widgethub
+ * @copyright   2024 Josep Mulet <pep.mulet@gmail.com>
+ * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace tiny_widgethub;
 
 defined('MOODLE_INTERNAL') || die();
@@ -47,13 +55,13 @@ class hubpicker extends \admin_setting
      * @param string $heading heading
      * @param string $information text in box
      */
-    public function __construct($name, $visiblename, $information, $windex, $used_keys, $partials)
+    public function __construct($name, $visiblename, $information, $windex, $usedKeys, $partials)
     {
         $this->nosave = true;
         $this->visiblename = $visiblename;
         $this->information = $information;
         $this->windex = $windex;
-        $this->used_keys = $used_keys;
+        $this->usedKeys = $usedKeys;
         $this->partials = $partials;
         parent::__construct($name, $visiblename, $information, '', $windex);
     }
@@ -94,23 +102,27 @@ class hubpicker extends \admin_setting
     {
         global $PAGE;
 
-        
         // Pass all hub snippets to javascript
         $hubjson = "[]";
-        $hubcontrol = \html_writer::tag('input', '', array('id' => 'id_tiny_widgethub_hubdata_'
-            . $this->windex, 'type' => 'hidden', 'value' => $hubjson));
+        $hubcontrol = \html_writer::tag('input', '', array(
+            'id' => 'id_tiny_widgethub_hubdata_'
+                . $this->windex,
+            'type' => 'hidden',
+            'value' => $hubjson
+        ));
 
         //Add javascript handler for setting pages
         $PAGE->requires->js_call_amd(
             'tiny_widgethub/widget_settings',
             'init',
-            array(array('id' => $this->windex, 'keys' => $this->used_keys, 'partials' => $this->partials))
+            [array('id' => $this->windex, 'keys' => $this->usedKeys, 'partials' => $this->partials),]
         );
 
         $select = \html_writer::select([], 'tiny_widgethub/presets', '', '** Pick from Hub **');
 
         return format_admin_setting(
-            $this, $this->visiblename,
+            $this,
+            $this->visiblename,
             '<div class="form-text defaultsnext">' . $hubcontrol . $select . '</div>',
             $this->information,
             true,

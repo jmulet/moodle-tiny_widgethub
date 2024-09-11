@@ -25,40 +25,40 @@
 defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
-    $tiny_category = 'tiny_widgethub';
-    $settings = new admin_settingpage('tiny_widgethub_settings', get_string('pluginname', $tiny_category));
+    $tinyCategory = 'tiny_widgethub';
+    $settings = new admin_settingpage('tiny_widgethub_settings', get_string('pluginname', $tinyCategory));
 
     if ($ADMIN->fulltree) {
         // Configure component preview.
         $conf = get_config('tiny_widgethub');
 
         // Create a category
-        $ADMIN->add('editortiny', new admin_category($tiny_category, get_string('pluginname', $tiny_category)));
+        $ADMIN->add('editortiny', new admin_category($tinyCategory, get_string('pluginname', $tinyCategory)));
 
         // Main settings
-        $main_settings = new admin_settingpage($tiny_category . '_settings', get_string('pluginname', $tiny_category));
+        $mainSettings = new admin_settingpage($tinyCategory . '_settings', get_string('pluginname', $tinyCategory));
 
         // Add basic items to page, snippet count really
-        $main_items = \tiny_widgethub\settingsutil::create_spage_items();
-        foreach ($main_items as $main_item) {
-            $main_settings->add($main_item);
+        $mainItems = \tiny_widgethub\settingsutil::create_spage_items();
+        foreach ($mainItems as $main_item) {
+            $mainSettings->add($main_item);
         }
 
-        //add table of widgets to page
-        $widgettable_item = new \tiny_widgethub\widgettable(
+        // Add table of widgets to page
+        $widgettableItem = new \tiny_widgethub\widgettable(
             'tiny_widgethub/widgettable',
-            get_string('widgets', $tiny_category),
+            get_string('widgets', $tinyCategory),
             ''
         );
-        $main_settings->add($widgettable_item);
+        $mainSettings->add($widgettableItem);
 
         // Add page to category
-        $ADMIN->add($tiny_category, $main_settings);
+        $ADMIN->add($tinyCategory, $mainSettings);
 
         // Add Snippets pages to category (hidden from nav)
         $spages = \tiny_widgethub\settingsutil::create_widget_spages($conf);
         foreach ($spages as $page) {
-            $ADMIN->add($tiny_category, $page);
+            $ADMIN->add($tinyCategory, $page);
         }
 
         // Set the default return to null

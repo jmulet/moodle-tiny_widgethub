@@ -28,10 +28,9 @@ defined('MOODLE_INTERNAL') || die();
  * Upgrade the plugin.
  */
 function xmldb_tiny_widgethub_upgrade($oldversion) {
-	global $CFG;
-	if($oldversion < 2024072101) {
+    global $CFG;
+    if ($oldversion < 2024072101) {
 		// Rebuild indexes
-    }
-    return true;
+	}
+	return true;
 }
-

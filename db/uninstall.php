@@ -28,7 +28,7 @@ defined('MOODLE_INTERNAL') || die();
  * Uninstall the plugin.
  */
 function xmldb_tiny_widgethub_uninstall() {
-	// It removes all the configuration keys for this plugin
-	\tiny_widgethub\settingsutil::remove_configuration_settings();
+    // It removes all the configuration keys for this plugin
+    \tiny_widgethub\settingsutil::remove_configuration_settings();
     return true;
 }
