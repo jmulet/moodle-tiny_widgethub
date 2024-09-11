@@ -28,8 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/adminlib.php');
 
-class widgettable extends \admin_setting
-{
+class widgettable extends \admin_setting {
 
     /**
      * Summary of visiblename
@@ -45,11 +44,10 @@ class widgettable extends \admin_setting
     /**
      * Not a setting, just text
      * @param string $name unique ascii name, either 'mysetting' for settings that in config, or 'myplugin/mysetting' for ones in config_plugins.
-     * @param string $heading heading
+     * @param string $visiblename heading
      * @param string $information text in box
      */
-    public function __construct($name, $visiblename, $information)
-    {
+    public function __construct($name, $visiblename, $information) {
         $this->nosave = true;
         $this->visiblename = $visiblename;
         $this->information = $information;
@@ -60,8 +58,7 @@ class widgettable extends \admin_setting
      * Always returns true
      * @return bool Always returns true
      */
-    public function get_setting()
-    {
+    public function get_setting() {
         return true;
     }//end of get_setting
 
@@ -69,79 +66,78 @@ class widgettable extends \admin_setting
      * Always returns true
      * @return bool Always returns true
      */
-    public function get_defaultsetting()
-    {
+    public function get_defaultsetting() {
         return true;
-    }//get_defaultsetting
+    }
 
     /**
      * Never write settings
+     * @param mixed $data data
      * @return string Always returns an empty string
      */
-    public function write_setting($data)
-    {
-        // do not write any setting
+    public function write_setting($data) {
+        // Do not write any setting
         return '';
-    }//write_setting
+    }
 
     /**
      * Returns an HTML string
+     * @param mixed $data
+     * @param string $query
      * @return string Returns an HTML string
      */
-    public function output_html($data, $query = '')
-    {
+    public function output_html($data, $query = '') {
         global $PAGE;
-        $tinyCategory = 'tiny_widgethub';
-        $conf = get_config($tinyCategory);
-        $list_widget_config = self::get_list_widgets_config($conf);
+        $tinycategory = 'tiny_widgethub';
+        $conf = get_config($tinycategory);
+        $listwidgetconfig = self::get_list_widgets_config($conf);
 
         $table = new \html_table();
         $table->id = 'tiny_widgethub_widgetlist';
         $table->head = [
-            get_string('key', $tinyCategory),
-            get_string('name', $tinyCategory),
-            get_string('edit', $tinyCategory),
+            get_string('key', $tinycategory),
+            get_string('name', $tinycategory),
+            get_string('edit', $tinycategory),
         ];
-        $table->headspan = array(1, 1, 1);
+        $table->headspan = [1, 1, 1, ];
 
-
-        foreach ($list_widget_config as $item) {
+        foreach ($listwidgetconfig as $item) {
             $row = new \html_table_row();
-            $keyTd = new \html_table_cell($item->key);
-            $nameTd = new \html_table_cell($item->name);
-            $newlinkText = \html_writer::tag('i', '', ['class' => 'fa fa-pencil'])
-                . ' ' . get_string('edit', $tinyCategory);
-            $editlink = \html_writer::link($item->url, $newlinkText);
-            $editTd = new \html_table_cell($editlink);
-            $editTd->attributes = ['title' => 'Internal id=' . $item->id, 'class' => '',];
+            $keytd = new \html_table_cell($item->key);
+            $nametd = new \html_table_cell($item->name);
+            $newlinktext = \html_writer::tag('i', '', ['class' => 'fa fa-pencil'])
+                . ' ' . get_string('edit', $tinycategory);
+            $editlink = \html_writer::link($item->url, $newlinktext);
+            $edittd = new \html_table_cell($editlink);
+            $edittd->attributes = ['title' => 'Internal id=' . $item->id, 'class' => '', ];
             $row->cells = [
-                $keyTd,
-                $nameTd,
-                $editTd,
+                $keytd,
+                $nametd,
+                $edittd,
             ];
             $table->data[] = $row;
         }
 
         // Add an additional row for adding a new widget
         $row = new \html_table_row();
-        $newUrl = new \moodle_url(
+        $newurl = new \moodle_url(
             '/admin/settings.php',
             array('section' => 'tiny_widgethub_spage_0')
         );
-        $newlinkText = \html_writer::tag('i', '', array('class' => 'fa fa-plus-circle'))
-            . ' ' . get_string('createwidget', $tinyCategory);
-        $newlink = \html_writer::link($newUrl, $newlinkText);
-        $newTd = new \html_table_cell($newlink);
-        $newTd->colspan = 3;
-        $row->cells = [$newTd,];
+        $newlinktext = \html_writer::tag('i', '', array('class' => 'fa fa-plus-circle'))
+            . ' ' . get_string('createwidget', $tinycategory);
+        $newlink = \html_writer::link($newurl, $newlinktext);
+        $newtd = new \html_table_cell($newlink);
+        $newtd->colspan = 3;
+        $row->cells = [$newtd];
         $table->data[] = $row;
 
-        $snippet_table = \html_writer::table($table);
+        $snippettable = \html_writer::table($table);
 
         return format_admin_setting(
             $this,
             $this->visiblename,
-            $snippet_table,
+            $snippettable,
             $this->information,
             true,
             '',
@@ -156,21 +152,20 @@ class widgettable extends \admin_setting
      * @param object $conf
      * @return \stdClass[]
      */
-    public static function get_list_widgets_config($conf)
-    {
+    public static function get_list_widgets_config($conf) {
         global $CFG;
         $ret = array();
-        $widgetIndex = plugininfo::get_widget_index($conf);
+        $widgetindex = plugininfo::get_widget_index($conf);
 
-        foreach (array_keys($widgetIndex) as $id) {
-            $tindex = $widgetIndex[$id];
+        foreach (array_keys($widgetindex) as $id) {
+            $tindex = $widgetindex[$id];
             $cfg = new \stdClass();
             $cfg->id = $id;
             $cfg->key = $tindex['key'];
             $cfg->name = $tindex['name'];
             $cfg->url = new \moodle_url(
                 '/admin/settings.php',
-                ['section' => 'tiny_widgethub_spage_' . $id,]
+                ['section' => 'tiny_widgethub_spage_' . $id]
             );
             $ret[] = $cfg;
         }

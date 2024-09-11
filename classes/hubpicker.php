@@ -27,8 +27,7 @@ namespace tiny_widgethub;
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/adminlib.php');
 
-function startsWith(string $string, string $substring): bool
-{
+function startsWith(string $string, string $substring): bool {
     // get the length of the substring
     $len = strlen($substring);
 
@@ -42,26 +41,43 @@ function startsWith(string $string, string $substring): bool
 }
 
 
-class hubpicker extends \admin_setting
-{
+class hubpicker extends \admin_setting {
+    /**
+     * Summary of windex
+     * @var int
+     */
     public $windex;
+    /**
+     * Summary of presetdata
+     * @var object
+     */
     public $presetdata;
+    /**
+     * Summary of visiblename
+     * @var string
+     */
     public $visiblename;
+    /**
+     * Summary of information
+     * @var string
+     */
     public $information;
 
     /**
-     * not a setting, just text
+     * Not a setting, just text.
      * @param string $name unique ascii name, either 'mysetting' for settings that in config, or 'myplugin/mysetting' for ones in config_plugins.
-     * @param string $heading heading
+     * @param string $visiblename heading
      * @param string $information text in box
+     * @param int $windex
+     * @param array $usedkeys
+     * @param object $partials
      */
-    public function __construct($name, $visiblename, $information, $windex, $usedKeys, $partials)
-    {
+    public function __construct($name, $visiblename, $information, $windex, $usedkeys, $partials) {
         $this->nosave = true;
         $this->visiblename = $visiblename;
         $this->information = $information;
         $this->windex = $windex;
-        $this->usedKeys = $usedKeys;
+        $this->usedkeys = $usedkeys;
         $this->partials = $partials;
         parent::__construct($name, $visiblename, $information, '', $windex);
     }
@@ -70,8 +86,7 @@ class hubpicker extends \admin_setting
      * Always returns true
      * @return bool Always returns true
      */
-    public function get_setting()
-    {
+    public function get_setting() {
         return true;
     }
 
@@ -79,8 +94,7 @@ class hubpicker extends \admin_setting
      * Always returns true
      * @return bool Always returns true
      */
-    public function get_defaultsetting()
-    {
+    public function get_defaultsetting() {
         return true;
     }
 
@@ -88,8 +102,7 @@ class hubpicker extends \admin_setting
      * Never write settings
      * @return string Always returns an empty string
      */
-    public function write_setting($data)
-    {
+    public function write_setting($data) {
         // do not write any setting
         return '';
     }
@@ -98,8 +111,7 @@ class hubpicker extends \admin_setting
      * Returns an HTML string
      * @return string Returns an HTML string
      */
-    public function output_html($data, $query = '')
-    {
+    public function output_html($data, $query = '') {
         global $PAGE;
 
         // Pass all hub snippets to javascript
@@ -111,11 +123,11 @@ class hubpicker extends \admin_setting
             'value' => $hubjson
         ));
 
-        //Add javascript handler for setting pages
+        // Add javascript handler for setting pages.
         $PAGE->requires->js_call_amd(
             'tiny_widgethub/widget_settings',
             'init',
-            [array('id' => $this->windex, 'keys' => $this->usedKeys, 'partials' => $this->partials),]
+            [array('id' => $this->windex, 'keys' => $this->usedkeys, 'partials' => $this->partials)]
         );
 
         $select = \html_writer::select([], 'tiny_widgethub/presets', '', '** Pick from Hub **');

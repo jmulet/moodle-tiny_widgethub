@@ -36,16 +36,14 @@ use editor_tiny\plugin_with_menuitems;
 class plugininfo extends plugin implements
     plugin_with_buttons,
     plugin_with_menuitems,
-    plugin_with_configuration
-{
+    plugin_with_configuration {
 
     /**
      * Get the editor buttons for this plugins
      *
      * @return array
      */
-    public static function get_available_buttons(): array
-    {
+    public static function get_available_buttons(): array {
         return [
             'tiny_widgethub/widgethub',
         ];
@@ -55,8 +53,7 @@ class plugininfo extends plugin implements
      *
      * @return array
      */
-    public static function get_available_menuitems(): array
-    {
+    public static function get_available_menuitems(): array {
         return [
             'tiny_widgethub/widgethub',
         ];
@@ -86,24 +83,24 @@ class plugininfo extends plugin implements
         // Obtain the configuration options for the plugin from the config table
         $conf = get_config('tiny_widgethub');
 
-        //Decide if to enable the plugin
+        // Decide if to enable the plugin
         $showplugin = true;
         if (!has_capability('tiny/widgethub:viewplugin', $context)) {
             $showplugin = false;
         }
 
         $params = [
-            'showplugin' => $showplugin
+            'showplugin' => $showplugin,
         ];
 
         if ($showplugin) {
-            $widgetIndex = self::get_widget_index($conf);
-            $widgetList = self::get_widget_list($conf, $widgetIndex);
+            $widgetindex = self::get_widget_index($conf);
+            $widgetlist = self::get_widget_list($conf, $widgetindex);
 
             $params['userid'] = $USER->id;
             $params['courseid'] = $COURSE->id;
-            $params['widgetlist'] = $widgetList;
-            // configuration
+            $params['widgetlist'] = $widgetlist;
+            // Configuration
             $params['sharecss'] = $conf->sharecss;
             $params['additionalcss'] = $conf->additionalcss;
         }
@@ -118,60 +115,58 @@ class plugininfo extends plugin implements
      * @param object $conf
      * @return array
      */
-    public static function get_widget_index($conf): array
-    {
-        $widgetIndex = []; // associative array
+    public static function get_widget_index($conf): array {
+        $widgetindex = []; // associative array
         if (isset($conf->index)) {
-            $widgetIndex = json_decode($conf->index, true);
-            if ($widgetIndex == null) {
-                $widgetIndex = [];
+            $widgetindex = json_decode($conf->index, true);
+            if ($widgetindex == null) {
+                $widgetindex = [];
             }
         }
-        unset($widgetIndex[0]); // remove the temporal entry
-        return $widgetIndex;
+        unset($widgetindex[0]); // remove the temporal entry.
+        return $widgetindex;
     }
 
     /**
      * The entry id has changed, update the index
      * @param int $id
      */
-    public static function update_widget_index($id)
-    {
+    public static function update_widget_index($id) {
         $conf = get_config('tiny_widgethub');
-        $widgetIndex = self::get_widget_index($conf);
+        $widgetindex = self::get_widget_index($conf);
         $widget = null;
         if (isset($conf->{'def_' . $id})) {
             $widget = json_decode($conf->{'def_' . $id}, false);
         }
         if ($widget == null || !is_object($widget)) {
             // Remove the widget from the index
-            unset($widgetIndex[$id]);
+            unset($widgetindex[$id]);
         } elseif (empty($widget->key) && empty($widget->name)) {
-            // Remove the widget from the index and also the definition
-            unset($widgetIndex[$id]);
+            // Remove the widget from the index and also the definition.
+            unset($widgetindex[$id]);
             unset_config('def_' . $id, 'tiny_widgethub');
-        } elseif ($id == 0) {
-            // Add the temporal entry to a definitive widget index
-            $tmpWidget = json_decode($conf->def_0);
-            if (!empty($tmpWidget)) {
+        } else if ($id == 0) {
+            // Add the temporal entry to a definitive widget index.
+            $tmpwidget = json_decode($conf->def_0);
+            if (!empty($tmpwidget)) {
                 $id = self::update_seq($conf);
                 // Add the widget to the index
-                $widgetIndex[$id] = [
-                    'key' => $tmpWidget->key,
-                    'name' => $tmpWidget->name
+                $widgetindex[$id] = [
+                    'key' => $tmpwidget->key,
+                    'name' => $tmpwidget->name
                 ];
                 set_config('def_' . $id, $conf->def_0, 'tiny_widgethub');
-                // Remove the temporal widget
+                // Remove the temporal widget.
                 unset_config('def_0', 'tiny_widgethub');
             }
         } else {
             // Update its key and name
-            $widgetIndex[$id] = [
+            $widgetindex[$id] = [
                 'key' => $widget->key,
                 'name' => $widget->name
             ];
         }
-        set_config('index', json_encode($widgetIndex), 'tiny_widgethub');
+        set_config('index', json_encode($widgetindex), 'tiny_widgethub');
     }
 
     /**
@@ -181,13 +176,12 @@ class plugininfo extends plugin implements
      * @param array $widgetIndex (optional)
      * @return array
      */
-    public static function get_widget_list($conf, $widgetIndex): array
-    {
-        if (!isset($widgetIndex)) {
-            $widgetIndex = self::get_widget_index($conf);
+    public static function get_widget_list($conf, $widgetindex): array {
+        if (!isset($widgetindex)) {
+            $widgetindex = self::get_widget_index($conf);
         }
-        $widgetList = [];
-        foreach (array_keys($widgetIndex) as $id) {
+        $widgetlist = [];
+        foreach (array_keys($widgetindex) as $id) {
             $definition = $conf->{'def_' . $id};
             if (empty($definition)) {
                 continue;
@@ -198,31 +192,30 @@ class plugininfo extends plugin implements
             }
             // Also include the internal widget id
             $json->id = $id;
-            $widgetList[] = $json;
+            $widgetlist[] = $json;
         }
-        return $widgetList;
+        return $widgetlist;
     }
 
     /**
      * Searches the index for a widget with key named partials
      * @param object $conf
-     * @param array $widgetIndex (optional)
+     * @param array $widgetindex (optional)
      * @return object | null if not found
      */
-    public static function get_partials($conf, $widgetIndex): ?object
-    {
-        if (!isset($widgetIndex)) {
-            $widgetIndex = self::get_widget_index($conf);
+    public static function get_partials($conf, $widgetindex): ?object {
+        if (!isset($widgetindex)) {
+            $widgetindex = self::get_widget_index($conf);
         }
-        $indexId = array_column($widgetIndex, null, 'key')['partials'] ?? false;
+        $indexid = array_column($widgetindex, null, 'key')['partials'] ?? false;
         $partials = null;
-        if ($indexId) {
-            $definition = $conf->{'def_' . $indexId};
+        if ($indexid) {
+            $definition = $conf->{'def_' . $indexid};
             if (!empty($definition)) {
                 $partials = json_decode($definition, false);
                 if (isset($partials)) {
-                    // Also include the internal widget id
-                    $partials->id = $indexId;
+                    // Also include the internal widget id.
+                    $partials->id = $indexid;
                 }
             }
         }
@@ -234,8 +227,7 @@ class plugininfo extends plugin implements
      * @param object $conf
      * @return int
      */
-    private static function update_seq($conf)
-    {
+    private static function update_seq($conf) {
         $seq = 0;
         if (isset($conf->seq)) {
             $seq = $conf->seq;

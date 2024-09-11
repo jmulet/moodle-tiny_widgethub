@@ -54,7 +54,7 @@
     {{/title}}
     {{$body}}
     <div class="tabbable" style="table-layout: fixed; width:99%;">
-        <ul class="nav nav-tabs">
+        <ul class="nav nav-tabs" role="tablist">
             <li class="nav-item"><a href="#{{idTabpane}}_0" class="nav-link active" role="tab" data-toggle="tab"><span>&nbsp; {{#str}} edit, tiny_widgethub {{/str}}</span></a></li>
             {{^filter}}<li class="nav-item"><a href="#{{idTabpane}}_1" class="nav-link" role="tab" data-toggle="tab"><span>&nbsp; {{#str}} preview, tiny_widgethub {{/str}}</span></a></li>{{/filter}}
         </ul>
