@@ -27,20 +27,28 @@ namespace tiny_widgethub;
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/adminlib.php');
 
-function startsWith(string $string, string $substring): bool {
-    // get the length of the substring
+/**
+ * Summary of tiny_widgethub\starts_with
+ * @param string $string
+ * @param string $substring
+ * @return bool
+ */
+function starts_with(string $string, string $substring): bool {
+    // Get the length of the substring.
     $len = strlen($substring);
 
-    // just return true when substring is an empty string
+    // Just return true when substring is an empty string.
     if ($len == 0) {
         return true;
     }
 
-    // return true or false based on the substring result
+    // Return true or false based on the substring result.
     return substr($string, 0, $len) === $substring;
 }
 
-
+/**
+ * Summary of hubpicker
+ */
 class hubpicker extends \admin_setting {
     /**
      * Summary of windex
@@ -65,7 +73,7 @@ class hubpicker extends \admin_setting {
 
     /**
      * Not a setting, just text.
-     * @param string $name unique ascii name, either 'mysetting' for settings that in config, or 'myplugin/mysetting' for ones in config_plugins.
+     * @param string $name unique ascii name.
      * @param string $visiblename heading
      * @param string $information text in box
      * @param int $windex
@@ -100,6 +108,7 @@ class hubpicker extends \admin_setting {
 
     /**
      * Never write settings
+     * @param mixed $data
      * @return string Always returns an empty string
      */
     public function write_setting($data) {
@@ -109,25 +118,27 @@ class hubpicker extends \admin_setting {
 
     /**
      * Returns an HTML string
+     * @param mixed $data
+     * @param string $query
      * @return string Returns an HTML string
      */
     public function output_html($data, $query = '') {
         global $PAGE;
 
-        // Pass all hub snippets to javascript
+        // Pass all hub snippets to javascript.
         $hubjson = "[]";
-        $hubcontrol = \html_writer::tag('input', '', array(
+        $hubcontrol = \html_writer::tag('input', '', [
             'id' => 'id_tiny_widgethub_hubdata_'
                 . $this->windex,
             'type' => 'hidden',
-            'value' => $hubjson
-        ));
+            'value' => $hubjson,
+        ]);
 
         // Add javascript handler for setting pages.
         $PAGE->requires->js_call_amd(
             'tiny_widgethub/widget_settings',
             'init',
-            [array('id' => $this->windex, 'keys' => $this->usedkeys, 'partials' => $this->partials)]
+            [['id' => $this->windex, 'keys' => $this->usedkeys, 'partials' => $this->partials]]
         );
 
         $select = \html_writer::select([], 'tiny_widgethub/presets', '', '** Pick from Hub **');

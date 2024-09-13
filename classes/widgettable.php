@@ -12,7 +12,7 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * Tiny WidgetHub plugin.
@@ -28,6 +28,9 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/adminlib.php');
 
+/**
+ * Summary of widgettable
+ */
 class widgettable extends \admin_setting {
 
     /**
@@ -43,7 +46,7 @@ class widgettable extends \admin_setting {
 
     /**
      * Not a setting, just text
-     * @param string $name unique ascii name, either 'mysetting' for settings that in config, or 'myplugin/mysetting' for ones in config_plugins.
+     * @param string $name unique ascii name.
      * @param string $visiblename heading
      * @param string $information text in box
      */
@@ -60,7 +63,7 @@ class widgettable extends \admin_setting {
      */
     public function get_setting() {
         return true;
-    }//end of get_setting
+    }
 
     /**
      * Always returns true
@@ -99,7 +102,7 @@ class widgettable extends \admin_setting {
             get_string('name', $tinycategory),
             get_string('edit', $tinycategory),
         ];
-        $table->headspan = [1, 1, 1, ];
+        $table->headspan = [1, 1, 1];
 
         foreach ($listwidgetconfig as $item) {
             $row = new \html_table_row();
@@ -109,7 +112,7 @@ class widgettable extends \admin_setting {
                 . ' ' . get_string('edit', $tinycategory);
             $editlink = \html_writer::link($item->url, $newlinktext);
             $edittd = new \html_table_cell($editlink);
-            $edittd->attributes = ['title' => 'Internal id=' . $item->id, 'class' => '', ];
+            $edittd->attributes = ['title' => 'Internal id=' . $item->id, 'class' => ''];
             $row->cells = [
                 $keytd,
                 $nametd,
@@ -118,13 +121,13 @@ class widgettable extends \admin_setting {
             $table->data[] = $row;
         }
 
-        // Add an additional row for adding a new widget
+        // Add an additional row for adding a new widget.
         $row = new \html_table_row();
         $newurl = new \moodle_url(
             '/admin/settings.php',
-            array('section' => 'tiny_widgethub_spage_0')
+            ['section' => 'tiny_widgethub_spage_0']
         );
-        $newlinktext = \html_writer::tag('i', '', array('class' => 'fa fa-plus-circle'))
+        $newlinktext = \html_writer::tag('i', '', ['class' => 'fa fa-plus-circle'])
             . ' ' . get_string('createwidget', $tinycategory);
         $newlink = \html_writer::link($newurl, $newlinktext);
         $newtd = new \html_table_cell($newlink);
@@ -154,7 +157,7 @@ class widgettable extends \admin_setting {
      */
     public static function get_list_widgets_config($conf) {
         global $CFG;
-        $ret = array();
+        $ret = [];
         $widgetindex = plugininfo::get_widget_index($conf);
 
         foreach (array_keys($widgetindex) as $id) {

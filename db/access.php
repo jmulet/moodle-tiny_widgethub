@@ -31,9 +31,9 @@ $capabilities = [
         'archetypes' => [
             'student' => CAP_PREVENT,
             'coursecreator' => CAP_ALLOW,
-			'teacher' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW,
         ],
-    ]
+    ],
 ];

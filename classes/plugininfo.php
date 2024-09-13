@@ -80,10 +80,10 @@ class plugininfo extends plugin implements
 
         global $USER, $COURSE;
 
-        // Obtain the configuration options for the plugin from the config table
+        // Obtain the configuration options for the plugin from the config table.
         $conf = get_config('tiny_widgethub');
 
-        // Decide if to enable the plugin
+        // Decide if to enable the plugin.
         $showplugin = true;
         if (!has_capability('tiny/widgethub:viewplugin', $context)) {
             $showplugin = false;
@@ -100,7 +100,7 @@ class plugininfo extends plugin implements
             $params['userid'] = $USER->id;
             $params['courseid'] = $COURSE->id;
             $params['widgetlist'] = $widgetlist;
-            // Configuration
+            // Configuration.
             $params['sharecss'] = $conf->sharecss;
             $params['additionalcss'] = $conf->additionalcss;
         }
@@ -116,14 +116,14 @@ class plugininfo extends plugin implements
      * @return array
      */
     public static function get_widget_index($conf): array {
-        $widgetindex = []; // associative array
+        $widgetindex = []; // Associative array.
         if (isset($conf->index)) {
             $widgetindex = json_decode($conf->index, true);
             if ($widgetindex == null) {
                 $widgetindex = [];
             }
         }
-        unset($widgetindex[0]); // remove the temporal entry.
+        unset($widgetindex[0]); // Remove the temporal entry.
         return $widgetindex;
     }
 
@@ -139,9 +139,9 @@ class plugininfo extends plugin implements
             $widget = json_decode($conf->{'def_' . $id}, false);
         }
         if ($widget == null || !is_object($widget)) {
-            // Remove the widget from the index
+            // Remove the widget from the index.
             unset($widgetindex[$id]);
-        } elseif (empty($widget->key) && empty($widget->name)) {
+        } else if (empty($widget->key) && empty($widget->name)) {
             // Remove the widget from the index and also the definition.
             unset($widgetindex[$id]);
             unset_config('def_' . $id, 'tiny_widgethub');
@@ -153,17 +153,17 @@ class plugininfo extends plugin implements
                 // Add the widget to the index
                 $widgetindex[$id] = [
                     'key' => $tmpwidget->key,
-                    'name' => $tmpwidget->name
+                    'name' => $tmpwidget->name,
                 ];
                 set_config('def_' . $id, $conf->def_0, 'tiny_widgethub');
                 // Remove the temporal widget.
                 unset_config('def_0', 'tiny_widgethub');
             }
         } else {
-            // Update its key and name
+            // Update its key and name.
             $widgetindex[$id] = [
                 'key' => $widget->key,
-                'name' => $widget->name
+                'name' => $widget->name,
             ];
         }
         set_config('index', json_encode($widgetindex), 'tiny_widgethub');
@@ -173,7 +173,7 @@ class plugininfo extends plugin implements
      * Get the list of widgets
      *
      * @param object $conf
-     * @param array $widgetIndex (optional)
+     * @param array $widgetindex (optional)
      * @return array
      */
     public static function get_widget_list($conf, $widgetindex): array {
@@ -190,7 +190,7 @@ class plugininfo extends plugin implements
             if (!isset($json)) {
                 continue;
             }
-            // Also include the internal widget id
+            // Also include the internal widget id.
             $json->id = $id;
             $widgetlist[] = $json;
         }

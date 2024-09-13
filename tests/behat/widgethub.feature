@@ -19,5 +19,5 @@ Feature: Tiny widgethub
     Given I log in as "admin"
     When I open my profile in edit mode
     And I set the field "Description" to "Hello tiny!"
-    And I click on the "Insert > WidgetHub" menu item for the "Description" TinyMCE editor
-    Then I should see "Pick one widget" in the modal dialog
+    And I click on the "WidgetHub" button for the "Description" TinyMCE editor
+    Then I should see "Pick one widget" in the "Pick one widget" "dialogue"

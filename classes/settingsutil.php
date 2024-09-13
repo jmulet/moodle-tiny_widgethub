@@ -32,10 +32,13 @@ defined('MOODLE_INTERNAL') || die();
  * like embedding recorders and managing them
  */
 class settingsutil {
+	/**
+	 * Summary of create_spage_items
+	 * @return array
+	 */
 	public static function create_spage_items() {
 		$items = [];
-
-		// Decide whether to share page css into the editor's iframe
+		// Decide whether to share page css into the editor's iframe.
 		$items[] = new \admin_setting_configcheckbox(
 			'tiny_widgethub/sharecss',
 			'tiny_widgethub_sharecss',
@@ -43,8 +46,7 @@ class settingsutil {
 			'',
 			1
 		);
-
-		// Define additional CSS to include in the editor's iframe
+		// Define additional CSS to include in the editor's iframe.
 		$items[] = new \admin_setting_configtextarea(
 			'tiny_widgethub/additionalcss',
 			'tiny_widgethub_additionalcss',
@@ -67,7 +69,7 @@ class settingsutil {
 		$partials = plugininfo::get_partials($conf, $widgetindex);
 
 		$pages = array();
-		// Create a page for new widget
+		// Create a page for new widget.
 		$emptywidget = new \stdClass();
 		$emptywidget->id = 0;
 		$pages[] = self::create_page_for_widget($emptywidget, $usedkeys, $partials);
@@ -90,7 +92,7 @@ class settingsutil {
 		if (!empty($widget->key) && !empty($widget->name)) {
 			$title = get_string('edit', 'tiny_widgethub') . ' ' . $widget->name;
 		}
-		// Page Settings for every widget
+		// Page Settings for every widget.
 		$settingspage = new \admin_settingpage('tiny_widgethub_spage_' . $windx, $title, 'moodle/site:config', true);
 
 		if ($windx > 0) {
@@ -121,7 +123,7 @@ class settingsutil {
 		);
 		$jsonsetting->set_updatedcallback(function () use ($windx) {
 			plugininfo::update_widget_index($windx);
-			// Redirect to the category page
+			// Redirect to the category page.
 			redirect(new \moodle_url('/admin/category.php', array('category' => 'tiny_widgethub')));
 		});
 		$settingspage->add($jsonsetting);
