@@ -20,4 +20,4 @@ Feature: Tiny widgethub
     When I open my profile in edit mode
     And I set the field "Description" to "Hello tiny!"
     And I click on the "WidgetHub" button for the "Description" TinyMCE editor
-    Then I should see "Pick one widget" in the "Pick one widget" "dialogue"
+    Then I should see "Pick one widget" in the "WidgetHub" "dialogue"

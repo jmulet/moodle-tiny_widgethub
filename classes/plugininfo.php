@@ -150,7 +150,7 @@ class plugininfo extends plugin implements
             $tmpwidget = json_decode($conf->def_0);
             if (!empty($tmpwidget)) {
                 $id = self::update_seq($conf);
-                // Add the widget to the index
+                // Add the widget to the index.
                 $widgetindex[$id] = [
                     'key' => $tmpwidget->key,
                     'name' => $tmpwidget->name,

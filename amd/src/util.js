@@ -1325,7 +1325,8 @@ const bindingFactory = function($e) {
             }
             const parts = sty.split(":");
             let styName = parts[0].trim();
-            let styValue = undefined;
+            /** @type {string | undefined} */
+            let styValue;
             if (parts.length > 1) {
                 styValue = parts[1].replace(/["']/g, '').trim();
             }

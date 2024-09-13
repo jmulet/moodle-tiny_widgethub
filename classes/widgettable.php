@@ -24,8 +24,6 @@
 
 namespace tiny_widgethub;
 
-defined('MOODLE_INTERNAL') || die();
-
 require_once($CFG->libdir . '/adminlib.php');
 
 /**
@@ -79,7 +77,7 @@ class widgettable extends \admin_setting {
      * @return string Always returns an empty string
      */
     public function write_setting($data) {
-        // Do not write any setting
+        // Do not write any setting.
         return '';
     }
 
@@ -90,7 +88,6 @@ class widgettable extends \admin_setting {
      * @return string Returns an HTML string
      */
     public function output_html($data, $query = '') {
-        global $PAGE;
         $tinycategory = 'tiny_widgethub';
         $conf = get_config($tinycategory);
         $listwidgetconfig = self::get_list_widgets_config($conf);
@@ -156,7 +153,6 @@ class widgettable extends \admin_setting {
      * @return \stdClass[]
      */
     public static function get_list_widgets_config($conf) {
-        global $CFG;
         $ret = [];
         $widgetindex = plugininfo::get_widget_index($conf);
 

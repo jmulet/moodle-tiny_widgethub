@@ -42,7 +42,7 @@
         "categories": [
             {
                 "name": "Category name",
-                "color": ["100", "20%"],
+                "color": "100, 20%",
                 "hidden": false,
                 "buttons": [
                     {
@@ -83,8 +83,8 @@
             <div class="tiny_widgethub-recent"></div>
             {{#categories}}
             <div class="tiny_widgethub-category{{#hidden}} tiny_widgethub-hidden{{/hidden}}"
-                style="border: 2px solid hsl({{color[0]}}, {{color[1]}}, 40%);background: hsl({{color[0]}}, {{color[1]}}, 98%);">
-                <div class="tiny_widgethub-lateral" style="background: hsl({{color[0]}}, {{color[1]}}, 40%)!important;">
+                style="border: 2px solid hsl({{color}}, 40%);background: hsl({{color}}, 98%);">
+                <div class="tiny_widgethub-lateral" style="background: hsl({{color}}, 40%)!important;">
                     <p class="tiny_widgethub-title">{{name}}</p>
                 </div>
                 <div style="display:table-cell;column-count:1;padding:5px">

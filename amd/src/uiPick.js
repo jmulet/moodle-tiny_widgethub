@@ -259,7 +259,7 @@ export class UiPickCtrl {
          * @typedef {Object} Category
          * @property {string} name
          * @property {boolean} hidden
-         * @property {[string, string]} color
+         * @property {string} color
          * @property {Button[]} buttons
          */
         /**
@@ -278,7 +278,7 @@ export class UiPickCtrl {
                 found = {
                     name: catName,
                     hidden: false,
-                    color: [color + '', sat],
+                    color: color + ', ' + sat,
                     buttons: []
                 };
                 categories[catName] = found;

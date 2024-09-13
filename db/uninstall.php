@@ -21,11 +21,10 @@
  * @copyright   2024 Josep Mulet <pep.mulet@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
-
+ 
 /**
  * Uninstall the plugin.
+ * @return boolean
  */
 function xmldb_tiny_widgethub_uninstall() {
     // It removes all the configuration keys for this plugin.

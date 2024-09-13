@@ -112,7 +112,7 @@ class hubpicker extends \admin_setting {
      * @return string Always returns an empty string
      */
     public function write_setting($data) {
-        // do not write any setting
+        // Do not write any setting.
         return '';
     }
 
