@@ -65,12 +65,13 @@
 {{< core/modal }}
     {{$title}}
         {{#str}} dialogtitle, tiny_widgethub {{/str}}
+    {{/title}}
+    {{$body}}
         <span style="position:absolute;right:40px;font-size:80%;color:#5960b8;padding:5px;font-weight:bold;" 
         class="ib-blink{{^selectMode}} tiny_widgethub-hidden{{/selectMode}}">
             <i class="fa fas fa-object-group"></i> {{#str}} selectmode, tiny_widgethub {{/str}}
         </span>
-    {{/title}}
-    {{$body}}
+
         <div id="{{elementid}}" class="tiny_widgethub-container">
            <div style="text-align:center;position:relative;vertical-align:middle;">
                 <input id="widget-filter{{rid}}" type="text" placeholder="{{#str}} wsearch, tiny_widgethub {{/str}}" style="width:80%" value="{{searchText}}">
