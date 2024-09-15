@@ -24,6 +24,8 @@
 
 namespace tiny_widgethub;
 
+defined('MOODLE_INTERNAL') || die();
+
 require_once($CFG->libdir . '/adminlib.php');
 
 /**

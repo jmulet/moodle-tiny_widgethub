@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "link": "ln -sfn ../../amd/src ./src",
     "test": "node node_modules/jest/bin/jest.js --collect-coverage"
   },
   "keywords": [],

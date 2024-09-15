@@ -48,10 +48,8 @@ describe('smartClone tests', () => {
    
     const idMap = {};
     const cloned = smartClone(toClone, elem, idMap);
-    console.log(cloned);
     cloned.insertAfter(toClone);
-    expect(cloned).toBeTruthy();
-    console.log(elem.prop('outerHTML'))
+    expect(cloned).toBeTruthy(); 
     });
    
 });

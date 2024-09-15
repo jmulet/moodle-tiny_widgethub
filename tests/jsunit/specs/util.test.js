@@ -86,7 +86,6 @@ describe('utils module tests', () => {
             if(filteredText!=null && ('then' in filteredText)) {
                 // @ts-ignore
                 filteredText.then( (res) => {
-                    console.log("promised res ", res)
                     expect(res[0]).toBe("hola mundo!");
                     expect(res[1]).toBe('An error internal occurred!');
                 })            

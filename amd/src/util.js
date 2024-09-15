@@ -1,5 +1,4 @@
 /* eslint-disable no-console */
-
 /* eslint-disable no-eq-null */
 /* eslint-disable no-bitwise */
 /* eslint-disable no-new-func */
@@ -100,9 +99,6 @@ export function evalInContext(ctx, expr, keepFns) {
     listArgs.push('expr');
     listArgs.push('return eval(expr)');
     listVals.push(expr);
-    // Console.log('listArgs', listArgs);
-    // console.log('expr', expr, 'listVals', listVals);
-
     const evaluator = new Function(...listArgs);
     return evaluator(...listVals);
 }
