@@ -74,7 +74,8 @@ export const getSetup = async() => {
  * Inject styles and scripts into editor's iframe
  * @param {import('./container').DIContainer} container
  */
-function initializer({editor, editorOptions, widgetPropertiesCtrl}) {
+function initializer(container) {
+    const { editor, editorOptions } = container;
     // Add the bootstrap, CSS, etc... into the editor's iframe
     editor.on('init', () => {
         // On init editor.dom is ready
@@ -117,7 +118,7 @@ function initializer({editor, editorOptions, widgetPropertiesCtrl}) {
                 head.appendChild(scriptInitBS);
             };
             // Initialize context toolbars and menus
-            initContextActions(widgetPropertiesCtrl);
+            initContextActions(container);
         };
 
         head.appendChild(scriptJQ);

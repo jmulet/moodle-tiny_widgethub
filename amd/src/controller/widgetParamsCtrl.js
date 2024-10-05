@@ -47,12 +47,15 @@ export class WidgetParamsCtrl {
     */
    async handleAction() {
       // Show modal with buttons.
-      const data = this.formCtrl.createParametersContext(this.widget);
-      const modal = await this.modalSrv.create('picker', data, { destroyOnHidden: true });
+      const data = this.formCtrl.createContext(this.widget);
+      const modal = await this.modalSrv.create('params', data, () => {
+         this.modal.destroy();
+         this.modal = null;
+      });
       this.modal = modal;
       modal.body.find(`a[href="#${data.idTabpane}_1"`).on("click", async () => {
          // Handle preview;
-         const ctxFromDialogue = this.formCtrl.parameterExtractor(this.widget, modal.body.find("form"));
+         const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, modal.body.find("form"));
          await this.updatePreview(data.idTabpane, ctxFromDialogue);
       });
       this.formCtrl.attachImagePickers(modal.body);
@@ -66,7 +69,7 @@ export class WidgetParamsCtrl {
       });
       modal.footer.find("button.btn-primary").on("click", async () => {
          // Go back to main menú
-         const ctxFromDialogue = this.formCtrl.parameterExtractor(this.widget, modal.body.find("form"));
+         const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, modal.body.find("form"));
          modal.hide();
          await this.insertWidget(ctxFromDialogue);
          modal.destroy();

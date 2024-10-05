@@ -80,24 +80,24 @@ export default {
     /**
      * @param {'picker' | 'params' | 'context'} name
      * @param {object} templateContext
-     * @param {ModalOpts=} opts
+     * @param {()=>void} [onHidden]
      * @returns {Promise<ModalDialogue>}
      */
-    create: (name, templateContext, opts) => {
+    create: async(name, templateContext, onHidden) => {
         let type;
         switch (name) {
             case ('picker'): type = IBPickerModal.TYPE; break;
             case ('params'): type = IBParamsModal.TYPE; break;
             case ('context'): type = IBContextModal.TYPE; break;
         }
-        const modal = ModalFactory.create({
+        const modal = await ModalFactory.create({
             type,
             templateContext,
             large: true,
         });
-        if (opts?.destroyOnHidden) {
+        if (onHidden) {
             modal.getRoot().on(ModalEvents.hidden, () => {
-                modal.destroy();
+                onHidden();
             });
         }
         return modal;

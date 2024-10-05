@@ -72,7 +72,7 @@ const toggleVisible = function(el, visible) {
 };
 
 const Templates = {
-    RECENT_SNPT: `<div style="margin:10px 45px;font-size:85%;">{{#str}} recents, tiny_widgethub {{/str}}: {{#recent}} 
+    RECENT_SNPT: `<div style="margin:10px 45px;font-size:85%;">{{#recent}} 
     {{#name}}<a href="javascript:void(0)" data-key="{{key}}"><span class="badge badge-secondary">{{name}}</span></a>{{/name}}
     {{/recent}}`
 };
@@ -154,7 +154,10 @@ export class WidgetPickerCtrl {
             });
             console.log(" data  is  ", data);
             // @ts-ignore
-            this.modal = await this.modalSrv.createPickerModal(data);
+            this.modal = await this.modalSrv.create('picker', data, () => {
+                this.modal.destroy();
+                this.modal = null;
+            });
             // Event listeners.
             // Click on clear text
             const widgetSearchElem = this.modal.body.find("input")[0];

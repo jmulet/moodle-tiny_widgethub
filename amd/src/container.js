@@ -66,6 +66,11 @@ export class DIContainer {
     _editorOptions;
 
     /**
+     * @type {FormCtrl | undefined}
+     */
+    _formCtrl;
+
+    /**
      * @param {import("./plugin").TinyMCE} editor
      */
     constructor(editor) {

@@ -9,3 +9,4 @@ package-lock.json
 scripts/ 
 amd/tests/
 styles.scss
+copy.sh

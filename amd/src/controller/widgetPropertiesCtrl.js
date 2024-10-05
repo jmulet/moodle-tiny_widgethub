@@ -89,7 +89,10 @@ export default class WidgetPropertiesCtrl {
 
         // Create the modal
         // @ts-ignore
-        this.#modal = await this.modalSrv.create('context', data, {destroyOnHidden: true});
+        this.#modal = await this.modalSrv.create('context', data, () => {
+            this.#modal.destroy();
+            this.#modal = null;
+        });
         this.formCtrl.attachImagePickers(this.#modal.body);
         // Applying watchers to the form elements
         this.formCtrl.applyFieldWatchers(this.#modal.body, paramValues, widget, false);
@@ -100,7 +103,7 @@ export default class WidgetPropertiesCtrl {
         });
         this.#modal.footer.find("button.btn-primary").on("click", () => {
             const form = this.#modal.body.find("form");
-            const updatedValues = this.formCtrl.extractFormParameters(widget, form, null);
+            const updatedValues = this.formCtrl.extractFormParameters(widget, form);
             this.#modal.destroy();
             // Apply Param Values To DOM
             Object.keys(bindingsDOM).forEach(key => {
