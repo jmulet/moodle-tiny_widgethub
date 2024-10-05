@@ -23,11 +23,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import ContextPropsModal from "./context_props_modal";
-import {getWidgetDict} from "./options";
-import jQuery from 'jquery';
-// eslint-disable-next-line no-unused-vars
-import {findReferences, smartClone, WidgetWrapper} from "./util";
+import {findReferences, smartClone} from "./util";
 
 /**
  * @param {HTMLElement} elem
@@ -66,17 +62,18 @@ const matchesSelectors = function(elem, selectors) {
  * @property {JQuery<HTMLElement>} selectedElement - The DOM element from which the search starts.
  * @property {JQuery<HTMLElement>} [elem] - Indicates the element corresponding to the selector of the widget found
  * @property {JQuery<HTMLElement>} [targetElement] - Indicates the element corresponding the intermediate selector
- * @property {WidgetWrapper=} widget - The current widget definition associated with the elem
+ * @property {import('./util').WidgetWrapper=} widget - The current widget definition associated with the elem
  */
 /**
  * Walks the DOM tree up from the selectedElement and tries
  * to find the first element that matches the selector of
  * some widget.
- * @param {WidgetWrapper[]} widgetList - The list of widgets
+ * @param {JQueryStatic} jQuery
+ * @param {import('./util').WidgetWrapper[]} widgetList - The list of widgets
  * @param {HTMLElement} selectedElement - The starting element in the search
  * @returns {PathResult} The element and widget found in the search.
  */
-const findWidgetOnEventPath = function(widgetList, selectedElement) {
+const findWidgetOnEventPath = function(jQuery, widgetList, selectedElement) {
     /** @type {PathResult} */
     const res = {
         selectedElement: jQuery(selectedElement)
@@ -140,7 +137,7 @@ const defineIcons = function(editor) {
 
 /**
  * Decides if a widget needs some kind of context menu or toolbar
- * @param {WidgetWrapper} widget - The widget
+ * @param {import('./util').WidgetWrapper} widget - The widget
  * @returns {boolean}
  */
 const needsContextMenu = function(widget) {
@@ -258,11 +255,11 @@ const PredefinedActions = {
 /**
  * Looks for widgets that need to display context toolbars or menus
  * and binds the corresponding actions.
- * @param {import("./plugin").TinyMCE} editor
+ * @param {import("./container").DIContainer} container
  */
-export const initContextActions = function(editor) {
-    /** @type {WidgetWrapper[]} */
-    const widgetList = Object.values(getWidgetDict(editor));
+export const initContextActions = function({editor, editorOptions, widgetPropertiesCtrl, jQuery}) {
+    /** @type {import('./util').WidgetWrapper[]} */
+    const widgetList = Object.values(editorOptions.widgetDict);
 
     // Define icons
     defineIcons(editor);
@@ -271,18 +268,17 @@ export const initContextActions = function(editor) {
     /** @type {PathResult | undefined} */
     let currentContext;
 
-    const contextPropsModal = new ContextPropsModal(editor);
     // Generic button action for opening the properties modal
     editor.ui.registry.addButton('widgethub_modal_btn', {
         icon: ICONS.gear,
         tooltip: 'Properties',
         onAction: async function() {
-            const ctx = findWidgetOnEventPath(widgetList, editor.selection.getNode());
+            const ctx = findWidgetOnEventPath(jQuery, widgetList, editor.selection.getNode());
             if (!ctx.widget) {
                 return;
             }
             // Display modal dialog on this context
-            await contextPropsModal.show(ctx);
+            await widgetPropertiesCtrl.show(ctx);
         }
     });
     editor.ui.registry.addMenuItem('widgethub_modal_item', {
@@ -290,13 +286,13 @@ export const initContextActions = function(editor) {
         text: 'Properties',
         onAction: async function() {
             if (!currentContext?.widget) {
-                currentContext = findWidgetOnEventPath(widgetList, editor.selection.getNode());
+                currentContext = findWidgetOnEventPath(jQuery, widgetList, editor.selection.getNode());
                 if (!currentContext.widget) {
                     return;
                 }
             }
             // Display modal dialog on this context
-            await contextPropsModal.show(currentContext);
+            await widgetPropertiesCtrl.show(currentContext);
     }
     });
 
@@ -306,7 +302,7 @@ export const initContextActions = function(editor) {
     function genericAction(name) {
         return function() {
             if (!currentContext?.widget) {
-                currentContext = findWidgetOnEventPath(widgetList, editor.selection.getNode());
+                currentContext = findWidgetOnEventPath(jQuery, widgetList, editor.selection.getNode());
                 if (!currentContext.widget) {
                     return;
                 }
@@ -367,7 +363,7 @@ export const initContextActions = function(editor) {
         update: (element) => {
             console.log("update contextmenu ", element);
             // Look for a context
-            currentContext = findWidgetOnEventPath(widgetList, element);
+            currentContext = findWidgetOnEventPath(jQuery, widgetList, element);
             if (!currentContext.widget || currentContext.widget.prop('contexttoolbar')) {
                 return '';
             }

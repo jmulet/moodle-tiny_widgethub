@@ -2,10 +2,21 @@
 /* eslint-disable no-tabs */
 /* eslint-disable no-alert */
 import jQuery from 'jquery';
-import {templateRenderer} from './util';
-import CodeProEditor from './cm6pro-lazy';
-import {load, dump} from './js_yaml-lazy';
+import CodeProEditor from './libs/cm6pro-lazy';
+import {load, dump} from './libs/js_yaml-lazy';
 import {get_strings as getStrings} from 'core/str';
+import TemplateSrv from './service/templateSrv';
+import mustache from 'core/mustache';
+import { ejsLoader } from './container';
+
+/**
+ * @type {any}
+ */
+const container = {
+	mustache,
+	ejs: ejsLoader
+};
+const templateSrv = new TemplateSrv(container);
 
 /**
  * @class
@@ -147,7 +158,7 @@ export default {
 				ctx[param.name] = param.value;
 			});
 			const engine = jsonObj?.engine;
-			const html = await templateRenderer(jsonObj?.template || '', ctx, translations, engine);
+			const html = await templateSrv.render(jsonObj?.template || '', ctx, translations, engine);
 			validation.html = html;
 		} catch (ex) {
 			validation.msg = "Renderer error:: " + ex;

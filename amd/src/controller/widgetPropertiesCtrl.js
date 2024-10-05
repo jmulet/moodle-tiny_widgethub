@@ -21,40 +21,34 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {IBContextModal} from './modal';
-import ModalFactory from 'core/modal_factory';
-import ModalEvents from 'core/modal_events';
-import {createControlHTML, getParametersFromForm, applyFieldWatchers, attachImagePickers} from './uiParams';
-import {createBinding} from './util';
+import {createBinding} from '../util';
 
 /**
  * @class
  * @classdesc Defines a generic editor dialogue based on widget definition fields
  */
-export default class ContextPropsModal {
-    /**
-     * @member {TinyMCE} #editor
-     */
-    #editor;
+export default class WidgetPropertiesCtrl {
     // @ts-ignore
     #modal;
 
     /**
-     * @param {import('./plugin').TinyMCE} editor
+     * @param {import('../container').DIContainer} container
      */
-    constructor(editor) {
-        this.#editor = editor;
+    constructor({editor, formCtrl, modalSrv}) {
+        this.editor = editor;
+        this.formCtrl = formCtrl;
+        this.modalSrv = modalSrv;
     }
 
     /**
      * Displays a modal dialog for editing the currentContext
      * based on contextual
-     * @param {import('./context_init').PathResult} currentContext
+     * @param {import('../contextInit').PathResult} currentContext
      * @returns
      */
     async show(currentContext) {
         const widget = currentContext.widget;
-        const hostId = this.#editor.id;
+        const hostId = this.editor.id;
         const elem = currentContext.elem;
 
         if (!elem || !widget?.hasBindings()) {
@@ -85,7 +79,7 @@ export default class ContextPropsModal {
         /** @type {string[]} */
         const controls = [];
         widget.parameters.filter(param => param.bind).forEach((param) => {
-            controls.push(createControlHTML(hostId, param, paramValues[param.name]));
+            controls.push(this.formCtrl.createControlHTML(hostId, param, paramValues[param.name]));
         });
 
         const data = {
@@ -95,18 +89,10 @@ export default class ContextPropsModal {
 
         // Create the modal
         // @ts-ignore
-        this.#modal = await ModalFactory.create({
-            type: IBContextModal.TYPE,
-            templateContext: data,
-            large: true,
-        });
-        // @ts-ignore
-        this.#modal.getRoot().on(ModalEvents.hidden, () => {
-            this.#modal.destroy();
-        });
-        attachImagePickers(this.#editor, this.#modal.body);
+        this.#modal = await this.modalSrv.create('context', data, {destroyOnHidden: true});
+        this.formCtrl.attachImagePickers(this.#modal.body);
         // Applying watchers to the form elements
-        applyFieldWatchers(this.#modal.body, paramValues, widget, false);
+        this.formCtrl.applyFieldWatchers(this.#modal.body, paramValues, widget, false);
 
         // Bind accept action to modal
         this.#modal.footer.find("button.btn-secondary").on("click", () => {
@@ -114,7 +100,7 @@ export default class ContextPropsModal {
         });
         this.#modal.footer.find("button.btn-primary").on("click", () => {
             const form = this.#modal.body.find("form");
-            const updatedValues = getParametersFromForm(widget, form, null);
+            const updatedValues = this.formCtrl.extractFormParameters(widget, form, null);
             this.#modal.destroy();
             // Apply Param Values To DOM
             Object.keys(bindingsDOM).forEach(key => {

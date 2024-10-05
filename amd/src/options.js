@@ -71,59 +71,75 @@ export const register = (editor) => {
     });
 };
 
-
 /**
  * @param {import('./plugin').TinyMCE} editor
  * @returns {boolean} - are the plugin buttons visible?
  */
 export const isPluginVisible = (editor) => editor.options.get(showPlugin);
 
-/**
- * @param {import('./plugin').TinyMCE} editor
- * @returns {number} - an integer with the id of the current user
- */
-export const getUserId = (editor) => parseInt(editor.options.get(userId));
+export class EditorOptions {
+    /** @type {Record<string, WidgetWrapper> | undefined} */
+    _widgetDict;
 
-/**
- * @param {import('./plugin').TinyMCE} editor
- * @returns {number} - an integer with the id of the current course
- */
-export const getCourseId = (editor) => parseInt(editor.options.get(courseId));
-
-/**
- * @param {import('./plugin').TinyMCE} editor
- * @returns {string} - additional css that must be included in a <style> tag in editor's iframe
- */
-export const getAdditionalCss = (editor) => editor.options.get(additionalCss);
-
-/** @type {Object.<string, WidgetWrapper> | null} */
-let widgetDict = null;
-
-/**
- * @param {import('./plugin').TinyMCE} editor
- * @returns {Object.<string,WidgetWrapper>} - a dictionary of "usable" widgets for the current userId
- */
-export const getWidgetDict = (editor) => {
-    if (!widgetDict) {
-        widgetDict = {};
-        // The widgetList is of type object[]
-        // partials is a special widget that is used to define common parameters shared by other widgets
-        /** @type {import('./util').Widget[]} */
-        let widgets = editor.options.get(widgetList);
-        let partials = widgets.filter(e => e.key === 'partials')[0];
-        if (partials) {
-            widgets = widgets.filter(e => e.key !== 'partials');
-        }
-        // Create a wrapper for the widget to handle operations
-        const wrappedWidgets = widgets
-            .map(w => new WidgetWrapper(w, partials || {}));
-        // Remove those buttons that aren't usable for the current user
-        const userId = getUserId(editor);
-        wrappedWidgets.filter(w => w.isFor(userId)).forEach(w => {
-            if (widgetDict) {
-                widgetDict[w.key] = w;
-            }
-        });
+    /**
+     * @param {import('./container').DIContainer} container
+     */
+    constructor({editor}) {
+        this.editor = editor;
     }
-    return widgetDict;
-};
+
+    /**
+     * @returns {boolean}
+     */
+    get pluginVisible() {
+        return this.editor.options.get(showPlugin);
+    }
+
+    /**
+     * @returns {number} - an integer with the id of the current user
+     */
+    get userId() {
+        return parseInt(this.editor.options.get(userId));
+    }
+
+    /**
+     * @returns {number} - an integer with the id of the current course
+     */
+    get courseId() {
+        return parseInt(this.editor.options.get(courseId));
+    }
+
+    /**
+     * @returns {string} - additional css that must be included in a <style> tag in editor's iframe
+     */
+    get additionalCss() {
+        return this.editor.options.get(additionalCss);
+    }
+
+    /**
+     * @returns {Object.<string,WidgetWrapper>} - a dictionary of "usable" widgets for the current userId
+     */
+    get widgetDict() {
+        if (!this._widgetDict) {
+            this._widgetDict = {};
+            // The widgetList is of type object[]
+            // partials is a special widget that is used to define common parameters shared by other widgets
+            /** @type {import('./util').Widget[]} */
+            let widgets = this.editor.options.get(widgetList);
+            let partials = widgets.filter(e => e.key === 'partials')[0];
+            if (partials) {
+                widgets = widgets.filter(e => e.key !== 'partials');
+            }
+            // Create a wrapper for the widget to handle operations
+            const wrappedWidgets = widgets
+                .map(w => new WidgetWrapper(w, partials || {}));
+            // Remove those buttons that aren't usable for the current user
+            wrappedWidgets.filter(w => w.isFor(this.userId)).forEach(w => {
+                if (this._widgetDict) {
+                    this._widgetDict[w.key] = w;
+                }
+            });
+        }
+        return this._widgetDict;
+    }
+}

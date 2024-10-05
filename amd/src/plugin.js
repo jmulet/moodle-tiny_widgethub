@@ -32,7 +32,6 @@ import Common from './common';
 import {register as registerOptions} from './options';
 import {getSetup as getCommandSetup} from './commands';
 import * as Configuration from './configuration';
-import {initializer} from './initializer';
 
 const documentationUrl = 'https://github.com/jmulet/moodle_tiny-widgethub';
 const {component, pluginName} = Common;
@@ -58,9 +57,6 @@ export default new Promise(async(resolve) => {
 
             // Setup commands.
             setupCommands(editor);
-
-            // Custom initialization
-            initializer(editor);
 
             return pluginMetadata;
         });

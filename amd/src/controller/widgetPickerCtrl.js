@@ -22,14 +22,7 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import ModalFactory from 'core/modal_factory';
-import {IBPickModal} from './modal';
-import {getCourseId, getWidgetDict, getUserId} from './options';
-// eslint-disable-next-line no-unused-vars
-import {UserStorage, genID, hashCode, searchComp, templateRendererMustache, WidgetWrapper} from './util';
-import {UiParamsCtrl} from './uiParams';
-// eslint-disable-next-line no-unused-vars
-import {WidgetPlugin} from './commands';
+import {genID, hashCode, searchComp} from '../util';
 
 /**
  * Convert a simple input element in a typeahead widget
@@ -84,33 +77,17 @@ const Templates = {
     {{/recent}}`
 };
 
-export class UiPickCtrl {
-    widgetPlugin;
-    editor;
-    /** @type {UiParamsCtrl | undefined} */
-    _uiParamsCtrl;
-    // @ts-ignore
-    modal;
+export class WidgetPickerCtrl {
     /**
-     * @param {WidgetPlugin} widgetPlugin
+     * @param {import('../container').DIContainer} container
      */
-    constructor(widgetPlugin) {
-        this.widgetPlugin = widgetPlugin;
-        this.editor = widgetPlugin.editor;
-    }
-
-    /**
-     * @param {import('./util').WidgetWrapper} widget
-     * @returns {UiParamsCtrl}
-     */
-    getUiParamsCtrl(widget) {
-        if (this._uiParamsCtrl) {
-            this._uiParamsCtrl.destroy();
-            this._uiParamsCtrl.widget = widget;
-        } else {
-            this._uiParamsCtrl = new UiParamsCtrl(this, widget);
-        }
-        return this._uiParamsCtrl;
+    constructor({editor, editorOptions, widgetParamsFactory, modalSrv, templateSrv, userStorage}) {
+        this.editor = editor;
+        this.editorOptions = editorOptions;
+        this.widgetParamsFactory = widgetParamsFactory;
+        this.modalSrv = modalSrv;
+        this.storage = userStorage;
+        this.templateSrv = templateSrv;
     }
 
     show() {
@@ -118,10 +95,6 @@ export class UiPickCtrl {
     }
 
     async handleAction() {
-        const userId = getUserId(this.editor);
-        const courseId = getCourseId(this.editor);
-        const storage = UserStorage.getInstance(userId, courseId);
-
         // Type on search input
         const selectMode = this.editor.selection.getContent().trim().length > 0;
 
@@ -129,7 +102,7 @@ export class UiPickCtrl {
             let numshown = 0;
             const widgetSearchElem = this.modal.body.find("input")[0];
             const searchText = (widgetSearchElem.value || '');
-            storage.setToSession('searchtext', searchText, true);
+            this.storage.setToSession('searchtext', searchText, true);
             /** @type {NodeListOf<HTMLElement>} */
             const allbtns = document.querySelectorAll(".tiny_widgethub-buttons");
             /** @type {NodeListOf<HTMLElement>} */
@@ -175,17 +148,13 @@ export class UiPickCtrl {
                 this.modal.header.find("span.ib-blink").addClass("tiny_widgethub-hidden");
             }
         } else {
-            const searchText = storage.getFromSession("searchtext", "");
+            const searchText = this.storage.getFromSession("searchtext", "");
             const data = this.getPickTemplateContext({
                 searchText: searchText
             });
             console.log(" data  is  ", data);
             // @ts-ignore
-            this.modal = await ModalFactory.create({
-                type: IBPickModal.TYPE,
-                templateContext: data,
-                large: true,
-            });
+            this.modal = await this.modalSrv.createPickerModal(data);
             // Event listeners.
             // Click on clear text
             const widgetSearchElem = this.modal.body.find("input")[0];
@@ -205,8 +174,10 @@ export class UiPickCtrl {
         }
 
         // Update the list of recently used widgets
-        const snptDict = getWidgetDict(this.editor);
-        const recentWidgets = storage.getFromSession("recentsnpt", "").split(",").filter(e=>e.trim()).map(key => {
+        const snptDict = this.editorOptions.widgetDict;
+        const recentWidgets = this.storage.getFromSession("recentsnpt", "").split(",")
+            .filter((/** @type {string} **/ key) => key.trim())
+            .map((/** @type {string} **/ key) => {
             const snpt = snptDict[key];
             if (snpt) {
                 return {
@@ -222,7 +193,7 @@ export class UiPickCtrl {
         });
         let recentHTML = "";
         if (recentWidgets.length) {
-            recentHTML = templateRendererMustache(Templates.RECENT_SNPT, {recent: recentWidgets});
+            recentHTML = this.templateSrv.renderMustache(Templates.RECENT_SNPT, {recent: recentWidgets});
         }
         this.modal.body.find(".tiny_widgethub-recent").html(recentHTML);
 
@@ -241,8 +212,7 @@ export class UiPickCtrl {
      * @returns {Object.<string, any>} data
      */
     getPickTemplateContext(data) {
-        const allButtons = Object.values(getWidgetDict(this.editor));
-
+        const allButtons = Object.values(this.editorOptions.widgetDict);
         /**
          * @typedef {Object} Button
          * @property {boolean} hidden
@@ -332,7 +302,7 @@ export class UiPickCtrl {
         let widget = null;
         if (button ?? aRecent) {
             const selectedButton = (button ?? aRecent).dataset.key;
-            widget = getWidgetDict(this.editor)[selectedButton];
+            widget = this.editorOptions.widgetDict[selectedButton];
         }
         if (!widget) {
             return;
@@ -357,11 +327,13 @@ export class UiPickCtrl {
     }
 
     /**
-     * @param {WidgetWrapper} widget
+     * @param {import('../util').WidgetWrapper} widget
      */
     handlePickModalAction(widget) {
         this.modal.hide();
-        const paramsController = this.getUiParamsCtrl(widget);
+        const paramsController = this.widgetParamsFactory(widget);
+        // Keep reference to the calling parentCtrl
+        paramsController.parentCtrl = this;
         // Decide whether to show the form or directly doInsert
         if (widget.parameters.length === 0 && !widget.instructions) {
             // Do insert directly
