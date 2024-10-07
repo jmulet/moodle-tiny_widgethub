@@ -1,21 +1,32 @@
-import {WidgetParamsCtrl} from "./controller/widgetParamsCtrl";
-import {WidgetPickerCtrl} from "./controller/widgetPickerCtrl";
-import {FormCtrl} from "./controller/formCtrl";
-import _modalSrv from "./service/modalSrv";
-import _mustache from "core/mustache";
-import TemplateSrv from "./service/templateSrv";
-import UserStorageSrv from "./service/userStorageSrv";
-import _jQuery from "jquery";
+import { WidgetParamsCtrl } from "./controller/widgetParamsCtrl";
+import { WidgetPickerCtrl } from "./controller/widgetPickerCtrl";
+import { FormCtrl } from "./controller/formCtrl";
+import {ModalSrv} from "./service/modalSrv";
+import Mustache from "core/mustache";
+import {TemplateSrv} from "./service/templateSrv";
+import {UserStorageSrv} from "./service/userStorageSrv";
+import jQuery from "jquery";
 import { displayFilepicker } from "editor_tiny/utils";
 import { getFilePicker } from "editor_tiny/options";
 import WidgetPropertiesCtrl from "./controller/widgetPropertiesCtrl";
 import { EditorOptions } from "./options";
+import { initContextActions } from "./contextInit";
 
-// Singleton instances (shared among editors)
-/**
- * @type {TemplateSrv | undefined}
- */
-let _templateSrv;
+export class FileSrv {
+    /**
+     * @param {import('./plugin').TinyMCE} editor
+     */
+    constructor(editor) {
+        this.editor = editor;
+    }
+    getImagePicker() {
+        return getFilePicker(this.editor, 'image');
+    }
+    displayImagePicker() {
+        return displayFilepicker(this.editor, 'image');
+    }
+}
+
 /**
  * Load on demand the template engine EJS
  * @typedef {Object} EJS
@@ -25,7 +36,7 @@ let _templateSrv;
 let _ejs;
 export const ejsLoader = () => {
     if (_ejs) {
-    return Promise.resolve(_ejs);
+        return Promise.resolve(_ejs);
     }
     return new Promise((resolve, reject) => {
         // @ts-ignore
@@ -41,137 +52,173 @@ export const ejsLoader = () => {
 };
 
 /**
+ * Determines if something is a class or not
+ * @param {*} obj
+ * @returns {boolean}
+ */
+function isClass(obj) {
+    const isCtorClass = obj.constructor?.toString()?.substring(0, 5) === 'class';
+    if (obj.prototype === undefined) {
+        return isCtorClass;
+    }
+    const isPrototypeCtorClass = obj.prototype?.constructor?.toString()?.substring(0, 5) === 'class';
+    return isCtorClass || isPrototypeCtorClass;
+}
+
+/**
  * Container for dependency injection
- * @member {TinyMCE} _editor
- * @member {WidgetPickerCtrl} _widgetPickCtrl
+ * @typedef {{name: string, type: 'singleton' | 'service' | 'factory', obj: *, deps: string[]}} DIRegistryEntry
  */
 export class DIContainer {
     /**
-     * @type {import("./plugin").TinyMCE}
+     * @type {Map<string, DIRegistryEntry>}
      */
-    editor;
+    static #registry = new Map();
     /**
-     * @type { WidgetPickerCtrl | undefined}
+     * @type {Map<string, *>}
      */
-    _widgetPickCtrl;
-
+    static #singletonInstances = new Map();
     /**
-     * @type {Record<string, UserStorageSrv>}
+     * @type {Map<string, *>}
      */
-    _userStorageInstances = {};
-
-    /**
-     * @type {EditorOptions | undefined}
-     */
-    _editorOptions;
+    #serviceInstances = new Map();
 
     /**
-     * @type {FormCtrl | undefined}
+     * @param {string=} dependencies
+     * @returns {string[]}
      */
-    _formCtrl;
-
-    /**
-     * @param {import("./plugin").TinyMCE} editor
-     */
-    constructor(editor) {
-        this.editor = editor;
-    }
-
-    get editorOptions() {
-        this._editorOptions = this._editorOptions ?? new EditorOptions(this);
-        return this._editorOptions;
-    }
-
-    get widgetParamsFactory() {
-        /**
-         * @param {import('./util').WidgetWrapper} widget
-         */
-        return (widget) => {
-            // Creates multiple instances of the service
-            return new WidgetParamsCtrl(this, widget);
-        };
-    }
-    /**
-     * @scope {editor}
-     */
-    get widgetPickCtrl() {
-        this._widgetPickCtrl = this._widgetPickCtrl ?? new WidgetPickerCtrl(this);
-        return this._widgetPickCtrl;
-    }
-
-    get widgetPropertiesCtrl() {
-        this._widgetPropertiesCtrl = this._widgetPropertiesCtrl ?? new WidgetPropertiesCtrl(this);
-        return this._widgetPropertiesCtrl;
-    }
-
-    get formCtrl() {
-        this._formCtrl = this._formCtrl ?? new FormCtrl(this);
-        return this._formCtrl;
-    }
-
-    /**
-     * @scope {singleton}
-     */
-    get modalSrv() {
-        return _modalSrv;
-    }
-
-    /**
-     * @scope {singleton}
-     */
-    get templateSrv() {
-        _templateSrv = _templateSrv || new TemplateSrv(this);
-        return _templateSrv;
-    }
-
-    /**
-     * Provides an implementation based on browser storage
-     */
-    get iStorage() {
-        return {
-            localStorage,
-            sessionStorage
-        };
-    }
-
-    /**
-     * @scope {singleton} for each user and course
-     */
-    get userStorage() {
-        const userId = this.editorOptions.userId;
-        const courseId = this.editorOptions.courseId;
-        const key =  userId + "_" + courseId;
-        // @ts-ignore
-        if (!this._userStorageInstances[key]) {
-            this._userStorageInstances[key] = new UserStorageSrv(this, userId, courseId);
+    static #parseDeps(dependencies) {
+        if (!dependencies?.trim()) {
+            return [];
         }
-        return this._userStorageInstances[key];
-    }
-
-    get mustache() {
-        return _mustache;
+        return dependencies.split(',').map(e => e.trim());
     }
 
     /**
-     * @returns {() => Promise<EJS>}
+     * @param {string} name
+     * @param {*} obj
+     * @param {string=} dependencies
      */
-    get ejsLoader() {
-        return ejsLoader;
+    static registerSingleton(name, obj, dependencies) {
+        this.#registry.set(name, { name, type: 'singleton', obj, deps: DIContainer.#parseDeps(dependencies) });
     }
 
-    get fileSrv() {
-        this._fileSrv = this._fileSrv || {
-            getImagePicker: () => {
-                return getFilePicker(this.editor, 'image');
-            },
-            displayImagePicker: () => {
-                return displayFilepicker(this.editor, 'image');
+    /**
+     * @param {string} name
+     * @param {*} obj
+     * @param {string=} dependencies
+     */
+    static registerService(name, obj, dependencies) {
+        this.#registry.set(name, { name, type: 'service', obj, deps: DIContainer.#parseDeps(dependencies) });
+    }
+
+    /**
+    * @param {string} name
+    * @param {*} obj
+    * @param {string=} dependencies
+    */
+    static registerFactory(name, obj, dependencies) {
+        this.#registry.set(name, { name, type: 'factory', obj, deps: DIContainer.#parseDeps(dependencies) });
+    }
+
+    /**
+     * Register a instance in the container
+     * @param {string} name
+     * @param {*} obj
+     */
+    registerInstance(name, obj) {
+        this.#serviceInstances.set(name, obj);
+    }
+
+    /**
+     * @param {string} name
+     * @returns {*} - An instance of the "name" in the correct scope
+     */
+    get(name) {
+        if (name.indexOf(",") > 0) {
+            return name.split(",").map(e => this.get(e.trim()));
+        }
+        // Check if already exists an instance with this name.
+        if (this.#serviceInstances.has(name)) {
+            return this.#serviceInstances.get(name);
+        }
+        const reg = DIContainer.#registry.get(name);
+        if (!reg) {
+            throw new Error(`Cannot find a registry for dependency ${name}`);
+        }
+        switch (reg.type) {
+            case ('singleton'): return this.#getInstance(DIContainer.#singletonInstances, reg);
+            case ('service'): return this.#getInstance(this.#serviceInstances, reg);
+            case ('factory'): {
+                const deps = (reg.deps ?? []).map(name => this.get(name));
+                if (isClass(reg.obj)) {
+                    // Has to instantiate a class.
+                    /** @param {*[]} args */
+                    return (...args) => {
+                        return new reg.obj(...deps, ...args);
+                    };
+                } else if (typeof (reg.obj) === 'function') {
+                    // Has to call the function.
+                    /** @param {*[]} args */
+                    return (...args) => {
+                        return reg.obj(...deps, ...args);
+                    };
+                }
             }
-        };
-        return this._fileSrv;
+        }
+        throw new Error(`Invalid registry type ${reg.type}`);
     }
 
-    get jQuery() {
-        return _jQuery;
+    /**
+     * @param {Map<string, *>} map
+     * @param {DIRegistryEntry} reg
+     * @returns {*}
+     */
+    #getInstance(map, reg) {
+        if (map.has(reg.name)) {
+            return map.get(reg.name);
+        }
+        // Create an instance
+        const instance = this.#createInstance(reg);
+        map.set(reg.name, instance);
+        return instance;
+    }
+
+    /**
+     * @param {DIRegistryEntry} reg
+     * @returns {*}
+     */
+    #createInstance(reg) {
+        // Need to get all the dependencies.
+        const deps = (reg.deps ?? []).map(name => this.get(name));
+        if (isClass(reg.obj)) {
+            // Has to instantiate a class.
+            return new reg.obj(...deps);
+        } else if (typeof (reg.obj) === 'function' && deps.length) {
+            // Prevent from calling functions like jQuery if no dependencies are passed
+            // Has to call the function.
+            return reg.obj(...deps);
+        } else {
+            // Return directly.
+            return reg.obj;
+        }
     }
 }
+
+/** @typedef {{localStorage: Storage, sessionStorage: Storage}} IStorage */
+
+DIContainer.registerSingleton("jQuery", jQuery);
+DIContainer.registerService("editorOptions", EditorOptions, "editor");
+DIContainer.registerFactory("widgetParamsFactory", WidgetParamsCtrl, "editor, userStorage, templateSrv, modalSrv, formCtrl");
+DIContainer.registerService("widgetPickCtrl", WidgetPickerCtrl,
+    "editor, editorOptions, widgetParamsFactory, modalSrv, templateSrv, userStorage");
+DIContainer.registerService("widgetPropertiesCtrl", WidgetPropertiesCtrl, "editor, formCtrl, modalSrv");
+DIContainer.registerService("formCtrl", FormCtrl, "editor, userStorage, templateSrv, fileSrv, jQuery");
+DIContainer.registerSingleton("modalSrv", ModalSrv);
+DIContainer.registerSingleton("mustache", Mustache);
+DIContainer.registerSingleton("ejsLoader", ejsLoader);
+DIContainer.registerSingleton("templateSrv", TemplateSrv, "mustache, ejsLoader");
+DIContainer.registerSingleton("iStorage", { localStorage, sessionStorage });
+DIContainer.registerSingleton("userStorage", UserStorageSrv, "editorOptions, iStorage");
+DIContainer.registerService("fileSrv", FileSrv, "editor");
+DIContainer.registerFactory("initContextActions", initContextActions, "editor, editorOptions, widgetPropertiesCtrl, jQuery");

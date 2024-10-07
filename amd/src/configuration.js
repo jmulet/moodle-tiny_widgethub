@@ -92,7 +92,6 @@ const configureContextMenu = (contextmenu) => {
  * @returns {object}
  */
 export const configure = (instanceConfig) => {
-    console.log("instance config is ...", instanceConfig);
     return {
         menu: configureMenu(instanceConfig.menu),
         toolbar: configureToolbar(instanceConfig.toolbar),

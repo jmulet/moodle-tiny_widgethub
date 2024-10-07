@@ -38,13 +38,14 @@ const defineVar = function (text, ctx2) {
     return varname;
 };
 
-export default class TemplateSrv {
+export class TemplateSrv {
     /**
-     *
-     * @param {import('../container').DIContainer} container
+     * @param {*} mustache
+     * @param {() => Promise<import('../container').EJS>} ejsLoader
      */
-    constructor({ mustache, ejsLoader }) {
+    constructor(mustache, ejsLoader) {
         this.mustache = mustache;
+        /** @type {() => Promise<import('../container').EJS>} */
         this.ejsLoader = ejsLoader;
     }
     /**

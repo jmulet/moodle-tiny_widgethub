@@ -1,4 +1,4 @@
-// @ts-nocheck
+/* eslint-disable max-len */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -27,6 +27,7 @@ import ModalRegistry from 'core/modal_registry';
 import ModalFactory from 'core/modal_factory';
 import ModalEvents from 'core/modal_events';
 
+// @ts-ignore
 class IBPickerModal extends Modal {
     static TYPE = 'tiny_widgethub/pickerModal';
     static TEMPLATE = 'tiny_widgethub/pickerModal';
@@ -36,9 +37,11 @@ class IBPickerModal extends Modal {
         super.registerEventListeners();
     }
 }
+// @ts-ignore
 ModalRegistry.register(IBPickerModal.TYPE, IBPickerModal, IBPickerModal.TEMPLATE);
 
 
+// @ts-ignore
 class IBParamsModal extends Modal {
     static TYPE = 'tiny_widgethub/paramsModal';
     static TEMPLATE = 'tiny_widgethub/paramsModal';
@@ -48,8 +51,10 @@ class IBParamsModal extends Modal {
         super.registerEventListeners();
     }
 }
+// @ts-ignore
 ModalRegistry.register(IBParamsModal.TYPE, IBParamsModal, IBParamsModal.TEMPLATE);
 
+// @ts-ignore
 class IBContextModal extends Modal {
     static TYPE = 'tiny_widgethub/contextModal';
     static TEMPLATE = 'tiny_widgethub/contextModal';
@@ -59,47 +64,44 @@ class IBContextModal extends Modal {
         super.registerEventListeners();
     }
 }
+// @ts-ignore
 ModalRegistry.register(IBContextModal.TYPE, IBContextModal, IBContextModal.TEMPLATE);
 
 /**
- * @typedef {
- *      JQuery<HTMLElement> extends {
- *          header: JQuery<HTMLElement>,
- *          body: JQuery<HTMLElement>,
- *          footer: JQuery<HTMLElement>,
- *          destroy(),
- *          show()
- *      }
- * } ModalDialogue
- *
- * @typedef {
- *    destroyOnHidden: boolean | undefined,
- * } ModalOpts
+ * @typedef {JQuery<HTMLElement> extends {header: JQuery<HTMLElement>,body: JQuery<HTMLElement>,footer: JQuery<HTMLElement>,destroy: () => void,show: () => void}} ModalDialogue
  */
-export default {
+
+/**
+ * @typedef {{ destroyOnHidden: boolean | undefined}} ModalOpts
+ */
+
+export class ModalSrv {
     /**
      * @param {'picker' | 'params' | 'context'} name
      * @param {object} templateContext
      * @param {()=>void} [onHidden]
      * @returns {Promise<ModalDialogue>}
      */
-    create: async(name, templateContext, onHidden) => {
+    async create(name, templateContext, onHidden) {
         let type;
         switch (name) {
             case ('picker'): type = IBPickerModal.TYPE; break;
             case ('params'): type = IBParamsModal.TYPE; break;
             case ('context'): type = IBContextModal.TYPE; break;
         }
+        // @ts-ignore
         const modal = await ModalFactory.create({
             type,
             templateContext,
             large: true,
         });
         if (onHidden) {
+            // @ts-ignore
             modal.getRoot().on(ModalEvents.hidden, () => {
                 onHidden();
             });
         }
         return modal;
-    },
-};
+    }
+}
+

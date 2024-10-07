@@ -24,19 +24,33 @@
 import {createBinding} from '../util';
 
 /**
+ * @typedef {JQuery<HTMLElement>} ModalDialogue
+ * @property {JQuery<HTMLElement>} header
+ * @property {JQuery<HTMLElement>} body
+ * @property {JQuery<HTMLElement>} footer
+ * @property {() => void} destroy
+ * @property {() => void} show
+ */
+
+/**
  * @class
  * @classdesc Defines a generic editor dialogue based on widget definition fields
  */
 export default class WidgetPropertiesCtrl {
-    // @ts-ignore
+    /** @type {import('../service/modalSrv').ModalDialogue | undefined} */
     #modal;
 
     /**
-     * @param {import('../container').DIContainer} container
+     * @param {import('../plugin').TinyMCE} editor
+     * @param {import('../controller/formCtrl').FormCtrl} formCtrl
+     * @param {import('../service/modalSrv').ModalSrv} modalSrv
      */
-    constructor({editor, formCtrl, modalSrv}) {
+    constructor(editor, formCtrl, modalSrv) {
+        /** @type {import('../plugin').TinyMCE} */
         this.editor = editor;
+        /** @type {import('../controller/formCtrl').FormCtrl} */
         this.formCtrl = formCtrl;
+        /** @type {import('../service/modalSrv').ModalSrv} */
         this.modalSrv = modalSrv;
     }
 
@@ -90,7 +104,7 @@ export default class WidgetPropertiesCtrl {
         // Create the modal
         // @ts-ignore
         this.#modal = await this.modalSrv.create('context', data, () => {
-            this.#modal.destroy();
+            this.#modal?.destroy();
             this.#modal = null;
         });
         this.formCtrl.attachImagePickers(this.#modal.body);

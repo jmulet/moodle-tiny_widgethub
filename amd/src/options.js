@@ -82,9 +82,9 @@ export class EditorOptions {
     _widgetDict;
 
     /**
-     * @param {import('./container').DIContainer} container
+     * @param {import('./plugin').TinyMCE} editor
      */
-    constructor({editor}) {
+    constructor(editor) {
         this.editor = editor;
     }
 

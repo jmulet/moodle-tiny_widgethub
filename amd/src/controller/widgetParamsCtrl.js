@@ -30,16 +30,26 @@ export class WidgetParamsCtrl {
     * @type {import('./widgetPickerCtrl').WidgetPickerCtrl | undefined }
     */
    parentCtrl;
-   /**
-    * @param {import('../container').DIContainer} container
-    * @param {import('../util').WidgetWrapper} widget
-    */
-   constructor({ editor, userStorage, templateSrv, modalSrv, formCtrl }, widget) {
+  /**
+   * @param {import('../plugin').TinyMCE} editor
+   * @param {import('../service/userStorageSrv').UserStorageSrv} userStorage
+   * @param {import('../service/templateSrv').TemplateSrv} templateSrv
+   * @param {import('../service/modalSrv').ModalSrv} modalSrv
+   * @param {import('../controller/formCtrl').FormCtrl} formCtrl
+   * @param {import('../util').WidgetWrapper} widget
+   */
+   constructor(editor, userStorage, templateSrv, modalSrv, formCtrl, widget) {
+      /** @type {import('../plugin').TinyMCE} */
       this.editor = editor;
+      /** @type {import('../service/userStorageSrv').UserStorageSrv} */
       this.storage = userStorage;
+      /** @type {import('../service/templateSrv').TemplateSrv} */
       this.templateSrv = templateSrv;
+      /** @type {import('../service/modalSrv').ModalSrv} */
       this.modalSrv = modalSrv;
+      /** @type {import('../controller/formCtrl').FormCtrl} */
       this.formCtrl = formCtrl;
+      /** @type {import('../util').WidgetWrapper} */
       this.widget = widget;
    }
    /**

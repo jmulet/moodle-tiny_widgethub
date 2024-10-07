@@ -22,17 +22,12 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {getButtonImage} from 'editor_tiny/utils';
-import {get_string as getString} from 'core/str';
+import { getButtonImage } from 'editor_tiny/utils';
+import { get_string as getString } from 'core/str';
 import Common from './common';
 import * as cfg from 'core/config';
-import {isPluginVisible} from './options';
-import jQuery from 'jquery';
-import {initContextActions} from './contextInit';
-import {DIContainer} from './container';
 
-
-export const getSetup = async() => {
+export const getSetup = async () => {
     // Get some translations
     const [widgetNameTitle, buttonImage] = await Promise.all([
         // @ts-ignore
@@ -40,30 +35,28 @@ export const getSetup = async() => {
         getButtonImage('icon', Common.component),
     ]);
 
-    /** @param {import('./plugin').TinyMCE} editor */
-    return (editor) => {
-        // Create DI container scoped to this editor instance
-        const container = new DIContainer(editor);
+    /** @param {import('./container').DIContainer} container */
+    return (container) => {
+        const editor = container.get("editor");
+        const widgetPickCtrl = container.get("widgetPickCtrl");
+        // Register the Icon.
+        editor.ui.registry.addIcon(Common.icon, buttonImage.html);
 
-        if (isPluginVisible(editor)) {
-            // Register the Icon.
-            editor.ui.registry.addIcon(Common.icon, buttonImage.html);
+        // Register the Toolbar Button.
+        editor.ui.registry.addButton(Common.component, {
+            icon: Common.icon,
+            tooltip: widgetNameTitle,
+            onAction: () => widgetPickCtrl.handleAction(),
+        });
 
-            // Register the Toolbar Button.
-            editor.ui.registry.addButton(Common.component, {
-                icon: Common.icon,
-                tooltip: widgetNameTitle,
-                onAction: () => container.widgetPickCtrl.handleAction(),
-            });
+        // Add the Menu Item.
+        // This allows it to be added to a standard menu, or a context menu.
+        editor.ui.registry.addMenuItem(Common.component, {
+            icon: Common.icon,
+            text: widgetNameTitle,
+            onAction: () => widgetPickCtrl.handleAction(),
+        });
 
-            // Add the Menu Item.
-            // This allows it to be added to a standard menu, or a context menu.
-            editor.ui.registry.addMenuItem(Common.component, {
-                icon: Common.icon,
-                text: widgetNameTitle,
-                onAction: () => container.widgetPickCtrl.handleAction(),
-            });
-        }
         // Initialize styles and scripts into editor's iframe
         initializer(container);
     };
@@ -75,7 +68,9 @@ export const getSetup = async() => {
  * @param {import('./container').DIContainer} container
  */
 function initializer(container) {
-    const { editor, editorOptions } = container;
+    const [editor, editorOptions, initContextActions] = container.get("editor, editorOptions, initContextActions");
+    /** @type {JQueryStatic} */
+    const jQuery = container.get("jQuery");
     // Add the bootstrap, CSS, etc... into the editor's iframe
     editor.on('init', () => {
         // On init editor.dom is ready
@@ -118,7 +113,7 @@ function initializer(container) {
                 head.appendChild(scriptInitBS);
             };
             // Initialize context toolbars and menus
-            initContextActions(container);
+            initContextActions();
         };
 
         head.appendChild(scriptJQ);

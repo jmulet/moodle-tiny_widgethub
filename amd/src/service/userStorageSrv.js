@@ -22,23 +22,26 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-export default class UserStorageSrv {
-    /**
-     *
-     * @param {import('../container').DIContainer} container
-     * @param {number} userId
-     * @param {number} courseId
-     */
-    constructor({ iStorage }, userId, courseId) {
+export class UserStorageSrv {
+   /**
+    * @param {import('../options').EditorOptions} editorOptions
+    * @param {import('../container').IStorage} iStorage
+    */
+    constructor(editorOptions, iStorage) {
+        /** @type {Storage} */
         this.localStorage = iStorage.localStorage;
+        /** @type {Storage} */
         this.sessionStorage = iStorage.sessionStorage;
-        this.userId = userId;
-        this.courseId = courseId;
-        this.STORE_KEY = "iedib-widgets_" + userId;
+        /** @type {number} */
+        this.userId = editorOptions.userId;
+        /** @type {number} */
+        this.courseId = editorOptions.courseId;
+        /** @type {string} */
+        this.STORE_KEY = "iedib-widgets_" + editorOptions.userId;
         /**
          * @type {Record<string, any>}
          */
-        this._localStore = { valors: {} };
+        this._localStore = { values: {} };
         /**
          * @type {Record<string, any>}
          */
@@ -138,7 +141,7 @@ export default class UserStorageSrv {
 
         // @ts-ignore
         if (typeof (theValueMap) === 'object') {
-            if (MLSC && key === 'saveall_data' || key === 'valors') {
+            if (MLSC && key === 'saveall_data' || key === 'values') {
                 MLSC[key] = MLSC[key] || {};
             } else {
                 // @ts-ignore
@@ -150,7 +153,7 @@ export default class UserStorageSrv {
                 const theKey = keys[i];
                 // @ts-ignore
                 const val = value[theKey];
-                if (MLSC && key === 'saveall_data' || key === 'valors') {
+                if (MLSC && key === 'saveall_data' || key === 'values') {
                     MLSC[key][theKey] = val;
                 } else {
                     // @ts-ignore

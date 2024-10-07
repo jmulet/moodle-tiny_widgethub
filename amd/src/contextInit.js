@@ -255,9 +255,12 @@ const PredefinedActions = {
 /**
  * Looks for widgets that need to display context toolbars or menus
  * and binds the corresponding actions.
- * @param {import("./container").DIContainer} container
+ * @param {import("./plugin").TinyMCE} editor
+ * @param {*} editorOptions
+ * @param {*} widgetPropertiesCtrl
+ * @param {JQueryStatic} jQuery
  */
-export const initContextActions = function({editor, editorOptions, widgetPropertiesCtrl, jQuery}) {
+export function initContextActions(editor, editorOptions, widgetPropertiesCtrl, jQuery) {
     /** @type {import('./util').WidgetWrapper[]} */
     const widgetList = Object.values(editorOptions.widgetDict);
 
@@ -428,4 +431,4 @@ export const initContextActions = function({editor, editorOptions, widgetPropert
 
     // Dump all information
     console.log("All ui registries-->", editor.ui.registry.getAll());
-};
+}

@@ -29,9 +29,10 @@ import {getTinyMCE} from 'editor_tiny/loader';
 import {getPluginMetadata} from 'editor_tiny/utils';
 
 import Common from './common';
-import {register as registerOptions} from './options';
+import {isPluginVisible, register as registerOptions} from './options';
 import {getSetup as getCommandSetup} from './commands';
 import * as Configuration from './configuration';
+import { DIContainer } from './container';
 
 const documentationUrl = 'https://github.com/jmulet/moodle_tiny-widgethub';
 const {component, pluginName} = Common;
@@ -51,12 +52,19 @@ export default new Promise(async(resolve) => {
 
     tinyMCE.PluginManager.add(pluginName,
         /** @param {TinyMCE} editor */
-            (editor) => {
+        (editor) => {
             // Register options.
             registerOptions(editor);
 
-            // Setup commands.
-            setupCommands(editor);
+            // Check if the option visible is set.
+            if (isPluginVisible(editor)) {
+                // Create DI container scoped to this editor instance
+                const container = new DIContainer();
+                container.registerInstance("editor", editor);
+
+                // Setup commands.
+                setupCommands(container);
+            }
 
             return pluginMetadata;
         });

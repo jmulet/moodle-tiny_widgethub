@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable no-eq-null */
 /* eslint-disable no-console */
 // This file is part of Moodle - http://moodle.org/
@@ -79,15 +80,26 @@ const Templates = {
 
 export class WidgetPickerCtrl {
     /**
-     * @param {import('../container').DIContainer} container
+     * @param {import('../plugin').TinyMCE} editor
+     * @param {import('../options').EditorOptions} editorOptions
+     * @param {(widget: import('../util').WidgetWrapper) => import('../controller/widgetParamsCtrl').WidgetParamsCtrl} widgetParamsFactory
+     * @param {import('../service/modalSrv').ModalSrv} modalSrv
+     * @param {import('../service/templateSrv').TemplateSrv} templateSrv
+     * @param {import('../service/userStorageSrv').UserStorageSrv} userStorage
      */
-    constructor({editor, editorOptions, widgetParamsFactory, modalSrv, templateSrv, userStorage}) {
+    constructor(editor, editorOptions, widgetParamsFactory, modalSrv, templateSrv, userStorage) {
+        /** @type {import('../plugin').TinyMCE} */
         this.editor = editor;
+        /** @type {import('../options').EditorOptions} */
         this.editorOptions = editorOptions;
+        /** @type {(widget: import('../util').WidgetWrapper) => import('../controller/widgetParamsCtrl').WidgetParamsCtrl} */
         this.widgetParamsFactory = widgetParamsFactory;
+        /** @type {import('../service/modalSrv').ModalSrv} */
         this.modalSrv = modalSrv;
-        this.storage = userStorage;
+        /** @type {import('../service/templateSrv').TemplateSrv} */
         this.templateSrv = templateSrv;
+        /** @type {import('../service/userStorageSrv').UserStorageSrv} */
+        this.storage = userStorage;
     }
 
     show() {

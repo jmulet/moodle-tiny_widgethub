@@ -69,22 +69,31 @@ const Templates = {
    </div>`
 };
 
+
 export class FormCtrl {
-   /**
-    * @param {import('../container').DIContainer} container
-    */
-   constructor({ editor, userStorage, templateSrv, fileSrv, jQuery }) {
+  /**
+   * @param {import('../plugin').TinyMCE} editor
+   * @param {import('../service/userStorageSrv').UserStorageSrv} userStorage
+   * @param {import('../service/templateSrv').TemplateSrv} templateSrv
+   * @param {import('../container').FileSrv} fileSrv
+   * @param {JQueryStatic} jQuery
+   */
+   constructor(editor, userStorage, templateSrv, fileSrv, jQuery) {
+      /** @type {import('../plugin').TinyMCE} */
       this.editor = editor;
+      /** @type {import('../service/userStorageSrv').UserStorageSrv} */
       this.storage = userStorage;
+      /** @type {import('../service/templateSrv').TemplateSrv} */
       this.templateSrv = templateSrv;
+      /** @type {import('../container').FileSrv} */
       this.fileSrv = fileSrv;
+      /** @type {JQueryStatic} */
       this.jQuery = jQuery;
    }
 
-
    /**
     * @param {import('../util').WidgetWrapper} widget
-    * @returns {any} - The generated context
+    * @returns {*} - The generated context
     */
    createContext(widget) {
       /** @type {boolean} */

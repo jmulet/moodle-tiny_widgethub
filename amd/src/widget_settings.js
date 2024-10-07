@@ -9,14 +9,7 @@ import TemplateSrv from './service/templateSrv';
 import mustache from 'core/mustache';
 import { ejsLoader } from './container';
 
-/**
- * @type {any}
- */
-const container = {
-	mustache,
-	ejs: ejsLoader
-};
-const templateSrv = new TemplateSrv(container);
+const templateSrv = new TemplateSrv(mustache, ejsLoader);
 
 /**
  * @class
