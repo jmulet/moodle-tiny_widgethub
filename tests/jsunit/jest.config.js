@@ -5,9 +5,16 @@ module.exports = {
     transform: {
       '^.+\\.(js|jsx|ts|tsx|mjs)$': 'babel-jest',
     },
+    "roots": [
+      "src",
+      "specs"
+    ],
     rootDir: "./",
+    collectCoverage: true,
     collectCoverageFrom: [
-      "<rootDir>/src/*.js"
+      "<rootDir>/src/*.{js,jsx,ts,tsx}",
+      "<rootDir>/src/**/*.{js,jsx,ts,tsx}",
+      "!<rootDir>/src/libs/*"
     ],
     testEnvironment: 'node',    
   }

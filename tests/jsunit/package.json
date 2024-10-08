@@ -1,14 +1,14 @@
 {
   "name": "tests",
   "version": "1.0.0",
-  "description": "",
+  "description": "Unit testing of AMD modules",
   "main": "index.js",
   "scripts": {
-    "link": "ln -sfn ../../amd/src ./src",
-    "test": "node node_modules/jest/bin/jest.js --collect-coverage"
+    "link": "rm -fr ./src && cp -r ../../amd/src .",
+    "test": "npm run link && ./node_modules/.bin/jest --collect-coverage --no-cache"
   },
   "keywords": [],
-  "author": "",
+  "author": "Josep Mulet Pol",
   "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.25.2",
@@ -19,6 +19,7 @@
     "jest-environment-jsdom": "^29.7.0"
   },
   "dependencies": {
+    "ejs": "^3.1.10",
     "jquery": "^3.7.1",
     "mustache": "^4.2.0",
     "requirejs": "^2.3.7"

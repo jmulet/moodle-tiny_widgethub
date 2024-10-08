@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -23,7 +24,6 @@
 
 import {getPluginOptionName} from 'editor_tiny/options';
 import Common from './common';
-import {WidgetWrapper} from './util';
 const pluginName = Common.pluginName;
 
 const showPlugin = getPluginOptionName(pluginName, 'showplugin');
@@ -124,7 +124,7 @@ export class EditorOptions {
             this._widgetDict = {};
             // The widgetList is of type object[]
             // partials is a special widget that is used to define common parameters shared by other widgets
-            /** @type {import('./util').Widget[]} */
+            /** @type {Widget[]} */
             let widgets = this.editor.options.get(widgetList);
             let partials = widgets.filter(e => e.key === 'partials')[0];
             if (partials) {
@@ -141,5 +141,271 @@ export class EditorOptions {
             });
         }
         return this._widgetDict;
+    }
+}
+
+/**
+ * @typedef {object} Shared
+ * @property {string} currentScope
+ * @property {boolean} activatePopup
+ * @property {object} globalConfig
+ * @const
+ */
+let activatePopup = true;
+export const Shared = {
+    // In which type of activity the editor is being used
+    currentScope: document.querySelector('body')?.id,
+    // Whether to activate the contextual popup or not
+    activatePopup: activatePopup,
+    // Hold other global configuration
+    globalConfig: {}
+};
+
+/**
+ * @typedef {Object} ParamOption
+ * @property {string} l
+ * @property {string} v
+ */
+/**
+ * @typedef {Object} Param
+ * @property {string=} partial
+ * @property {string} name
+ * @property {string} title
+ * @property {'textfield' | 'numeric' | 'checkbox' | 'select' | 'textarea' | 'image' | 'color'} [type]
+ * @property {(ParamOption | string)[]} [options]
+ * @property {any} value
+ * @property {string=} tip
+ * @property {string=} tooltip
+ * @property {number=} min
+ * @property {number=} max
+ * @property {string=} transform
+ * @property {string | {get: string, set: string} } [bind]
+ * @property {string=} when
+ * @property {boolean} [hidden]
+ * @property {boolean} [editable]
+ */
+/**
+ * @typedef {Object} Action
+ * @property {string} predicate
+ * @property {string} actions
+ */
+/**
+ * @typedef {Object} Widget
+ * @property {number} id
+ * @property {string} key
+ * @property {string} category
+ * @property {string=} scope - Regex for idenfying allowed body ids
+ * @property {string} name
+ * @property {string=} instructions
+ * @property {'mustache' | 'ejs'} [engine]
+ * @property {string} template
+ * @property {Param[]=} parameters
+ * @property {Object.<string, Object<string, string>>} [I18n]
+ * @property {string | string[]} [selectors]
+ * @property {string=} insertquery
+ * @property {string=} unwrap
+ * @property {string=} for
+ * @property {string} version
+ * @property {string} author
+ * @property {boolean=} hidden
+ * @property {Action[]} [contextmenu]
+ */
+/**
+ * @class
+ * @classdesc Wrapper for Widget definition
+ */
+export class WidgetWrapper {
+    #widget;
+    #instructionsParsed = false;
+
+    /**
+     * @param {Widget} widget
+     * @param {Object.<string, any>=} partials
+     */
+    constructor(widget, partials) {
+        partials = partials ?? {};
+        this.#widget = widget;
+        const parameters = widget.parameters;
+        if (!parameters) {
+            return;
+        }
+        // Do some fixes on parameters
+        parameters.forEach((param, i) => {
+            // Case of a partial
+            if (param.partial) {
+                if (!partials[param.partial]) {
+                    console.error("Cannot find partial for ", param.partial, partials);
+                    return;
+                }
+                parameters[i] = partials[param.partial];
+            }
+            if (!param.type) {
+                if (param.options) {
+                    param.type = 'select';
+                } else if (typeof param.value === "boolean") {
+                    // Infer type from value
+                    param.type = 'checkbox';
+                } else if (typeof param.value === "number") {
+                    param.type = 'numeric';
+                } else if (typeof param.value === "string") {
+                    param.type = param.options ? 'select' : 'textfield';
+                }
+            }
+            if (!param.value) {
+                switch (param.type) {
+                    case ('checkbox'):
+                        param.value = false; break;
+                    case ('numeric'):
+                        param.value = 0; break;
+                    case ('select'):
+                        param.value = param.options?.[0];
+                        if (typeof (param.value) === 'object') {
+                            param.value = param.value.v;
+                        }
+                        break;
+                    case ('color'):
+                        param.value = '#ffffff'; break;
+                    default:
+                        param.value = '';
+                }
+            }
+        });
+    }
+    /**
+     * @returns {string}
+     */
+    get name() {
+        return this.#widget.name;
+    }
+    /**
+     * @returns {string}
+     */
+    get key() {
+        return this.#widget.key;
+    }
+    /**
+     * @returns {Record<string, Record<string, string>>}
+     */
+    get I18n() {
+        return this.#widget.I18n || {};
+    }
+    /**
+     * @returns {string}
+     */
+    get template() {
+        return this.#widget.template;
+    }
+    /**
+     * @returns {string}
+     */
+    get category() {
+        return this.#widget.category ?? "MISC";
+    }
+    /**
+     * @returns {string=}
+     */
+    get insertquery() {
+        return this.#widget.insertquery;
+    }
+    /**
+     * @returns {string | string[] =}
+     */
+    get selectors() {
+        return this.#widget.selectors;
+    }
+    /**
+     * @returns {string=}
+     */
+    get unwrap() {
+        return this.#widget.unwrap;
+    }
+    /**
+     * @returns {string}
+     */
+    get version() {
+        return this.#widget.version || "1.0.0";
+    }
+    /**
+     * @returns {string}
+     */
+    get instructions() {
+        if (this.#widget.instructions && !this.#instructionsParsed) {
+            this.#widget.instructions = decodeURIComponent(this.#widget.instructions);
+            this.#instructionsParsed = true;
+        }
+        return this.#widget.instructions ?? '';
+    }
+    /**
+     * @returns {Param[]}
+     */
+    get parameters() {
+        return this.#widget.parameters ?? [];
+    }
+    /**
+     * @returns {Object.<string, any>}
+     */
+    get defaults() {
+        /** @type {Object.<string, any> } */
+        const obj = {};
+        this.parameters.forEach((param) => {
+            obj[param.name] = param.value;
+        });
+        return obj;
+    }
+    /**
+     * @param {number} userId
+     * @returns {boolean}
+     */
+    isFor(userId) {
+        // These are administrators
+        if (this.#widget.hidden === true) {
+            return false;
+        }
+        let grantStr = (this.#widget.for || '').trim();
+        if (grantStr === '' || grantStr === '*' || userId <= 2) {
+            return true;
+        }
+        let allowMode = true;
+        if (grantStr.startsWith('-')) {
+            allowMode = false;
+        }
+        grantStr = grantStr.replace(/[+\- ]/g, '');
+        const grantList = grantStr.split(",");
+        const isAllowed = (allowMode && grantList.indexOf(userId + "") >= 0) || (!allowMode && grantList.indexOf(userId + "") < 0);
+        return isAllowed;
+    }
+    /**
+     * @param {string=} scope
+     * @returns {boolean}
+     */
+    isUsableInScope(scope) {
+        scope = scope ?? Shared.currentScope ?? '';
+        const widgetScopes = this.#widget.scope;
+        if (!scope || !widgetScopes || widgetScopes === "*") {
+            return true;
+        }
+        const regex = new RegExp(widgetScopes);
+        return (regex.exec(scope) ?? null) !== null;
+    }
+    /**
+     * @returns {boolean}
+     */
+    isFilter() {
+        return this.category?.toLowerCase() === "filtres";
+    }
+    /**
+     * @returns {boolean}
+     */
+    hasBindings() {
+        return this.parameters.filter(param => param.bind !== undefined).length > 0;
+    }
+    /**
+     * Recovers the property value named name of the original definition
+     * @param {string} name
+     * @returns {*}
+     */
+    prop(name) {
+        // @ts-ignore
+        return this.#widget[name];
     }
 }

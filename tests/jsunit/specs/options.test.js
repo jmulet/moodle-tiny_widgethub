@@ -1,18 +1,29 @@
 /**
  * @jest-environment jsdom
  */
-/* eslint-disable no-undef */
-/* eslint-disable max-len */
-require('./module.mocks')(jest);
-
 document?.body?.setAttribute("id", "page-mod-page-mod");
 
-const U = require("../src/util");
+// Mock virtual modules
+jest.mock("core/config", () => ({
+    __esModule: true,
+    wwwroot: "https://server.com"
+}), { virtual: true });
 
-const WidgetWrapper = U.WidgetWrapper;
-const Shared = U.Shared;
+jest.mock("editor_tiny/options", () => ({
+    __esModule: true,
+    /**
+     * @param {string} pluginname 
+     * @param {string} key 
+     * @returns {string}
+     */
+    
+    getPluginOptionName: (pluginname, key) => key
+}), { virtual: true });
 
-/** @type {import('../src/util').Widget} */
+const { Shared, WidgetWrapper } = require('../src/options');
+
+
+/** @type {import('../src/options').Widget} */
 const rawSnpt = {
     "id": 1,
     "name": "Capsa multi-propòsit",
@@ -33,12 +44,12 @@ const rawSnpt = {
         "msg_introduccio": { "ca": "INTRODUCCIÓ", "es": "INTRODUCIÓN", "en": "INTRODUCTION", "fr": "INTRODUCTION", "de": "EINFÜHRUNG" }
     },
     "parameters": [
-        { "name": "tipus", "value": "alerta", "title": "Propòsit de la capsa", "type": "select", "options": [{ "v": "alerta", "l": "Alerta" }, { "v": "ampliacio", "l": "Ampliació" }, { "v": "consell", "l": "Consell" }, { "v": "important", "l": "Important" }, { "v": "introduccio", "l": "Introducció" }] }, 
-        { "name": "mida", "value": "gran", "title": "Mida de la capsa", "type": "select", "options": [{ "v": "gran", "l": "Gran" }, { "v": "mitjana", "l": "Mitjana" }, { "v": "petita", "l": "Petita" }] }, 
+        { "name": "tipus", "value": "alerta", "title": "Propòsit de la capsa", "type": "select", "options": [{ "v": "alerta", "l": "Alerta" }, { "v": "ampliacio", "l": "Ampliació" }, { "v": "consell", "l": "Consell" }, { "v": "important", "l": "Important" }, { "v": "introduccio", "l": "Introducció" }] },
+        { "name": "mida", "value": "gran", "title": "Mida de la capsa", "type": "select", "options": [{ "v": "gran", "l": "Gran" }, { "v": "mitjana", "l": "Mitjana" }, { "v": "petita", "l": "Petita" }] },
         { "name": "LANG", "value": "CA", "title": "Idioma", "type": "select", "options": [{ "v": "ca", "l": "Català" }, { "v": "es", "l": "Castellà" }, { "v": "en", "l": "English" }, { "v": "fr", "l": "Francès" }, { "v": "de", "l": "Alemany" }] }]
 };
 
-/** @type {import('../src/util').Widget} */
+/** @type {import('../src/options').Widget} */
 const rawSnpt2 = {
     "id": 2,
     "name": "Capsa multi-propòsit",
@@ -58,12 +69,12 @@ const rawSnpt2 = {
     "for": "5,42,555",
     "scope": "^page-mod-(book|assign|quiz)-",
     "parameters": [
-        { "name": "tipus", "value": "alerta", "title": "Propòsit de la capsa", "type": "select", "options": [{ "v": "alerta", "l": "Alerta" }, { "v": "ampliacio", "l": "Ampliació" }, { "v": "consell", "l": "Consell" }, { "v": "important", "l": "Important" }, { "v": "introduccio", "l": "Introducció" }] }, 
-        { "name": "mida", "value": "gran", "title": "Mida de la capsa", "type": "select", "options": [{ "v": "gran", "l": "Gran" }, { "v": "mitjana", "l": "Mitjana" }, { "v": "petita", "l": "Petita" }] }, 
+        { "name": "tipus", "value": "alerta", "title": "Propòsit de la capsa", "type": "select", "options": [{ "v": "alerta", "l": "Alerta" }, { "v": "ampliacio", "l": "Ampliació" }, { "v": "consell", "l": "Consell" }, { "v": "important", "l": "Important" }, { "v": "introduccio", "l": "Introducció" }] },
+        { "name": "mida", "value": "gran", "title": "Mida de la capsa", "type": "select", "options": [{ "v": "gran", "l": "Gran" }, { "v": "mitjana", "l": "Mitjana" }, { "v": "petita", "l": "Petita" }] },
         { "name": "LANG", "value": "CA", "title": "Idioma", "type": "select", "options": [{ "v": "ca", "l": "Català" }, { "v": "es", "l": "Castellà" }, { "v": "en", "l": "English" }, { "v": "fr", "l": "Francès" }, { "v": "de", "l": "Alemany" }] }]
 };
 
-/** @type {import('../src/util').Widget} */
+/** @type {import('../src/options').Widget} */
 const rawSnpt3 = {
     "id": 3,
     "name": "Capsa multi-propòsit",
@@ -83,8 +94,8 @@ const rawSnpt3 = {
     "for": "5,42,555",
     "scope": "^page-mod-(book|page|assign|quiz)-",
     "parameters": [
-        { "name": "tipus", "value": "alerta", "title": "Propòsit de la capsa", "type": "select", "options": [{ "v": "alerta", "l": "Alerta" }, { "v": "ampliacio", "l": "Ampliació" }, { "v": "consell", "l": "Consell" }, { "v": "important", "l": "Important" }, { "v": "introduccio", "l": "Introducció" }] }, 
-        { "name": "mida", "value": "gran", "title": "Mida de la capsa", "type": "select", "options": [{ "v": "gran", "l": "Gran" }, { "v": "mitjana", "l": "Mitjana" }, { "v": "petita", "l": "Petita" }] }, 
+        { "name": "tipus", "value": "alerta", "title": "Propòsit de la capsa", "type": "select", "options": [{ "v": "alerta", "l": "Alerta" }, { "v": "ampliacio", "l": "Ampliació" }, { "v": "consell", "l": "Consell" }, { "v": "important", "l": "Important" }, { "v": "introduccio", "l": "Introducció" }] },
+        { "name": "mida", "value": "gran", "title": "Mida de la capsa", "type": "select", "options": [{ "v": "gran", "l": "Gran" }, { "v": "mitjana", "l": "Mitjana" }, { "v": "petita", "l": "Petita" }] },
         { "name": "LANG", "value": "CA", "title": "Idioma", "type": "select", "options": [{ "v": "ca", "l": "Català" }, { "v": "es", "l": "Castellà" }, { "v": "en", "l": "English" }, { "v": "fr", "l": "Francès" }, { "v": "de", "l": "Alemany" }] }]
 };
 

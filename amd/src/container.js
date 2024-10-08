@@ -11,6 +11,9 @@ import { getFilePicker } from "editor_tiny/options";
 import WidgetPropertiesCtrl from "./controller/widgetPropertiesCtrl";
 import { EditorOptions } from "./options";
 import { initContextActions } from "./contextInit";
+import { DomSrv } from "./service/domSrv";
+import { applyWidgetFilter } from "./util";
+import * as coreStr from "core/str";
 
 export class FileSrv {
     /**
@@ -208,17 +211,21 @@ export class DIContainer {
 /** @typedef {{localStorage: Storage, sessionStorage: Storage}} IStorage */
 
 DIContainer.registerSingleton("jQuery", jQuery);
+DIContainer.registerSingleton("coreStr", coreStr);
+DIContainer.registerSingleton("modalSrv", ModalSrv);
+DIContainer.registerSingleton("mustache", Mustache);
+DIContainer.registerSingleton("ejsLoader", ejsLoader);
+DIContainer.registerSingleton("iStorage", { localStorage, sessionStorage });
 DIContainer.registerService("editorOptions", EditorOptions, "editor");
 DIContainer.registerFactory("widgetParamsFactory", WidgetParamsCtrl, "editor, userStorage, templateSrv, modalSrv, formCtrl");
 DIContainer.registerService("widgetPickCtrl", WidgetPickerCtrl,
     "editor, editorOptions, widgetParamsFactory, modalSrv, templateSrv, userStorage");
 DIContainer.registerService("widgetPropertiesCtrl", WidgetPropertiesCtrl, "editor, formCtrl, modalSrv");
 DIContainer.registerService("formCtrl", FormCtrl, "editor, userStorage, templateSrv, fileSrv, jQuery");
-DIContainer.registerSingleton("modalSrv", ModalSrv);
-DIContainer.registerSingleton("mustache", Mustache);
-DIContainer.registerSingleton("ejsLoader", ejsLoader);
+DIContainer.registerSingleton("domSrv", DomSrv, "jQuery");
 DIContainer.registerSingleton("templateSrv", TemplateSrv, "mustache, ejsLoader");
-DIContainer.registerSingleton("iStorage", { localStorage, sessionStorage });
 DIContainer.registerSingleton("userStorage", UserStorageSrv, "editorOptions, iStorage");
 DIContainer.registerService("fileSrv", FileSrv, "editor");
-DIContainer.registerFactory("initContextActions", initContextActions, "editor, editorOptions, widgetPropertiesCtrl, jQuery");
+DIContainer.registerFactory("initContextActions", initContextActions,
+    "editor, editorOptions, widgetPropertiesCtrl, domSrv, jQuery");
+DIContainer.registerSingleton("applyWidgetFilter", applyWidgetFilter, "coreStr");

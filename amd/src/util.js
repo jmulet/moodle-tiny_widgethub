@@ -26,27 +26,6 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {get_strings as getStrings} from 'core/str';
-import jQuery from 'jquery';
-
-
-/**
- * @typedef {object} Shared
- * @property {string} currentScope
- * @property {boolean} activatePopup
- * @property {object} globalConfig
- * @const
- */
-let activatePopup = true;
-export const Shared = {
-    // In which type of activity the editor is being used
-    currentScope: document.querySelector('body')?.id,
-    // Whether to activate the contextual popup or not
-    activatePopup: activatePopup,
-    // Hold other global configuration
-    globalConfig: {}
-};
-
 /**
  * @returns {string} a randomID
  */
@@ -78,255 +57,6 @@ export function evalInContext(ctx, expr, keepFns) {
     listVals.push(expr);
     const evaluator = new Function(...listArgs);
     return evaluator(...listVals);
-}
-
-/**
- * @typedef {Object} ParamOption
- * @property {string} l
- * @property {string} v
- */
-/**
- * @typedef {Object} Param
- * @property {string=} partial
- * @property {string} name
- * @property {string} title
- * @property {'textfield' | 'numeric' | 'checkbox' | 'select' | 'textarea' | 'image' | 'color'} [type]
- * @property {(ParamOption | string)[]} [options]
- * @property {any} value
- * @property {string=} tip
- * @property {string=} tooltip
- * @property {number=} min
- * @property {number=} max
- * @property {string=} transform
- * @property {string | {get: string, set: string} } [bind]
- * @property {string=} when
- * @property {boolean} [hidden]
- * @property {boolean} [editable]
- */
-/**
- * @typedef {Object} Action
- * @property {string} predicate
- * @property {string} actions
- */
-/**
- * @typedef {Object} Widget
- * @property {number} id
- * @property {string} key
- * @property {string} category
- * @property {string=} scope - Regex for idenfying allowed body ids
- * @property {string} name
- * @property {string=} instructions
- * @property {'mustache' | 'ejs'} [engine]
- * @property {string} template
- * @property {Param[]=} parameters
- * @property {Object.<string, Object<string, string>>} [I18n]
- * @property {string | string[]} [selectors]
- * @property {string=} insertquery
- * @property {string=} unwrap
- * @property {string=} for
- * @property {string} version
- * @property {string} author
- * @property {boolean=} hidden
- * @property {Action[]} [contextmenu]
- */
-/**
- * @class
- * @classdesc Wrapper for Widget definition
- */
-export class WidgetWrapper {
-    #widget;
-    #instructionsParsed = false;
-
-    /**
-     * @param {Widget} widget
-     * @param {Object.<string, any>=} partials
-     */
-    constructor(widget, partials) {
-        partials = partials ?? {};
-        this.#widget = widget;
-        const parameters = widget.parameters;
-        if (!parameters) {
-            return;
-        }
-        // Do some fixes on parameters
-        parameters.forEach((param, i) => {
-            // Case of a partial
-            if (param.partial) {
-                if (!partials[param.partial]) {
-                    console.error("Cannot find partial for ", param.partial, partials);
-                    return;
-                }
-                parameters[i] = partials[param.partial];
-            }
-            if (!param.type) {
-                if (param.options) {
-                    param.type = 'select';
-                } else if (typeof param.value === "boolean") {
-                    // Infer type from value
-                    param.type = 'checkbox';
-                } else if (typeof param.value === "number") {
-                    param.type = 'numeric';
-                } else if (typeof param.value === "string") {
-                    param.type = param.options ? 'select' : 'textfield';
-                }
-            }
-            if (!param.value) {
-                switch (param.type) {
-                    case ('checkbox'):
-                        param.value = false; break;
-                    case ('numeric'):
-                        param.value = 0; break;
-                    case ('select'):
-                        param.value = param.options?.[0];
-                        if (typeof (param.value) === 'object') {
-                            param.value = param.value.v;
-                        }
-                        break;
-                    case ('color'):
-                        param.value = '#ffffff'; break;
-                    default:
-                        param.value = '';
-                }
-            }
-        });
-    }
-    /**
-     * @returns {string}
-     */
-    get name() {
-        return this.#widget.name;
-    }
-    /**
-     * @returns {string}
-     */
-    get key() {
-        return this.#widget.key;
-    }
-    /**
-     * @returns {Record<string, Record<string, string>>}
-     */
-    get I18n() {
-        return this.#widget.I18n || {};
-    }
-    /**
-     * @returns {string}
-     */
-    get template() {
-        return this.#widget.template;
-    }
-    /**
-     * @returns {string}
-     */
-    get category() {
-        return this.#widget.category ?? "MISC";
-    }
-    /**
-     * @returns {string=}
-     */
-    get insertquery() {
-        return this.#widget.insertquery;
-    }
-    /**
-     * @returns {string | string[] =}
-     */
-    get selectors() {
-        return this.#widget.selectors;
-    }
-    /**
-     * @returns {string=}
-     */
-    get unwrap() {
-        return this.#widget.unwrap;
-    }
-    /**
-     * @returns {string}
-     */
-    get version() {
-        return this.#widget.version || "1.0.0";
-    }
-    /**
-     * @returns {string}
-     */
-    get instructions() {
-        if (this.#widget.instructions && !this.#instructionsParsed) {
-            this.#widget.instructions = decodeURIComponent(this.#widget.instructions);
-            this.#instructionsParsed = true;
-        }
-        return this.#widget.instructions ?? '';
-    }
-    /**
-     * @returns {Param[]}
-     */
-    get parameters() {
-        return this.#widget.parameters ?? [];
-    }
-    /**
-     * @returns {Object.<string, any>}
-     */
-    get defaults() {
-        /** @type {Object.<string, any> } */
-        const obj = {};
-        this.parameters.forEach((param) => {
-            obj[param.name] = param.value;
-        });
-        return obj;
-    }
-    /**
-     * @param {number} userId
-     * @returns {boolean}
-     */
-    isFor(userId) {
-        // These are administrators
-        if (this.#widget.hidden === true) {
-            return false;
-        }
-        let grantStr = (this.#widget.for || '').trim();
-        if (grantStr === '' || grantStr === '*' || userId <= 2) {
-            return true;
-        }
-        let allowMode = true;
-        if (grantStr.startsWith('-')) {
-            allowMode = false;
-        }
-        grantStr = grantStr.replace(/[+\- ]/g, '');
-        const grantList = grantStr.split(",");
-        const isAllowed = (allowMode && grantList.indexOf(userId + "") >= 0) || (!allowMode && grantList.indexOf(userId + "") < 0);
-        return isAllowed;
-    }
-    /**
-     * @param {string=} scope
-     * @returns {boolean}
-     */
-    isUsableInScope(scope) {
-        scope = scope ?? Shared.currentScope ?? '';
-        const widgetScopes = this.#widget.scope;
-        if (!scope || !widgetScopes || widgetScopes === "*") {
-            return true;
-        }
-        const regex = new RegExp(widgetScopes);
-        return regex.exec(scope) != null;
-    }
-    /**
-     * @returns {boolean}
-     */
-    isFilter() {
-        return this.category?.toLowerCase() === "filtres";
-    }
-    /**
-     * @returns {boolean}
-     */
-    hasBindings() {
-        return this.parameters.filter(param => param.bind !== undefined).length > 0;
-    }
-    /**
-     * Recovers the property value named name of the original definition
-     * @param {string} name
-     * @returns {*}
-     */
-    prop(name) {
-        // @ts-ignore
-        return this.#widget[name];
-    }
 }
 
 /**
@@ -375,19 +105,19 @@ export function searchComp(str1, needle) {
 /** Default transformers */
 const Transformers = {
     // @ts-ignore
-    "toUpperCase": function(txt) {
+    "toUpperCase": function (txt) {
         return (txt + "").toUpperCase();
     },
     // @ts-ignore
-    "toLowerCase": function(txt) {
+    "toLowerCase": function (txt) {
         return (txt + "").toLowerCase();
     },
     // @ts-ignore
-    "trim": function(txt) {
+    "trim": function (txt) {
         return (txt + "").trim();
     },
     // @ts-ignore
-    "ytId": function(txt) {
+    "ytId": function (txt) {
         // Finds the youtubeId in a text
         const rx = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/;
         const r = (txt || '').match(rx);
@@ -397,7 +127,7 @@ const Transformers = {
         return txt;
     },
     // @ts-ignore
-    "vimeoId": function(txt) {
+    "vimeoId": function (txt) {
         const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?(\d+)/;
         const match = (txt || "").match(regExp);
         if (match?.[5]) {
@@ -406,7 +136,7 @@ const Transformers = {
         return txt;
     },
     // @ts-ignore
-    "serveGDrive": function(txt) {
+    "serveGDrive": function (txt) {
         // Expecting https://drive.google.com/file/d/1DDUzcFrOlzWb3CBdFPJ1NCNXClvPbm5B/preview
         const res = (txt + "").match(/https:\/\/drive.google.com\/file\/d\/([a-zA-Z0-9_]+)\//);
         if (res?.length) {
@@ -416,11 +146,11 @@ const Transformers = {
         return txt;
     },
     // @ts-ignore
-    "removeHTML": function(txt) {
+    "removeHTML": function (txt) {
         return (txt || '').replace(/<[^>]*>?/gm, '');
     },
     // @ts-ignore
-    "escapeHTML": function(txt) {
+    "escapeHTML": function (txt) {
         return (txt || '').replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
@@ -428,12 +158,12 @@ const Transformers = {
             .replace(/'/g, "&#039;");
     },
     // @ts-ignore
-    "encodeHTML": function(txt) {
+    "encodeHTML": function (txt) {
         // @ts-ignore
         return this.encodeURIComponent(txt || "");
     },
     // @ts-ignore
-    "escapeQuotes": function(txt) {
+    "escapeQuotes": function (txt) {
         return (txt || '').replace(/"/gm, "'");
     }
 };
@@ -499,73 +229,80 @@ export function createFilterFunction(filterCode) {
     }
     return userWidgetFilter;
 }
-/**
- * @param {import('./plugin').TinyMCE} editor
- * @param {string} widgetTemplate
- * @param {boolean} silent
- * @param {object?} mergevars
- * @returns {Promise<boolean>} - True if the filter can be compiled
- */
-export async function applyWidgetFilter(editor, widgetTemplate, silent, mergevars) {
-    const translations = await getStrings([
-        {key: 'filterres', component: 'tiny_widgethub'},
-        {key: 'nochanges', component: 'tiny_widgethub'}
-    ]);
-    // Es tracta d'un filtre, no d'un widget i s'ha de tractar de forma diferent
-    const userWidgetFilter = createFilterFunction(widgetTemplate);
 
-    if (!userWidgetFilter) {
-        editor.notificationManager.open({
-            text: translations[0] + ": Invalid filter",
-            type: 'danger',
-            timeout: 4000
-        });
-        return false;
-    }
-    // @ts-ignore
-    const handleFilterResult = function(res) {
-        const out = res[0];
-        let msg = res[1];
-        if (out != null) {
-            if (typeof out === "string") {
-                editor.setContent(out);
-                editor.notificationManager.open({
-                    text: translations[0] + ": " + msg,
-                    type: 'success',
-                    timeout: 5000
-                });
-            } else if (out === true) {
-                editor.notificationManager.open({
-                    text: translations[0] + ": " + msg,
-                    type: 'success',
-                    timeout: 5000
-                });
-            } else if (out === false && !silent) {
+/**
+ * @param {*} coreStr - dependency
+ * @returns {*}
+ */
+export function applyWidgetFilter(coreStr) {
+    /**
+     * @param {import('./plugin').TinyMCE} editor
+     * @param {string} widgetTemplate
+     * @param {boolean} silent
+     * @param {object?} mergevars
+     * @returns {Promise<boolean>} - True if the filter can be compiled
+     */
+    return async (editor, widgetTemplate, silent, mergevars) => {
+        const translations = await coreStr.get_strings([
+            { key: 'filterres', component: 'tiny_widgethub' },
+            { key: 'nochanges', component: 'tiny_widgethub' }
+        ]);
+        // Es tracta d'un filtre, no d'un widget i s'ha de tractar de forma diferent
+        const userWidgetFilter = createFilterFunction(widgetTemplate);
+
+        if (!userWidgetFilter) {
+            editor.notificationManager.open({
+                text: translations[0] + ": Invalid filter",
+                type: 'danger',
+                timeout: 4000
+            });
+            return false;
+        }
+        // @ts-ignore
+        const handleFilterResult = function (res) {
+            const out = res[0];
+            let msg = res[1];
+            if (out != null) {
+                if (typeof out === "string") {
+                    editor.setContent(out);
+                    editor.notificationManager.open({
+                        text: translations[0] + ": " + msg,
+                        type: 'success',
+                        timeout: 5000
+                    });
+                } else if (out === true) {
+                    editor.notificationManager.open({
+                        text: translations[0] + ": " + msg,
+                        type: 'success',
+                        timeout: 5000
+                    });
+                } else if (out === false && !silent) {
+                    editor.notificationManager.open({
+                        text: translations[1],
+                        type: 'info',
+                        timeout: 4000
+                    });
+                }
+            } else if (!silent) {
                 editor.notificationManager.open({
                     text: translations[1],
                     type: 'info',
                     timeout: 4000
                 });
             }
-        } else if (!silent) {
-            editor.notificationManager.open({
-                text: translations[1],
-                type: 'info',
-                timeout: 4000
-            });
-        }
-    };
+        };
 
-    const initialHTML = editor.getContent();
-    const filteredResult = userWidgetFilter(initialHTML, editor.dom.window, mergevars);
-    // Hi ha la possibilitat que el filtre retorni una promesa o un array
-    const isPromise = filteredResult != null && typeof (filteredResult) === 'object' && ('then' in filteredResult);
-    if (isPromise) {
-        filteredResult.then(handleFilterResult);
-    } else {
-        handleFilterResult(filteredResult || [null, translations[1]]);
-    }
-    return true;
+        const initialHTML = editor.getContent();
+        const filteredResult = userWidgetFilter(initialHTML, editor.dom.window, mergevars);
+        // Hi ha la possibilitat que el filtre retorni una promesa o un array
+        const isPromise = filteredResult != null && typeof (filteredResult) === 'object' && ('then' in filteredResult);
+        if (isPromise) {
+            filteredResult.then(handleFilterResult);
+        } else {
+            handleFilterResult(filteredResult || [null, translations[1]]);
+        }
+        return true;
+    };
 }
 
 /**
@@ -596,8 +333,8 @@ export function convertInt(str, def) {
 /**
  * Finds the parameter with a given name within the list of objects
  * @param {string} varname
- * @param {Param[]} listVars
- * @returns {Param | null}
+ * @param {import('./options').Param[]} listVars
+ * @returns {import('./options').Param | null}
  */
 export function findVariableByName(varname, listVars) {
     if (!listVars) {
@@ -671,7 +408,7 @@ export function addScript(url, id, onSuccess, onError) {
             onSuccess();
         }
     };
-    newScript.onerror = function() {
+    newScript.onerror = function () {
         console.error("Error loading ", url);
         if (onError) {
             onError();
@@ -681,7 +418,7 @@ export function addScript(url, id, onSuccess, onError) {
 }
 
 // @ts-ignore
-const performCasting = function(value, type) {
+const performCasting = function (value, type) {
     switch (type) {
         case ("boolean"):
             if (value === 1 || value === "1" || value === true || value === "true") {
@@ -708,7 +445,7 @@ const performCasting = function(value, type) {
  * @param {unknown} a
  * @param {unknown} b
  */
-const xor = function(a, b) {
+const xor = function (a, b) {
     return !a !== !b;
 };
 
@@ -717,7 +454,7 @@ const xor = function(a, b) {
  * @param {JQuery<HTMLElement>} $e
  * @returns
  */
-const bindingFactory = function($e) {
+const bindingFactory = function ($e) {
     /** @this {Record<string, Function>} */
     const methods = {
         /**
@@ -852,11 +589,11 @@ const bindingFactory = function($e) {
                 }
             };
         },
-         /**
-          * @param {string} attr
-          * @param {string=} query
-          * @returns {Binding}
-          */
+        /**
+         * @param {string} attr
+         * @param {string=} query
+         * @returns {Binding}
+         */
         "notHasAttr": (attr, query) => {
             return methods['hasAttr'](attr, query, true);
         },
@@ -866,7 +603,7 @@ const bindingFactory = function($e) {
          * @param {string=} castTo
          * @returns {Binding}
          */
-        "attrRegex": function(attr, query, castTo) {
+        "attrRegex": function (attr, query, castTo) {
             let elem = $e;
             if (query) {
                 elem = $e.find(query);
@@ -901,7 +638,7 @@ const bindingFactory = function($e) {
          * @param {boolean=} neg
          * @returns {Binding}
          */
-        "hasStyle": function(sty, query, neg) {
+        "hasStyle": function (sty, query, neg) {
             let elem = $e;
             if (query) {
                 elem = $e.find(query);
@@ -931,11 +668,11 @@ const bindingFactory = function($e) {
                 }
             };
         },
-         /**
-          * @param {string} sty
-          * @param {string=} query
-          * @returns {Binding}
-          */
+        /**
+         * @param {string} sty
+         * @param {string=} query
+         * @returns {Binding}
+         */
         "notHasStyle": (sty, query) => {
             return methods['hasStyle'](sty, query, true);
         },
@@ -945,7 +682,7 @@ const bindingFactory = function($e) {
          * @param {string=} castTo
          * @returns {Binding}
          */
-        "styleRegex": function(attr, query, castTo) {
+        "styleRegex": function (attr, query, castTo) {
             let elem = $e;
             if (query) {
                 elem = $e.find(query);
@@ -1004,18 +741,18 @@ export const createBinding = (definition, elem, castTo) => {
     /** @type {Binding | null} */
     let bindFn = null;
     if (typeof (definition) === 'string') {
-        return evalInContext({...bindingFactory(elem)}, definition, true);
+        return evalInContext({ ...bindingFactory(elem) }, definition, true);
     } else {
         // The user provides the get and set functions
         bindFn = {
             getValue: () => {
-                let v = evalInContext({elem}, `(${definition.get})(elem)`);
+                let v = evalInContext({ elem }, `(${definition.get})(elem)`);
                 if (castTo) {
                     v = performCasting(v, castTo);
                 }
                 return v;
             },
-            setValue: (v) => evalInContext({elem, v}, `(${definition.set})(elem, v)`)
+            setValue: (v) => evalInContext({ elem, v }, `(${definition.set})(elem, v)`)
         };
     }
     return bindFn;
@@ -1027,97 +764,6 @@ export const createBinding = (definition, elem, castTo) => {
  * @returns {string}
  */
 export const capitalize = s => (s && s[0].toUpperCase() + s.slice(1)) || "";
-
-/**
- * When creating a clone of an element must update all its id's
- * @param {JQuery<HTMLElement>} $e - The element to be treated
- * @param {JQuery<HTMLElement>} $target - The root element being cloned
- * @param {JQuery<HTMLElement>} $root - The root element providing the context
- * @param {Record<string, string>} idMap - A dictionary to store assigned id's
- */
-const treatElementIds = function($e, $target, $root, idMap) {
-    const oldId = $e.prop('id');
-    if (oldId) {
-        let newId = idMap[oldId];
-        if (!newId) {
-            const ext = Math.random().toString(32).substring(2, 5);
-            newId = oldId + ext;
-            idMap[oldId] = newId;
-        }
-        $e.prop('id', newId);
-    }
-    // Does $e contain references to another elements in the $root which are not in $target?
-    ['data-target', 'data-bs-target', 'href'].forEach((dataX) => {
-        const attr = $e.attr(dataX);
-        if (attr?.startsWith("#")) {
-            $e.removeClass('active show');
-            const rootRef = $root.find(attr);
-            const targetRef = $target.find(attr);
-            if (rootRef.length) {
-                if (targetRef.length) {
-                    // Simply rename property
-                    const oldId = attr.substring(1);
-                    let newId = idMap[oldId];
-                    if (!newId) {
-                        const ext = Math.random().toString(32).substring(2, 5);
-                        newId = oldId + ext;
-                        idMap[oldId] = newId;
-                    }
-                    $e.attr(dataX, "#" + newId);
-                } else {
-                    // (TODO: Deep cloning here?) Must clone the reference as well
-                    const newId = 'd' + Math.random().toString(32).substring(2);
-                    const clonedRef = rootRef.clone().prop("id", newId);
-                    $e.prop(dataX, "#" + newId);
-                    clonedRef.insertAfter(rootRef).removeClass("active show");
-                }
-            }
-        }
-    });
-};
-
-/**
- * @param {JQuery<HTMLElement>} $e - the element that must be cloned
- * @param {JQuery<HTMLElement>} $root - the root element (widget root)
- * @param {Record<string,string>} idMap - old vs new id map
- * @returns {JQuery<HTMLElement>} The cloned element with new id's
- */
-export const smartClone = ($e, $root, idMap) => {
-    const clone = $e.clone();
-    treatElementIds(clone, $e, $root, idMap);
-    clone.find('*').each((_, e) => {
-        treatElementIds(jQuery(e), $e, $root, idMap);
-    });
-    return clone;
-};
-
-/**
- * @param {JQuery<HTMLElement>} $e - Look in $e and all its descendants if references any other element in $root
- * @param {JQuery<HTMLElement>} $root
- * @returns {JQuery<HTMLElement>[]} - A list of referenced elements in $e
- */
-export function findReferences($e, $root) {
-    const searchFor = '[data-target^="#"], [data-bs-target^="#"], [href^="#"]';
-    /** @type {HTMLElement[]} */
-    const found = [];
-    if ($e.is(searchFor)) {
-        let attr = $e.attr('data-target') ?? $e.attr('data-bs-target') ?? $e.attr('href');
-        if (attr) {
-            found.push(...$root.find(attr).toArray());
-        }
-    }
-    if (!found.length) {
-        // Look in descendants
-        const $descendants = $e.find(searchFor);
-        if ($descendants.length) {
-            let attr = $descendants.attr('data-target') ?? $descendants.attr('data-bs-target') ?? $descendants.attr('href');
-            if (attr) {
-                found.push(...$root.find(attr).toArray());
-            }
-        }
-    }
-    return found.map(e => jQuery(e));
-}
 
 /**
  * @param {string} color
@@ -1132,4 +778,4 @@ export function toHexColor(color) {
     // Assume rgb
     const a = color.replace(/[^\d,]/g, "").split(",");
     return "#" + ((1 << 24) + (+a[0] << 16) + (+a[1] << 8) + +a[2]).toString(16).slice(1);
-  }
+}

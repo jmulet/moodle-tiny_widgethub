@@ -23,7 +23,6 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import { applyWidgetFilter } from '../util';
 
 export class WidgetParamsCtrl {
    /**
@@ -36,9 +35,10 @@ export class WidgetParamsCtrl {
    * @param {import('../service/templateSrv').TemplateSrv} templateSrv
    * @param {import('../service/modalSrv').ModalSrv} modalSrv
    * @param {import('../controller/formCtrl').FormCtrl} formCtrl
-   * @param {import('../util').WidgetWrapper} widget
+   * @param {import('../options').WidgetWrapper} widget
+   * @param {*} applyWidgetFilter
    */
-   constructor(editor, userStorage, templateSrv, modalSrv, formCtrl, widget) {
+   constructor(editor, userStorage, templateSrv, modalSrv, formCtrl, widget, applyWidgetFilter) {
       /** @type {import('../plugin').TinyMCE} */
       this.editor = editor;
       /** @type {import('../service/userStorageSrv').UserStorageSrv} */
@@ -49,8 +49,9 @@ export class WidgetParamsCtrl {
       this.modalSrv = modalSrv;
       /** @type {import('../controller/formCtrl').FormCtrl} */
       this.formCtrl = formCtrl;
-      /** @type {import('../util').WidgetWrapper} */
+      /** @type {import('../options').WidgetWrapper} */
       this.widget = widget;
+      this.applyWidgetFilter = applyWidgetFilter;
    }
    /**
     * Displays a dialogue for configuring the parameters of the selected snpt
@@ -174,7 +175,7 @@ export class WidgetParamsCtrl {
       this.storage.setToSession("recentsnpt", recentWidgets.join(","), true);
 
       if (this.widget.isFilter()) {
-         applyWidgetFilter(this.editor, this.widget.template || '', false, ctxFromDialogue);
+         this.applyWidgetFilter(this.editor, this.widget.template || '', false, ctxFromDialogue);
          return;
       }
       const interpoledCode = await this.generateInterpolatedCode(ctxFromDialogue);

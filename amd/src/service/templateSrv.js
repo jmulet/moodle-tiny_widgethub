@@ -22,7 +22,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import { evalInContext, genID } from '../util';
+import {evalInContext, genID} from '../util';
 
 
 /**
@@ -55,7 +55,7 @@ export class TemplateSrv {
      * @returns {string} The interpolated template given a context and translations map
      */
     renderMustache(template, context, translations) {
-        const ctx = { ...context };
+        const ctx = {...context};
         Object.keys(ctx).forEach(key => {
             if (ctx[key] === "$RND") {
                 ctx[key] = genID();
@@ -72,18 +72,18 @@ export class TemplateSrv {
      * @param {Object.<string, Object.<string, any>>} translations
      * @returns {Promise<string>} The interpolated template given a context and translations map
      */
-    async rendererEJS(template, context, translations) {
+    async renderEJS(template, context, translations) {
         /** @type {Object.<string, any>} */
-        const ctx = { ...context, I18n: {} };
+        const ctx = {...context, I18n: {}};
         Object.keys(ctx).forEach(key => {
             if (ctx[key] === "$RND") {
                 ctx[key] = genID();
             }
         });
-        const lang = ctx["LANG"];
+        const lang = ctx.LANG;
         for (let wordKey in translations) {
             const dict = translations[wordKey];
-            ctx["I18n"][wordKey] = dict[lang] || dict["en"] || dict["es"] || wordKey;
+            ctx.I18n[wordKey] = dict[lang] || dict.en || dict.es || wordKey;
         }
         try {
             const ejsResolved = await this.ejsLoader();
@@ -106,7 +106,7 @@ export class TemplateSrv {
             engine = template.includes("<%") ? "ejs" : "mustache";
         }
         if (engine === "ejs") {
-            return this.rendererEJS(template, context, translations);
+            return this.renderEJS(template, context, translations);
         }
         // Default to Mustache
         const tmpl = this.renderMustache(template, context, translations);
@@ -119,7 +119,8 @@ export class TemplateSrv {
      * @param {Record<string, Record<string, string>>} translations
      */
     applyMustacheHelpers(ctx, translations) {
-        ctx["if"] = () =>
+        const self = this;
+        ctx.if = () =>
             /**
              * @param {string} text
              * @param {Mustache.render} render
@@ -134,21 +135,21 @@ export class TemplateSrv {
                 }
                 return "";
             };
-        ctx["var"] = () =>
+        ctx.var = () =>
             /**
              * @param {string} text
              */
             function (text) {
                 defineVar(text, ctx);
             };
-        ctx["eval"] = () =>
+        ctx.eval = () =>
             /**
              * @param {string} text
              */
             function (text) {
                 return evalInContext(ctx, text) + "";
             };
-        ctx["I18n"] = () =>
+        ctx.I18n = () =>
             /**
              * @param {string} text
              * @param {Mustache.render} render
@@ -157,9 +158,9 @@ export class TemplateSrv {
                 // @ts-ignore
                 const key = render(text).trim();
                 const dict = translations[key] || {};
-                return dict[ctx["LANG"]] || dict["en"] || dict["ca"] || key;
+                return dict[ctx.LANG] || dict.en || dict.ca || key;
             };
-        ctx["each"] = () =>
+        ctx.each = () =>
             /**
              * @param {string} text
              */
@@ -187,7 +188,7 @@ export class TemplateSrv {
                 let output = [];
                 for (let _ei = 0; _ei < total; _ei++) {
                     // @ts-ignore
-                    output.push(this.mustache.render(text.substring(pos + 1), ctx));
+                    output.push(self.mustache.render(text.substring(pos + 1), ctx));
                     let currentDim = dim - 1;
                     let incrUp;
                     do {
@@ -200,7 +201,7 @@ export class TemplateSrv {
                 }
                 return output.join('');
             };
-        ctx["for"] = () =>
+        ctx.for = () =>
             /**
              * @param {string} text
              */
@@ -213,7 +214,7 @@ export class TemplateSrv {
                 let maxIter = 0; // Prevent infinite loop imposing a limit of 1000
                 while (evalInContext(ctx, parts[1]) && maxIter < 1000) {
                     // @ts-ignore
-                    output += this.mustache.render(text.substring(pos + 1), ctx);
+                    output += self.mustache.render(text.substring(pos + 1), ctx);
                     if (parts.length === 3 && parts[2].trim()) {
                         defineVar(loopvar + "=" + parts[2], ctx);
                     } else {

@@ -111,20 +111,16 @@ export class UserStorageSrv {
     }
 
     /**
-     * @param {'local' | 'session' | undefined} type
+     * @param {'local' | 'session' | undefined} [type]
      */
     saveStore(type) {
-        if (type === 'local' && typeof window.localStorage !== 'undefined') {
+        if (type === 'local') {
             this.localStorage.setItem(this.STORE_KEY, JSON.stringify(this._localStore));
-        } else if (type === 'session' && typeof window.sessionStorage !== 'undefined') {
+        } else if (type === 'session') {
             this.sessionStorage.setItem(this.STORE_KEY, JSON.stringify(this._sessionStore));
         } else if (type === null || type === undefined) {
-            if (typeof this.localStorage !== 'undefined') {
-                this.localStorage.setItem(this.STORE_KEY, JSON.stringify(this._localStore));
-            }
-            if (typeof this.sessionStorage !== 'undefined') {
-                this.sessionStorage.setItem(this.STORE_KEY, JSON.stringify(this._sessionStore));
-            }
+            this.localStorage.setItem(this.STORE_KEY, JSON.stringify(this._localStore));
+            this.sessionStorage.setItem(this.STORE_KEY, JSON.stringify(this._sessionStore));            
         }
     }
     /**
@@ -172,7 +168,7 @@ export class UserStorageSrv {
      * @template T
      * @param {string} key
      * @param {T} value
-     * @param {boolean} persist
+     * @param {boolean=} persist
      * @returns {void}
      */
     setToSession(key, value, persist) {

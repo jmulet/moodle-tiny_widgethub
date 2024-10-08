@@ -82,7 +82,7 @@ export class WidgetPickerCtrl {
     /**
      * @param {import('../plugin').TinyMCE} editor
      * @param {import('../options').EditorOptions} editorOptions
-     * @param {(widget: import('../util').WidgetWrapper) => import('../controller/widgetParamsCtrl').WidgetParamsCtrl} widgetParamsFactory
+     * @param {(widget: import('../options').WidgetWrapper) => import('../controller/widgetParamsCtrl').WidgetParamsCtrl} widgetParamsFactory
      * @param {import('../service/modalSrv').ModalSrv} modalSrv
      * @param {import('../service/templateSrv').TemplateSrv} templateSrv
      * @param {import('../service/userStorageSrv').UserStorageSrv} userStorage
@@ -92,7 +92,7 @@ export class WidgetPickerCtrl {
         this.editor = editor;
         /** @type {import('../options').EditorOptions} */
         this.editorOptions = editorOptions;
-        /** @type {(widget: import('../util').WidgetWrapper) => import('../controller/widgetParamsCtrl').WidgetParamsCtrl} */
+        /** @type {(widget: import('../options').WidgetWrapper) => import('../controller/widgetParamsCtrl').WidgetParamsCtrl} */
         this.widgetParamsFactory = widgetParamsFactory;
         /** @type {import('../service/modalSrv').ModalSrv} */
         this.modalSrv = modalSrv;
@@ -342,7 +342,7 @@ export class WidgetPickerCtrl {
     }
 
     /**
-     * @param {import('../util').WidgetWrapper} widget
+     * @param {import('../options').WidgetWrapper} widget
      */
     handlePickModalAction(widget) {
         this.modal.hide();

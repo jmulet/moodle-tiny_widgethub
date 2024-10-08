@@ -92,7 +92,7 @@ export class FormCtrl {
    }
 
    /**
-    * @param {import('../util').WidgetWrapper} widget
+    * @param {import('../options').WidgetWrapper} widget
     * @returns {*} - The generated context
     */
    createContext(widget) {
@@ -105,7 +105,7 @@ export class FormCtrl {
       const defaults = widget.defaults;
 
       /**
-       * @param {import('../util').Param} param
+       * @param {import('../options').Param} param
        * @returns {any}
        */
       const obtainCurrentValue = (param) => {
@@ -139,7 +139,7 @@ export class FormCtrl {
 
    /**
     * @param {string} hostId - The id of the editor
-    * @param {import('../util').Param} param - The parameter object defining the control
+    * @param {import('../options').Param} param - The parameter object defining the control
     * @param {any} defaultValue - Default values for all parameters
     * @returns {string} - The generated HTML for this control
     */
@@ -200,7 +200,7 @@ export class FormCtrl {
    /**
     * Obtains the updated parameter values from the modal
     * This is used in insertWidget
-    * @param {import('../util').WidgetWrapper} widget
+    * @param {import('../options').WidgetWrapper} widget
     * @param {JQuery<HTMLElement>} form
     * @returns {Record<string, any>} - The updated parameters dict
     */
@@ -273,7 +273,7 @@ export class FormCtrl {
    /**
     * @param {JQuery<HTMLElement>} $formElem
     * @param {Object.<string, any>} defaultsData
-    * @param {import('../util').WidgetWrapper} widget
+    * @param {import('../options').WidgetWrapper} widget
     * @param {boolean} selectMode
     */
    applyFieldWatchers($formElem, defaultsData, widget, selectMode) {
