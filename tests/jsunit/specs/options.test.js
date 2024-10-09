@@ -16,7 +16,6 @@ jest.mock("editor_tiny/options", () => ({
      * @param {string} key 
      * @returns {string}
      */
-    
     getPluginOptionName: (pluginname, key) => key
 }), { virtual: true });
 

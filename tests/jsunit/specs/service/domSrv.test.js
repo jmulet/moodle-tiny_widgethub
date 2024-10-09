@@ -3,6 +3,7 @@
  */
 import { DomSrv } from "../../src/service/domSrv";
 
+/** @type {*} */
 const jQuery = require("jquery");
 
 /** @type {import('../../src/service/domSrv').DomSrv} */

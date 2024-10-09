@@ -1,5 +1,5 @@
-/* eslint-disable max-len */
-/* eslint-disable no-eq-null */
+
+
 /* eslint-disable no-console */
 // This file is part of Moodle - http://moodle.org/
 //
@@ -64,7 +64,7 @@ export class WidgetParamsCtrl {
          this.modal = null;
       });
       this.modal = modal;
-      modal.body.find(`a[href="#${data.idTabpane}_1"`).on("click", async () => {
+      modal.body.find(`a[href="#${data.idTabpane}_1"`).on("click", async() => {
          // Handle preview;
          const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, modal.body.find("form"));
          await this.updatePreview(data.idTabpane, ctxFromDialogue);
@@ -78,7 +78,7 @@ export class WidgetParamsCtrl {
             await this.parentCtrl.handleAction();
          }
       });
-      modal.footer.find("button.btn-primary").on("click", async () => {
+      modal.footer.find("button.btn-primary").on("click", async() => {
          // Go back to main menú
          const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, modal.body.find("form"));
          modal.hide();
@@ -100,9 +100,9 @@ export class WidgetParamsCtrl {
    }
 
    /**
-     * @param {object} ctx
-     * @returns {Promise<string>} The rendered template
-     */
+    * @param {object} ctx
+    * @returns {Promise<string>} The rendered template
+    */
     render(ctx) {
         const defaultsCopy = {...this.widget.defaults};
         const toInterpolate = Object.assign(defaultsCopy, ctx || {});
@@ -130,7 +130,7 @@ export class WidgetParamsCtrl {
          // We are in selection mode
          const tmpDiv = document.createElement("div");
          tmpDiv.innerHTML = interpoledComponentCode;
-         const insertPoint = tmpDiv.querySelector(this.widget.insertquery);
+         const insertPoint = tmpDiv.querySelector(query);
          if (insertPoint) {
             if (replaceMode) {
                // Replace the insertPoint by the interpolated HTML

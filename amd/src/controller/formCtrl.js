@@ -22,13 +22,13 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import { capitalize, cleanParameterName, evalInContext, genID, stream, toHexColor } from '../util';
+import {capitalize, cleanParameterName, evalInContext, genID, stream, toHexColor} from '../util';
 
 
 const questionPopover = '{{#tooltip}}<a href="javascript:void(0)" data-toggle="popover" data-trigger="hover" data-content="{{tooltip}}"><i class="fa fas fa-question-circle text-info"></i></a>{{/tooltip}}';
 
-const Templates = {
-   FIELDTEMPLATE: `<div id="{{elementid}}" class="form-group row{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+export const Templates = {
+   TEXTFIELDTEMPLATE: `<div id="{{elementid}}" class="form-group row{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <div class="col-sm-7"><input type="text" id="{{elementid}}_ftmpl" class="form-control" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/></div>
    </div>`,
 
@@ -101,7 +101,7 @@ export class FormCtrl {
       /** @type {Object.<string, any>} */
       const saveAllData = this.storage.getFromLocal('saveall_data', {});
       /** @type {Object.<string, any>} */
-      const valors = this.storage.getFromLocal("valors", {});
+      const values = this.storage.getFromLocal("values", {});
       const defaults = widget.defaults;
 
       /**
@@ -118,8 +118,8 @@ export class FormCtrl {
                currentval = saveAllData[sname][pname];
             }
          }
-         if (pname.startsWith("$") && valors[pname]) {
-            currentval = valors[pname];
+         if (pname.startsWith("$") && values[pname]) {
+            currentval = values[pname];
          }
          return currentval;
       };
@@ -144,7 +144,7 @@ export class FormCtrl {
     * @returns {string} - The generated HTML for this control
     */
    createControlHTML(hostId, param, defaultValue) {
-      let template = '';
+      let markup = '';
       const pname = cleanParameterName(param.name);
       const generalCtx = {
          elementid: hostId + "_" + pname,
@@ -156,7 +156,7 @@ export class FormCtrl {
          hidden: param.hidden === true
       };
       if (param.type === 'textarea') {
-         template = this.templateSrv.renderMustache(Templates.TEXTAREATEMPLATE, generalCtx);
+         markup = this.templateSrv.renderMustache(Templates.TEXTAREATEMPLATE, generalCtx);
       } else if (param.type === 'numeric') {
          let minMax = "";
          if (param.min) {
@@ -165,9 +165,9 @@ export class FormCtrl {
          if (param.max) {
             minMax += ` max="${param.max}"`;
          }
-         template = this.templateSrv.renderMustache(Templates.NUMERICTEMPLATE, { minMax: minMax, ...generalCtx });
+         markup = this.templateSrv.renderMustache(Templates.NUMERICTEMPLATE, {minMax: minMax, ...generalCtx});
       } else if (param.type === 'checkbox') {
-         template = this.templateSrv.renderMustache(Templates.CHECKBOXTEMPLATE, generalCtx);
+         markup = this.templateSrv.renderMustache(Templates.CHECKBOXTEMPLATE, generalCtx);
       } else if (param.type === 'select') {
          const options = (param.options ?? []).map(opt => {
             let label;
@@ -179,22 +179,21 @@ export class FormCtrl {
                label = opt.l;
                value = opt.v;
             }
-            return { optionLabel: label, optionValue: value, selected: value === defaultValue };
+            return {optionLabel: label, optionValue: value, selected: value === defaultValue};
          });
-         template = this.templateSrv.renderMustache(Templates.SELECTTEMPLATE, { options, ...generalCtx });
+         markup = this.templateSrv.renderMustache(Templates.SELECTTEMPLATE, {options, ...generalCtx});
       } else if (param.type === 'color') {
          // Value must be in hex form
          generalCtx.defaultvalue = toHexColor(generalCtx.defaultvalue);
-         template = this.templateSrv.renderMustache(Templates.COLORTEMPLATE, generalCtx);
+         markup = this.templateSrv.renderMustache(Templates.COLORTEMPLATE, generalCtx);
       } else if (param.type === 'image') {
-         template = this.templateSrv.renderMustache(Templates.IMAGETEMPLATE, generalCtx);
+         markup = this.templateSrv.renderMustache(Templates.IMAGETEMPLATE, generalCtx);
       } else {
          // Assume textfield
-         template = this.templateSrv.renderMustache(Templates.FIELDTEMPLATE, generalCtx);
+         markup = this.templateSrv.renderMustache(Templates.TEXTFIELDTEMPLATE, generalCtx);
       }
-      return template;
+      return markup;
    }
-
 
 
    /**
@@ -219,10 +218,20 @@ export class FormCtrl {
             return;
          }
          /** @type {*} */
-         let value = $elem.val() || "";
+         let value = $elem.val() ?? "";
          if ($elem.prop("tagName") === "INPUT" && $elem.attr("type") === "checkbox") {
             value = $elem.is(':checked');
-         } else if (param.transform) {
+         } else if ($elem.prop("tagName") === "INPUT" && $elem.attr("type") === "number") {
+            if (value.indexOf(".") >= 0) {
+               value = parseFloat(value);
+            } else {
+               value = parseInt(value);
+            }
+         } else if ($elem.prop("tagName") === "INPUT" && $elem.attr("type") === "color") {
+            value = value.toLowerCase();
+         }
+
+         if (param.transform) {
             value = stream(param.transform).reduce(value);
          }
          ctx[pname] = value;
@@ -240,7 +249,7 @@ export class FormCtrl {
          if (mustSaveAll) {
             /** @type {Object.<string, any>}  */
             const previousAllData = this.storage.getFromLocal('saveall_data', {});
-            previousAllData[widget.name] = { ...ctx };
+            previousAllData[widget.name] = {...ctx};
             this.storage.setToLocal('saveall_data', previousAllData, true);
          }
       }
@@ -255,7 +264,7 @@ export class FormCtrl {
       const picker = body.find('button.whb-image-picker').prop('disabled', !canShowFilePicker);
       if (canShowFilePicker) {
          // Attach a click handler to any image-picker buttons
-         picker.on("click", /** @param {any} evt */ async (evt) => {
+         picker.on("click", /** @param {any} evt */ async(evt) => {
             evt.preventDefault();
             try {
                /** @type {any} */
@@ -367,8 +376,7 @@ export class FormCtrl {
          if (varobj.type === 'textfield' || varobj.type === 'textarea') {
             evtName = "keyup";
          }
-         control.on(evtName, (e) => {
-            console.log(e);
+         control.on(evtName, () => {
             doUpdateVisibilities();
          });
       });

@@ -1,7 +1,8 @@
 import { TemplateSrv } from "../../src/service/templateSrv";
+import Mustache from "mustache";
 
-const Mustache = require('mustache');
 const EJS = require('ejs');
+/** @type {*} */
 const ejsLoader = () => Promise.resolve(EJS);
 /**
  * @type {TemplateSrv}
