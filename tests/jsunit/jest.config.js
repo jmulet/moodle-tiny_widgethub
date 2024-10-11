@@ -14,7 +14,9 @@ module.exports = {
     collectCoverageFrom: [
       "<rootDir>/src/*.{js,jsx,ts,tsx}",
       "<rootDir>/src/**/*.{js,jsx,ts,tsx}",
-      "!<rootDir>/src/libs/*"
+      "!<rootDir>/src/libs/*",
+      "!<rootDir>/src/plugin.js",
+      "!<rootDir>/src/commands.js"
     ],
     testEnvironment: 'node',    
   }

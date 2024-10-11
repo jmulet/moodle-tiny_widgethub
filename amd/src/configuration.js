@@ -82,14 +82,13 @@ const configureToolbar = (toolbar) => {
  * @returns {string}
  */
 const configureContextMenu = (contextmenu) => {
-    contextmenu += ' tiny_widgethub';
-    return contextmenu;
+    return contextmenu + ' ' + buttonName;
 };
 
 /**
  *
  * @param {any} instanceConfig
- * @returns {object}
+ * @returns {any}
  */
 export const configure = (instanceConfig) => {
     return {
