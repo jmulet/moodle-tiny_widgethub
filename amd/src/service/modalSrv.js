@@ -68,7 +68,7 @@ class IBContextModal extends Modal {
 ModalRegistry.register(IBContextModal.TYPE, IBContextModal, IBContextModal.TEMPLATE);
 
 /**
- * @typedef {JQuery<HTMLElement> extends {header: JQuery<HTMLElement>,body: JQuery<HTMLElement>,footer: JQuery<HTMLElement>,destroy: () => void,show: () => void}} ModalDialogue
+ * @typedef {JQuery<HTMLElement> & {header: JQuery<HTMLElement>, body: JQuery<HTMLElement>, footer: JQuery<HTMLElement>,destroy: () => void, show: () => void, getRoot: () => {on: () => void}}} ModalDialogue
  */
 
 /**
@@ -96,6 +96,8 @@ export class ModalSrv {
             large: true,
         });
         if (onHidden) {
+            // eslint-disable-next-line no-console
+            console.log("onhidden", onHidden);
             // @ts-ignore
             modal.getRoot().on(ModalEvents.hidden, () => {
                 onHidden();
@@ -104,4 +106,3 @@ export class ModalSrv {
         return modal;
     }
 }
-

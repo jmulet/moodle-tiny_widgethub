@@ -77,22 +77,57 @@ export const register = (editor) => {
  */
 export const isPluginVisible = (editor) => editor.options.get(showPlugin);
 
-export class EditorOptions {
-    /** @type {Record<string, WidgetWrapper> | undefined} */
-    _widgetDict;
+/**
+ * @param {import('./plugin').TinyMCE} editor
+ * @returns {string} - additional css that must be included in a <style> tag in editor's iframe
+ */
+export const getAdditionalCss = (editor) => {
+    return editor.options.get(additionalCss);
+};
 
+/**
+ * Wrapper version of the snippet definitions shared among all editors in page
+ * @type {Record<string, Widget> | undefined}
+ * */
+let _widgetDict;
+
+/**
+ * @param {import('./plugin').TinyMCE} editor
+ * @returns {Record<string, Widget>} - The available list of widgets
+ */
+export const getWidgetDict = (editor) => {
+    if (_widgetDict) {
+        return _widgetDict;
+    }
+    /** @type {RawWidget[]} */
+    let rawWidgets = editor.options.get(widgetList) ?? [];
+    _widgetDict = {};
+    // Partials is a special widget that is used to define common parameters shared by other widgets
+    /** @type {RawWidget | undefined} */
+    let partials = rawWidgets.filter(e => e.key === 'partials')[0];
+    if (partials) {
+        rawWidgets = rawWidgets.filter(e => e.key !== 'partials');
+    }
+    // Create a wrapper for the widget to handle operations
+    const wrappedWidgets = rawWidgets
+        .map(w => new Widget(w, partials || {}));
+
+    // Remove those buttons that aren't usable for the current user
+    const id = editor.options.get(userId);
+    wrappedWidgets.filter(w => w.isFor(id)).forEach(w => {
+        if (_widgetDict) {
+            _widgetDict[w.key] = w;
+        }
+    });
+    return _widgetDict;
+};
+
+export class EditorOptions {
     /**
      * @param {import('./plugin').TinyMCE} editor
      */
     constructor(editor) {
         this.editor = editor;
-    }
-
-    /**
-     * @returns {boolean}
-     */
-    get pluginVisible() {
-        return this.editor.options.get(showPlugin);
     }
 
     /**
@@ -110,37 +145,10 @@ export class EditorOptions {
     }
 
     /**
-     * @returns {string} - additional css that must be included in a <style> tag in editor's iframe
-     */
-    get additionalCss() {
-        return this.editor.options.get(additionalCss);
-    }
-
-    /**
-     * @returns {Object.<string,WidgetWrapper>} - a dictionary of "usable" widgets for the current userId
+     * @returns {Object.<string, Widget>} - a dictionary of "usable" widgets for the current userId
      */
     get widgetDict() {
-        if (!this._widgetDict) {
-            this._widgetDict = {};
-            // The widgetList is of type object[]
-            // partials is a special widget that is used to define common parameters shared by other widgets
-            /** @type {Widget[]} */
-            let widgets = this.editor.options.get(widgetList);
-            let partials = widgets.filter(e => e.key === 'partials')[0];
-            if (partials) {
-                widgets = widgets.filter(e => e.key !== 'partials');
-            }
-            // Create a wrapper for the widget to handle operations
-            const wrappedWidgets = widgets
-                .map(w => new WidgetWrapper(w, partials || {}));
-            // Remove those buttons that aren't usable for the current user
-            wrappedWidgets.filter(w => w.isFor(this.userId)).forEach(w => {
-                if (this._widgetDict) {
-                    this._widgetDict[w.key] = w;
-                }
-            });
-        }
-        return this._widgetDict;
+       return getWidgetDict(this.editor);
     }
 }
 
@@ -190,7 +198,7 @@ export const Shared = {
  * @property {string} actions
  */
 /**
- * @typedef {Object} Widget
+ * @typedef {Object} RawWidget
  * @property {number} id
  * @property {string} key
  * @property {string} category
@@ -209,17 +217,18 @@ export const Shared = {
  * @property {string} author
  * @property {boolean=} hidden
  * @property {Action[]} [contextmenu]
+ * @property {Action[]} [contexttoolbar]
  */
 /**
  * @class
  * @classdesc Wrapper for Widget definition
  */
-export class WidgetWrapper {
+export class Widget {
     #widget;
     #instructionsParsed = false;
 
     /**
-     * @param {Widget} widget
+     * @param {RawWidget} widget
      * @param {Object.<string, any>=} partials
      */
     constructor(widget, partials) {

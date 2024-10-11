@@ -11,8 +11,19 @@ describe('utils module tests', () => {
         expect(g.length).toBeGreaterThan(8);
         expect(RegExp(/^[a-zA-Z]*./).exec(g)).not.toBe(null);
         for (let i = 0; i < 100; i++) {
+            // It is random
             expect(g == U.genID()).toBeFalsy();
         }
+    });
+
+    test('it productes a hashCode of string', () => {
+        expect(typeof U.hashCode('')).toBe('number'); 
+        expect(typeof U.hashCode('a word')).toBe('number');
+        // Non random
+        expect(U.hashCode('')).toBe(U.hashCode(''));
+        expect(U.hashCode('a word')).toBe(U.hashCode('a word'));
+        // Different
+        expect(U.hashCode('a word')).not.toBe(U.hashCode('a word.'));
     });
 
     test('joins two paths in a single one', () => {
@@ -105,6 +116,84 @@ describe('utils module tests', () => {
             const res = f("america esa gran desconocida de las aviacion")
             expect(res).toBe("AmEricA EsA grAn dEsconocidA dE lAs AviAcion")
         }
+    });
+
+    it("It applies widgetFilter", async() => {
+        const editor = {
+            notificationManager: {
+                open: jest.fn()
+            },
+            setContent: jest.fn(),
+            getContent: jest.fn().mockImplementation(() => "<p>This is the editor's content</p>"),
+            dom: {
+                window
+            }
+        };
+        const coreStr = {
+            get_strings: (/** @type {any[]} **/ lst) => {
+                return Promise.resolve(lst.map(e => e.key))
+            }
+        }
+        // Invalid script shows error message
+        const applyWidgetFilter = U.applyWidgetFilterFactory(editor, coreStr);
+        let res = await applyWidgetFilter("Bad script");
+        expect(editor.notificationManager.open).toHaveBeenCalledWith({
+            text: "filterres: Invalid filter",
+            type: 'danger',
+            timeout: 4000
+        });
+        expect(res).toBe(false);
+
+        editor.notificationManager.open.mockClear();
+        // Valid script without applying any changes
+        res = await applyWidgetFilter(`
+            // This is the filter definition
+            return [null, 'no change done'];
+        `);
+        expect(editor.notificationManager.open).toHaveBeenCalledWith({
+            text: "nochanges",
+            type: 'info',
+            timeout: 4000
+        });
+        expect(res).toBe(true);
+        expect(editor.setContent).not.toHaveBeenCalled();
+
+        editor.notificationManager.open.mockImplementation();
+        // Valid script applying changes
+        res = await applyWidgetFilter(`
+            // This is the filter definition
+            var txt2 = text.replace("editor's", "TinyMCE editor's");
+            // Replace the entire content
+            return [txt2, 'change done'];
+        `);
+        expect(editor.notificationManager.open).toHaveBeenCalledWith({
+            text: "filterres: change done",
+            type: 'success',
+            timeout: 5000
+        });
+        expect(res).toBe(true);
+        expect(editor.setContent).toHaveBeenCalledWith("<p>This is the TinyMCE editor's content</p>");
+    });
+
+
+    test('performCasting', () => {
+        expect(U.performCasting('true', 'boolean')).toStrictEqual(true);
+        expect(U.performCasting(true, 'boolean')).toStrictEqual(true);
+        expect(U.performCasting(1, 'boolean')).toStrictEqual(true);
+        expect(U.performCasting('false', 'boolean')).toStrictEqual(false);
+        expect(U.performCasting(false, 'boolean')).toStrictEqual(false);
+        expect(U.performCasting(0, 'boolean')).toStrictEqual(false);
+
+        expect(U.performCasting('wrong number', 'number')).toStrictEqual('wrong number');
+        expect(U.performCasting('12', 'number')).toStrictEqual(12);
+        expect(U.performCasting('-12', 'number')).toStrictEqual(-12);
+        expect(U.performCasting('7.5', 'number')).toStrictEqual(7.5);
+
+        expect(U.performCasting('a string', 'string')).toStrictEqual('a string');
+        expect(U.performCasting(12, 'string')).toStrictEqual('12');
+        expect(U.performCasting(true, 'string')).toStrictEqual('true');
+        expect(U.performCasting(false, 'string')).toStrictEqual('false');
+        expect(U.performCasting({a: 1}, 'string')).toStrictEqual('{"a":1}');
     });
 
     test('findVariableByName', () => {

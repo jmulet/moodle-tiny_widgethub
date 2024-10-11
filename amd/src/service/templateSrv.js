@@ -41,11 +41,11 @@ const defineVar = function (text, ctx2) {
 export class TemplateSrv {
     /**
      * @param {*} mustache
-     * @param {() => Promise<import('../container').EJS>} ejsLoader
+     * @param {() => Promise<import('../commands').EJS>} ejsLoader
      */
     constructor(mustache, ejsLoader) {
         this.mustache = mustache;
-        /** @type {() => Promise<import('../container').EJS>} */
+        /** @type {() => Promise<import('../commands').EJS>} */
         this.ejsLoader = ejsLoader;
     }
     /**

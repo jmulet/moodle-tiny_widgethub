@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -37,8 +38,8 @@ import {createBinding} from '../util';
  * @classdesc Defines a generic editor dialogue based on widget definition fields
  */
 export default class WidgetPropertiesCtrl {
-    /** @type {import('../service/modalSrv').ModalDialogue | undefined} */
-    #modal;
+    /** @type {import('../service/modalSrv').ModalDialogue | null} */
+    #modal = null;
 
     /**
      * @param {import('../plugin').TinyMCE} editor
@@ -61,12 +62,15 @@ export default class WidgetPropertiesCtrl {
      * @returns
      */
     async show(currentContext) {
+        if (!currentContext.widget) {
+            console.error("Missing widget on currentContext");
+            return;
+        }
         const widget = currentContext.widget;
         const hostId = this.editor.id;
         const elem = currentContext.elem;
 
         if (!elem || !widget?.hasBindings()) {
-            // eslint-disable-next-line no-console
             console.error("Invalid genericEditor widget definition ", widget);
             return;
         }
@@ -113,12 +117,15 @@ export default class WidgetPropertiesCtrl {
 
         // Bind accept action to modal
         this.#modal.footer.find("button.btn-secondary").on("click", () => {
-            this.#modal.destroy();
+            this.#modal?.destroy();
         });
         this.#modal.footer.find("button.btn-primary").on("click", () => {
-            const form = this.#modal.body.find("form");
-            const updatedValues = this.formCtrl.extractFormParameters(widget, form);
-            this.#modal.destroy();
+            const form = this.#modal?.body?.find("form");
+            let updatedValues = paramValues;
+            if (form) {
+                updatedValues = this.formCtrl.extractFormParameters(widget, form);
+            }
+            this.#modal?.destroy();
             // Apply Param Values To DOM
             Object.keys(bindingsDOM).forEach(key => {
                 bindingsDOM[key].setValue(updatedValues[key]);
@@ -128,6 +135,6 @@ export default class WidgetPropertiesCtrl {
     }
 
     close() {
-        this.#modal.destroy();
+        this.#modal?.destroy();
     }
 }

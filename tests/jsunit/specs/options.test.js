@@ -19,10 +19,10 @@ jest.mock("editor_tiny/options", () => ({
     getPluginOptionName: (pluginname, key) => key
 }), { virtual: true });
 
-const { Shared, WidgetWrapper } = require('../src/options');
+const { Shared, Widget } = require('../src/options');
 
 
-/** @type {import('../src/options').Widget} */
+/** @type {import('../src/options').RawWidget} */
 const rawSnpt = {
     "id": 1,
     "name": "Capsa multi-propòsit",
@@ -48,7 +48,7 @@ const rawSnpt = {
         { "name": "LANG", "value": "CA", "title": "Idioma", "type": "select", "options": [{ "v": "ca", "l": "Català" }, { "v": "es", "l": "Castellà" }, { "v": "en", "l": "English" }, { "v": "fr", "l": "Francès" }, { "v": "de", "l": "Alemany" }] }]
 };
 
-/** @type {import('../src/options').Widget} */
+/** @type {import('../src/options').RawWidget} */
 const rawSnpt2 = {
     "id": 2,
     "name": "Capsa multi-propòsit",
@@ -73,7 +73,7 @@ const rawSnpt2 = {
         { "name": "LANG", "value": "CA", "title": "Idioma", "type": "select", "options": [{ "v": "ca", "l": "Català" }, { "v": "es", "l": "Castellà" }, { "v": "en", "l": "English" }, { "v": "fr", "l": "Francès" }, { "v": "de", "l": "Alemany" }] }]
 };
 
-/** @type {import('../src/options').Widget} */
+/** @type {import('../src/options').RawWidget} */
 const rawSnpt3 = {
     "id": 3,
     "name": "Capsa multi-propòsit",
@@ -98,13 +98,13 @@ const rawSnpt3 = {
         { "name": "LANG", "value": "CA", "title": "Idioma", "type": "select", "options": [{ "v": "ca", "l": "Català" }, { "v": "es", "l": "Castellà" }, { "v": "en", "l": "English" }, { "v": "fr", "l": "Francès" }, { "v": "de", "l": "Alemany" }] }]
 };
 
-describe('widgetWrapper', () => {
+describe('Widget', () => {
     test('correct scope is detected', () => {
         expect(Shared.currentScope).toBe("page-mod-page-mod");
     });
 
     test('basic usage', () => {
-        const snpt = new WidgetWrapper({ ...rawSnpt });
+        const snpt = new Widget({ ...rawSnpt });
         expect(snpt.name).toBe(rawSnpt.name);
         expect(snpt.key).toBe(rawSnpt.key);
         expect(typeof (snpt.defaults)).toBe("object");
@@ -116,29 +116,29 @@ describe('widgetWrapper', () => {
     });
 
     test('is suitable in scope', () => {
-        let snpt = new WidgetWrapper({ ...rawSnpt });
+        let snpt = new Widget({ ...rawSnpt });
         expect(snpt.isUsableInScope()).toBe(true);
-        snpt = new WidgetWrapper({ ...rawSnpt3 });
+        snpt = new Widget({ ...rawSnpt3 });
         expect(snpt.isUsableInScope()).toBe(true);
     });
 
     test('not suitable in scope', () => {
-        const snpt = new WidgetWrapper({ ...rawSnpt2 });
+        const snpt = new Widget({ ...rawSnpt2 });
         expect(snpt.isUsableInScope()).toBe(false);
     });
 
     test('is available for user', () => {
-        const snpt = new WidgetWrapper({ ...rawSnpt });
+        const snpt = new Widget({ ...rawSnpt });
         expect(snpt.isFor(42)).toBe(true);
     });
 
     test('not available in scope because hidden', () => {
-        const snpt = new WidgetWrapper({ ...rawSnpt2 });
+        const snpt = new Widget({ ...rawSnpt2 });
         expect(snpt.isFor(52)).toBe(false);
     });
 
     test('not available in scope because not in list', () => {
-        const snpt = new WidgetWrapper({ ...rawSnpt3 });
+        const snpt = new Widget({ ...rawSnpt3 });
         expect(snpt.isFor(52)).toBe(false);
         expect(snpt.isFor(7)).toBe(false);
         expect(snpt.isFor(2)).toBe(true); // because admin
@@ -147,7 +147,7 @@ describe('widgetWrapper', () => {
     });
 
     test('available in scope because it is in list', () => {
-        const snpt = new WidgetWrapper({ ...rawSnpt3 });
+        const snpt = new Widget({ ...rawSnpt3 });
         expect(snpt.isFor(5)).toBe(true);
         expect(snpt.isFor(42)).toBe(true);
         expect(snpt.isFor(555)).toBe(true);

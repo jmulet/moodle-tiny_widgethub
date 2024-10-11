@@ -105,19 +105,19 @@ export function searchComp(str1, needle) {
 /** Default transformers */
 const Transformers = {
     // @ts-ignore
-    "toUpperCase": function (txt) {
+    "toUpperCase": function(txt) {
         return (txt + "").toUpperCase();
     },
     // @ts-ignore
-    "toLowerCase": function (txt) {
+    "toLowerCase": function(txt) {
         return (txt + "").toLowerCase();
     },
     // @ts-ignore
-    "trim": function (txt) {
+    "trim": function(txt) {
         return (txt + "").trim();
     },
     // @ts-ignore
-    "ytId": function (txt) {
+    "ytId": function(txt) {
         // Finds the youtubeId in a text
         const rx = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/;
         const r = (txt || '').match(rx);
@@ -127,7 +127,7 @@ const Transformers = {
         return txt;
     },
     // @ts-ignore
-    "vimeoId": function (txt) {
+    "vimeoId": function(txt) {
         const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?(\d+)/;
         const match = (txt || "").match(regExp);
         if (match?.[5]) {
@@ -136,7 +136,7 @@ const Transformers = {
         return txt;
     },
     // @ts-ignore
-    "serveGDrive": function (txt) {
+    "serveGDrive": function(txt) {
         // Expecting https://drive.google.com/file/d/1DDUzcFrOlzWb3CBdFPJ1NCNXClvPbm5B/preview
         const res = (txt + "").match(/https:\/\/drive.google.com\/file\/d\/([a-zA-Z0-9_]+)\//);
         if (res?.length) {
@@ -146,11 +146,11 @@ const Transformers = {
         return txt;
     },
     // @ts-ignore
-    "removeHTML": function (txt) {
+    "removeHTML": function(txt) {
         return (txt || '').replace(/<[^>]*>?/gm, '');
     },
     // @ts-ignore
-    "escapeHTML": function (txt) {
+    "escapeHTML": function(txt) {
         return (txt || '').replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
@@ -158,12 +158,12 @@ const Transformers = {
             .replace(/'/g, "&#039;");
     },
     // @ts-ignore
-    "encodeHTML": function (txt) {
+    "encodeHTML": function(txt) {
         // @ts-ignore
         return this.encodeURIComponent(txt || "");
     },
     // @ts-ignore
-    "escapeQuotes": function (txt) {
+    "escapeQuotes": function(txt) {
         return (txt || '').replace(/"/gm, "'");
     }
 };
@@ -219,10 +219,9 @@ export function cleanParameterName(name) {
  * @returns {Function?}
  */
 export function createFilterFunction(filterCode) {
-    filterCode = filterCode.replace('<!--<widgetcode>', '').replace('</widgetcode>-->', '');
     let userWidgetFilter = null;
     try {
-        userWidgetFilter = new Function('text', 'tiny', 'opts', filterCode);
+        userWidgetFilter = new Function('text', 'editor', 'opts', filterCode);
     } catch (ex) {
         userWidgetFilter = null;
         console.error(ex);
@@ -231,21 +230,21 @@ export function createFilterFunction(filterCode) {
 }
 
 /**
- * @param {*} coreStr - dependency
+ * @param {import('./plugin').TinyMCE} editor
+ * @param {{get_strings: (keyComponent: any[]) => Promise<string[]>}} coreStr - dependency on core/str
  * @returns {*}
  */
-export function applyWidgetFilter(coreStr) {
+export function applyWidgetFilterFactory(editor, coreStr) {
     /**
-     * @param {import('./plugin').TinyMCE} editor
      * @param {string} widgetTemplate
      * @param {boolean} silent
      * @param {object?} mergevars
      * @returns {Promise<boolean>} - True if the filter can be compiled
      */
-    return async (editor, widgetTemplate, silent, mergevars) => {
+    return async(widgetTemplate, silent, mergevars) => {
         const translations = await coreStr.get_strings([
-            { key: 'filterres', component: 'tiny_widgethub' },
-            { key: 'nochanges', component: 'tiny_widgethub' }
+            {key: 'filterres', component: 'tiny_widgethub'},
+            {key: 'nochanges', component: 'tiny_widgethub'}
         ]);
         // Es tracta d'un filtre, no d'un widget i s'ha de tractar de forma diferent
         const userWidgetFilter = createFilterFunction(widgetTemplate);
@@ -259,7 +258,7 @@ export function applyWidgetFilter(coreStr) {
             return false;
         }
         // @ts-ignore
-        const handleFilterResult = function (res) {
+        const handleFilterResult = function(res) {
             const out = res[0];
             let msg = res[1];
             if (out != null) {
@@ -293,11 +292,11 @@ export function applyWidgetFilter(coreStr) {
         };
 
         const initialHTML = editor.getContent();
-        const filteredResult = userWidgetFilter(initialHTML, editor.dom.window, mergevars);
+        const filteredResult = userWidgetFilter(initialHTML, editor, mergevars);
         // Hi ha la possibilitat que el filtre retorni una promesa o un array
         const isPromise = filteredResult != null && typeof (filteredResult) === 'object' && ('then' in filteredResult);
         if (isPromise) {
-            filteredResult.then(handleFilterResult);
+            filteredResult.then(handleFilterResult).catch((/** @type {any} */ err) => console.error(err));
         } else {
             handleFilterResult(filteredResult || [null, translations[1]]);
         }
@@ -408,7 +407,7 @@ export function addScript(url, id, onSuccess, onError) {
             onSuccess();
         }
     };
-    newScript.onerror = function () {
+    newScript.onerror = function() {
         console.error("Error loading ", url);
         if (onError) {
             onError();
@@ -417,8 +416,12 @@ export function addScript(url, id, onSuccess, onError) {
     document.head.append(newScript);
 }
 
-// @ts-ignore
-const performCasting = function (value, type) {
+/**
+ * @param {*} value
+ * @param {string | undefined} type
+ * @returns {*}
+ */
+export const performCasting = function(value, type) {
     switch (type) {
         case ("boolean"):
             if (value === 1 || value === "1" || value === true || value === "true") {
@@ -429,15 +432,30 @@ const performCasting = function (value, type) {
             break;
         case ("number"):
             try {
-                value = parseInt(value);
+                let parsed;
+                if ((value + '').indexOf(".") < 0) {
+                    parsed = parseInt(value);
+                } else {
+                    parsed = parseFloat(value);
+                }
+                if (!isNaN(parsed)) {
+                    value = parsed;
+                } else {
+                    console.error(`Error parsing number ${value}`);
+                }
             } catch (ex) {
-                console.error("Error parsing number", ex);
+                console.error(`Error parsing number ${value}`);
             }
             break;
         case ("string"):
-            value = value + "";
+            if (typeof value === 'object') {
+                value = JSON.stringify(value);
+            } else {
+                value = value + "";
+            }
             break;
     }
+    console.error(`Fail to cast ${value} to ${type}`);
     return value;
 };
 
@@ -445,7 +463,7 @@ const performCasting = function (value, type) {
  * @param {unknown} a
  * @param {unknown} b
  */
-const xor = function (a, b) {
+const xor = function(a, b) {
     return !a !== !b;
 };
 
@@ -454,7 +472,7 @@ const xor = function (a, b) {
  * @param {JQuery<HTMLElement>} $e
  * @returns
  */
-const bindingFactory = function ($e) {
+const bindingFactory = function($e) {
     /** @this {Record<string, Function>} */
     const methods = {
         /**
@@ -603,7 +621,7 @@ const bindingFactory = function ($e) {
          * @param {string=} castTo
          * @returns {Binding}
          */
-        "attrRegex": function (attr, query, castTo) {
+        "attrRegex": function(attr, query, castTo) {
             let elem = $e;
             if (query) {
                 elem = $e.find(query);
@@ -638,7 +656,7 @@ const bindingFactory = function ($e) {
          * @param {boolean=} neg
          * @returns {Binding}
          */
-        "hasStyle": function (sty, query, neg) {
+        "hasStyle": function(sty, query, neg) {
             let elem = $e;
             if (query) {
                 elem = $e.find(query);
@@ -682,7 +700,7 @@ const bindingFactory = function ($e) {
          * @param {string=} castTo
          * @returns {Binding}
          */
-        "styleRegex": function (attr, query, castTo) {
+        "styleRegex": function(attr, query, castTo) {
             let elem = $e;
             if (query) {
                 elem = $e.find(query);
@@ -741,18 +759,18 @@ export const createBinding = (definition, elem, castTo) => {
     /** @type {Binding | null} */
     let bindFn = null;
     if (typeof (definition) === 'string') {
-        return evalInContext({ ...bindingFactory(elem) }, definition, true);
+        return evalInContext({...bindingFactory(elem)}, definition, true);
     } else {
         // The user provides the get and set functions
         bindFn = {
             getValue: () => {
-                let v = evalInContext({ elem }, `(${definition.get})(elem)`);
+                let v = evalInContext({elem}, `(${definition.get})(elem)`);
                 if (castTo) {
                     v = performCasting(v, castTo);
                 }
                 return v;
             },
-            setValue: (v) => evalInContext({ elem, v }, `(${definition.set})(elem, v)`)
+            setValue: (v) => evalInContext({elem, v}, `(${definition.set})(elem, v)`)
         };
     }
     return bindFn;

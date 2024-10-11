@@ -25,7 +25,7 @@
 export class UserStorageSrv {
    /**
     * @param {import('../options').EditorOptions} editorOptions
-    * @param {import('../container').IStorage} iStorage
+    * @param {import('../commands').IStorage} iStorage
     */
     constructor(editorOptions, iStorage) {
         /** @type {Storage} */
@@ -120,7 +120,7 @@ export class UserStorageSrv {
             this.sessionStorage.setItem(this.STORE_KEY, JSON.stringify(this._sessionStore));
         } else if (type === null || type === undefined) {
             this.localStorage.setItem(this.STORE_KEY, JSON.stringify(this._localStore));
-            this.sessionStorage.setItem(this.STORE_KEY, JSON.stringify(this._sessionStore));            
+            this.sessionStorage.setItem(this.STORE_KEY, JSON.stringify(this._sessionStore));
         }
     }
     /**

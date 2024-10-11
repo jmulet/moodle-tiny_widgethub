@@ -97,4 +97,76 @@ export class DomSrv {
         }
         return found.map(e => this.jQuery(e));
     }
+
+    /**
+     * @param {HTMLElement} elem
+     * @param {string | string[]} [selectors]
+     * @returns {boolean}
+     */
+    matchesSelectors(elem, selectors) {
+        if (!selectors) {
+            return false;
+        }
+        /** @type {string} **/
+        let selector;
+        /** @type {string[]} **/
+        let extraQuery = [];
+        if (Array.isArray(selectors)) {
+            selector = selectors[0];
+            if (selectors.length > 1) {
+                extraQuery = selectors.slice(1);
+            }
+        } else {
+            selector = selectors;
+        }
+        /* @type {boolean} */
+        let match = elem.matches(selector);
+        if (match) {
+            extraQuery.forEach(e => {
+                match = match && elem.querySelector(e) !== null;
+            });
+        }
+        return match;
+    }
+
+    /**
+     * Defines the type PathResult
+     * @typedef {Object} PathResult
+     * @property {JQuery<HTMLElement>} selectedElement - The DOM element from which the search starts.
+     * @property {JQuery<HTMLElement>} [elem] - Indicates the element corresponding to the selector of the widget found
+     * @property {JQuery<HTMLElement>} [targetElement] - Indicates the element corresponding the intermediate selector
+     * @property {import('../options').Widget=} widget - The current widget definition associated with the elem
+     */
+
+    /**
+     * Walks the DOM tree up from the selectedElement and tries
+     * to find the first element that matches the selector of
+     * some widget.
+     * @param {JQueryStatic} jQuery
+     * @param {import('../options').Widget[]} widgetList - The list of widgets
+     * @param {HTMLElement} selectedElement - The starting element in the search
+     * @returns {PathResult} The element and widget found in the search.
+     */
+    findWidgetOnEventPath(jQuery, widgetList, selectedElement) {
+        /** @type {PathResult} */
+        const res = {
+            selectedElement: jQuery(selectedElement)
+        };
+        /** @type {HTMLElement | null} */
+        let elem = selectedElement;
+        const n = widgetList.length;
+        while (elem !== null && elem !== undefined && elem !== null &&
+            elem.getAttribute("name") !== "BODY" && res.widget === undefined) {
+            let i = 0;
+            while (i < n && res.widget === undefined) {
+                if (this.matchesSelectors(elem, widgetList[i].selectors)) {
+                    res.widget = widgetList[i];
+                    res.elem = jQuery(elem);
+                }
+                i++;
+            }
+            elem = elem.parentElement;
+        }
+        return res;
+    }
 }

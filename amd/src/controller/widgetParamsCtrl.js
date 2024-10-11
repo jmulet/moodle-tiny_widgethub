@@ -25,6 +25,9 @@
  */
 
 export class WidgetParamsCtrl {
+   /** @type {import('../service/modalSrv').ModalDialogue | null} */
+   #modal = null;
+
    /**
     * @type {import('./widgetPickerCtrl').WidgetPickerCtrl | undefined }
     */
@@ -35,7 +38,7 @@ export class WidgetParamsCtrl {
    * @param {import('../service/templateSrv').TemplateSrv} templateSrv
    * @param {import('../service/modalSrv').ModalSrv} modalSrv
    * @param {import('../controller/formCtrl').FormCtrl} formCtrl
-   * @param {import('../options').WidgetWrapper} widget
+   * @param {import('../options').Widget} widget
    * @param {*} applyWidgetFilter
    */
    constructor(editor, userStorage, templateSrv, modalSrv, formCtrl, widget, applyWidgetFilter) {
@@ -49,7 +52,7 @@ export class WidgetParamsCtrl {
       this.modalSrv = modalSrv;
       /** @type {import('../controller/formCtrl').FormCtrl} */
       this.formCtrl = formCtrl;
-      /** @type {import('../options').WidgetWrapper} */
+      /** @type {import('../options').Widget} */
       this.widget = widget;
       this.applyWidgetFilter = applyWidgetFilter;
    }
@@ -60,10 +63,10 @@ export class WidgetParamsCtrl {
       // Show modal with buttons.
       const data = this.formCtrl.createContext(this.widget);
       const modal = await this.modalSrv.create('params', data, () => {
-         this.modal.destroy();
-         this.modal = null;
+         this.#modal?.destroy();
+         this.#modal = null;
       });
-      this.modal = modal;
+      this.#modal = modal;
       modal.body.find(`a[href="#${data.idTabpane}_1"`).on("click", async() => {
          // Handle preview;
          const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, modal.body.find("form"));
@@ -94,8 +97,8 @@ export class WidgetParamsCtrl {
    }
 
    destroy() {
-      if (this.modal) {
-         this.modal.destroy();
+      if (this.#modal) {
+         this.#modal.destroy();
       }
    }
 
@@ -152,8 +155,10 @@ export class WidgetParamsCtrl {
     */
    async updatePreview(idTabpane, ctxFromDialogue) {
       const interpoledCode = await this.generateInterpolatedCode(ctxFromDialogue);
-      const $previewPanel = this.modal.body.find(`#${idTabpane}_1`);
-      $previewPanel.html(interpoledCode);
+      const $previewPanel = this.#modal?.body?.find(`#${idTabpane}_1`);
+      if ($previewPanel) {
+         $previewPanel.html(interpoledCode);
+      }
    }
 
    /**

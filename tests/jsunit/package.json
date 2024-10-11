@@ -4,8 +4,9 @@
   "description": "Unit testing of AMD modules",
   "main": "index.js",
   "scripts": {
-    "link": "rm -fr ./src && cp -r ../../amd/src .",
-    "test": "npm run link && ./node_modules/.bin/jest --collect-coverage --no-cache"
+    "copy": "rm -fr ./src && cp -r ../../amd/src .",
+    "link": "ln -s ../../amd/src src",
+    "test": "./node_modules/.bin/jest --collect-coverage --no-cache"
   },
   "keywords": [],
   "author": "Josep Mulet Pol",

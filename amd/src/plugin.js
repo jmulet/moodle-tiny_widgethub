@@ -22,7 +22,7 @@
  */
 
 /**
- * @typedef {any} TinyMCE
+ * @typedef {*} TinyMCE
  **/
 
 import {getTinyMCE} from 'editor_tiny/loader';
@@ -32,12 +32,11 @@ import Common from './common';
 import {isPluginVisible, register as registerOptions} from './options';
 import {getSetup as getCommandSetup} from './commands';
 import * as Configuration from './configuration';
-import { DIContainer } from './container';
 
 const documentationUrl = 'https://github.com/jmulet/moodle_tiny-widgethub';
 const {component, pluginName} = Common;
 
-// Setup the Plugin.
+// Setup the plugin.
 // eslint-disable-next-line no-async-promise-executor
 export default new Promise(async(resolve) => {
     const [
@@ -58,12 +57,8 @@ export default new Promise(async(resolve) => {
 
             // Check if the option visible is set.
             if (isPluginVisible(editor)) {
-                // Create DI container scoped to this editor instance
-                const container = new DIContainer();
-                container.registerInstance("editor", editor);
-
                 // Setup commands.
-                setupCommands(container);
+                setupCommands();
             }
 
             return pluginMetadata;

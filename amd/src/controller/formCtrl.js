@@ -75,7 +75,7 @@ export class FormCtrl {
    * @param {import('../plugin').TinyMCE} editor
    * @param {import('../service/userStorageSrv').UserStorageSrv} userStorage
    * @param {import('../service/templateSrv').TemplateSrv} templateSrv
-   * @param {import('../container').FileSrv} fileSrv
+   * @param {import('../commands').FileSrv} fileSrv
    * @param {JQueryStatic} jQuery
    */
    constructor(editor, userStorage, templateSrv, fileSrv, jQuery) {
@@ -85,14 +85,14 @@ export class FormCtrl {
       this.storage = userStorage;
       /** @type {import('../service/templateSrv').TemplateSrv} */
       this.templateSrv = templateSrv;
-      /** @type {import('../container').FileSrv} */
+      /** @type {import('../commands').FileSrv} */
       this.fileSrv = fileSrv;
       /** @type {JQueryStatic} */
       this.jQuery = jQuery;
    }
 
    /**
-    * @param {import('../options').WidgetWrapper} widget
+    * @param {import('../options').Widget} widget
     * @returns {*} - The generated context
     */
    createContext(widget) {
@@ -199,7 +199,7 @@ export class FormCtrl {
    /**
     * Obtains the updated parameter values from the modal
     * This is used in insertWidget
-    * @param {import('../options').WidgetWrapper} widget
+    * @param {import('../options').Widget} widget
     * @param {JQuery<HTMLElement>} form
     * @returns {Record<string, any>} - The updated parameters dict
     */
@@ -282,7 +282,7 @@ export class FormCtrl {
    /**
     * @param {JQuery<HTMLElement>} $formElem
     * @param {Object.<string, any>} defaultsData
-    * @param {import('../options').WidgetWrapper} widget
+    * @param {import('../options').Widget} widget
     * @param {boolean} selectMode
     */
    applyFieldWatchers($formElem, defaultsData, widget, selectMode) {

@@ -1,59 +1,3 @@
-import { WidgetParamsCtrl } from "./controller/widgetParamsCtrl";
-import { WidgetPickerCtrl } from "./controller/widgetPickerCtrl";
-import { FormCtrl } from "./controller/formCtrl";
-import {ModalSrv} from "./service/modalSrv";
-import Mustache from "core/mustache";
-import {TemplateSrv} from "./service/templateSrv";
-import {UserStorageSrv} from "./service/userStorageSrv";
-import jQuery from "jquery";
-import { displayFilepicker } from "editor_tiny/utils";
-import { getFilePicker } from "editor_tiny/options";
-import WidgetPropertiesCtrl from "./controller/widgetPropertiesCtrl";
-import { EditorOptions } from "./options";
-import { initContextActions } from "./contextInit";
-import { DomSrv } from "./service/domSrv";
-import { applyWidgetFilter } from "./util";
-import * as coreStr from "core/str";
-
-export class FileSrv {
-    /**
-     * @param {import('./plugin').TinyMCE} editor
-     */
-    constructor(editor) {
-        this.editor = editor;
-    }
-    getImagePicker() {
-        return getFilePicker(this.editor, 'image');
-    }
-    displayImagePicker() {
-        return displayFilepicker(this.editor, 'image');
-    }
-}
-
-/**
- * Load on demand the template engine EJS
- * @typedef {Object} EJS
- * @property {(template: string, ctx: Object.<string,any>) => string} render
- */
-/** @type {EJS | undefined} */
-let _ejs;
-export const ejsLoader = () => {
-    if (_ejs) {
-        return Promise.resolve(_ejs);
-    }
-    return new Promise((resolve, reject) => {
-        // @ts-ignore
-        window.require(['tiny_widgethub/ejs-lazy'], (ejsModule) => {
-            _ejs = ejsModule;
-            if (_ejs) {
-                resolve(_ejs);
-            } else {
-                reject();
-            }
-        }, reject);
-    });
-};
-
 /**
  * Determines if something is a class or not
  * @param {*} obj
@@ -73,6 +17,15 @@ function isClass(obj) {
  * @typedef {{name: string, type: 'singleton' | 'service' | 'factory', obj: *, deps: string[]}} DIRegistryEntry
  */
 export class DIContainer {
+    static clear() {
+        DIContainer.#containerInstances = new Map();
+        DIContainer.#registry = new Map();
+        DIContainer.#singletonInstances = new Map();
+    }
+    /**
+     * @type {Map<import("./plugin").TinyMCE, DIContainer>}
+     */
+    static #containerInstances = new Map();
     /**
      * @type {Map<string, DIRegistryEntry>}
      */
@@ -85,6 +38,21 @@ export class DIContainer {
      * @type {Map<string, *>}
      */
     #serviceInstances = new Map();
+
+    /**
+     * @param {*} editor
+     * @returns {DIContainer}
+     */
+    static init(editor) {
+        // There should be an instance of the container for each editor in page
+        let instance = DIContainer.#containerInstances.get(editor);
+        if (!instance) {
+            instance = new DIContainer();
+            instance.registerInstance("editor", editor);
+            DIContainer.#containerInstances.set(editor, instance);
+        }
+        return instance;
+    }
 
     /**
      * @param {string=} dependencies
@@ -103,7 +71,7 @@ export class DIContainer {
      * @param {string=} dependencies
      */
     static registerSingleton(name, obj, dependencies) {
-        this.#registry.set(name, { name, type: 'singleton', obj, deps: DIContainer.#parseDeps(dependencies) });
+        this.#registry.set(name, {name, type: 'singleton', obj, deps: DIContainer.#parseDeps(dependencies)});
     }
 
     /**
@@ -112,16 +80,16 @@ export class DIContainer {
      * @param {string=} dependencies
      */
     static registerService(name, obj, dependencies) {
-        this.#registry.set(name, { name, type: 'service', obj, deps: DIContainer.#parseDeps(dependencies) });
+        this.#registry.set(name, {name, type: 'service', obj, deps: DIContainer.#parseDeps(dependencies)});
     }
 
     /**
-    * @param {string} name
-    * @param {*} obj
-    * @param {string=} dependencies
-    */
+     * @param {string} name
+     * @param {*} obj
+     * @param {string=} dependencies
+     */
     static registerFactory(name, obj, dependencies) {
-        this.#registry.set(name, { name, type: 'factory', obj, deps: DIContainer.#parseDeps(dependencies) });
+        this.#registry.set(name, {name, type: 'factory', obj, deps: DIContainer.#parseDeps(dependencies)});
     }
 
     /**
@@ -134,13 +102,60 @@ export class DIContainer {
     }
 
     /**
+     * Allow to retrieve singleton instances without having to instantiate the container
      * @param {string} name
+     * @param {string[]=} path
+     * @returns {*}
+     */
+    static get(name, path) {
+        path = path || [];
+        if (name.indexOf(",") > 0) {
+            return name.split(",").map(e => DIContainer.get(e.trim(), path));
+        }
+        if (path.indexOf(name) >= 0) {
+            throw new Error(`Circular dependency detected on ${name}`);
+        }
+        path.push(name);
+        const reg = DIContainer.#registry.get(name);
+        if (!reg) {
+            throw new Error(`Cannot find a registry for dependency ${name}`);
+        } else if (reg.type !== 'singleton') {
+            throw new Error(`Non singleton dependency ${name} must be invoked from an instance of the container.`);
+        }
+        if (DIContainer.#singletonInstances.has(reg.name)) {
+            return DIContainer.#singletonInstances.get(reg.name);
+        }
+        // Create an instance
+        const deps = (reg.deps ?? []).map(name => DIContainer.get(name, path));
+        let resolved;
+        if (isClass(reg.obj)) {
+            // Has to instantiate a class.
+            resolved = new reg.obj(...deps);
+        } else if (typeof (reg.obj) === 'function' && deps.length) {
+            // Prevent from calling functions like jQuery if no dependencies are passed
+            // Has to call the function.
+            resolved = reg.obj(...deps);
+        } else {
+            resolved = reg.obj;
+        }
+        DIContainer.#singletonInstances.set(name, resolved);
+        return resolved;
+    }
+
+    /**
+     * @param {string} name
+     * @param {string[]=} path
      * @returns {*} - An instance of the "name" in the correct scope
      */
-    get(name) {
+    get(name, path) {
+        path = path || [];
         if (name.indexOf(",") > 0) {
-            return name.split(",").map(e => this.get(e.trim()));
+            return name.split(",").map(e => this.get(e.trim(), path));
         }
+        if (path.indexOf(name) >= 0) {
+            throw new Error(`Circular dependency detected on ${name}`);
+        }
+        path.push(name);
         // Check if already exists an instance with this name.
         if (this.#serviceInstances.has(name)) {
             return this.#serviceInstances.get(name);
@@ -150,10 +165,10 @@ export class DIContainer {
             throw new Error(`Cannot find a registry for dependency ${name}`);
         }
         switch (reg.type) {
-            case ('singleton'): return this.#getInstance(DIContainer.#singletonInstances, reg);
-            case ('service'): return this.#getInstance(this.#serviceInstances, reg);
+            case ('singleton'): return this.#getInstance(DIContainer.#singletonInstances, reg, path);
+            case ('service'): return this.#getInstance(this.#serviceInstances, reg, path);
             case ('factory'): {
-                const deps = (reg.deps ?? []).map(name => this.get(name));
+                const deps = (reg.deps ?? []).map(name => this.get(name, path));
                 if (isClass(reg.obj)) {
                     // Has to instantiate a class.
                     /** @param {*[]} args */
@@ -175,25 +190,27 @@ export class DIContainer {
     /**
      * @param {Map<string, *>} map
      * @param {DIRegistryEntry} reg
+     * @param {string[]} path
      * @returns {*}
      */
-    #getInstance(map, reg) {
+    #getInstance(map, reg, path) {
         if (map.has(reg.name)) {
             return map.get(reg.name);
         }
         // Create an instance
-        const instance = this.#createInstance(reg);
+        const instance = this.#createInstance(reg, path);
         map.set(reg.name, instance);
         return instance;
     }
 
     /**
      * @param {DIRegistryEntry} reg
+     * @param {string[]} path
      * @returns {*}
      */
-    #createInstance(reg) {
+    #createInstance(reg, path) {
         // Need to get all the dependencies.
-        const deps = (reg.deps ?? []).map(name => this.get(name));
+        const deps = (reg.deps ?? []).map(name => this.get(name, path));
         if (isClass(reg.obj)) {
             // Has to instantiate a class.
             return new reg.obj(...deps);
@@ -207,25 +224,3 @@ export class DIContainer {
         }
     }
 }
-
-/** @typedef {{localStorage: Storage, sessionStorage: Storage}} IStorage */
-
-DIContainer.registerSingleton("jQuery", jQuery);
-DIContainer.registerSingleton("coreStr", coreStr);
-DIContainer.registerSingleton("modalSrv", ModalSrv);
-DIContainer.registerSingleton("mustache", Mustache);
-DIContainer.registerSingleton("ejsLoader", ejsLoader);
-DIContainer.registerSingleton("iStorage", { localStorage, sessionStorage });
-DIContainer.registerService("editorOptions", EditorOptions, "editor");
-DIContainer.registerFactory("widgetParamsFactory", WidgetParamsCtrl, "editor, userStorage, templateSrv, modalSrv, formCtrl");
-DIContainer.registerService("widgetPickCtrl", WidgetPickerCtrl,
-    "editor, editorOptions, widgetParamsFactory, modalSrv, templateSrv, userStorage");
-DIContainer.registerService("widgetPropertiesCtrl", WidgetPropertiesCtrl, "editor, formCtrl, modalSrv");
-DIContainer.registerService("formCtrl", FormCtrl, "editor, userStorage, templateSrv, fileSrv, jQuery");
-DIContainer.registerSingleton("domSrv", DomSrv, "jQuery");
-DIContainer.registerSingleton("templateSrv", TemplateSrv, "mustache, ejsLoader");
-DIContainer.registerSingleton("userStorage", UserStorageSrv, "editorOptions, iStorage");
-DIContainer.registerService("fileSrv", FileSrv, "editor");
-DIContainer.registerFactory("initContextActions", initContextActions,
-    "editor, editorOptions, widgetPropertiesCtrl, domSrv, jQuery");
-DIContainer.registerSingleton("applyWidgetFilter", applyWidgetFilter, "coreStr");
