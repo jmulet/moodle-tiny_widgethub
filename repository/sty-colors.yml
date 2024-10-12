@@ -3,7 +3,7 @@ name: Foreground and background colors
 category: styles
 template: <span style="color:{{front}};background-color:{{back}};" class="wh-sty-colors">Sample text<span>
 selectors: span.wh-sty-colors
-insertquery: 'r!span.wh-sty-colors'
+insertquery: span.wh-sty-colors
 parameters:
   - name: front
     title: Foreground color
