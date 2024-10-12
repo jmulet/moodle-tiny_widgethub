@@ -96,8 +96,6 @@ export class ModalSrv {
             large: true,
         });
         if (onHidden) {
-            // eslint-disable-next-line no-console
-            console.log("onhidden", onHidden);
             // @ts-ignore
             modal.getRoot().on(ModalEvents.hidden, () => {
                 onHidden();

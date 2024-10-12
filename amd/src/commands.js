@@ -28,7 +28,7 @@ import Common from './common';
 import * as cfg from 'core/config';
 import {DIContainer} from './container';
 import {initContextActions} from './contextInit';
-import {EditorOptions, getAdditionalCss} from './options';
+import {EditorOptions, getAdditionalCss, isPluginVisible} from './options';
 import {getFilePicker} from 'editor_tiny/options';
 import {FormCtrl} from './controller/formCtrl';
 import {WidgetParamsCtrl} from './controller/widgetParamsCtrl';
@@ -53,6 +53,10 @@ export const getSetup = async() => {
 
     /** @param {import('./plugin').TinyMCE} editor */
     return (editor) => {
+        // Check if the option visible is set.
+        if (!isPluginVisible(editor)) {
+            return;
+        }
         // Register the Icon.
         editor.ui.registry.addIcon(Common.icon, buttonImage.html);
 

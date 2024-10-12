@@ -95,23 +95,21 @@ export default class WidgetPropertiesCtrl {
         // Create parameters form controls
         // Filter only those parameters which have default Values
         /** @type {string[]} */
-        const controls = [];
-        widget.parameters.filter(param => param.bind).forEach((param) => {
-            controls.push(this.formCtrl.createControlHTML(hostId, param, paramValues[param.name]));
-        });
+        const controls = widget.parameters.filter(param => param.bind)
+            .map(param => this.formCtrl.createControlHTML(hostId, param, paramValues[param.name]));
 
-        const data = {
+        const ctxData = {
             name: widget.name,
             controls: controls
         };
 
         // Create the modal
         // @ts-ignore
-        this.#modal = await this.modalSrv.create('context', data, () => {
+        this.#modal = await this.modalSrv.create('context', ctxData, () => {
             this.#modal?.destroy();
             this.#modal = null;
         });
-        this.formCtrl.attachImagePickers(this.#modal.body);
+        this.formCtrl.attachPickers(this.#modal.body);
         // Applying watchers to the form elements
         this.formCtrl.applyFieldWatchers(this.#modal.body, paramValues, widget, false);
 

@@ -431,16 +431,36 @@ describe('utils module tests', () => {
         expect(U.capitalize(w)).toBe(cw);
     })
 
-    test('Convert to hex color', () => {
+    test('Convert to hex color no alpha set', () => {
         // No color passed
-        expect(U.toHexColor("")).toBe("#000000");
+        expect(U.toHexAlphaColor("")).toStrictEqual(["#000000", 1]);
         // Already in hex
-        expect(U.toHexColor(" #ffaa01")).toBe("#ffaa01");
+        expect(U.toHexAlphaColor(" #ffaa01")).toStrictEqual(["#ffaa01", 1]);
         // convert rgb to hex
-        expect(U.toHexColor("rgb(255, 255, 255)")).toBe("#ffffff");
-        expect(U.toHexColor("rgb(255, 0, 255)")).toBe("#ff00ff");
-        // convert rgba to hex (ignore alpha)
-        expect(U.toHexColor("rgba(255, 255, 255, 0.4)")).toBe("#ffffff");
+        expect(U.toHexAlphaColor("rgb(255, 255, 255)")).toStrictEqual(["#ffffff", 1]);
+        expect(U.toHexAlphaColor("rgb(255, 0, 255)")).toStrictEqual(["#ff00ff", 1]);        
+    });
+
+
+    test('Convert to hex color with alpha set', () => {
+        // No color passed
+        expect(U.toHexAlphaColor("")).toStrictEqual(["#000000", 1]);
+        // Already in hex
+        expect(U.toHexAlphaColor(" #ffaa0123")).toStrictEqual(["#ffaa01", 35/255]);
+        // convert rgb to hex
+        expect(U.toHexAlphaColor("rgb(255, 255, 255, 15)")).toStrictEqual(["#ffffff", 0.15]);
+        expect(U.toHexAlphaColor("rgb(255, 0, 255, 0.25)")).toStrictEqual(["#ff00ff", 0.25]);        
+    });
+
+    test('Convert to rgb color', () => {
+        expect(U.toRgba(null, 1)).toBe("rgb(0,0,0)");
+        expect(U.toRgba(undefined, 1)).toBe("rgb(0,0,0)");
+        expect(U.toRgba("#ff00ff", 1)).toBe("rgb(255,0,255)");
+        expect(U.toRgba("#ff00ff", 0)).toBe("rgba(255,0,255,0)");
+        expect(U.toRgba("#ff00ff", 0.25)).toBe("rgba(255,0,255,0.25)");
+        expect(U.toRgba("#ff00ff", 25)).toBe("rgba(255,0,255,0.25)");
+        expect(U.toRgba("#ff00ff", 0.2537256)).toBe("rgba(255,0,255,0.25)");
+        expect(U.toRgba("#ff00ff", 0.2587256)).toBe("rgba(255,0,255,0.26)");
     });
 
 });

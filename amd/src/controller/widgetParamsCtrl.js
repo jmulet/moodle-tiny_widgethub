@@ -72,7 +72,7 @@ export class WidgetParamsCtrl {
          const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, modal.body.find("form"));
          await this.updatePreview(data.idTabpane, ctxFromDialogue);
       });
-      this.formCtrl.attachImagePickers(modal.body);
+      this.formCtrl.attachPickers(modal.body);
       modal.footer.show();
       modal.footer.find("button.btn-secondary").on("click", async() => {
          // Go back to main menú

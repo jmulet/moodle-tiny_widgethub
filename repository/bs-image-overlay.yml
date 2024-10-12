@@ -5,7 +5,7 @@ instructions: >
   Turn an image into a card background and overlay your card's text. 
 template: |
   <p><br></p>
-  <div class="card bg-dark text-white">
+  <div class="card wh-img-overlay bg-dark text-white">
     <img class="card-img" src="{{img}}" alt="Card image">
     <div class="card-img-overlay">
       <h5 class="card-title">Card title</h5>
@@ -14,7 +14,7 @@ template: |
     </div>
   </div>
   <p><br></p>
-selectors: div.card
+selectors: div.card.wh-img-overlay
 parameters:
   - name: img
     title: Background image

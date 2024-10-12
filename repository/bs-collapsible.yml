@@ -56,6 +56,6 @@ parameters:
         }
 contextmenu:
   - predicate: .card
-    actions: movebefore moveafter insertafter | remove
+    actions: moveup movedown insertafter | remove
 author: Josep Mulet <pep.mulet@gmail.com>
 version: 1.0.0

@@ -153,7 +153,7 @@ describe("FormCtrl", () => {
             p2: "A long text in the area",
             p3: 1975,
             p4: true,
-            p5: "#aabbcc",
+            p5: "rgb(170,187,204)",
             p6: "b"
         });
     });

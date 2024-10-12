@@ -167,6 +167,26 @@
     background-color: whitesmoke;
   }
   
+  .tiny_widgethub-pattern {
+    display: inline-block;
+    height: 24px;
+    vertical-align: sub;
+    position: relative;
+    background-color: #e5e5f7;
+    opacity: 0.8;
+    background-image: repeating-linear-gradient(45deg, #565656 25%, transparent 25%, transparent 75%, #565656 75%, #565656), repeating-linear-gradient(45deg, #565656 25%, #e5e5f7 25%, #e5e5f7 75%, #565656 75%, #565656);
+    background-position: 0 0, 8px 8px;
+    background-size: 16px 16px;
+  }
+  
+  .tiny_widgethub-pattern > input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
   .tiny_widgethub-blink {
     animation: tiny_widgethub-blinker 1s infinite;
   }

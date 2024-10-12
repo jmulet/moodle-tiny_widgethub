@@ -422,6 +422,9 @@ export function addScript(url, id, onSuccess, onError) {
  * @returns {*}
  */
 export const performCasting = function(value, type) {
+    if (!type || typeof value === type) {
+        return value;
+    }
     switch (type) {
         case ("boolean"):
             if (value === 1 || value === "1" || value === true || value === "true") {
@@ -454,8 +457,9 @@ export const performCasting = function(value, type) {
                 value = value + "";
             }
             break;
+        default:
+            console.error(`Fail to cast ${value} to ${type}`);
     }
-    console.error(`Fail to cast ${value} to ${type}`);
     return value;
 };
 
@@ -784,16 +788,58 @@ export const createBinding = (definition, elem, castTo) => {
 export const capitalize = s => (s && s[0].toUpperCase() + s.slice(1)) || "";
 
 /**
- * @param {string} color
- * @returns {string} - The color in hex format
+ * @param {string | null | undefined} color - color in hex or rgb or rgba
+ * @returns {[string, number]} - The color in hex format, alpha channel 0..1
  */
-export function toHexColor(color) {
-    if (!color) {
-        return "#000000";
-    } else if (color.trim().startsWith("#")) {
-        return color.trim();
+export function toHexAlphaColor(color) {
+    color = (color || '#000000').trim().toLowerCase();
+    let alpha = 1;
+    if (color.startsWith("#") && color.length === 9) {
+        // Already in hex & alpha
+        alpha = parseInt('0x' + color.substring(7)) / 255.0;
+        color = color.substring(0, 7);
+    } else if (color.startsWith('rgb')) {
+        // Assume rgb or rgba
+        const sep = color.indexOf(",") > -1 ? "," : " ";
+        const a = color.replace(/[^\d,]/g, "").split(sep);
+        color = "#" + ((1 << 24) + (+a[0] << 16) + (+a[1] << 8) + (+a[2])).toString(16).slice(1);
+        // Is rgba?
+        if (a.length === 4) {
+            alpha = +a[3];
+            if (alpha > 1) {
+                alpha = 0.01 * alpha;
+            }
+        }
     }
-    // Assume rgb
-    const a = color.replace(/[^\d,]/g, "").split(",");
-    return "#" + ((1 << 24) + (+a[0] << 16) + (+a[1] << 8) + +a[2]).toString(16).slice(1);
+    return [color, alpha];
+}
+
+/**
+ * @param {string | null | undefined} hex - color in hex
+ * @param {number} alpha - 0..1 or 0..100
+ * @returns {string} - The color in rgba syntax
+ */
+export function toRgba(hex, alpha) {
+    hex = (hex || '#000000').trim().toLowerCase();
+    /** @type {number | string} */
+    let alpha2 = alpha ?? 1;
+    if (alpha2 > 1) {
+        alpha2 *= 0.01;
+    }
+    if (alpha2 !== 0 && alpha2 !== 1) {
+        alpha2 = alpha2.toFixed(2);
+    }
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})/i.exec(hex);
+    let r = 0,
+        g = 0,
+        b = 0;
+    if (result) {
+      r = parseInt(result[1], 16);
+      g = parseInt(result[2], 16);
+      b = parseInt(result[3], 16);
+    }
+    if (alpha === 1) {
+        return `rgb(${r},${g},${b})`;
+    }
+    return `rgba(${r},${g},${b},${alpha2})`;
 }

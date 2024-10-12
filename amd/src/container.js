@@ -93,7 +93,7 @@ export class DIContainer {
     }
 
     /**
-     * Register a instance in the container
+     * Register an instance in the container
      * @param {string} name
      * @param {*} obj
      */
@@ -104,18 +104,21 @@ export class DIContainer {
     /**
      * Allow to retrieve singleton instances without having to instantiate the container
      * @param {string} name
-     * @param {string[]=} path
      * @returns {*}
      */
-    static get(name, path) {
-        path = path || [];
+    static get(name) {
         if (name.indexOf(",") > 0) {
-            return name.split(",").map(e => DIContainer.get(e.trim(), path));
+            return name.split(",").map(e => DIContainer.#injectStatic(e.trim(), []));
         }
-        if (path.indexOf(name) >= 0) {
-            throw new Error(`Circular dependency detected on ${name}`);
-        }
-        path.push(name);
+        return DIContainer.#injectStatic(name, []);
+    }
+
+    /**
+     * @param {string} name
+     * @param {string[]} path
+     * @returns {*}
+     */
+    static #injectStatic(name, path) {
         const reg = DIContainer.#registry.get(name);
         if (!reg) {
             throw new Error(`Cannot find a registry for dependency ${name}`);
@@ -126,7 +129,11 @@ export class DIContainer {
             return DIContainer.#singletonInstances.get(reg.name);
         }
         // Create an instance
-        const deps = (reg.deps ?? []).map(name => DIContainer.get(name, path));
+        if (path.indexOf(name) >= 0) {
+            throw new Error(`Circular dependency detected on ${name}`);
+        }
+        path.push(name);
+        const deps = (reg.deps ?? []).map(name => DIContainer.#injectStatic(name, path));
         let resolved;
         if (isClass(reg.obj)) {
             // Has to instantiate a class.
@@ -144,18 +151,21 @@ export class DIContainer {
 
     /**
      * @param {string} name
-     * @param {string[]=} path
      * @returns {*} - An instance of the "name" in the correct scope
      */
-    get(name, path) {
-        path = path || [];
+    get(name) {
         if (name.indexOf(",") > 0) {
-            return name.split(",").map(e => this.get(e.trim(), path));
+            return name.split(",").map(e => this.#inject(e.trim(), []));
         }
-        if (path.indexOf(name) >= 0) {
-            throw new Error(`Circular dependency detected on ${name}`);
-        }
-        path.push(name);
+        return this.#inject(name, []);
+    }
+
+    /**
+     * @param {string} name
+     * @param {string[]} path
+     * @returns {*} - An instance of the "name" in the correct scope
+     */
+    #inject(name, path) {
         // Check if already exists an instance with this name.
         if (this.#serviceInstances.has(name)) {
             return this.#serviceInstances.get(name);
@@ -168,7 +178,7 @@ export class DIContainer {
             case ('singleton'): return this.#getInstance(DIContainer.#singletonInstances, reg, path);
             case ('service'): return this.#getInstance(this.#serviceInstances, reg, path);
             case ('factory'): {
-                const deps = (reg.deps ?? []).map(name => this.get(name, path));
+                const deps = (reg.deps ?? []).map(name => this.#inject(name, path));
                 if (isClass(reg.obj)) {
                     // Has to instantiate a class.
                     /** @param {*[]} args */
@@ -197,7 +207,11 @@ export class DIContainer {
         if (map.has(reg.name)) {
             return map.get(reg.name);
         }
+        if (path.indexOf(reg.name) >= 0) {
+            throw new Error(`Circular dependency detected on ${reg.name}`);
+        }
         // Create an instance
+        path.push(reg.name);
         const instance = this.#createInstance(reg, path);
         map.set(reg.name, instance);
         return instance;
@@ -210,7 +224,7 @@ export class DIContainer {
      */
     #createInstance(reg, path) {
         // Need to get all the dependencies.
-        const deps = (reg.deps ?? []).map(name => this.get(name, path));
+        const deps = (reg.deps ?? []).map(name => this.#inject(name, path));
         if (isClass(reg.obj)) {
             // Has to instantiate a class.
             return new reg.obj(...deps);

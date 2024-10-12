@@ -45,11 +45,18 @@ describe("DIContainer", () => {
         expect(() => DIContainer.get("fun")).toThrow(`Cannot find a registry for dependency cte`);        
     });
 
-    it("Circuit breaker for circular dependency", () => {
+    it("Breaks circular dependency", () => {
         DIContainer.registerSingleton("fun1", (/** @type {Function} */ f2) => ((/** @type {number} */ x) => f2(x) + 1), "fun2");
         DIContainer.registerSingleton("fun2", (/** @type {Function} */ f3) => ((/** @type {number} */ x) => f3(x) * 2), "fun3");
         DIContainer.registerSingleton("fun3", (/** @type {Function} */ f1) => ((/** @type {number} */ x) => f1(x) / 3), "fun1");
         expect(() => DIContainer.get("fun1")).toThrow(`Circular dependency detected on fun1`);     
+    });
+
+    it("It should not detect circular dependency", () => {
+        DIContainer.registerSingleton("fun1", () => ((/** @type {number} */ x) => x + 1));
+        DIContainer.registerSingleton("fun2", (/** @type {Function} */ f1) => ((/** @type {number} */ x) => f1(x) * 2), "fun3");
+        DIContainer.registerSingleton("fun3", (/** @type {Function} */ f1, /** @type {Function} */ f2) => ((/** @type {number} */ x) => f1(f2(x)) / 3), "fun1, fun2");
+        expect(() => DIContainer.get("fun3")).not.toThrow(expect.any(String));     
     });
 
     it("It cannot access to a service from a static context", () => {
@@ -183,6 +190,15 @@ describe("DIContainer", () => {
         const ed = {id: 123};
         const container = DIContainer.init(ed);
         expect(() => container.get("fun1")).toThrow(`Circular dependency detected on fun1`);     
+    });
+
+    it("It should not detect circular dependency", () => {
+        DIContainer.registerSingleton("fun1", () => ((/** @type {number} */ x) => x + 1));
+        DIContainer.registerSingleton("fun2", (/** @type {Function} */ f1) => ((/** @type {number} */ x) => f1(x) * 2), "fun3");
+        DIContainer.registerSingleton("fun3", (/** @type {Function} */ f1, /** @type {Function} */ f2) => ((/** @type {number} */ x) => f1(f2(x)) / 3), "fun1, fun2");
+        const ed = {id: 123};
+        const container = DIContainer.init(ed);
+        expect(() => container.get("fun3")).not.toThrow(expect.any(String));     
     });
  
 });

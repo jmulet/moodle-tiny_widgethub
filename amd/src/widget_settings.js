@@ -5,9 +5,9 @@ import jQuery from 'jquery';
 import CodeProEditor from './libs/cm6pro-lazy';
 import {load, dump} from './libs/js_yaml-lazy';
 import {get_strings as getStrings} from 'core/str';
-import TemplateSrv from './service/templateSrv';
+import {TemplateSrv} from './service/templateSrv';
 import mustache from 'core/mustache';
-import { ejsLoader } from './container';
+import {ejsLoader} from './commands';
 
 const templateSrv = new TemplateSrv(mustache, ejsLoader);
 
@@ -110,7 +110,7 @@ export default {
 		const validation = {msg: '', html: '', json: undefined};
 		try {
 			// Check if the code is a valid Yaml
-			/** @type {import('./util').Widget | undefined} */
+			/** @type {import('./options').RawWidget | undefined} */
 			let jsonObj;
 			try {
 				jsonObj = load(yml, null) ?? {};
@@ -221,20 +221,6 @@ export default {
 		}
 
 		const codeProEditor = new CodeProEditor($controlSecondary[0]);
-
-		const self = this;
-
-		// Handle the select box change event
-		jQuery("select[name='tiny_widgethub/hub']").on('change', function() {
-			/** @type {any} */
-			const choosen = jQuery(this).val();
-			console.info(choosen);
-			if (!choosen) {
-				return;
-			}
-			self.populateform(opts.id, choosen);
-			self.updateYaml(opts.id, codeProEditor);
-		});
 
 		$saveBtn.on("click",
 			async() => {

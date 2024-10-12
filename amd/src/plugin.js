@@ -29,7 +29,7 @@ import {getTinyMCE} from 'editor_tiny/loader';
 import {getPluginMetadata} from 'editor_tiny/utils';
 
 import Common from './common';
-import {isPluginVisible, register as registerOptions} from './options';
+import {register as registerOptions} from './options';
 import {getSetup as getCommandSetup} from './commands';
 import * as Configuration from './configuration';
 
@@ -55,11 +55,8 @@ export default new Promise(async(resolve) => {
             // Register options.
             registerOptions(editor);
 
-            // Check if the option visible is set.
-            if (isPluginVisible(editor)) {
-                // Setup commands.
-                setupCommands();
-            }
+            // Setup commands.
+            setupCommands(editor);
 
             return pluginMetadata;
         });
