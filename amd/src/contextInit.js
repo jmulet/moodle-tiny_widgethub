@@ -15,8 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-import {DIContainer} from './container';
 import {getWidgetDict} from './options';
+import jQuery from "jquery";
+import {getDomSrv} from './service/domSrv';
+import {getWidgetPropertiesCtrl} from './controller/widgetPropertiesCtrl';
 
 /**
  * Tiny WidgetHub plugin.
@@ -111,7 +113,6 @@ const predefinedActionsFactory = function(domSrv) {
                 // Create a text element
                 toUnpack = context.elem.text();
             }
-            console.log('toUnpack', toUnpack, " replace by ", context.elem);
             context.elem.replaceWith(toUnpack);
         },
         /**
@@ -213,8 +214,7 @@ export function initContextActions(editor) {
     // Define icons
     defineIcons(editor);
     const widgetList = Object.values(getWidgetDict(editor));
-    const jQuery = DIContainer.get("jQuery");
-    const domSrv = DIContainer.get("domSrv");
+    const domSrv = getDomSrv();
     /** @type {Record<string, Function>} */
     const predefinedActions = predefinedActionsFactory(domSrv);
 
@@ -227,13 +227,12 @@ export function initContextActions(editor) {
         icon: ICONS.gear,
         tooltip: 'Properties',
         onAction: async() => {
-            const ctx = domSrv.findWidgetOnEventPath(jQuery, widgetList, editor.selection.getNode());
+            const ctx = domSrv.findWidgetOnEventPath(widgetList, editor.selection.getNode());
             if (!ctx.widget) {
                 return;
             }
             // Display modal dialog on this context
-            const container = DIContainer.init(editor);
-            const widgetPropertiesCtrl = container.get("widgetPropertiesCtrl");
+            const widgetPropertiesCtrl = getWidgetPropertiesCtrl(editor);
             await widgetPropertiesCtrl.show(ctx);
         }
     });
@@ -242,14 +241,13 @@ export function initContextActions(editor) {
         text: 'Properties',
         onAction: async() => {
             if (!currentContext?.widget) {
-                currentContext = domSrv.findWidgetOnEventPath(jQuery, widgetList, editor.selection.getNode());
+                currentContext = domSrv.findWidgetOnEventPath(widgetList, editor.selection.getNode());
                 if (!currentContext?.widget) {
                     return;
                 }
             }
             // Display modal dialog on this context
-            const container = DIContainer.init(editor);
-            const widgetPropertiesCtrl = container.get("widgetPropertiesCtrl");
+            const widgetPropertiesCtrl = getWidgetPropertiesCtrl(editor);
             await widgetPropertiesCtrl.show(currentContext);
         }
     });
@@ -261,7 +259,7 @@ export function initContextActions(editor) {
     function genericAction(name) {
         return function() {
             if (!currentContext?.widget) {
-                currentContext = domSrv.findWidgetOnEventPath(jQuery, widgetList, editor.selection.getNode());
+                currentContext = domSrv.findWidgetOnEventPath(widgetList, editor.selection.getNode());
                 if (!currentContext?.widget) {
                     return;
                 }
@@ -322,7 +320,7 @@ export function initContextActions(editor) {
         update: (element) => {
             console.log("update contextmenu ", element);
             // Look for a context
-            currentContext = domSrv.findWidgetOnEventPath(jQuery, widgetList, element);
+            currentContext = domSrv.findWidgetOnEventPath(widgetList, element);
             if (!currentContext?.widget || currentContext.widget.prop("contexttoolbar")) {
                 return '';
             }

@@ -1,16 +1,17 @@
 /**
  * @jest-environment jsdom
  */
+require('../module.mocks')(jest);
+
 /** @type {Record<string, string>} */
 const Templates = require("../../../../amd/src/controller/formCtrl").Templates;
 
 // Make test reproducible
 const util = require("../../src/util");
 
+/** @ts-ignore */
+const jQuery = require("jquery").default;
 const FormCtrl = require("../../src/controller/formCtrl").FormCtrl;
-
-/** @type {*} */
-const jQuery = require('jquery');
 
 const mockEditor = {
     id: 12345, 

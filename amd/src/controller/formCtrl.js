@@ -22,8 +22,11 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+import {getFileSrv} from '../service/fileSrv';
+import {getTemplateSrv} from '../service/templateSrv';
+import {getUserStorage} from '../service/userStorageSrv';
 import {capitalize, cleanParameterName, evalInContext, genID, stream, toHexAlphaColor, toRgba} from '../util';
-
+import jquery from "jquery";
 
 const questionPopover = '{{#tooltip}}<a href="javascript:void(0)" data-toggle="popover" data-trigger="hover" data-content="{{tooltip}}"><i class="fa fas fa-question-circle text-info"></i></a>{{/tooltip}}';
 
@@ -79,7 +82,7 @@ export class FormCtrl {
    * @param {import('../plugin').TinyMCE} editor
    * @param {import('../service/userStorageSrv').UserStorageSrv} userStorage
    * @param {import('../service/templateSrv').TemplateSrv} templateSrv
-   * @param {import('../commands').FileSrv} fileSrv
+   * @param {import('../service/fileSrv').FileSrv} fileSrv
    * @param {JQueryStatic} jQuery
    */
    constructor(editor, userStorage, templateSrv, fileSrv, jQuery) {
@@ -89,7 +92,7 @@ export class FormCtrl {
       this.storage = userStorage;
       /** @type {import('../service/templateSrv').TemplateSrv} */
       this.templateSrv = templateSrv;
-      /** @type {import('../commands').FileSrv} */
+      /** @type {import('../service/fileSrv').FileSrv} */
       this.fileSrv = fileSrv;
       /** @type {JQueryStatic} */
       this.jQuery = jQuery;
@@ -410,4 +413,20 @@ export class FormCtrl {
       // Decide which form elements are visible accoding to the current values of the parameters.
       doUpdateVisibilities();
    }
+}
+
+
+const formCtrlInstances = new Map();
+/**
+ * @param {import('../plugin').TinyMCE} editor
+ * @returns {FormCtrl}
+ */
+export function getFormCtrl(editor) {
+    let instance = formCtrlInstances.get(editor);
+    if (!instance) {
+        // @ts-ignore
+        instance = new FormCtrl(editor, getUserStorage(editor), getTemplateSrv(), getFileSrv(editor), jquery);
+        formCtrlInstances.set(editor, instance);
+    }
+    return instance;
 }

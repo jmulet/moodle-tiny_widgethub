@@ -5,11 +5,9 @@ import jQuery from 'jquery';
 import CodeProEditor from './libs/cm6pro-lazy';
 import {load, dump} from './libs/js_yaml-lazy';
 import {get_strings as getStrings} from 'core/str';
-import {TemplateSrv} from './service/templateSrv';
-import mustache from 'core/mustache';
-import {ejsLoader} from './commands';
+import {getTemplateSrv} from './service/templateSrv';
 
-const templateSrv = new TemplateSrv(mustache, ejsLoader);
+const templateSrv = getTemplateSrv();
 
 /**
  * @class

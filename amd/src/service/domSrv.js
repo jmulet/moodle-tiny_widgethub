@@ -1,3 +1,5 @@
+import jquery from "jquery";
+
 export class DomSrv {
     /**
      * @param {JQueryStatic} jQuery
@@ -142,15 +144,14 @@ export class DomSrv {
      * Walks the DOM tree up from the selectedElement and tries
      * to find the first element that matches the selector of
      * some widget.
-     * @param {JQueryStatic} jQuery
      * @param {import('../options').Widget[]} widgetList - The list of widgets
      * @param {HTMLElement} selectedElement - The starting element in the search
      * @returns {PathResult} The element and widget found in the search.
      */
-    findWidgetOnEventPath(jQuery, widgetList, selectedElement) {
+    findWidgetOnEventPath(widgetList, selectedElement) {
         /** @type {PathResult} */
         const res = {
-            selectedElement: jQuery(selectedElement)
+            selectedElement: this.jQuery(selectedElement)
         };
         /** @type {HTMLElement | null} */
         let elem = selectedElement;
@@ -161,7 +162,7 @@ export class DomSrv {
             while (i < n && res.widget === undefined) {
                 if (this.matchesSelectors(elem, widgetList[i].selectors)) {
                     res.widget = widgetList[i];
-                    res.elem = jQuery(elem);
+                    res.elem = this.jQuery(elem);
                 }
                 i++;
             }
@@ -169,4 +170,17 @@ export class DomSrv {
         }
         return res;
     }
+}
+
+/** @type {DomSrv | undefined} */
+let instanceSrv;
+/**
+ * @returns {DomSrv}
+ */
+export function getDomSrv() {
+    if (!instanceSrv) {
+        // @ts-ignore
+        instanceSrv = new DomSrv(jquery);
+    }
+    return instanceSrv;
 }

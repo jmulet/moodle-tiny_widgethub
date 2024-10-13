@@ -418,3 +418,18 @@ export class Widget {
         return this.#widget[name];
     }
 }
+
+
+const editorOptionsInstances = new Map();
+/**
+ * @param {import('./plugin').TinyMCE} editor
+ * @returns {EditorOptions}
+ */
+export function getEditorOptions(editor) {
+    let instance = editorOptionsInstances.get(editor);
+    if (!instance) {
+        instance = new EditorOptions(editor);
+        editorOptionsInstances.set(editor, instance);
+    }
+    return instance;
+}

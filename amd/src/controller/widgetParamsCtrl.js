@@ -16,6 +16,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+import {getFormCtrl} from '../controller/formCtrl';
+import {getModalSrv} from '../service/modalSrv';
+import {getTemplateSrv} from '../service/templateSrv';
+import {getUserStorage} from '../service/userStorageSrv';
+import {applyWidgetFilterFactory} from '../util';
+import * as coreStr from "core/str";
+
 /**
  * Tiny WidgetHub plugin.
  *
@@ -38,10 +45,10 @@ export class WidgetParamsCtrl {
    * @param {import('../service/templateSrv').TemplateSrv} templateSrv
    * @param {import('../service/modalSrv').ModalSrv} modalSrv
    * @param {import('../controller/formCtrl').FormCtrl} formCtrl
-   * @param {import('../options').Widget} widget
    * @param {*} applyWidgetFilter
+   * @param {import('../options').Widget} widget
    */
-   constructor(editor, userStorage, templateSrv, modalSrv, formCtrl, widget, applyWidgetFilter) {
+   constructor(editor, userStorage, templateSrv, modalSrv, formCtrl, applyWidgetFilter, widget) {
       /** @type {import('../plugin').TinyMCE} */
       this.editor = editor;
       /** @type {import('../service/userStorageSrv').UserStorageSrv} */
@@ -52,9 +59,9 @@ export class WidgetParamsCtrl {
       this.modalSrv = modalSrv;
       /** @type {import('../controller/formCtrl').FormCtrl} */
       this.formCtrl = formCtrl;
+      this.applyWidgetFilter = applyWidgetFilter;
       /** @type {import('../options').Widget} */
       this.widget = widget;
-      this.applyWidgetFilter = applyWidgetFilter;
    }
    /**
     * Displays a dialogue for configuring the parameters of the selected snpt
@@ -188,5 +195,18 @@ export class WidgetParamsCtrl {
       this.editor.selection.setContent(interpoledCode);
       this.editor.focus();
    }
+
+}
+
+
+/**
+ * @param {import('../plugin').TinyMCE} editor
+ * @returns {(widget: import('../options').Widget) => WidgetParamsCtrl}
+ */
+export function getWidgetParamsFactory(editor) {
+   // @ts-ignore
+   const applyWidgetFilter = applyWidgetFilterFactory(editor, coreStr);
+   return (widget) => new WidgetParamsCtrl(editor, getUserStorage(editor), getTemplateSrv(),
+      getModalSrv(), getFormCtrl(editor), applyWidgetFilter, widget);
 
 }

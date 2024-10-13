@@ -104,3 +104,15 @@ export class ModalSrv {
         return modal;
     }
 }
+
+/** @type {ModalSrv | undefined} */
+let instanceSrv;
+/**
+ * @returns {ModalSrv}
+ */
+export function getModalSrv() {
+    if (!instanceSrv) {
+        instanceSrv = new ModalSrv();
+    }
+    return instanceSrv;
+}

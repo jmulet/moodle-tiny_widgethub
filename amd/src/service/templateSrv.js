@@ -22,6 +22,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+import mustache from 'core/mustache';
 import {evalInContext, genID} from '../util';
 
 
@@ -41,11 +42,11 @@ const defineVar = function (text, ctx2) {
 export class TemplateSrv {
     /**
      * @param {*} mustache
-     * @param {() => Promise<import('../commands').EJS>} ejsLoader
+     * @param {() => Promise<EJS>} ejsLoader
      */
     constructor(mustache, ejsLoader) {
         this.mustache = mustache;
-        /** @type {() => Promise<import('../commands').EJS>} */
+        /** @type {() => Promise<EJS>} */
         this.ejsLoader = ejsLoader;
     }
     /**
@@ -225,4 +226,40 @@ export class TemplateSrv {
                 return output;
             };
     }
+}
+
+/**
+ * Load on demand the template engine EJS
+ * @typedef {Object} EJS
+ * @property {(template: string, ctx: Object.<string,any>) => string} render
+ */
+/** @type {EJS | undefined} */
+let _ejs;
+const ejsLoader = () => {
+    if (_ejs) {
+        return Promise.resolve(_ejs);
+    }
+    return new Promise((resolve, reject) => {
+        // @ts-ignore
+        window.require(['tiny_widgethub/ejs-lazy'], (ejsModule) => {
+            _ejs = ejsModule;
+            if (_ejs) {
+                resolve(_ejs);
+            } else {
+                reject();
+            }
+        }, reject);
+    });
+};
+
+/** @type {TemplateSrv | undefined} */
+let instanceSrv;
+/**
+ * @returns {TemplateSrv}
+ */
+export function getTemplateSrv() {
+    if (!instanceSrv) {
+        instanceSrv = new TemplateSrv(mustache, ejsLoader);
+    }
+    return instanceSrv;
 }

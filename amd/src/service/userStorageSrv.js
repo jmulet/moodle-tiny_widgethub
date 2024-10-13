@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+import { getEditorOptions } from '../options';
+
 /**
  * Tiny WidgetHub plugin.
  *
@@ -22,10 +24,14 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+/**
+ * @typedef {{localStorage: Storage, sessionStorage: Storage}} IStorage;
+ */
+
 export class UserStorageSrv {
    /**
     * @param {import('../options').EditorOptions} editorOptions
-    * @param {import('../commands').IStorage} iStorage
+    * @param {IStorage} iStorage
     */
     constructor(editorOptions, iStorage) {
         /** @type {Storage} */
@@ -192,4 +198,20 @@ export class UserStorageSrv {
             this.saveStore("session");
         }
     }
+}
+
+
+const userStorageInstances = new Map();
+/**
+ * @param {import('../plugin').TinyMCE} editor
+ * @returns {UserStorageSrv}
+ */
+export function getUserStorage(editor) {
+    let instance = userStorageInstances.get(editor);
+    if (!instance) {
+        const iStorage = {localStorage, sessionStorage};
+        instance = new UserStorageSrv(getEditorOptions(editor), iStorage);
+        userStorageInstances.set(editor, instance);
+    }
+    return instance;
 }

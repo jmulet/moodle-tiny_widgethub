@@ -23,6 +23,11 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+import { getWidgetParamsFactory } from '../controller/widgetParamsCtrl';
+import { getEditorOptions } from '../options';
+import { getModalSrv } from '../service/modalSrv';
+import { getTemplateSrv } from '../service/templateSrv';
+import { getUserStorage } from '../service/userStorageSrv';
 import {genID, hashCode, searchComp} from '../util';
 
 /**
@@ -357,4 +362,20 @@ export class WidgetPickerCtrl {
             paramsController.handleAction();
         }
     }
+}
+
+const widgetPickerCtrlInstances = new Map();
+/**
+ * @param {import('../plugin').TinyMCE} editor
+ * @returns {WidgetPickerCtrl}
+ */
+export function getWidgetPickCtrl(editor) {
+    let instance = widgetPickerCtrlInstances.get(editor);
+    if (!instance) {
+        instance = new WidgetPickerCtrl(editor,
+            getEditorOptions(editor), getWidgetParamsFactory(editor),
+            getModalSrv(), getTemplateSrv(), getUserStorage(editor));
+        widgetPickerCtrlInstances.set(editor, instance);
+    }
+    return instance;
 }

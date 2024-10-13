@@ -22,6 +22,8 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+import {getFormCtrl} from '../controller/formCtrl';
+import {getModalSrv} from '../service/modalSrv';
 import {createBinding} from '../util';
 
 /**
@@ -37,7 +39,7 @@ import {createBinding} from '../util';
  * @class
  * @classdesc Defines a generic editor dialogue based on widget definition fields
  */
-export default class WidgetPropertiesCtrl {
+export class WidgetPropertiesCtrl {
     /** @type {import('../service/modalSrv').ModalDialogue | null} */
     #modal = null;
 
@@ -135,4 +137,18 @@ export default class WidgetPropertiesCtrl {
     close() {
         this.#modal?.destroy();
     }
+}
+
+const widgetPropertiesCtrlInstances = new Map();
+/**
+ * @param {import('../plugin').TinyMCE} editor
+ * @returns {WidgetPropertiesCtrl}
+ */
+export function getWidgetPropertiesCtrl(editor) {
+    let instance = widgetPropertiesCtrlInstances.get(editor);
+    if (!instance) {
+        instance = new WidgetPropertiesCtrl(editor, getFormCtrl(editor), getModalSrv());
+        widgetPropertiesCtrlInstances.set(editor, instance);
+    }
+    return instance;
 }
