@@ -241,7 +241,7 @@ const ejsLoader = () => {
     }
     return new Promise((resolve, reject) => {
         // @ts-ignore
-        window.require(['tiny_widgethub/ejs-lazy'], (ejsModule) => {
+        window.require(['tiny_widgethub/libs/ejs-lazy'], (ejsModule) => {
             _ejs = ejsModule;
             if (_ejs) {
                 resolve(_ejs);
