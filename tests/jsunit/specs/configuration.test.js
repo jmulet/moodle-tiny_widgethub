@@ -1,14 +1,5 @@
-// @ts-nocheck
 // Mock virtual modules
-jest.mock("core/config", () => ({
-    __esModule: true,
-    wwwroot: 'https://server.com'
-}), { virtual: true });
-
-jest.mock("editor_tiny/utils", () => ({
-    __esModule: true,
-    addMenubarItem: jest.fn()
-}), { virtual: true });
+require('./module.mocks')(jest);
 
 const cfg = require('../src/configuration');
 
@@ -44,7 +35,7 @@ describe('Configuration', () => {
         
         // Assert that the configuration has been added
         expect(instanceConfig2.menu.insert.items).toContain('tiny_widgethub');
-        expect(instanceConfig2.toolbar.filter(e => e.name==='content')[0].items).toContain('tiny_widgethub');
+        expect(instanceConfig2.toolbar.filter((/** @type {*} */ e) => e.name==='content')[0].items).toContain('tiny_widgethub');
         expect(instanceConfig2.contextmenu).toBe('bold image tiny_widgethub');
     });
 

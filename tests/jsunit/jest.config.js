@@ -1,15 +1,15 @@
 // jest.config.js
-
 module.exports = {  
+    silent: false,
     transformIgnorePatterns: ['node_modules/(?!(sucrase)/)'],
     transform: {
-      '^.+\\.(js|jsx|ts|tsx|mjs)$': 'babel-jest',
+      '^.+\\.(js|jsx|ts|tsx|mjs)$': ['babel-jest',
+      { configFile: './babel.config.js' }]
     },
-    "roots": [
-      "src",
-      "specs"
-    ],
     rootDir: "./",
+    roots: ["<rootDir>/src", "<rootDir>/specs"],
+    resolver: "<rootDir>/resolver.js",
+    coverageProvider: "v8",
     collectCoverage: true,
     collectCoverageFrom: [
       "<rootDir>/src/*.{js,jsx,ts,tsx}",

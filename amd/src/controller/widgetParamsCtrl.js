@@ -17,6 +17,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 import {getFormCtrl} from '../controller/formCtrl';
+import { getListeners } from '../extension';
 import {getModalSrv} from '../service/modalSrv';
 import {getTemplateSrv} from '../service/templateSrv';
 import {getUserStorage} from '../service/userStorageSrv';
@@ -194,6 +195,8 @@ export class WidgetParamsCtrl {
       // Normal insert mode
       this.editor.selection.setContent(interpoledCode);
       this.editor.focus();
+      // Call any subscriber
+      getListeners('widgetInserted').forEach(listener => listener(this.editor, this.widget, ctxFromDialogue));
    }
 
 }

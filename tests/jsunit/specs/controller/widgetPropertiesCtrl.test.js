@@ -1,9 +1,9 @@
 /**
  * @jest-environment jsdom
  */
- 
+require('../module.mocks')(jest);
 
-const WidgetPropertiesCtrl = require("../../src/controller/widgetPropertiesCtrl").default;
+const {WidgetPropertiesCtrl} = require("../../src/controller/widgetPropertiesCtrl");
 
 /** @type {*} */
 const jQuery = require('jquery');

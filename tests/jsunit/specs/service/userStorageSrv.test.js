@@ -1,4 +1,8 @@
-import { UserStorageSrv } from "../../src/service/userStorageSrv";
+/**
+ * @jest-environment jsdom
+ */
+require('../module.mocks')(jest);
+const { UserStorageSrv } = require("../../src/service/userStorageSrv");
 
 /** @type {*} */
 const mockEditorOptions = {

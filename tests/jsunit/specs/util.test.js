@@ -1,8 +1,10 @@
 /**
  * @jest-environment jsdom
  */
+require('./module.mocks')(jest);
 const U = require("../src/util");
-const jQuery = require("jquery");
+/** @ts-ignore */
+const jQuery = require("jquery").default;
 
 describe('utils module tests', () => {
 

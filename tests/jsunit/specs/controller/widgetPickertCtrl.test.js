@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
- 
+require('../module.mocks')(jest);
 
 const WidgetPickerCtrl = require("../../src/controller/widgetPickerCtrl").WidgetPickerCtrl;
 

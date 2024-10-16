@@ -30,6 +30,7 @@ import {initContextActions} from './contextInit';
 import {getAdditionalCss, isPluginVisible} from './options';
 import jQuery from "jquery";
 import {getWidgetPickCtrl} from './controller/widgetPickerCtrl';
+import {getListeners} from './extension';
 
 export const getSetup = async() => {
     // Get some translations
@@ -73,12 +74,15 @@ export const getSetup = async() => {
     };
 };
 
-
 /**
  * Inject styles and scripts into editor's iframe
  * @param {import('./plugin').TinyMCE} editor
  */
 function initializer(editor) {
+    editor.once('SetContent', () => {
+        // Run all subscribers
+        getListeners('contentSet').forEach(listener => listener(editor));
+    });
     // Add the bootstrap, CSS, etc... into the editor's iframe
     editor.on('init', () => {
         // On init editor.dom is ready
@@ -121,6 +125,8 @@ function initializer(editor) {
                 });`;
                 head.appendChild(scriptInitBS);
             };
+            // Run all subscribers
+            getListeners('onInit').forEach(listener => listener(editor));
             // Initialize context toolbars and menus
             initContextActions(editor);
         };

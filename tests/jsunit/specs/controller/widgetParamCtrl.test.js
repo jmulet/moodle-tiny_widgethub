@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
- 
+require('../module.mocks')(jest);
 
 const WidgetParamsCtrl = require("../../src/controller/widgetParamsCtrl").WidgetParamsCtrl;
 
@@ -61,7 +61,7 @@ let widgetParamsCtrl;
 describe("WidgetParamsCtrl", () => {
 
     beforeEach(() => {
-        widgetParamsCtrl = new WidgetParamsCtrl(mockEditor, mockUserStorage, mockTemplateSrv, mockFileSrv, jQuery, widget, mockApplyWidgetFilter);
+        widgetParamsCtrl = new WidgetParamsCtrl(mockEditor, mockUserStorage, mockTemplateSrv, mockFileSrv, jQuery, mockApplyWidgetFilter, widget);
     })
 
     it("It must create", () => {

@@ -1,5 +1,6 @@
-import { TemplateSrv } from "../../src/service/templateSrv";
-import Mustache from "mustache";
+require('../module.mocks')(jest);
+const { TemplateSrv } = require("../../src/service/templateSrv");
+const Mustache = require("mustache");
 
 const EJS = require('ejs');
 /** @type {*} */

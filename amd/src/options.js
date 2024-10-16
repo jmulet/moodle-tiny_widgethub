@@ -371,7 +371,7 @@ export class Widget {
             return false;
         }
         let grantStr = (this.#widget.for || '').trim();
-        if (grantStr === '' || grantStr === '*' || userId <= 2) {
+        if (grantStr === '' || grantStr === '*' || userId < 2) {
             return true;
         }
         let allowMode = true;

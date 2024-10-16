@@ -4,7 +4,7 @@
 require('../module.mocks')(jest);
 
 /** @type {Record<string, string>} */
-const Templates = require("../../../../amd/src/controller/formCtrl").Templates;
+const Templates = require("../../src/controller/formCtrl").Templates;
 
 // Make test reproducible
 const util = require("../../src/util");

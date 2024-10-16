@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+require('../module.mocks')(jest);
 import { ModalSrv } from "../../src/service/modalSrv";
 
 // Mock virtual modules

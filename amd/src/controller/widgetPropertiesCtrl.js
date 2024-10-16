@@ -73,7 +73,7 @@ export class WidgetPropertiesCtrl {
         const elem = currentContext.elem;
 
         if (!elem || !widget?.hasBindings()) {
-            console.error("Invalid genericEditor widget definition ", widget);
+            console.error("Invalid widget definition ", widget);
             return;
         }
 

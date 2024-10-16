@@ -2,10 +2,7 @@
  * @jest-environment jsdom
  */
 // Mock virtual modules
-jest.mock("core/config", () => ({
-    __esModule: true,
-    wwwroot: 'https://server.com'
-}), { virtual: true });
+require('./module.mocks')(jest);
 
 /** @type {import('../src/options').RawWidget} */
 const rawSnpt = {
@@ -34,19 +31,8 @@ const rawSnpt = {
 };
 
 
-jest.mock("editor_tiny/options", () => ({
-    __esModule: true,
-    getPluginOptionName: () => {
-        return [rawSnpt];
-    }
-}), { virtual: true });
-
-import jquery from 'jquery';
-import { DIContainer } from '../src/container';
-import { DomSrv } from '../src/service/domSrv';
-
-DIContainer.registerSingleton("jQuery", jquery);
-DIContainer.registerSingleton("domSrv", DomSrv, "jQuery");
+const jquery = require('jquery').default;
+const { DomSrv } = require('../src/service/domSrv');
 const srv = require('../src/contextInit');
 
 describe('ContextInit', () => {

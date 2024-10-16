@@ -1,10 +1,11 @@
 /**
  * @jest-environment jsdom
  */
-import { DomSrv } from "../../src/service/domSrv";
+require('../module.mocks')(jest);
+const {DomSrv} = require("../../src/service/domSrv");
 
-/** @type {*} */
-const jQuery = require("jquery");
+/** @ts-ignore */
+const jQuery = require("jquery").default;
 
 /** @type {import('../../src/service/domSrv').DomSrv} */
 let domSrv;

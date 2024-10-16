@@ -19,6 +19,7 @@ import {getWidgetDict} from './options';
 import jQuery from "jquery";
 import {getDomSrv} from './service/domSrv';
 import {getWidgetPropertiesCtrl} from './controller/widgetPropertiesCtrl';
+import {getExtendedMenuItems, getListeners} from './extension';
 
 /**
  * Tiny WidgetHub plugin.
@@ -93,14 +94,14 @@ const needsContextMenu = function(widget) {
 };
 
 /**
- *
+ * @param {import('./plugin').TinyMCE} editor
  * @param {import('./service/domSrv').DomSrv} domSrv
  */
-const predefinedActionsFactory = function(domSrv) {
+const predefinedActionsFactory = function(editor, domSrv) {
     /** @type {Record<string, Function>} */
     return ({
         /**
-         * Unwraps the contents of a widget
+         * Unwraps or destroys the contents of a widget
          * @param {PathResult} context
          */
         unwrap: (context) => {
@@ -114,6 +115,8 @@ const predefinedActionsFactory = function(domSrv) {
                 toUnpack = context.elem.text();
             }
             context.elem.replaceWith(toUnpack);
+            // Call any subscribers
+            getListeners('widgetRemoved').forEach(listener => listener(editor, context.widget));
         },
         /**
          * Moves the selected element above in the parent container
@@ -123,7 +126,6 @@ const predefinedActionsFactory = function(domSrv) {
          * @param {PathResult} context
          */
         movebefore: (context) => {
-            console.log('moveup', context);
             const $e = context?.targetElement;
             const $root = context?.elem;
             if (!$e || !$root) {
@@ -148,7 +150,6 @@ const predefinedActionsFactory = function(domSrv) {
          * @param {PathResult} context
          */
         moveafter: (context) => {
-            console.log('movedown', context);
             const $e = context?.targetElement;
             const $root = context?.elem;
             if (!$e || !$root) {
@@ -170,7 +171,6 @@ const predefinedActionsFactory = function(domSrv) {
          * @param {PathResult} context
          */
         insertafter: (context) => {
-            console.log('insert a clone', context);
             const $e = context?.targetElement;
             const $root = context?.elem;
             if (!$e || !$root) {
@@ -186,7 +186,6 @@ const predefinedActionsFactory = function(domSrv) {
          * @param {PathResult} context
          */
         remove: (context) => {
-            console.log('remove', context);
             const $e = context?.targetElement;
             const $root = context?.elem;
             if (!$e || !$root) {
@@ -206,50 +205,54 @@ const predefinedActionsFactory = function(domSrv) {
 };
 
 /**
+ * @typedef {{editor: import('./plugin').TinyMCE, path?: PathResult}} ItemMenuContext
+ */
+
+/**
  * Looks for widgets that need to display context toolbars or menus
  * and binds the corresponding actions.
  * @param {import("./plugin").TinyMCE} editor
  */
 export function initContextActions(editor) {
+    // Setup context shared by the entire structure of menus
+    /**
+     * Keep track of the last context found
+     * @type {ItemMenuContext}
+     */
+    const ctx = {
+        editor: editor,
+    };
+
     // Define icons
     defineIcons(editor);
+
     const widgetList = Object.values(getWidgetDict(editor));
     const domSrv = getDomSrv();
-    /** @type {Record<string, Function>} */
-    const predefinedActions = predefinedActionsFactory(domSrv);
 
-    // Keep track of the last found context
-    /** @type {PathResult | undefined} */
-    let currentContext;
+    /** @type {Record<string, Function>} */
+    const predefinedActions = predefinedActionsFactory(editor, domSrv);
+
+    const showPropertiesAction = async() => {
+        const path = domSrv.findWidgetOnEventPath(widgetList, editor.selection.getNode());
+        ctx.path = path;
+        if (!path.widget) {
+            return;
+        }
+        // Display modal dialog on this context
+        const widgetPropertiesCtrl = getWidgetPropertiesCtrl(editor);
+        await widgetPropertiesCtrl.show(path);
+    };
 
     // Generic button action for opening the properties modal
     editor.ui.registry.addButton('widgethub_modal_btn', {
         icon: ICONS.gear,
         tooltip: 'Properties',
-        onAction: async() => {
-            const ctx = domSrv.findWidgetOnEventPath(widgetList, editor.selection.getNode());
-            if (!ctx.widget) {
-                return;
-            }
-            // Display modal dialog on this context
-            const widgetPropertiesCtrl = getWidgetPropertiesCtrl(editor);
-            await widgetPropertiesCtrl.show(ctx);
-        }
+        onAction: showPropertiesAction
     });
     editor.ui.registry.addMenuItem('widgethub_modal_item', {
         icon: ICONS.gear,
         text: 'Properties',
-        onAction: async() => {
-            if (!currentContext?.widget) {
-                currentContext = domSrv.findWidgetOnEventPath(widgetList, editor.selection.getNode());
-                if (!currentContext?.widget) {
-                    return;
-                }
-            }
-            // Display modal dialog on this context
-            const widgetPropertiesCtrl = getWidgetPropertiesCtrl(editor);
-            await widgetPropertiesCtrl.show(currentContext);
-        }
+        onAction: showPropertiesAction
     });
 
     /**
@@ -258,15 +261,17 @@ export function initContextActions(editor) {
      */
     function genericAction(name) {
         return function() {
-            if (!currentContext?.widget) {
-                currentContext = domSrv.findWidgetOnEventPath(widgetList, editor.selection.getNode());
-                if (!currentContext?.widget) {
+            if (!ctx.path?.widget) {
+                ctx.path = domSrv.findWidgetOnEventPath(widgetList, editor.selection.getNode());
+                if (!ctx.path?.widget) {
                     return;
                 }
             }
             const action = predefinedActions[name];
             if (action) {
-                action(currentContext);
+                action(ctx.path);
+                // Call any subscriber
+                getListeners('ctxAction').forEach(listener => listener(editor, ctx.path?.widget));
             }
         };
     }
@@ -277,7 +282,6 @@ export function initContextActions(editor) {
         tooltip: 'Unwrap',
         onAction: genericAction('unwrap')
     });
-
     editor.ui.registry.addMenuItem('widgethub_unwrap_item', {
         icon: ICONS.arrowUpFromBracket,
         text: 'Unwrap',
@@ -314,17 +318,48 @@ export function initContextActions(editor) {
         onAction: genericAction('remove')
     });
 
-    console.log("Registry addContextMenu");
+    // Let extensions to register additional menuItem and nestedMenuItem
+    /** @type {Record<string, string[]>} */
+    const widgetsWithExtensions = {};
+    getExtendedMenuItems().forEach(factory => {
+        const menuItem = factory(ctx);
+        if (menuItem.widgetKey) {
+            // This menu item is searchable by this widget key
+            let lst = widgetsWithExtensions[menuItem.widgetKey];
+            if (!lst) {
+                lst = [];
+                widgetsWithExtensions[menuItem.widgetKey] = [];
+            }
+            lst.push(`widgethub_${menuItem.name}`);
+        }
+        if (menuItem.subMenuItems) {
+            // It is a nested menu
+            editor.ui.registry.addNestedMenuItem(`widgethub_${menuItem.name}`, {
+                icon: menuItem.icon,
+                text: menuItem.title,
+                getSubmenuItems: menuItem.subMenuItems
+            });
+        } else {
+            // It is a simple menu item
+            editor.ui.registry.addMenuItem(`widgethub_${menuItem.name}`, {
+                icon: menuItem.icon,
+                text: menuItem.title,
+                onAction: menuItem.action
+            });
+        }
+    });
+
+
     editor.ui.registry.addContextMenu('tiny_widgethub', {
         /** @param {HTMLElement} element */
         update: (element) => {
-            console.log("update contextmenu ", element);
             // Look for a context
-            currentContext = domSrv.findWidgetOnEventPath(widgetList, element);
-            if (!currentContext?.widget || currentContext.widget.prop("contexttoolbar")) {
+            ctx.path = domSrv.findWidgetOnEventPath(widgetList, element);
+            if (!ctx.path?.widget || ctx.path.widget.prop("contexttoolbar")) {
+                // Widget not found in the searchPath or it must be displayed as toolbar
                 return '';
             }
-            const widget = currentContext.widget;
+            const widget = ctx.path.widget;
             const menuItems = [];
             if (hasBindings(widget)) {
                 menuItems.push('modal');
@@ -348,12 +383,16 @@ export function initContextActions(editor) {
                     if (!targetElem) {
                         return;
                     }
-                    if (currentContext) {
-                        currentContext.targetElement = jQuery(targetElem);
+                    if (ctx.path) {
+                        ctx.path.targetElement = jQuery(targetElem);
                     }
-                    menuItems.push(...cm.actions.split(" ").map(e => e.trim()));
+                    menuItems.push(...cm.actions.split(' ').map(e => e.trim()));
                 });
             }
+            // Check if the current widget has any action registered by extensions
+            menuItems.push(...widgetsWithExtensions[widget.key] ?? []);
+
+            // Unwrap action always to the end
             if (widget.unwrap) {
                 menuItems.push('unwrap');
             }
@@ -361,7 +400,7 @@ export function initContextActions(editor) {
         }
     });
 
-    // Look for widgets that need context toolbar or menu
+    // Look for widgets that need context toolbar
     widgetList.filter(widget => needsContextMenu(widget)).forEach(widget => {
         const items = [];
         if (hasBindings(widget)) {
@@ -381,7 +420,4 @@ export function initContextActions(editor) {
             });
         }
     });
-
-    // Dump all information
-    console.log("All ui registries", editor.ui.registry.getAll());
 }
