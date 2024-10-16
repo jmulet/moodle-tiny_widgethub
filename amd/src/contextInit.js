@@ -328,7 +328,7 @@ export function initContextActions(editor) {
             let lst = widgetsWithExtensions[menuItem.widgetKey];
             if (!lst) {
                 lst = [];
-                widgetsWithExtensions[menuItem.widgetKey] = [];
+                widgetsWithExtensions[menuItem.widgetKey] = lst;
             }
             lst.push(`widgethub_${menuItem.name}`);
         }
