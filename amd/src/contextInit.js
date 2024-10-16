@@ -353,8 +353,10 @@ export function initContextActions(editor) {
     editor.ui.registry.addContextMenu('tiny_widgethub', {
         /** @param {HTMLElement} element */
         update: (element) => {
+            console.log("ContextMenu update on element", element);
             // Look for a context
             ctx.path = domSrv.findWidgetOnEventPath(widgetList, element);
+            console.log("Path found is ", ctx.path);
             if (!ctx.path?.widget || ctx.path.widget.prop("contexttoolbar")) {
                 // Widget not found in the searchPath or it must be displayed as toolbar
                 return '';
