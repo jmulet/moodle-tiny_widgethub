@@ -362,7 +362,7 @@ export function initContextActions(editor) {
                 return '';
             }
             const widget = ctx.path.widget;
-            const menuItems = [];
+            let menuItems = [];
             if (hasBindings(widget)) {
                 menuItems.push('modal');
             }
@@ -391,14 +391,15 @@ export function initContextActions(editor) {
                     menuItems.push(...cm.actions.split(' ').map(e => e.trim()));
                 });
             }
+            menuItems = menuItems.map(e => e === '|' ? '|' : `widgethub_${e}_item`);
             // Check if the current widget has any action registered by extensions
             menuItems.push(...widgetsWithExtensions[widget.key] ?? []);
 
             // Unwrap action always to the end
             if (widget.unwrap) {
-                menuItems.push('unwrap');
+                menuItems.push('widgethub_unwrap_item');
             }
-            return menuItems.map(e => e === '|' ? '|' : `widgethub_${e}_item`).join(' ');
+            return menuItems.join(' ');
         }
     });
 
