@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
-import { evalInContext } from "../../../tests/jsunit/src/util";
 import {subscribe} from "../extension";
-import {addBaseToUrl} from "../util";
+import {addBaseToUrl, evalInContext} from "../util";
 
 const IMG_BASE_URL = "https://iedib.net/assets";
 
