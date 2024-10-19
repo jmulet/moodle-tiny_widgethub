@@ -166,7 +166,7 @@ export default {
 
 		if (opts.id > 0) {
 			// Only show delete button on saved widgets (id=0 is reserved for new ones)
-			const $deleteBtn = jQuery(`<button type="button" class="btn btn-danger m-1"
+			const $deleteBtn = jQuery(`<button type="button" class="btn btn-danger m-1">
 				<i class="fas fa fa-trash"></i> ${i18n[1]}</button>`);
 			$deleteBtn.on('click', async() => {
 				// Ask confirmation
