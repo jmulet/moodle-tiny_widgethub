@@ -45,6 +45,7 @@ $string['preview'] = 'Preview';
 $string['privacy:metadata'] = 'This plugin does not store personal data.';
 $string['recents'] = 'Recent';
 $string['rmfilter'] = 'Clear search filter';
+$string['savechanges'] = 'Save changes';
 $string['selectmode'] = 'Selection mode';
 $string['settings'] = 'WidgetHub component';
 $string['sharecss'] = 'Share the site CSS within the editor\'s iframe';

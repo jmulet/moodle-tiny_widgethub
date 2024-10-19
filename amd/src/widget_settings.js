@@ -125,7 +125,8 @@ export default {
 		console.info("Init AMD called with opts ", JSON.stringify(opts));
 		const i18n = await getStrings([
 			{key: 'preview', component: 'tiny_widgethub'},
-			{key: 'delete', component: 'tiny_widgethub'}
+			{key: 'delete', component: 'tiny_widgethub'},
+			{key: 'savechanges', component: 'tiny_widgethub'}
 		]);
 
 		const {$ymlArea, $jsonArea} = this.getAreas(opts.id);
@@ -137,8 +138,8 @@ export default {
 		// Hide any submit button if found
 		$form.find('button[type="submit"], input[type="submit"]').hide();
 		// Add submit buttons and manually trigger form submit.
-		const $formButtons =
-		jQuery('<div class="form-buttons"><button type="button" class="btn btn-primary form-submit">Save changes</button></div>');
+		const $formButtons = jQuery(`<div class="row"><div class="form-buttons offset-sm-3 col-sm-3">
+			<button type="button" class="btn btn-primary form-submit">${i18n[2]}</button></div></div>`);
 		$form.append($formButtons);
 		const $saveBtn = $formButtons.find("button");
 
@@ -146,7 +147,8 @@ export default {
 		const $previewPanel = jQuery(`<div id="tiny_widgethub_pp_${opts.id}" class="tiny_widgethub-previewpanel d-none"></div>`);
 		$target.append($previewPanel);
 
-		const $previewBtn = jQuery(`<button type="button" class="btn btn-secondary m-1">${i18n[0]}</button>`);
+		const $previewBtn = jQuery(`<button type="button" class="btn btn-secondary m-1">
+			<i class="fas fa fa-magnifying-glass"></i> ${i18n[0]}</button>`);
 		$previewBtn.on('click', async() => {
 			const yml = codeProEditor.getValue();
 			const validation = await this.validate(yml, opts);
@@ -164,7 +166,8 @@ export default {
 
 		if (opts.id > 0) {
 			// Only show delete button on saved widgets (id=0 is reserved for new ones)
-			const $deleteBtn = jQuery(`<button type="button" class="btn btn-danger m-1">${i18n[1]}</button>`);
+			const $deleteBtn = jQuery(`<button type="button" class="btn btn-danger m-1"
+				<i class="fas fa fa-trash"></i> ${i18n[1]}</button>`);
 			$deleteBtn.on('click', async() => {
 				// Ask confirmation
 				const answer = confirm('Do you want to delete this widget?');

@@ -266,6 +266,7 @@ class plugininfo extends plugin implements
             $seq = $conf->seq;
         }
         $seq++;
+        $conf->seq = $seq;
         set_config('seq', $seq, 'tiny_widgethub');
         return $seq;
     }
@@ -281,6 +282,11 @@ class plugininfo extends plugin implements
         }
     }
 
+    /**
+     * 
+     * @param \SplFileInfo $fileinfo
+     * @return array|bool
+     */
     protected static function parse_widget_preset(\SplFileInfo $fileinfo){
         $file = $fileinfo -> openFile("r");
         $content = "";
@@ -290,7 +296,7 @@ class plugininfo extends plugin implements
         $preset_object = json_decode($content);
         // Check it is a valid json.
         if($preset_object && is_object($preset_object)){
-            return self::get_object_vars($preset_object);
+            return get_object_vars($preset_object);
         } else {
             return false;
         }
@@ -340,7 +346,7 @@ class plugininfo extends plugin implements
         
         foreach($presets as $preset){
             // Check if the $preset key is in the $index.
-            $id = searchByKey($widgetindex, $preset->key);
+            $id = searchByKey($widgetindex, $preset['key']);
             $mustupdate = true;
 
             if ($id == null) {
@@ -352,24 +358,25 @@ class plugininfo extends plugin implements
                 if (isset($old)) {
                     // Condition to override existing definition.
                     // Author has changed or (TODO) version is less than previous.
-                    if ($old->author != $preset->author) {
+                    if ($old->author != $preset['author']) {
                         $mustupdate = false;
                     }
                 }
-
             }
+            var_dump($id, $mustupdate, $preset);
             if ($mustupdate) {
                 // Save the definition.
                 set_config('def_' . $id, json_encode($preset) , 'tiny_widgethub');
                 // Update the index object.
                 $widgetindex[$id] = [
-                    'key' => $preset->key,
-                    'name' => $preset->name,
+                    'key' => $preset['key'],
+                    'name' => $preset['name'],
                 ];
             }
         }
         
         // Save the index.
+        var_dump("setting index", $widgetindex);
         set_config('index', json_encode($widgetindex), 'tiny_widgethub');
     }
 }
