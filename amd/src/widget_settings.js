@@ -14,54 +14,20 @@ const templateSrv = getTemplateSrv();
  * @member {any[]} presetdata
  * */
 export default {
-	/** @type {any[]} */
-	presetdata: [],
 	/**
 	 * @param {number} id
 	 * @returns {{
-	 * 	json: HTMLInputElement | null
+	 * 	$ymlArea: JQuery<HTMLElement>,
+	 * 	$jsonArea: JQuery<HTMLElement>,
 	 * }}
 	 */
-	fetchcontrols: function(id) {
+	getAreas: function(id) {
 		/** @type {*} */
-		const json = document.getElementById(`id_s_tiny_widgethub_def_${id}`);
+		const $ymlArea = jQuery(`#id_s_tiny_widgethub_defyml_${id}`);
+		const $jsonArea = jQuery(`#id_s_tiny_widgethub_def_${id}`);
 		return {
-			json
+			$ymlArea, $jsonArea
 		};
-	},
-	/**
-	 * @param {number} id
-	 * @param {number} presetindex
-	 * @param {any[]} [presetdata]
-	 * @returns
-	 */
-	populateform: function(id, presetindex, presetdata) {
-		// Get all our html controls
-		const controls = this.fetchcontrols(id);
-		if (!controls.json) {
-			return;
-		}
-
-		// What a rip off there was no selection!!!
-		if (!presetindex && !presetdata) {
-			return;
-		}
-		if (presetindex == 0 && presetdata) {
-			// This is good, we have something from dopopulate
-		} else {
-			// This is a normal selection
-			presetdata = this.presetdata;
-		}
-		const snpt = presetdata[presetindex];
-
-		// Try to see JSON is valid
-		try {
-			JSON.parse(snpt.json);
-			controls.json.value = snpt.json;
-		} catch (ex) {
-			console.error(ex);
-			controls.json.value = '';
-		}
 	},
 	/**
 	 * @param {number} id
@@ -69,28 +35,21 @@ export default {
 	 * @returns
 	 */
 	updateYaml: function(id, codeProEditor) {
-		const controls = this.fetchcontrols(id);
-		if (!controls.json?.value?.trim()) {
+		const {$jsonArea} = this.getAreas(id);
+		const json = ($jsonArea.val() ?? '').trim();
+		if (!json) {
 			codeProEditor.setValue('');
 			return;
 		}
 		try {
-			const obj = JSON.parse(controls.json.value);
+			const obj = JSON.parse(json);
 			const yml = dump(obj, {});
 			codeProEditor.setValue(yml);
 		} catch (ex) {
 			console.error(ex);
-			controls.json.value = '';
+			$jsonArea.val('');
 			codeProEditor.setValue('');
 		}
-	},
-	/**
-	 * @param {number} id
-	 * @param {*} templatedata
-	 */
-	dopopulate: function(id, templatedata) {
-		console.info("dopopulate", id, templatedata);
-		this.populateform(id, 0, new Array(templatedata));
 	},
 	/**
 	 * @param {string} yml
@@ -169,20 +128,21 @@ export default {
 			{key: 'delete', component: 'tiny_widgethub'}
 		]);
 
+		const {$ymlArea, $jsonArea} = this.getAreas(opts.id);
+
 		// Hide the control that handles JSON and it is actually saved
-		const $controlMain = jQuery('#id_s_tiny_widgethub_def_' + opts.id);
-		$controlMain.css("display", "none");
-		const $target = $controlMain.parent();
-		const $form = $controlMain.closest("form");
-		const $submitBtn = $form.find('button[type="submit"]');
-		const $saveBtn = $submitBtn.clone().attr('type', 'button').removeAttr('id');
-		$submitBtn.css('display', 'none');
-		$submitBtn.parent().append($saveBtn);
+		$jsonArea.css("display", "none");
+		const $target = $jsonArea.parent();
+		const $form = $jsonArea.closest("form");
+		// Hide any submit button if found
+		$form.find('button[type="submit"], input[type="submit"]').hide();
+		// Add submit buttons and manually trigger form submit.
+		const $formButtons =
+			jQuery('<div class="form-buttons"><button class="btn btn-primary form-submit">Save changes</button></div>');
+		$form.append($formButtons);
+		const $saveBtn = $formButtons.find("button");
 
-		// Display the secondary editor for Yaml syntax
-		const $controlSecondary = jQuery(`<div id="tiny_widgethub_yc_${opts.id}" class="tiny_widgethub-ymlcontrol"></div>`);
-		$target.append($controlSecondary);
-
+		// Create a preview panel
 		const $previewPanel = jQuery(`<div id="tiny_widgethub_pp_${opts.id}" class="tiny_widgethub-previewpanel d-none"></div>`);
 		$target.append($previewPanel);
 
@@ -194,9 +154,9 @@ export default {
 				alert(validation.msg);
 			} else if (validation.html) {
 				$previewPanel.removeClass('d-none');
-				$controlMain.trigger('focusin');
-				$controlMain.val(validation.json ?? '');
-				$controlMain.trigger('change');
+				$jsonArea.trigger('focusin');
+				$jsonArea.val(validation.json ?? '');
+				$jsonArea.trigger('change');
 				$previewPanel.html(validation.html);
 			}
 		});
@@ -207,10 +167,10 @@ export default {
 			const $deleteBtn = jQuery(`<button type="button" class="btn btn-danger m-1">${i18n[1]}</button>`);
 			$deleteBtn.on('click', async() => {
 				// Clear all the controls
-				$controlMain.trigger('focusin');
-				$controlMain.val('');
-				$controlMain.trigger('change');
-				$controlSecondary.html('');
+				$jsonArea.trigger('focusin');
+				$jsonArea.val('');
+				$jsonArea.trigger('change');
+				$ymlArea.html('');
 				$previewPanel.html('');
 				// Send form by skipping validation
 				$form.trigger('submit');
@@ -218,7 +178,7 @@ export default {
 			$target.append($deleteBtn);
 		}
 
-		const codeProEditor = new CodeProEditor($controlSecondary[0]);
+		const codeProEditor = new CodeProEditor($ymlArea[0]);
 
 		$saveBtn.on("click",
 			async() => {
@@ -231,9 +191,9 @@ export default {
 			} else {
 				// Ensure that there is a change in the form value to force
 				// the set_updatedcallback to be called
-				$controlMain.trigger('focusin');
-				$controlMain.val((validation.json ?? '') + ' ');
-				$controlMain.trigger('change');
+				$jsonArea.trigger('focusin');
+				$jsonArea.val((validation.json ?? '') + ' ');
+				$jsonArea.trigger('change');
 				// Submit form
 				$form.trigger('submit');
 			}

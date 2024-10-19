@@ -4,9 +4,9 @@ coverage/
 **/jsunit/src
 presets/*.txt
 TODO
+.hashes-presets-tiny.*
 package-lock.json
 .DS_Store
-scripts/ 
 amd/tests/
 styles.scss
 copy.sh

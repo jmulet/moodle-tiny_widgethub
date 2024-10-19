@@ -30,6 +30,23 @@ use editor_tiny\plugin_with_buttons;
 use editor_tiny\plugin_with_configuration;
 use editor_tiny\plugin_with_menuitems;
 
+
+/**
+ * Function to search for the index by the 'key' property
+ * @param array $array
+ * @param string $searchKey
+ * @return mixed
+ */
+function searchByKey($array, $searchKey) {
+    foreach ($array as $index => $value) {
+        if ($value['key'] === $searchKey) {
+            return $index;
+        }
+    }
+    // Return null if not found
+    return null;
+}
+
 /**
  * Tiny WidgetHub plugin version details.
  */
@@ -123,7 +140,19 @@ class plugininfo extends plugin implements
                 $widgetindex = [];
             }
         }
+        // Detect errors in the index.
+        $nerrs = 0;
+        foreach(array_keys($widgetindex) as $id) {
+            if (!isset($conf->{'def_' . $id})) {
+               unset($widgetindex[strval($id)]);
+               $nerrs++;
+            }
+        }
         unset($widgetindex[0]); // Remove the temporal entry.
+        if ($nerrs > 0) {
+            // Store the ammended index.
+            set_config('index', json_encode($widgetindex), 'tiny_widgethub');
+        }
         return $widgetindex;
     }
 
@@ -140,18 +169,18 @@ class plugininfo extends plugin implements
         }
         if ($widget == null || !is_object($widget)) {
             // Remove the widget from the index.
-            unset($widgetindex[$id]);
+            unset($widgetindex[strval($id)]);
         } else if (empty($widget->key) && empty($widget->name)) {
             // Remove the widget from the index and also the definition.
-            unset($widgetindex[$id]);
-            unset_config('def_' . $id, 'tiny_widgethub');
+            unset($widgetindex[strval($id)]);
+            unset_config('def_' . $id, 'tiny_widgethub');            
         } else if ($id == 0) {
             // Add the temporal entry to a definitive widget index.
             $tmpwidget = json_decode($conf->def_0);
             if (!empty($tmpwidget)) {
                 $id = self::update_seq($conf);
                 // Add the widget to the index.
-                $widgetindex[$id] = [
+                $widgetindex[strval($id)] = [
                     'key' => $tmpwidget->key,
                     'name' => $tmpwidget->name,
                 ];
@@ -182,6 +211,10 @@ class plugininfo extends plugin implements
         }
         $widgetlist = [];
         foreach (array_keys($widgetindex) as $id) {
+            // Check if the key is set
+            if(!isset($conf->{'def_' . $id})) {
+                continue;
+            }
             $definition = $conf->{'def_' . $id};
             if (empty($definition)) {
                 continue;
@@ -235,5 +268,108 @@ class plugininfo extends plugin implements
         $seq++;
         set_config('seq', $seq, 'tiny_widgethub');
         return $seq;
+    }
+
+    /**
+     * It removes all the configuration of this plugin. Call this method when uninstalling it.
+     * @return void
+     */
+    public static function remove_configuration_settings(){
+        $settings = get_config('tiny_widgethub');
+        foreach($settings as $fieldkey => $fieldname){
+            unset_config($fieldkey, 'tiny_widgethub');
+        }
+    }
+
+    protected static function parse_widget_preset(\SplFileInfo $fileinfo){
+        $file = $fileinfo -> openFile("r");
+        $content = "";
+        while(!$file -> eof()){
+            $content .= $file->fgets();
+        }
+        $preset_object = json_decode($content);
+        // Check it is a valid json.
+        if($preset_object && is_object($preset_object)){
+            return self::get_object_vars($preset_object);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Returns an array of all widgets defined in presets as json file
+     * @return array
+     */
+    public static function fetch_presets(){
+        global $CFG,$PAGE;
+        $ret = [];
+        $dirs = [];
+
+        // Search in the presets folder.
+        $snippet_presets_dir = $CFG->dirroot . '/lib/editor/tiny/plugins/widgethub/presets';
+        if(file_exists($snippet_presets_dir)) {
+            $dirs[] = new \DirectoryIterator($snippet_presets_dir);
+        }
+        foreach($dirs as $dir) {
+            foreach ($dir as $fileinfo) {
+                if (!$fileinfo->isDot()) {
+                    // Process only .json files.
+                    $ext = pathinfo($fileinfo->getFilename())['extension'];
+                    if($ext == 'json') {
+                        $preset = self::parse_widget_preset($fileinfo);
+                        if ($preset) {
+                            $ret[] = $preset;
+                        }
+                    }
+                }
+            }
+        }
+       return $ret;
+    }
+
+    /**
+     * Saves the current $preset to the database and updates the index key
+     * @param array $presets
+     * @return void
+     */
+    public static function save_update_presets($presets) {
+        // Obtain the configuration options for the plugin from the config table.
+        $conf = get_config('tiny_widgethub');
+        // Obtain the index.
+        $widgetindex = self::get_widget_index($conf);
+        
+        foreach($presets as $preset){
+            // Check if the $preset key is in the $index.
+            $id = searchByKey($widgetindex, $preset->key);
+            $mustupdate = true;
+
+            if ($id == null) {
+                // Create a new entry.
+                $id = self::update_seq($conf);
+            } else {
+                // Load the old definition.
+                $old = json_decode($conf->{'def_' . $id});
+                if (isset($old)) {
+                    // Condition to override existing definition.
+                    // Author has changed or (TODO) version is less than previous.
+                    if ($old->author != $preset->author) {
+                        $mustupdate = false;
+                    }
+                }
+
+            }
+            if ($mustupdate) {
+                // Save the definition.
+                set_config('def_' . $id, json_encode($preset) , 'tiny_widgethub');
+                // Update the index object.
+                $widgetindex[$id] = [
+                    'key' => $preset->key,
+                    'name' => $preset->name,
+                ];
+            }
+        }
+        
+        // Save the index.
+        set_config('index', json_encode($widgetindex), 'tiny_widgethub');
     }
 }

@@ -1,0 +1,52 @@
+{
+    "key": "bs-popover",
+    "name": "Popover",
+    "category": "bootstrap",
+    "instructions": "Add a popover annotation to a word/s. It is activated when the mouse is clicked.\n",
+    "template": "<a href=\"javascript:void(0)\" data-toggle=\"popover\" data-trigger=\"click\" \ndata-original-title=\"{{title}}\" data-content=\"{{{anotation}}}\" data-html=\"true\" data-container=\"body\"\ndata-placement=\"{{placement}}\"><span class=\"whb-inspoint\">{{word}}</span></a>\n",
+    "selectors": "a[data-toggle=\"popover\"]",
+    "unwrap": ".whb-inspoint",
+    "insertquery": ".whb-inspoint",
+    "parameters": [
+        {
+            "name": "word",
+            "title": "Word",
+            "value": "Moodle",
+            "type": "textfield",
+            "tip": "When you click on this word, the balloon will appear",
+            "when": "!SELECT_MODE"
+        },
+        {
+            "name": "placement",
+            "value": "auto",
+            "title": "Popover placement",
+            "options": [
+                "auto",
+                "top",
+                "bottom",
+                "left",
+                "right"
+            ],
+            "bind": "attr('data-placement')"
+        },
+        {
+            "name": "title",
+            "value": "",
+            "title": "Title of popover",
+            "transform": "trim",
+            "tip": "This parameter is optional. If you add it, the title will appear above the balloon",
+            "bind": "attr('data-original-title')"
+        },
+        {
+            "name": "anotation",
+            "value": "It's <b>awesome</b>",
+            "title": "Content of popover",
+            "type": "textarea",
+            "transform": "escapeQuotes",
+            "tip": "You can write basic HTML content",
+            "bind": "attr('data-content')"
+        }
+    ],
+    "author": "Josep Mulet <pep.mulet@gmail.com>",
+    "version": "1.0.0"
+}

@@ -23,11 +23,11 @@
  */
 
 /**
- * Uninstall the plugin.
- * @return boolean
+ * Upgrade the plugin.
  */
-function xmldb_tiny_widgethub_uninstall() {
-    // It removes all the configuration keys for this plugin.
-    \tiny_widgethub\plugininfo::remove_configuration_settings();
+function xmldb_tiny_widgethub_upgrade($oldversion) {
+	$presets = \tiny_widgethub\plugininfo::fetch_presets();
+	\tiny_widgethub\plugininfo::save_update_presets($presets);
     return true;
 }
+

@@ -49,7 +49,7 @@ function starts_with(string $string, string $substring): bool {
 /**
  * Summary of hubpicker
  */
-class hubpicker extends \admin_setting {
+class ymlsetting extends \admin_setting {
     /**
      * Summary of windex
      * @var int
@@ -91,28 +91,46 @@ class hubpicker extends \admin_setting {
     }
 
     /**
-     * Always returns true
-     * @return bool Always returns true
+     * Returns current value of this setting.
+     * @return mixed array or string depending on instance; NULL means no default, user must supply
      */
     public function get_setting() {
-        return true;
+        return "";
     }
 
     /**
-     * Always returns true
-     * @return bool Always returns true
+     * Returns default setting if exists.
+     * @return mixed array or string depending on instance; NULL means no default, user must supply
      */
     public function get_defaultsetting() {
-        return true;
+        return "";
     }
 
     /**
-     * Never write settings
+     * How the setting is stored
      * @param mixed $data
-     * @return string Always returns an empty string
+     * @return string Returns an empty string or error message
      */
     public function write_setting($data) {
-        // Do not write any setting.
+        // Determine how the setting is written according to form $data.
+        // Return empty or error message.
+        if ($this->windex > 0 && (!isset($data) || $data == '')) {
+            // Get rid of the widget at the current index
+            unset_config('def_' . $this->windex, 'tiny_widgethub');
+            // Update index.
+            plugininfo::update_widget_index(0);
+            redirect(new \moodle_url('/admin/category.php', ['category' => 'tiny_widgethub']));
+            return '';
+        }
+        $json = json_decode($data);
+        if (!isset($json)) {
+            return 'Invalid widget definition';
+        }
+        set_config('def_' . $this->windex, $data, 'tiny_widgethub');
+        // Update index.
+        plugininfo::update_widget_index($this->windex);
+        // Redirect to the category page.
+        redirect(new \moodle_url('/admin/category.php', ['category' => 'tiny_widgethub']));
         return '';
     }
 
@@ -125,15 +143,6 @@ class hubpicker extends \admin_setting {
     public function output_html($data, $query = '') {
         global $PAGE;
 
-        // Pass all hub snippets to javascript.
-        $hubjson = "[]";
-        $hubcontrol = \html_writer::tag('input', '', [
-            'id' => 'id_tiny_widgethub_hubdata_'
-                . $this->windex,
-            'type' => 'hidden',
-            'value' => $hubjson,
-        ]);
-
         // Add javascript handler for setting pages.
         $PAGE->requires->js_call_amd(
             'tiny_widgethub/widget_settings',
@@ -141,12 +150,25 @@ class hubpicker extends \admin_setting {
             [['id' => $this->windex, 'keys' => $this->usedkeys, 'partials' => $this->partials]]
         );
 
-        $select = \html_writer::select([], 'tiny_widgethub/presets', '', '** Pick from Hub **');
+        $json = get_config('tiny_widgethub', 'def_' . $this->windex);
+        
+        $divyml = \html_writer::start_tag('div', [
+            'id' => 'id_s_tiny_widgethub_defyml_' . $this->windex,
+            'name' => 's_tiny_widgethub_defyml_' . $this->windex
+            ])
+            . \html_writer::end_tag('div');
 
+        $textareajson = \html_writer::start_tag('textarea', [
+                'id' => 'id_s_tiny_widgethub_def_' . $this->windex,
+                'name' => 's_tiny_widgethub_def_' . $this->windex,
+                'class'=>'form-control', 'rows' => '8', 'spellcheck' => 'false', 'style' => 'display:none'])
+                . $json
+                . \html_writer::end_tag('textarea');
+          
         return format_admin_setting(
             $this,
             $this->visiblename,
-            '<div class="form-text defaultsnext">' . $hubcontrol . $select . '</div>',
+            '<div class="form-textarea">' . $divyml . $textareajson . '</div>',
             $this->information,
             true,
             '',

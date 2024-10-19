@@ -24,11 +24,6 @@
 
 namespace tiny_widgethub;
 
-/**
- *
- * This is a class containing static functions for general snippet filter things
- * like embedding recorders and managing them
- */
 class settingsutil {
     /**
      * Summary of create_spage_items
@@ -56,7 +51,7 @@ class settingsutil {
     }
 
     /**
-     * Summary of create_widget_spages
+     * Creates setting pages for every widget.
      * @param object $conf
      * @return \admin_settingpage[]
      */
@@ -67,7 +62,7 @@ class settingsutil {
         $partials = plugininfo::get_partials($conf, $widgetindex);
 
         $pages = [];
-        // Create a page for new widget.
+        // Stat creating a page for a new widget identified by id = 0.
         $emptywidget = new \stdClass();
         $emptywidget->id = 0;
         $pages[] = self::create_page_for_widget($emptywidget, $usedkeys, $partials);
@@ -103,15 +98,16 @@ class settingsutil {
             );
         }
         $settingspage->add(
-            new hubpicker(
-                'tiny_widgethub/hub_' . $windx,
-                get_string('hub', 'tiny_widgethub'),
-                get_string('hub_desc', 'tiny_widgethub'),
+            new ymlsetting(
+                'tiny_widgethub/def_' . $windx,
+                get_string('def', 'tiny_widgethub'),
+                get_string('def_desc', 'tiny_widgethub'),
                 $windx,
                 $usedkeys,
                 $partials
             )
         );
+        /*
         $jsonsetting = new \admin_setting_configtextarea(
             'tiny_widgethub/def_' . $windx,
             get_string('def', 'tiny_widgethub'),
@@ -124,17 +120,8 @@ class settingsutil {
             // Redirect to the category page.
             redirect(new \moodle_url('/admin/category.php', ['category' => 'tiny_widgethub']));
         });
-        $settingspage->add($jsonsetting);
+        */
         return $settingspage;
     }
-
-    /**
-     * It removes all the configuration of this plugin. Call this method when uninstalling it
-     */
-    public static function remove_configuration_settings() {
-        $settings = get_config('tiny_widgethub');
-        foreach ($settings as $fieldkey => $fieldname) {
-            unset_config($fieldkey, 'tiny_widgethub');
-        }
-    }
+    
 }

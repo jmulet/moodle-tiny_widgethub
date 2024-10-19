@@ -20,7 +20,7 @@ template: |
   </tbody>
   {{#footer}}
     <tfoot class="table-group-divider">
-      {{#each}}[j=columnes]<th>Foot{{j}}</th>{{/each}}</tr>
+      <tr>{{#each}}[j=columnes]<th>Foot{{j}}</th>{{/each}}</tr>
     </tfoot>
   {{/footer}}
   </table> 
