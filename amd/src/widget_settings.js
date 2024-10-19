@@ -138,7 +138,7 @@ export default {
 		$form.find('button[type="submit"], input[type="submit"]').hide();
 		// Add submit buttons and manually trigger form submit.
 		const $formButtons =
-			jQuery('<div class="form-buttons"><button class="btn btn-primary form-submit">Save changes</button></div>');
+		jQuery('<div class="form-buttons"><button type="button" class="btn btn-primary form-submit">Save changes</button></div>');
 		$form.append($formButtons);
 		const $saveBtn = $formButtons.find("button");
 
@@ -166,6 +166,11 @@ export default {
 			// Only show delete button on saved widgets (id=0 is reserved for new ones)
 			const $deleteBtn = jQuery(`<button type="button" class="btn btn-danger m-1">${i18n[1]}</button>`);
 			$deleteBtn.on('click', async() => {
+				// Ask confirmation
+				const answer = confirm('Do you want to delete this widget?');
+				if (!answer) {
+					return;
+				}
 				// Clear all the controls
 				$jsonArea.trigger('focusin');
 				$jsonArea.val('');
