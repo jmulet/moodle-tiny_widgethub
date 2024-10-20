@@ -1,0 +1,20 @@
+key: subsub-seccio
+name: Sub-subsecció
+instructions: > 
+  Creau una sub-subsecció dins d'una pàgina del llibre moodle.
+  El títol ha d'acabar sense punt final.
+template: | 
+  <p><br></p>
+  <h4 class="iedib-subsub"><span class="iedib-iq">{{titol}}</span></h4>
+  <p><br></p>
+selectors: h4.iedib-subsub
+insertquery: .iedib-iq
+unpack: .iedib-iq
+parameters: 
+  - name: titol
+    value: Títol de la sub-subsecció
+    title: Títol de la sub-subsecció
+    when: "{{SNPT_MODE}}!='selection'"
+stars: 3
+author: Josep Mulet Pol <pep.mulet@gmail.com>
+version: 2023.01.07

@@ -1,0 +1,66 @@
+key: capsa-exemple-simple
+name: Capsa Exemple Simple
+category: capses
+instructions: |
+  Utilitzau aquesta capsa per mostrar un exemple amb l'enunciat i la resolució en el mateix contenidor. Triau una mida
+  per a la capsa. Es recomana incloure el desplegable per a la resolució.
+template: >
+  <p><br></p>
+  <div class="iedib-capsa iedib-capsa-{{mida}} iedib-exemple-border" data-lang="{{LANG}}">
+    <!--begin: Capsa exemple {{mida}} -->
+    <div class="iedib-lateral iedib-exemple">
+       <p class="iedib-titolLateral">{{#I18n}}msg{{/I18n}}<span class="iedib-exemple-logo"></span></p>
+    </div>
+    <div class="iedib-central">
+    <div class="iedib-iq">
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
+      aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+      Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+      occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+    </div>
+    {{#inclouDesplegable}}<!--begin: accordion answer--> 
+    <div id="{{ID}}" class="accordion iedib-accordion">
+    <div class="accordion-group">
+      <div class="accordion-heading"><a class="accordion-toggle" href="#collapse_{{ID}}_0" data-toggle="collapse"
+      data-parent="#{{ID}}"><span class="icon icon-plus-sign"></span> <span>&nbsp;</span><span>{{#I18n}}sol{{/I18n}}</span></a></div>
+        <div id="collapse_{{ID}}_0" class="accordion-body collapse">
+          <div class="accordion-inner">
+          <p>Desenvolupament de la solució de l'exemple ...</p>
+          </div>
+        </div>
+  </div>
+  </div><!--end: accordion-answer-->{{/inclouDesplegable}}
+  <br></div>
+  <!--end: Capsa exemple {{mida}}-->
+  </div>
+  <p><br></p>
+insertquery: .iedib-iq
+parameters:
+  - partial: $LANG    
+  - name: mida
+    value: gran
+    title: Mida de la capsa
+    options: 
+        - {v: gran, l: Gran}
+        - {v: mitjana, l: Mitjana}
+        - {v: petita, l: Petita} 
+  - name: inclouDesplegable
+    value: true
+    title: Inclou desplegable per a la resolució?
+  - partial: $ID
+I18n:
+  msg:
+    ca: EXEMPLE
+    es: EJEMPLO
+    en: EXAMPLE
+    fr: EXEMPLE
+    de: BEISPIEL
+  sol:
+    ca: Solució
+    es: Solución
+    en: Answer
+    fr: Solution
+    de: Lösung
+stars: 3
+author: Josep Mulet Pol <pep.mulet@gmail.com>
+version: 2023.01.07

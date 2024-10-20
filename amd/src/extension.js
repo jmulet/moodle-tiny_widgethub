@@ -21,12 +21,13 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+/** @typedef {(ctx: import('./contextInit').ItemMenuContext) => import('./extension/contextactions').UserDefinedItem[]} Provider */
 /** @typedef {'onInit' | 'contentSet' | 'widgetInserted' | 'widgetRemoved' | 'ctxAction'} EventName */
 /** @type {Map<string, ((editor: import('./plugin').TinyMCE, ...args: any[]) => void)[]>}> */
 const _listeners = new Map();
 
-/** @type {((ctx: import('./contextInit').ItemMenuContext) => import('./extension/contextactions').UserDefinedItem)[]} */
-const _menuItems = [];
+/** @type {Provider[]} */
+const _menuItemProviders = [];
 /**
  * @param {EventName} eventName
  * @param {(editor: import('./plugin').TinyMCE, ...args: any[]) => void} listener
@@ -49,14 +50,14 @@ export function getListeners(eventName) {
 }
 
 /**
- * @param {(ctx: import('./contextInit').ItemMenuContext) =>import('./extension/contextactions').UserDefinedItem} menuItem
+ * @param {Provider} provider
  */
-export function registerMenuItem(menuItem) {
-    _menuItems.push(menuItem);
+export function registerMenuItemProvider(provider) {
+    _menuItemProviders.push(provider);
 }
 /**
- * @returns {((ctx: import('./contextInit').ItemMenuContext) => import('./extension/contextactions').UserDefinedItem)[]}
+ * @returns {Provider[]}
  */
-export function getExtendedMenuItems() {
-    return _menuItems;
+export function getMenuItemProviders() {
+    return _menuItemProviders;
 }

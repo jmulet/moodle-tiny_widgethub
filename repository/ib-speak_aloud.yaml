@@ -1,0 +1,57 @@
+key: speak-aloud
+name: Reprodueix en veu alta
+category: idiomes
+instructions: >
+  Reprodueix en veu alta una paraula o una frase en l'idioma triat en el menú desplegable.
+  Opcionalment es pot afegir una anotació tipus globus que es mostra en fer click.
+  <span class="iedib-ret iedib-ret-alerta">El funcionament en dispositius mòbils està en forma experimental. 
+  Les veus disponibles depenen del sistema operatiu que s'empra.</span>
+template: <a href="#speak_{{voice}}" {{#globus}}data-toggle="popover" data-trigger="click"
+  data-content="{{txtglobus}}" data-html="true" {{#if}}[title!='']title="{{title}}"{{/if}}
+  data-placement="auto"{{/globus}}><span class="iedib-inspoint">{{words}}</span></a>
+insertquery: .iedib-inspoint
+selectors: a[href^="#speak_"]
+unpack: .iedib-inspoint
+parameters:
+  - name: words
+    value: awesome
+    title: Paraula o frase
+    when: "{{SNPT_MODE}}!='selection'" 
+  - name: voice
+    value: en-GB
+    title: Idioma de reproducció
+    tip: WordReference funciona per a una sola paraula en anglès.  Permet triar entre les diverses variants.
+    options:
+      - {v: 'ca-ES', l: 'Català'}
+      - {v: 'es-ES', l: 'Castellà'} 
+      - {v: 'en-GB', l: 'Anglès (Anglaterra)'}
+      - {v: 'en-US', l: 'Anglès (Estats units)'}
+      - {v: 'en-AU', l: 'Anglès (Australia)'}
+      - {v: 'en-NZ', l: 'Anglès (Nova Zelanda)'}
+      - {v: 'en-wr', l: 'Anglès (WordReference)'}
+      - {v: 'de-DE', l: 'Alemany (Alemanya)'} 
+      - {v: 'fr-FR', l: 'Francès (França)'}
+      - {v: 'fr-CA', l: 'Francès (Canadà)'}
+    bind: attrRegex <href="#speak_(.*)">
+  - name: globus
+    value: false
+    title: Inclou globus?
+    bind: hasAttr <data-toggle="popover">
+  - name: title
+    value: "-"
+    title: Títol globus
+    when: "{{globus}}==1"
+    tip: Escriviu - si voleu eliminar el títol.
+    bind: attr <data-title>
+  - name: txtglobus
+    value: Contingut anotació
+    title: Contingut globus (HTML)
+    type: textarea
+    when: "{{globus}}==1"
+    transform: escapeQuotes
+    tip: Si es vol, el contingut del globus pot contenir codi HTML bàsic.
+    bind: attr <data-content>
+requires: "/sd/speak.min.js"
+stars: 2
+author: Josep Mulet Pol <pep.mulet@gmail.com>
+version: 2022.09.28

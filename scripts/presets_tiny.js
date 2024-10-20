@@ -1,14 +1,15 @@
-/* 
+/* eslint-disable no-console */
+/*
  * This is an utility script for the WidgetHub plugin
  * It converts widgets from ../repository in yaml format
  * into ../presets in .json format.
  * All json files in presets will be automatically imported
  * when the plugin is installed or updated.
- * 
+ *
  * Please, execute me with nodejs.
- * 
+ *
  * @autor Josep Mulet Pol <pep.mulet@gmail.com>
- * 
+ *
  **/
 
 const fs = require("fs");
@@ -17,8 +18,8 @@ const yaml = require("js-yaml");
 const crypto = require("crypto");
 
 /**
- * @param {string} str 
- * @param {string} needle 
+ * @param {string} str
+ * @param {string} needle
  * @returns {number} The number of cases found
  */
 function casesOf(str, needle) {
@@ -27,18 +28,18 @@ function casesOf(str, needle) {
 
 /**
  * Detect the number of duplicated items in the list
- * @param {string[]} list 
+ * @param {string[]} list
  * @returns {number} The number of errors
  */
 function checkUniqueKeys(list) {
     let nerrs = 0;
     list.forEach(e => {
-        const flist = list.filter(e2 => e2 == e)
+        const flist = list.filter(e2 => e2 == e);
         if (flist.length != 1) {
             nerrs++;
             console.error(`\tDuplicate key ${e}`);
         }
-    })
+    });
     return nerrs;
 }
 
@@ -55,11 +56,11 @@ function testJsonFields(wdg) {
             nerrs++;
             console.error(`\tThe key ${key} is required`);
         }
-    })
+    });
     if (wdg.parameters != null) {
         // Check parameters.
         wdg.parameters.forEach((/** @type {*} */ p) => {
-            if (!p.name || !p.title) {
+            if (!p.partial && (!p.name || !p.title)) {
                 nerrs++;
                 console.error(`\tThe parameter ${JSON.stringify(p)} requires name and title`);
             }
@@ -87,9 +88,9 @@ function testJsonFields(wdg) {
 }
 
 /**
- * Check if the json fields have the correct format 
- * @param {*} wdg 
- * @returns 
+ * Check if the json fields have the correct format
+ * @param {*} wdg
+ * @returns
  */
 function testJsonFields_contents(wdg) {
     let nerrs = 0;
@@ -126,7 +127,7 @@ function checkTemplate(parsed) {
  * @returns {number} - The number of errors
  */
 function checkEJS(parsed) {
-    //TODO: Not implemented
+    // TODO: Not implemented
     return 0;
 }
 
@@ -136,20 +137,30 @@ function checkEJS(parsed) {
  */
 function checkMustache(parsed) {
     let nerr = 0;
-    const regex = /\{{2,3}([^}]*)\}{2,3}/gm
     const str = parsed.template;
+
+     // The context for the template.
+     /** @type {Record<string, *>} */
+     const ctx = {};
+     // Find all {{#var}} {{/var}} occurences in the template
+     const regex0 = /{{#var}}(.*){{\/var}}/gm;
+     let m0;
+     while ((m0 = regex0.exec(str)) !== null) {
+        if (m0.index === regex0.lastIndex) {
+            regex0.lastIndex++;
+        }
+        const varName = m0[1].split('=')[0];
+        ctx[varName] = m0[1];
+     }
+
     // All fields {{}} must have an associated parameter.
+    const regex = /\{{2,3}([^}]*)\}{2,3}/gm;
     let m;
 
     while ((m = regex.exec(str)) !== null) {
-        // This is necessary to avoid infinite loops with zero-width matches
         if (m.index === regex.lastIndex) {
             regex.lastIndex++;
         }
-
-        // The context for the template.
-        /** @type {Record<string, *>} */
-        const ctx = {};
         (parsed.parameters ?? []).forEach((/** @type {*} */ p) => {
             ctx[p.name] = p.value;
         });
@@ -157,17 +168,19 @@ function checkMustache(parsed) {
         m.forEach((match, groupIndex) => {
             if (groupIndex == 1) {
                 if (match.indexOf("/") >= 0) {
-                    //End of block
+                    // End of block
                     return;
                 }
+                // var defines a new variable
+                
                 // Ignore special blocks
-                if (match === "#each" || match === "i" || match === "j") {
+                if (['#if', '#var', '#eval', '#each', '#I18n', 'i', 'j'].indexOf(match) > -1) {
                     return;
                 }
 
                 const key = match.replace("#", "").replace("^", "");
                 if (ctx[key] === undefined) {
-                    console.error(`Missing parameter ${key} for template`);
+                    console.error(`Missing parameter ${key} for template ${parsed.key}`);
                     nerr++;
                 }
             }
@@ -180,6 +193,9 @@ function checkMustache(parsed) {
  * @param {*} parsed - The parsed widget definition
  */
 function findErrors(parsed) {
+    if (parsed.key === 'partials') {
+        return;
+    }
     // Check that all required parameters are there and have the right syntax.
     if (testJsonFields(parsed)) {
         console.error(":-( Errors have been found! Fix the issues and run the script again.");
@@ -189,13 +205,13 @@ function findErrors(parsed) {
     // All parameters must have a default value.
     (parsed.parameters || []).forEach((/** @type {*} */ p) => {
         if (p.value == null) {
-            console.error(`The parameter ${p.name} requires a default value`);
+            console.error(`The parameter ${JSON.stringify(p)} requires a default value in widget ${parsed.key}`, parsed);
             console.error(":-( Parameter value missing! Fix this issue and run the script again.");
             process.exit(1);
         }
     });
-    
-    if(checkTemplate(parsed) || testJsonFields_contents(parsed)) {
+
+    if (checkTemplate(parsed) || testJsonFields_contents(parsed)) {
         console.error("Errors detected. Fix the issues and run the script again.");
         process.exit(1);
     }
@@ -220,7 +236,7 @@ let filterMode = '*';
 process.argv.forEach((arg, i) => {
     if (arg === '--test' || arg === '-t') {
         testMode = true;
-        console.log("> Running in test mode, no changes will be written")
+        console.log("> Running in test mode, no changes will be written");
     } else if (arg === '--help' || arg === '-h') {
         helpMode = true;
     } else if (i > 1) {
@@ -264,50 +280,80 @@ if (filterMode !== '@' && filterMode !== '!') {
 }
 
 /** @type {string[]} */
-let usedKeys = []
+let usedKeys = [];
+
+// Load all files into an array
+/** @type {Record<string, *>} */
+const widgets = {};
+
 doFiles.forEach((f) => {
-    console.log(`\n> File ${f}`);
-    console.log('  ------------------------');
     const ymlfile = fs.readFileSync(path.join(sourceDirectory, f), "utf-8");
     /** @type {*} */
     let parsed;
     try {
         parsed = yaml.load(ymlfile);
+        if (parsed) {
+            widgets[f] = parsed;
+        } else {
+            console.error(`Error: cannot parse file ${f}`);
+            process.exit(1);
+        }
     } catch (ex) {
         console.error(`Invalid syntax in yaml for file ${f}:: ${ex}`);
         process.exit(1);
     }
-    if (parsed) {
-        if (parsed.template.indexOf('<script') >= 0) {
-            console.error("Template cannot contain any script tag.");
+});
+
+// Search for an special file with key named partials
+const partials = Object.values(widgets).filter((/** @type {*} */ w) => w.key === "partials")[0];
+if (partials) {
+    Object.values(widgets)
+        .filter((w) => w.key !== "partials")
+        .forEach((w) => {
+        if (Array.isArray(w.parameters)) {
+            w.parameters.forEach((p, i) => {
+                if (p.partial) {
+                    const replacement = partials[p.partial];
+                    if (!replacement) {
+                        console.error(`Cannot find partial ${p.partial} in widget ${w.key}`);
+                        process.exit(1);
+                    }
+                    w.parameters[i] = replacement;
+                }
+            });
         }
-        // Check for errors.
-        findErrors(parsed);
-        usedKeys.push(parsed.key)
+    });
+}
 
-        const output = JSON.stringify(parsed, null, 4);
-        parsed.generated = "" + new Date();
-        const preoutput = JSON.stringify(parsed, null, 4);
 
-        // Compute hash with generated date field.
-        let hashNow = crypto.createHash('sha256').update(preoutput).digest('base64');
-
-        if (filterMode === '!' || hashes[parsed.key] != hashNow) {
-            hashes[parsed.key] = hashNow;
-            // Save-it
-            const filename = f.replace(".yaml", ".json").replace(".yml", ".json")
-            if (!testMode) {
-                fs.writeFileSync(path.join(targetDirectory, filename), output, { encoding: "utf-8" });
-                console.log(` [Saved] ${filename}`);
-            }
-        } else {
-            console.log(" [No changes]");
-        }
-
-    } else {
-        console.error(`Error: cannot parse file ${f}`);
+Object.entries(widgets).forEach(([f, parsed]) => {
+    console.log(`\n> File ${f}`);
+    console.log('  ------------------------');
+    if (parsed.template?.indexOf('<script') >= 0) {
+        console.error("Template cannot contain any script tag.");
     }
+    // Check for errors.
+    findErrors(parsed);
+    usedKeys.push(parsed.key);
 
+    const output = JSON.stringify(parsed, null, 4);
+    parsed.generated = "" + new Date();
+    const preoutput = JSON.stringify(parsed, null, 4);
+
+    // Compute hash with generated date field.
+    let hashNow = crypto.createHash('sha256').update(preoutput).digest('base64');
+
+    if (filterMode === '!' || hashes[parsed.key] != hashNow) {
+        hashes[parsed.key] = hashNow;
+        // Save-it
+        const filename = f.replace(".yaml", ".json").replace(".yml", ".json");
+        if (!testMode) {
+            fs.writeFileSync(path.join(targetDirectory, filename), output, { encoding: "utf-8" });
+            console.log(` [Saved] ${filename}`);
+        }
+    } else {
+        console.log(" [No changes]");
+    }
 });
 
 // Check duplicates on widget keys

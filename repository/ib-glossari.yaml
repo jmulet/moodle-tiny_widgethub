@@ -1,0 +1,51 @@
+key: glossari
+name: Glossari
+category: idiomes
+instructions: > 
+  Aquest snippet permet incloure un glossari per a idiomes.
+template: |
+  <p><br></p>
+  <div class="iedib-glossari iedib-glossari-{{estil}}"
+  <!-- begin glossari -->
+  style="max-width:{{mida}}px;{{#centrat}}margin:auto;{{/centrat}}"> 
+  <p><b>{{#I18n}}msg{{/I18n}}</b></p> 
+  <div class="iedib-iq">
+    <p><b>Term</b>: Definition</p> 
+    <p><b>Term</b>: Definition</p>  
+    <p><b>Term</b>: Definition</p>
+  </div>
+  <!-- end glossari -->
+  </div>  
+  <p><br></p>
+insertquery: div.iedib-iq
+selectors: div.iedib-glossari
+parameters: 
+  - partial: $LANG
+  - name: estil
+    value: reading
+    title: Funcionalitat
+    options: 
+      - {v: 'reading', l: 'Reading'}
+      - {v: 'listening', l: 'Listening'}
+      - {v: 'vocabulary', l: 'Vocabulary'} 
+    bind: classRegex <iedib-glossari-(.*)>
+  - name: mida
+    value: 400
+    title: Amplada màxima en px
+    min: 0
+    max: 800
+    bind: styleRegex <max-width:(.*)px>
+  - name: centrat
+    value: true
+    title: Centrat horitzontalment
+    bind: hasStyle <margin:auto>
+I18n:
+  msg:
+    ca: Glossari
+    es: Glosario
+    en: Glossary
+    fr: Glossaire
+    de: Glossar
+stars: 1
+author: Josep Mulet Pol <pep.mulet@gmail.com>
+version: 2023.01.07

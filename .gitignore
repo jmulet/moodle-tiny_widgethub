@@ -10,3 +10,4 @@ package-lock.json
 amd/tests/
 styles.scss
 copy.sh
+playground/

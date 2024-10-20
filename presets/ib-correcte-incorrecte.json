@@ -1,0 +1,9 @@
+{
+    "key": "correcte-incorrecte",
+    "name": "Correcte-Incorrecte",
+    "instructions": "Amb aquest snippet podeu mostrar dos procediments; un correcte i l'altre incorrecte.\n",
+    "template": "<p><br></p>\n<!--ini correcte-incorrecte-->\n<div class=\"iedib-correcte-incorrecte\"><div class=\"iedib-correcte\"><p>Aquest procediment és correcte\n1+1=2</p></div>\n<div class=\"iedib-incorrecte\"><p>En canvi, aquest procediment no ho és 1+1=11</p></div>\n</div>\n<!--fi correcte-incorrecte-->\n<p><br></p>\n",
+    "stars": 2,
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2021.03.30"
+}

@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 
-import {registerMenuItem} from "../extension";
+import {registerMenuItemProvider} from "../extension";
 import {addRequires, cleanUnusedRequires} from "./dependencies";
 
 /**
@@ -23,30 +23,33 @@ function prefixPluginName(str) {
 
 /**
  * @param {import("../contextInit").ItemMenuContext} ctx
- * @param {string} type
- * @returns {UserDefinedItem}
- */
-const addImageEffectItem = (ctx, type) => {
-    return {
-        name: `add${type}Effect`,
-        title: `Afegir efecte ${type}`,
-        action: () => {
-            const elem = ctx.path?.elem;
-            if (!elem) {
-                return;
+ * @returns {UserDefinedItem[]}
+ **/
+function provider(ctx) {
+    /**
+     * @param {string} type
+     * @returns {UserDefinedItem}
+     */
+    const addImageEffectItem = (type) => {
+        return {
+            name: `add${type}Effect`,
+            title: `Afegir efecte ${type}`,
+            action: () => {
+                const elem = ctx.path?.elem;
+                if (!elem) {
+                    return;
+                }
+                elem.attr("data-snptd", type);
+                addRequires(ctx.editor, ["/sd/images.min.js"]);
             }
-            elem.attr("data-snptd", type);
-            addRequires(ctx.editor, ["/sd/images.min.js"]);
-        }
+        };
     };
-};
 
-/**
- * @param {import("../contextInit").ItemMenuContext} ctx
- * @returns {UserDefinedItem}
- */
-const removeImageEffectsItem = (ctx) => {
-    return {
+    /**
+     * @param {import("../contextInit").ItemMenuContext} ctx
+     * @returns {UserDefinedItem}
+     */
+    const removeImageEffectsItem = {
         name: 'removeImageEffects',
         title: 'Eliminar efectes d\'imatge',
         icon: 'trash',
@@ -59,14 +62,13 @@ const removeImageEffectsItem = (ctx) => {
             cleanUnusedRequires(ctx.editor);
         }
     };
-};
 
-/**
- * @param {import("../contextInit").ItemMenuContext} ctx
- * @returns {UserDefinedItem}
- */
-const imageEffectsNestedMenu = (ctx) => {
-    return {
+
+    /**
+     * @param {import("../contextInit").ItemMenuContext} ctx
+     * @returns {UserDefinedItem}
+     */
+    const imageEffectsNestedMenu = {
         name: 'imageEffects',
         widgetKey: 'imatge',
         title: 'Efectes d\'imatge',
@@ -82,9 +84,14 @@ const imageEffectsNestedMenu = (ctx) => {
             }
         }
     };
-};
 
-registerMenuItem((ctx) => addImageEffectItem(ctx, 'zoom'));
-registerMenuItem((ctx) => addImageEffectItem(ctx, 'lightbox'));
-registerMenuItem(removeImageEffectsItem);
-registerMenuItem(imageEffectsNestedMenu);
+
+    return [
+        addImageEffectItem('zoom'),
+        addImageEffectItem('lightbox'),
+        removeImageEffectsItem,
+        imageEffectsNestedMenu,
+    ];
+}
+
+registerMenuItemProvider(provider);

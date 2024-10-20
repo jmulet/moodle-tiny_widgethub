@@ -1,0 +1,19 @@
+{
+    "key": "iframe",
+    "name": "Inserir IFrame/HTML",
+    "instructions": "Aquest snippet permet inserir el codi HTML d'un IFrame en un punt determinat del document.\n",
+    "template": "{{{codi}}}",
+    "selectors": "iframe",
+    "parameters": [
+        {
+            "name": "codi",
+            "value": "",
+            "title": "Codi HTML",
+            "type": "textarea"
+        }
+    ],
+    "stars": 2,
+    "scope": "^page-mod-(book|page|assign|quiz)-",
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2023.01.22"
+}

@@ -5,7 +5,10 @@
         "module": "NodeNext",
         "moduleResolution": "NodeNext",
         "strict": true,
-        "lib": ["esnext"],
+        "lib": [
+            "es2016",
+            "dom"
+        ],
         "esModuleInterop": true,
         "paths": {
             "editor_tiny/utils": ["../../amd/src/utils"],

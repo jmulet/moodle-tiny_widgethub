@@ -1,0 +1,37 @@
+key: video-gdrive
+name: Video-GDrive
+category: video
+instructions: >
+  Atenció: Es recomana utilitzar el canal institucional de Youtube!<br>S'incrusta un vídeo que l'usuari ha compartit
+  prèviament des del seu Google Drive. Introduïu el codi iframe de compartició i opcionalment un títol. <b>Vegeu
+  tutorial:</b> <a href="https://iedib.net/avirtual/mod/page/view.php?id=33050" target="_blank">Com compartir un vídeo
+  del GDrive?</a>
+template: |
+  <p><br></p> 
+  <!--ini gdrive-->
+  <div class="iedib-video-container iedib-video-gdrive" {{#if}}[ampladaMax>100]style="max-width:{{ampladaMax}}px"{{/if}}>
+    <div class="iedib-videoWrapper">
+    {{{codi_iframe}}}  
+    </div>
+      <div class="iedib-caption">
+     <span class="iedib-caption-counter">Vídeo</span><span class="iedib-caption-title">: {{titol}}</span></div>
+    </div> 
+  <!--end gdrive-->
+  <p><br></p>
+parameters: 
+  - name: titol
+    value: Títol
+    title: Títol
+  - name: codi_iframe
+    value:  <iframe src="https://drive.google.com/file/d/1qlHPB60Kln1Wu_HyCDb3-sQOSsstjWCV/preview" width="640" height="480" fullscreen="1"></iframe>
+    title: Codi iframe
+    tip: S'ha d'aferrar tot el codi iframe que heu obtingut de la compartició del Drive. Vegeu la guia d'ús.
+    type: textarea
+  - name: ampladaMax
+    value: 500
+    title: Amplada màxima en px
+    min: 100
+stars: 1
+scope: ^page-mod-(book|page|assign|quizz)-
+author: Josep Mulet Pol <pep.mulet@gmail.com>
+version: 2023.01.07

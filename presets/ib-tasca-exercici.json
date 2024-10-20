@@ -1,0 +1,104 @@
+{
+    "key": "tasca-exercici",
+    "name": "Tasca-Exercici",
+    "category": "capses",
+    "instructions": "Aquesta snippet ha d'anar obligatòriament a peu de pàgina.  Triau si voleu referènciar una <b>tasca avaluable</b>, <b>tasca d'aprenentatge</b> que teniu publicada al grid o bé,  voleu incloure <b>exercicis proposats</b> (textual, h5p, etc.). En aquest darrer cas, podeu especificar un contingut per defecte.\n",
+    "template": "<p><br></p>\n<!-- begin tasca-execici -->\n<div class=\"iedib-capsa iedib-tasca-exercici\" data-lang=\"{{LANG}}\">\n<div class=\"iedib-tasca {{#if}}[tipus=='epr']iedib-proposat{{/if}} iedib-central\">\n<span class=\"iedib-tasca-logo\"></span>\n<h4>{{#I18n}}msg_{{tipus}}{{/I18n}}:</h4>\n<div class=\"iedib-inspoint\">\n{{#var}}tipus_epr=(tipus=='epr'){{/var}}\n{{^tipus_epr}}\n  <p>Et proposo que realitzis aquesta tasca que trobaràs en les capsa del lliurament # per\n  practicar els continguts vists fins ara.</p>\n{{/tipus_epr}}\n{{#tipus_epr}}\n  {{#var}}empty_cont=(_contingut==''){{/var}}\n  {{#empty_cont}}\n    <ol {{#fancy}} {{#if}}[enumera>1]style=\"counter-reset: iedibfalist-counter {{#eval}}enumera-1{{/eval}};\"{{/if}}\n    class=\"iedib-falist\"{{/fancy}} {{#if}}[enumera>1]start=\"{{enumera}}\"{{/if}}>\n    <li><p>Exercici 1</p></li><li><p>Exercici2 <em>E.g. incloure h5p, etc.</em></p></li></ol>\n  {{/empty_cont}}\n  {{^empty_cont}} {{{_contingut}}} {{/empty_cont}} \n{{/tipus_epr}}\n</div>\n</div>\n</div>\n<!-- end tasca-exercici -->\n<p><br></p>\n",
+    "selectors": "div.iedib-capsa.iedib-tasca-exercici",
+    "insertquery": ".iedib-tasca>div.iedib-inspoint",
+    "parameters": [
+        {
+            "name": "LANG",
+            "value": "ca",
+            "title": "Idioma",
+            "options": [
+                {
+                    "v": "ca",
+                    "l": "Català"
+                },
+                {
+                    "v": "es",
+                    "l": "Castellà"
+                },
+                {
+                    "v": "en",
+                    "l": "English"
+                },
+                {
+                    "v": "fr",
+                    "l": "Francès"
+                },
+                {
+                    "v": "de",
+                    "l": "Alemany"
+                }
+            ]
+        },
+        {
+            "name": "tipus",
+            "value": "epr",
+            "title": "Tipus d'activitat",
+            "options": [
+                {
+                    "v": "epr",
+                    "l": "Exercicis proposats"
+                },
+                {
+                    "v": "tava",
+                    "l": "Tasca avaluable"
+                },
+                {
+                    "v": "tapr",
+                    "l": "Tasca d'aprenentatge"
+                }
+            ]
+        },
+        {
+            "name": "enumera",
+            "value": 1,
+            "title": "Enumera els exercicis des de num.",
+            "min": 1,
+            "when": "{{tipus}}=='epr'"
+        },
+        {
+            "name": "fancy",
+            "value": false,
+            "title": "Estil d'enumerat embellit",
+            "when": "{{tipus}}=='epr'"
+        },
+        {
+            "name": "_contingut",
+            "value": "",
+            "title": "Contingut per defecte (només exercicis)",
+            "type": "textarea",
+            "when": "{{tipus}}=='epr' && {{SNPT_MODE}}!='selection'"
+        }
+    ],
+    "I18n": {
+        "msg_tava": {
+            "ca": "TASCA AVALUABLE",
+            "es": "TAREA EVALUABLE",
+            "en": "ASSESSED TASK",
+            "fr": "TÂCHE ÉVALUABLE",
+            "de": "BEWERTUNGSAKTIVITÄT"
+        },
+        "msg_tapr": {
+            "ca": "TASCA D'APRENENTATGE",
+            "es": "TAREA DE APRENDIZAJE",
+            "en": "LEARNING ASSIGNMENT",
+            "fr": "TÂCHE D'APPRENTISSAGE",
+            "de": "LERNAKTIVITÄT"
+        },
+        "msg_epr": {
+            "ca": "EXERCICIS",
+            "es": "EJERCICIOS",
+            "en": "ACTIVITIES",
+            "fr": "EXERCICES",
+            "de": "ÜBUNGEN"
+        }
+    },
+    "stars": 2,
+    "scope": "^page-mod-book-edit$",
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2021.03.30"
+}

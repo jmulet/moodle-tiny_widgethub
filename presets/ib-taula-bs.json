@@ -1,0 +1,66 @@
+{
+    "key": "taula-bs",
+    "name": "Taula Bootstrap",
+    "category": "bootstrap",
+    "instructions": "Crea una taula Bootstrap amb n files i m columnes. \n",
+    "template": "<p><br></p> \n<!--ini bstable-->\n{{#responsiu}}<div class=\"table-responsive\">{{/responsiu}}\n<table class=\"table{{#franges}} table-striped{{/franges}}{{#vores}} table-bordered{{/vores}}{{#hover}} table-hover{{/hover}} iedib-bstable\">\n{{#capsaleres}}<thead><tr>{{#each}}[j=columnes]<th role=\"col\">Títol{{j}}</th>{{/each}}</tr></thead>{{/capsaleres}}\n<tbody class=\"table-group-divider\">{{#each}}[files]<tr>{{#each}}[columnes]<td> </td>{{/each}}</tr>{{/each}}</tbody>\n{{#peu}}<tfoot class=\"table-group-divider\"><tr>{{#each}}[columnes]<th>Resum{{j}}</th>{{/each}}</tr></tfoot>{{/peu}}\n</table> \n{{#responsiu}}</div>{{/responsiu}}\n{{#if}}[desc!='']<p\nstyle=\"margin-top:5px;text-align: center;\"><span class=\"iedib-caption-counter\">Taula</span>: <span class=\"iedib-caption-title\">Descripció\nde la taula.</span></p>{{/if}}\n<!--fi bstable-->\n<p><br></p>\n",
+    "selectors": "table.iedib-bstable",
+    "parameters": [
+        {
+            "name": "files",
+            "value": 3,
+            "title": "N. files",
+            "min": 1
+        },
+        {
+            "name": "columnes",
+            "value": 3,
+            "title": "N. columnes",
+            "min": 1
+        },
+        {
+            "name": "capsaleres",
+            "value": true,
+            "title": "Inclou capçaleres"
+        },
+        {
+            "name": "peu",
+            "value": false,
+            "title": "Afegeix un peu de taula"
+        },
+        {
+            "name": "desc",
+            "value": "Descripció de la taula",
+            "title": "Descripció de la taula"
+        },
+        {
+            "name": "franges",
+            "value": true,
+            "title": "Mostra franges",
+            "tip": "Les files senars tenen un fons gris fluix",
+            "bind": "hasClass <table-striped>"
+        },
+        {
+            "name": "hover",
+            "value": false,
+            "title": "Realça fila seleccionada",
+            "tip": "Quan es passa el ratolí per sobre una fila, aquesta es realça",
+            "bind": "hasClass <table-hover>"
+        },
+        {
+            "name": "vores",
+            "value": false,
+            "title": "Mostra voreres",
+            "bind": "hasClass <table-bordered>"
+        },
+        {
+            "name": "responsiu",
+            "value": false,
+            "title": "Comportament responsiu",
+            "tip": "La taula mostra un desplaçament horitzontal quan el contingut no hi cap"
+        }
+    ],
+    "stars": 2,
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2022.11.06"
+}

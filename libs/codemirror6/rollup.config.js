@@ -2,10 +2,10 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 export default [
     {
-        input: 'cm6pro.mjs',
+        input: './codemirror6/cm6pro.mjs',
         output: {
             sourcemap: false,
-            file: '../../amd/src/cm6pro-lazy.js',
+            file: '../amd/src/libs/cm6pro-lazy.js',
             format: 'esm',
             name: 'cm6pro',
             plugins: []

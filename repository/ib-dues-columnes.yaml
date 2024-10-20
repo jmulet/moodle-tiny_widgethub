@@ -1,0 +1,33 @@
+key: two-cols
+name: Dues Columnes
+category: bootstrap
+instructions: >
+  Formateu continguts en dues columnes responsives (s'adapten a la mida dels dispositius).
+template: |
+  {{#var}}amplada_col2=12-amplada_col1{{/var}}
+  <p><br></p>
+  <!--ini dues columnes-->
+  <div class="row-fluid iedib-tabpane">
+  <div class="span{{amplada_col1}}">
+  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
+  aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+  Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+  occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+  </div>
+  <div class="span{{amplada_col2}}">
+  <img src="https://www.actualidadliteratura.com/wp-content/uploads/2019/06/tablilla-en-latin.jpg" alt="Demo" style="max-width:300px;" role="presentation" class="img-fluid align-middle"/>
+  </div>
+  </div>
+  <!--fi dues columnes-->
+   <p><br></p>
+selectors: div.row-fluid.iedib-tabpane
+parameters: 
+  - name: amplada_col1
+    value: 6
+    title: Amplada primera columna
+    tip: Amplada de la primera columna. Un número de 1 a 11. S'obté igual amplades amb el valor 6.
+    min: 1
+    max: 11
+stars: 2
+author: Josep Mulet Pol <pep.mulet@gmail.com>
+version: 2023.01.07

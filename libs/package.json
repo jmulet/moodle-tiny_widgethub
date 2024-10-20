@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "rollup --config"
+    "build": "rollup --config ./codemirror6/rollup.config.js",
+    "serve": "npx http-server ./playground -o index.html"
   },
   "keywords": [],
   "author": "",

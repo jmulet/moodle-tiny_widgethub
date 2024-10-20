@@ -1,0 +1,59 @@
+key: capsa-exemple-rows
+category: capses
+name: Capsa Exemple 2 Files
+instructions: >
+  Utilitzau aquesta capsa per mostrar un exemple amb l'enunciat i la resolució en dues files diferents.
+  Decidiu si la segona fila conté un desplegable.
+template: |
+  <p><br></p>
+  <div class="iedib-capsa iedib-capsa-gran iedib-exemple-border" data-lang="{{LANG}}">
+  <!--begin: Capsa exemple 2 files -->
+  <div class="iedib-lateral iedib-exemple">
+  <p class="iedib-titolLateral">{{#I18n}}msg{{/I18n}}<span class="iedib-exemple-logo"></span></p>
+  </div>
+  <div class="iedib-formulacio-rows">
+     <p>Escriviu en aquesta secció l'enunciat del problema.</p>
+  </div>
+  <div class="iedib-resolucio-rows">
+  {{^inclouDesplegable}}<p>Escriviu en aquesta altra secció la resolució del problema.</p>{{/inclouDesplegable}} 
+  {{#inclouDesplegable}}<!--begin: accordion answer-->
+  <div id="{{ID}}" class="accordion iedib-accordion">
+    <div class="accordion-group">
+      <div class="accordion-heading"><a class="accordion-toggle" href="#collapse_{{ID}}_0" data-toggle="collapse"
+       data-parent="#{{ID}}"><span class="icon icon-plus-sign"></span> <span>&nbsp;</span><span>{{#I18n}}sol{{/I18n}}</span></a></div>
+          <div id="collapse_{{ID}}_0" class="accordion-body collapse">
+            <div class="accordion-inner">
+               <p>Desenvolupament de la solució de l'exemple ...</p>
+            </div>
+          </div>
+      </div>
+    </div><!--end: accordion-answer-->{{/inclouDesplegable}}
+  </div>
+  <!--end: Capsa exemple 2 files--> 
+  </div>
+  <p><br></p>
+selectors: 
+  - div.iedib-capsa.iedib-exemple-border
+  - .iedib-formulacio-rows
+parameters:
+  - partial: $LANG
+  - name: inclouDesplegable
+    value: true
+    title: Inclou desplegable per a la resolució    
+  - partial: $ID
+I18n:
+  msg:
+    ca: EXEMPLE
+    es: EJEMPLO
+    en: EXAMPLE
+    fr: EXEMPLE
+    de: BEISPIEL
+  sol:
+    ca: Solució
+    es: Solución
+    en: Answer
+    fr: Solution
+    de: Lösung
+stars: 0
+author: Josep Mulet Pol <pep.mulet@gmail.com>
+version: 2023.01.07

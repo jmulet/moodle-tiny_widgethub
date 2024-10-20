@@ -1,0 +1,12 @@
+{
+    "key": "capsa-cloze",
+    "name": "Ressalta elements 'cloze'",
+    "category": "capses",
+    "instructions": "Resalta els elements de tipus cloze d'una pregunta de qüestionari aplicant la classe 'cloze-styling'. Seleccionau l'element que volgueu ressaltar i aplicau aquest snippet.\n",
+    "template": "<p><br></p>  \n<div class=\"cloze-styling\">\n<p><br></p>\n</div> \n<p><br></p>\n",
+    "insertquery": ".cloze-styling",
+    "scope": "^page-question-type-",
+    "stars": 2,
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2022.12.10"
+}

@@ -1,0 +1,79 @@
+key: capsa-generica
+name: Capsa multi-propòsit
+category: capses
+instructions: > 
+  <b>Alerta</b>: Serveix per informar d'una errada o situació greu a tenir en compte. <br>
+  <b>Ampliació</b>: Marcau que el material és d'ampliació per als alumnes.<br>
+  <b>Consell</b>: Donau un consell als alumnes.<br>
+  <b>Important</b>: Remarcar que és un contingut rellevant que cal estudiar.<br>
+  <b>Introducció</b>: Serveix per introduir un lliurament o una secció d'ell. 
+  Triau una mida i idioma per a la capsa.
+template: |
+  <p><br></p><!--begin: Capsa {{tipus}} {{mida}} -->
+  <div class="iedib-capsa iedib-capsa-{{mida}} iedib-{{tipus}}-border" data-lang="{{LANG}}">
+    <div class="iedib-lateral iedib-{{tipus}}">
+      <p class="iedib-titolLateral">{{#I18n}}msg_{{tipus}}{{/I18n}}<span class="iedib-{{tipus}}-logo"></span></p>
+    </div>
+    <div class="iedib-central">
+     <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
+     aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+     Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+     occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+    </div>
+  </div>
+  <!--end: Capsa {{tipus}} {{mida}}--> <p><br></p>  
+insertquery: .iedib-central
+selectors: .iedib-capsa.iedib-alerta-border,.iedib-capsa.iedib-ampliacio-border,.iedib-capsa.iedib-consell-border,.iedib-capsa.iedib-important-border,.iedib-capsa.iedib-introduccio-border
+unpack: div.iedib-central > *
+parameters: 
+  - name: tipus
+    value: alerta
+    title: Propòsit de la capsa
+    options: 
+      - {v: alerta, l: Alerta}
+      - {v: ampliacio, l: Ampliació}
+      - {v: consell, l: Consell}
+      - {v: important, l: Important}
+      - {v: introduccio, l: Introducció} 
+  - name: mida
+    value: gran
+    title: Mida de la capsa
+    options: 
+      - {v: gran, l: Gran}
+      - {v: mitjana, l: Mitjana}
+      - {v: petita, l: Petita} 
+  - partial: $LANG
+I18n:
+  msg_alerta:
+    ca: ALERTA
+    es: ALERTA
+    en: WATCH OUT
+    fr: ATTENTION
+    de: ACHTUNG
+  msg_ampliacio:
+    ca: AMPLIACIÓ
+    es: AMPLIACIÓN
+    en: EXTENSION
+    fr: EXTENSION
+    de: ERWEITERUNG
+  msg_consell:
+    ca: CONSELL
+    es: CONSEJO
+    en: ADVICE
+    fr: CONSEIL
+    de: TIPP
+  msg_important:
+    ca: IMPORTANT
+    es: IMPORTANTE
+    en: IMPORTANT
+    fr: IMPORTANT
+    de: WICHTIG
+  msg_introduccio:
+    ca: INTRODUCCIÓ
+    es: INTRODUCIÓN
+    en: INTRODUCTION
+    fr: INTRODUCTION
+    de: EINFÜHRUNG
+stars: 2
+author: Josep Mulet Pol <pep.mulet@gmail.com>
+version: 2023.01.07

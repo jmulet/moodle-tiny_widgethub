@@ -1,0 +1,37 @@
+{
+    "key": "partials",
+    "$ID": {
+        "name": "ID",
+        "value": "$RND",
+        "title": "Identificador autogenerat",
+        "type": "textfield",
+        "hidden": true
+    },
+    "$LANG": {
+        "name": "LANG",
+        "value": "ca",
+        "title": "Idioma",
+        "options": [
+            {
+                "v": "ca",
+                "l": "Català"
+            },
+            {
+                "v": "es",
+                "l": "Castellà"
+            },
+            {
+                "v": "en",
+                "l": "English"
+            },
+            {
+                "v": "fr",
+                "l": "Francès"
+            },
+            {
+                "v": "de",
+                "l": "Alemany"
+            }
+        ]
+    }
+}
