@@ -8,15 +8,14 @@ template: |
   <!--begin: Capsa solució -->
   <div class="iedib-capsa iedib-solucio">
   <div class="iedib-central">
-  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
-  aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+  <p>@LOREM</p>
   </div>
   </div>
   <!--end: Capsa solució--> 
   <p><br></p>
 insertquery: .iedib-central
 selectors: div.iedib-capsa.iedib-solucio
-unpack: div.iedib-central > *
+unwrap: div.iedib-central > *
 scope: ^page-mod-(page|assign)-mod$
 stars: 2
 author: Josep Mulet Pol <pep.mulet@gmail.com>

@@ -2,10 +2,10 @@
     "key": "fragment-text",
     "name": "Fragment de text",
     "instructions": "Utilitzeu aquest snippet per introduir un fragment de text d'algun llibre. \nSi voleu reduir l'amplada podeu establir una amplada màxima, p.e. 400 px.\n",
-    "template": "<p><br></p> <!-- begin fragment text --> <div class=\"iedib-fragment {{#notranslate}}notranslate{{/notranslate}}\" data-lang=\"{{LANG}}\" {{#if}}[amplada_max>0]style=\"max-width: {{amplada_max}}px;\"{{/if}}> <h4>{{#I18n}}msg{{/I18n}}:</h4> <div class=\"iedib-iq\"> <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p> </div> </div> <!-- end fragment text --> <p><br></p>",
+    "template": "<p><br></p> <!-- begin fragment text --> <div class=\"iedib-fragment {{#notranslate}}notranslate{{/notranslate}}\" data-lang=\"{{LANG}}\" {{#if}}[amplada_max>0]style=\"max-width: {{amplada_max}}px;\"{{/if}}> <h4>{{#I18n}}msg{{/I18n}}:</h4> <div class=\"iedib-iq\"> <p>@LOREM</p> </div> </div> <!-- end fragment text --> <p><br></p>",
     "insertquery": ".iedib-fragment>div.iedib-iq",
     "selectors": "div.iedib-fragment",
-    "unpack": "div.iedib-iq > *",
+    "unwrap": "div.iedib-iq > *",
     "parameters": [
         {
             "name": "LANG",
@@ -40,13 +40,13 @@
             "title": "Amplada màxima (px)",
             "min": 0,
             "tip": "Per exemple 500. Si no voleu limitar l'amplada, deixeu-la a 0.",
-            "bind": "styleRegex <max-width:(.*)px>"
+            "bind": "styleRegex('max-width:(.*)px')"
         },
         {
             "name": "notranslate",
             "value": false,
             "title": "Evita ésser traduït per Google",
-            "bind": "hasClass <notranslate>"
+            "bind": "hasClass('notranslate')"
         }
     ],
     "I18n": {

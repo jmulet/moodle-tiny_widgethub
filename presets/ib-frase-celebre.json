@@ -5,7 +5,7 @@
     "template": "<p><br></p>  <div class=\"iedib-quote {{#notranslate}}notranslate{{/notranslate}}\"> <!--begin: frase celebre--> <div class=\"iedib-iq\"> <p>No entiendes realmente algo a menos que seas capaz de explicárselo a tu abuela.</p> </div> <cite>{{author}}</cite> <!--end: frase celebre--> </div> <p><br></p>\n",
     "insertquery": "div.iedib-iq",
     "selectors": "div.iedib-quote",
-    "unpack": "*",
+    "unwrap": "*",
     "parameters": [
         {
             "name": "author",

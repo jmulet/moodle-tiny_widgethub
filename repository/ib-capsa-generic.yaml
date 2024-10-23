@@ -15,16 +15,13 @@ template: |
       <p class="iedib-titolLateral">{{#I18n}}msg_{{tipus}}{{/I18n}}<span class="iedib-{{tipus}}-logo"></span></p>
     </div>
     <div class="iedib-central">
-     <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
-     aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-     Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
-     occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+      <p>@LOREM</p>
     </div>
   </div>
   <!--end: Capsa {{tipus}} {{mida}}--> <p><br></p>  
 insertquery: .iedib-central
 selectors: .iedib-capsa.iedib-alerta-border,.iedib-capsa.iedib-ampliacio-border,.iedib-capsa.iedib-consell-border,.iedib-capsa.iedib-important-border,.iedib-capsa.iedib-introduccio-border
-unpack: div.iedib-central > *
+unwrap: div.iedib-central > *
 parameters: 
   - name: tipus
     value: alerta
@@ -42,7 +39,7 @@ parameters:
       - {v: gran, l: Gran}
       - {v: mitjana, l: Mitjana}
       - {v: petita, l: Petita} 
-  - partial: $LANG
+  - '@LANG'
 I18n:
   msg_alerta:
     ca: ALERTA

@@ -4,7 +4,7 @@
 require('./module.mocks')(jest);
 document?.body?.setAttribute("id", "page-mod-page-mod");
 
-const { register, getWidgetDict, Shared, Widget } = require('../src/options');
+const { register, getWidgetDict, Shared, Widget, applyPartials } = require('../src/options');
 
 
 /** @type {import('../src/options').RawWidget} */
@@ -173,7 +173,7 @@ describe('Options', () => {
         expect(snpt.isFor(52)).toBe(false);
         expect(snpt.isFor(7)).toBe(false);
         expect(snpt.isFor(2)).toBe(false);
-        expect(snpt.isFor(1)).toBe(true); // because admin
+        expect(snpt.isFor(1)).toBe(false); // because admin
         expect(snpt.isFor(3)).toBe(false);  
     });
 
@@ -182,9 +182,33 @@ describe('Options', () => {
         expect(snpt.isFor(5)).toBe(true);
         expect(snpt.isFor(42)).toBe(false);
         expect(snpt.isFor(555)).toBe(false);
-        expect(snpt.isFor(0)).toBe(true); // admin
-        expect(snpt.isFor(1)).toBe(true); // admin
+        expect(snpt.isFor(0)).toBe(false); // admin
+        expect(snpt.isFor(1)).toBe(false); // admin
         expect(snpt.isFor(2)).toBe(false);
     });
+
+    test('Should expand the template with partials', () => {
+        const partial = {
+            "@LOREM": 'Lorem ipsum dolor it.'
+        }
+        let snpt = {...rawSnpt, template: '<p>@LOREM</p>'};
+        applyPartials(snpt, partial);
+        expect(snpt.template).toBe('<p>Lorem ipsum dolor it.</p>');
+
+        snpt = {...rawSnpt, template:
+        `<p><br></p> 
+        <!--begin: Capsa solució -->
+        <div class="iedib-capsa iedib-solucio">
+        <div class="iedib-central">
+        <p>@LOREM</p>
+        </div>
+        </div>
+        <!--end: Capsa solució--> 
+        <p><br></p>`};
+        applyPartials(snpt, partial);
+        expect(snpt.template.indexOf("@LOREM")>=0).toBe(false);
+        expect(snpt.template.indexOf("<p>Lorem ipsum dolor it.</p>")>=0).toBe(true);
+
+    })
 
 });

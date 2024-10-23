@@ -13,11 +13,11 @@ parameters:
   - name: franges_de_fons
     value: true
     title: Inclou fons de franges
-    bind: hasClass <iedib-code-stripped>
+    bind: hasClass('iedib-code-stripped')
   - name: notranslate
     value: true
     title: Evita que Google tradueixi el codi
-    bind: hasClass <notranslate>
+    bind: hasClass('notranslate')
   - name: codi
     value: console.log('Hello world!');
     title: Codi font
@@ -25,13 +25,13 @@ parameters:
   - name: syntax
     value: true
     title: Sintaxi en colors
-    bind: <code> not hasClass <nohighlight>
+    bind: notHasClass('nohighlight', 'code')
   - name: lnum
     value: false
     title: Enumera les línies
-    bind: <code> not hasClass <nohljsln>
-    when: "{{syntax}}==1"
-requires: "/sd/programacio.min.js | {{syntax}}==1"
+    bind: notHasClass('nohljsln', 'code')
+    when: "syntax==1"
+requires: "/sd/programacio.min.js | syntax==1"
 stars: 2
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 2023.01.07

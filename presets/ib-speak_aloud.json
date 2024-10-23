@@ -6,13 +6,13 @@
     "template": "<a href=\"#speak_{{voice}}\" {{#globus}}data-toggle=\"popover\" data-trigger=\"click\" data-content=\"{{txtglobus}}\" data-html=\"true\" {{#if}}[title!='']title=\"{{title}}\"{{/if}} data-placement=\"auto\"{{/globus}}><span class=\"iedib-inspoint\">{{words}}</span></a>",
     "insertquery": ".iedib-inspoint",
     "selectors": "a[href^=\"#speak_\"]",
-    "unpack": ".iedib-inspoint",
+    "unwrap": ".iedib-inspoint",
     "parameters": [
         {
             "name": "words",
             "value": "awesome",
             "title": "Paraula o frase",
-            "when": "{{SNPT_MODE}}!='selection'"
+            "when": "{{SELECT_MODE}}!='selection'"
         },
         {
             "name": "voice",
@@ -61,31 +61,31 @@
                     "l": "Francès (Canadà)"
                 }
             ],
-            "bind": "attrRegex <href=\"#speak_(.*)\">"
+            "bind": "attrRegex('href=\"#speak_(.*)\"')"
         },
         {
             "name": "globus",
             "value": false,
             "title": "Inclou globus?",
-            "bind": "hasAttr <data-toggle=\"popover\">"
+            "bind": "hasAttr('data-toggle=\"popover\"')"
         },
         {
             "name": "title",
             "value": "-",
             "title": "Títol globus",
-            "when": "{{globus}}==1",
+            "when": "globus==1",
             "tip": "Escriviu - si voleu eliminar el títol.",
-            "bind": "attr <data-title>"
+            "bind": "attr('data-title')"
         },
         {
             "name": "txtglobus",
             "value": "Contingut anotació",
             "title": "Contingut globus (HTML)",
             "type": "textarea",
-            "when": "{{globus}}==1",
+            "when": "globus==1",
             "transform": "escapeQuotes",
             "tip": "Si es vol, el contingut del globus pot contenir codi HTML bàsic.",
-            "bind": "attr <data-content>"
+            "bind": "attr('data-content')"
         }
     ],
     "requires": "/sd/speak.min.js",

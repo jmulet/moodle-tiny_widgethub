@@ -38,7 +38,7 @@ const {component, pluginName} = Common;
 
 // Import extensions to the plugin
 import './extension/dependencies';
-import './extension/contextactions';
+import './extension/contextmenus';
 
 // Setup the plugin.
 // eslint-disable-next-line no-async-promise-executor

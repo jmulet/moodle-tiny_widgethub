@@ -9,27 +9,27 @@ template: |
   data-placement="auto"><span class="iedib-inspoint">{{paraula}}</span></a>
 insertquery: .iedib-inspoint
 selectors: a[data-toggle="popover"]:not([href^="#speak_"])
-unpack: .iedib-inspoint
+unwrap: .iedib-inspoint
 parameters:
   - name: paraula
     value: IEDIB
     title: Paraula
     type: textfield
     tip: Quan es faci click a aquesta paraula apareixerà el globus
-    when: "{{SNPT_MODE}}!='selection'" 
+    when: "SELECT_MODE!='selection'" 
   - name: titol
     value: ""
     title: Títol globus
     transform: trim
     tip: Aquest paràmetre és opcional. Si l'afegiu, el títol apareixerà a la part superior del globus
-    bind: attr <data-original-title>
+    bind: attr('data-original-title')
   - name: anotacio
-    value: <b>IEDIB</b> Institut d'Ensenyaments a Distància de les Illes Balears <br> <img src='https://piworld.es/iedib/img/iedib-logo.png' width='200'/>
+    value: <b>IEDIB</b> Institut d'Ensenyaments a Distància de les Illes Balears <br> <img src='https://ibsuite.es/iedib/img/iedib-logo.png' width='200'/>
     title: Contingut globus
     type: textarea 
     transform: escapeQuotes
     tip: Si es vol, el contingut del globus pot contenir codi HTML bàsic
-    bind: attr <data-content>
+    bind: attr('data-content')
 stars: 2
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 2022.10.12

@@ -240,7 +240,7 @@ class plugininfo extends plugin implements
         if (!isset($widgetindex)) {
             $widgetindex = self::get_widget_index($conf);
         }
-        $indexid = array_column($widgetindex, null, 'key')['partials'] ?? false;
+        $indexid = array_search('partials', array_column($widgetindex, 'key'));
         $partials = null;
         if ($indexid) {
             $definition = $conf->{'def_' . $indexid};
@@ -358,25 +358,23 @@ class plugininfo extends plugin implements
                 if (isset($old)) {
                     // Condition to override existing definition.
                     // Author has changed or (TODO) version is less than previous.
-                    if ($old->author != $preset['author']) {
+                    if (isset($preset['author']) && $old->author != $preset['author']) {
                         $mustupdate = false;
                     }
                 }
             }
-            var_dump($id, $mustupdate, $preset);
             if ($mustupdate) {
                 // Save the definition.
                 set_config('def_' . $id, json_encode($preset) , 'tiny_widgethub');
                 // Update the index object.
                 $widgetindex[$id] = [
                     'key' => $preset['key'],
-                    'name' => $preset['name'],
+                    'name' => isset($preset['name']) ? $preset['name'] : $preset['key'],
                 ];
             }
         }
         
         // Save the index.
-        var_dump("setting index", $widgetindex);
         set_config('index', json_encode($widgetindex), 'tiny_widgethub');
     }
 }

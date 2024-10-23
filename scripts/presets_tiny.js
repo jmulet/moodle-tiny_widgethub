@@ -12,6 +12,8 @@
  *
  **/
 
+const { applyPartials } = require("./util");
+
 const fs = require("fs");
 const path = require("path");
 const yaml = require("js-yaml");
@@ -310,18 +312,7 @@ if (partials) {
     Object.values(widgets)
         .filter((w) => w.key !== "partials")
         .forEach((w) => {
-        if (Array.isArray(w.parameters)) {
-            w.parameters.forEach((p, i) => {
-                if (p.partial) {
-                    const replacement = partials[p.partial];
-                    if (!replacement) {
-                        console.error(`Cannot find partial ${p.partial} in widget ${w.key}`);
-                        process.exit(1);
-                    }
-                    w.parameters[i] = replacement;
-                }
-            });
-        }
+            applyPartials(w, partials);
     });
 }
 

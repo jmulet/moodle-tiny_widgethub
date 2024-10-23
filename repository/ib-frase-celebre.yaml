@@ -16,7 +16,7 @@ template: >
   <p><br></p>
 insertquery: div.iedib-iq
 selectors: div.iedib-quote
-unpack: "*"
+unwrap: "*"
 parameters: 
   - name: author
     value: Albert Einstein

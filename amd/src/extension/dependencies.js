@@ -2,7 +2,8 @@
 import {subscribe} from "../extension";
 import {addBaseToUrl, evalInContext} from "../util";
 
-const IMG_BASE_URL = "https://iedib.net/assets";
+//const IMG_BASE_URL = "https://iedib.net/assets";
+const IMG_BASE_URL = "https://ibsuite.es/iedib/snippets";
 
 /**
 /**

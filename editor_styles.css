@@ -1,0 +1,22 @@
+.iedib-sd-area {
+    position: relative;
+    margin: auto;
+    display: block;
+    padding: 10px;
+    width: 98%;
+    min-height: 50px;
+    border: 1px solid rgb(50, 0, 0);
+    border-radius: 5px;
+    background: #eeeeee;
+}  
+.iedib-sd-area::before {
+    content: "Àrea d'snippets amb connectors. No la modifiqueu ni esborreu. Manteniu-la sempre al final de la pàgina.";
+    color: rgb(50, 0, 0);
+}  
+.iedib-sd-area>script {
+    display: block;
+    position: relative;
+} 
+.iedib-sd-area>script::after {
+    content: attr(src);
+}

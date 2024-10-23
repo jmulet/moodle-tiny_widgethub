@@ -10,12 +10,12 @@ template: >-
   <p><br></p>
 selectors: iedib-titol-general
 insertquery: .iedib-titol-general-text
-unpack: .iedib-titol-general
+unwrap: .iedib-titol-general
 parameters: 
   - name: titol
     value: Escriviu un títol
     title: Títol de la capçalera
-    when: "{{SNPT_MODE}}!='selection'"
+    when: "{{SELECT_MODE}}!='selection'"
 scope: ^page-mod-(page|quizz|assign)-mod$
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 2023.01.07

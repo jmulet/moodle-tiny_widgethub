@@ -3,10 +3,10 @@
     "name": "Capsa multi-propòsit",
     "category": "capses",
     "instructions": "<b>Alerta</b>: Serveix per informar d'una errada o situació greu a tenir en compte. <br> <b>Ampliació</b>: Marcau que el material és d'ampliació per als alumnes.<br> <b>Consell</b>: Donau un consell als alumnes.<br> <b>Important</b>: Remarcar que és un contingut rellevant que cal estudiar.<br> <b>Introducció</b>: Serveix per introduir un lliurament o una secció d'ell.  Triau una mida i idioma per a la capsa.\n",
-    "template": "<p><br></p><!--begin: Capsa {{tipus}} {{mida}} -->\n<div class=\"iedib-capsa iedib-capsa-{{mida}} iedib-{{tipus}}-border\" data-lang=\"{{LANG}}\">\n  <div class=\"iedib-lateral iedib-{{tipus}}\">\n    <p class=\"iedib-titolLateral\">{{#I18n}}msg_{{tipus}}{{/I18n}}<span class=\"iedib-{{tipus}}-logo\"></span></p>\n  </div>\n  <div class=\"iedib-central\">\n   <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna\n   aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n   Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint\n   occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>\n  </div>\n</div>\n<!--end: Capsa {{tipus}} {{mida}}--> <p><br></p>  \n",
+    "template": "<p><br></p><!--begin: Capsa {{tipus}} {{mida}} -->\n<div class=\"iedib-capsa iedib-capsa-{{mida}} iedib-{{tipus}}-border\" data-lang=\"{{LANG}}\">\n  <div class=\"iedib-lateral iedib-{{tipus}}\">\n    <p class=\"iedib-titolLateral\">{{#I18n}}msg_{{tipus}}{{/I18n}}<span class=\"iedib-{{tipus}}-logo\"></span></p>\n  </div>\n  <div class=\"iedib-central\">\n    <p>@LOREM</p>\n  </div>\n</div>\n<!--end: Capsa {{tipus}} {{mida}}--> <p><br></p>  \n",
     "insertquery": ".iedib-central",
     "selectors": ".iedib-capsa.iedib-alerta-border,.iedib-capsa.iedib-ampliacio-border,.iedib-capsa.iedib-consell-border,.iedib-capsa.iedib-important-border,.iedib-capsa.iedib-introduccio-border",
-    "unpack": "div.iedib-central > *",
+    "unwrap": "div.iedib-central > *",
     "parameters": [
         {
             "name": "tipus",

@@ -52,7 +52,7 @@
                     "l": "Vocabulary"
                 }
             ],
-            "bind": "classRegex <iedib-glossari-(.*)>"
+            "bind": "classRegex('iedib-glossari-(.*)')"
         },
         {
             "name": "mida",
@@ -60,13 +60,13 @@
             "title": "Amplada màxima en px",
             "min": 0,
             "max": 800,
-            "bind": "styleRegex <max-width:(.*)px>"
+            "bind": "styleRegex('max-width:(.*)px')"
         },
         {
             "name": "centrat",
             "value": true,
             "title": "Centrat horitzontalment",
-            "bind": "hasStyle <margin:auto>"
+            "bind": "hasStyle('margin:auto')"
         }
     ],
     "I18n": {

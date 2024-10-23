@@ -37,7 +37,7 @@ template: |
 selectors: div.iedib-capsa.iedib-tasca-exercici
 insertquery: .iedib-tasca>div.iedib-inspoint
 parameters: 
-  - partial: $LANG
+  - '@LANG'
   - name: tipus
     value: epr
     title: Tipus d'activitat
@@ -58,7 +58,7 @@ parameters:
     value: ""
     title: Contingut per defecte (només exercicis)
     type: textarea
-    when: "{{tipus}}=='epr' && {{SNPT_MODE}}!='selection'"
+    when: "{{tipus}}=='epr' && {{SELECT_MODE}}!='selection'"
 I18n:
   msg_tava:
     ca: TASCA AVALUABLE

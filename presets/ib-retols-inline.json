@@ -6,7 +6,7 @@
     "template": "&nbsp; <span class=\"iedib-ret iedib-ret-{{severity}}\">{{_txt}}</span> &nbsp; \n",
     "insertquery": ".iedib-ret",
     "selectors": ".iedib-ret",
-    "unpack": "",
+    "unwrap": "",
     "parameters": [
         {
             "name": "severity",
@@ -30,14 +30,14 @@
                     "l": "Consell"
                 }
             ],
-            "bind": "classRegex <iedib-ret-(.*)>"
+            "bind": "classRegex('iedib-ret-(.*)')"
         },
         {
             "name": "_txt",
             "value": "contingut a ressaltar",
             "title": "Text a ressaltar",
             "type": "textarea",
-            "when": "{{SNPT_MODE}}!='selection'"
+            "when": "SELECT_MODE!='selection'"
         }
     ],
     "stars": 2,

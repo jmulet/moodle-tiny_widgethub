@@ -318,20 +318,10 @@ export function initContextActions(editor) {
     });
 
     // Let extensions to register additional menuItem and nestedMenuItem
-    /** @type {Record<string, string[]>} */
-    const widgetsWithExtensions = {};
-    getMenuItemProviders().forEach(provider => {
-        provider(ctx).forEach(menuItem => {
-            if (menuItem.widgetKey) {
-                // This menu item is searchable by this widget key
-                let lst = widgetsWithExtensions[menuItem.widgetKey];
-                if (!lst) {
-                    lst = [];
-                    widgetsWithExtensions[menuItem.widgetKey] = lst;
-                }
-                lst.push(`widgethub_${menuItem.name}`);
-            }
-            if (menuItem.subMenuItems) {
+    /** @type {import('./extension/contextmenus').UserDefinedItem[]} */
+    const widgetsWithExtensions = getMenuItemProviders().flatMap(provider => provider(ctx));
+    widgetsWithExtensions.forEach(menuItem => {
+        if (menuItem.subMenuItems) {
                 // It is a nested menu.
                 editor.ui.registry.addNestedMenuItem(`widgethub_${menuItem.name}`, {
                     icon: menuItem.icon,
@@ -346,7 +336,6 @@ export function initContextActions(editor) {
                     onAction: menuItem.action
                 });
             }
-        });
     });
 
     editor.ui.registry.addContextMenu('tiny_widgethub', {
@@ -392,7 +381,10 @@ export function initContextActions(editor) {
             }
             menuItems = menuItems.map(e => e === '|' ? '|' : `widgethub_${e}_item`);
             // Check if the current widget has any action registered by extensions
-            menuItems.push(...widgetsWithExtensions[widget.key] ?? []);
+            const actionNames = widgetsWithExtensions
+                .filter(e => e.widgetKeys?.includes(widget.key))
+                .map(e => `widgethub_${e.name}`);
+            menuItems.push(...actionNames);
 
             // Unwrap action always to the end
             if (widget.unwrap) {

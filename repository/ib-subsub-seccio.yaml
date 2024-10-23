@@ -9,12 +9,12 @@ template: |
   <p><br></p>
 selectors: h4.iedib-subsub
 insertquery: .iedib-iq
-unpack: .iedib-iq
+unwrap: .iedib-iq
 parameters: 
   - name: titol
     value: Títol de la sub-subsecció
     title: Títol de la sub-subsecció
-    when: "{{SNPT_MODE}}!='selection'"
+    when: "{{SELECT_MODE}}!='selection'"
 stars: 3
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 2023.01.07

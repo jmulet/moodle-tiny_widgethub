@@ -20,7 +20,7 @@ template: |
 insertquery: div.iedib-iq
 selectors: div.iedib-glossari
 parameters: 
-  - partial: $LANG
+  - '@LANG'
   - name: estil
     value: reading
     title: Funcionalitat
@@ -28,17 +28,17 @@ parameters:
       - {v: 'reading', l: 'Reading'}
       - {v: 'listening', l: 'Listening'}
       - {v: 'vocabulary', l: 'Vocabulary'} 
-    bind: classRegex <iedib-glossari-(.*)>
+    bind: classRegex('iedib-glossari-(.*)')
   - name: mida
     value: 400
     title: Amplada màxima en px
     min: 0
     max: 800
-    bind: styleRegex <max-width:(.*)px>
+    bind: styleRegex('max-width:(.*)px')
   - name: centrat
     value: true
     title: Centrat horitzontalment
-    bind: hasStyle <margin:auto>
+    bind: hasStyle('margin:auto')
 I18n:
   msg:
     ca: Glossari

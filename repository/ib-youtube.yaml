@@ -6,14 +6,16 @@ instructions: >
   Introduïu la ID del vídeo de youtube i opcionalment un títol. 
   Podeu escapçar una part del vídeo amb els paràmetres inici i fi donats en segons.
 template: |
-  <p><br></p> 
+  <p><br></p>
+  <!--ini youtube-->
   <div class="iedib-video-container" {{#if}}[ampladaMax>100]style="max-width:{{ampladaMax}}px"{{/if}}>
     <div class="iedib-videoWrapper">
       <iframe src="https://www.youtube.com/embed/{{youtubeId}}?enablejsapi=1&rel=0&modestbranding=1&showinfo=0&iv_load_policy=3&start={{iniciSegons}}{{#fiSegons}}&end={{fiSegons}}{{/fiSegons}}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
     </div>
       <div class="iedib-caption">
      <span class="iedib-caption-counter">Vídeo</span><span class="iedib-caption-title">: {{titol}}</span></div>
-    </div>
+  </div>
+  <!--end youtube-->
   <p><br></p>
 parameters:
   - name: youtubeId

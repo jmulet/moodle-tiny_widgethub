@@ -170,6 +170,102 @@ export const Shared = {
 };
 
 /**
+ * Add missing properties in the param definition
+ * that can be derived from existing data.
+ * @param {Param} param
+ */
+export function fixMissingParamProperties(param) {
+    if (!param.type) {
+        if (param.options) {
+            param.type = 'select';
+        } else if (typeof param.value === "boolean") {
+            // Infer type from value
+            param.type = 'checkbox';
+        } else if (typeof param.value === "number") {
+            param.type = 'numeric';
+        } else if (typeof param.value === "string") {
+            param.type = param.options ? 'select' : 'textfield';
+        }
+    }
+    if (!param.value) {
+        switch (param.type) {
+            case ('checkbox'):
+                param.value = false; break;
+            case ('numeric'):
+                param.value = 0; break;
+            case ('select'):
+                param.value = param.options?.[0];
+                if (typeof (param.value) === 'object') {
+                    param.value = param.value.v;
+                }
+                break;
+            case ('color'):
+                param.value = '#ffffff'; break;
+            default:
+                param.value = '';
+        }
+    }
+}
+
+/**
+ * @param {*} obj - The object to expand
+ * @param {Record<string, *>} partials - The dictionary with partials
+ * @returns {*} The modified object
+ */
+export function expandPartial(obj, partials) {
+    if ((obj ?? null) === null) {
+        return obj;
+    }
+    let partialKey;
+    if (typeof obj === 'string' && obj.startsWith(`@`)) {
+        partialKey = obj;
+        obj = {};
+    } else if (typeof obj === 'object' && obj.partial) {
+        partialKey = obj.partial;
+    }
+    if (partialKey) {
+        if (!partials[partialKey]) {
+            console.error(`Cannot find partial for ${partialKey}`);
+        } else {
+            // Override with passed properties.
+            obj = {...partials[partialKey], ...obj};
+        }
+    }
+    return obj;
+}
+
+/**
+ * Partials are variables that start with @ which
+ * can be expanded in different parts of the widget
+ * definition.
+ * @param {RawWidget} widget
+ * @param {Record<string, *>} partials
+ * @returns {void} The same widget with partials expanded
+ */
+export function applyPartials(widget, partials) {
+    // Expand partials in template.
+    const regex = /@([\w\d]+)([\s<'"])/g;
+    widget.template = widget.template.replace(regex, (s0, s1, s2) => {
+        const expl = partials['@' + s1];
+        return expl ? expl + s2 : s0;
+    });
+
+    // Expand partials in parameters.
+    const parameters = widget.parameters;
+    if (parameters) {
+        parameters.forEach((/** @type {*} */ param, i) => {
+            param = expandPartial(param, partials);
+            parameters[i] = param;
+            // Treat inner partials
+            param.bind = expandPartial(param.bind, partials);
+            param.transform = expandPartial(param.transform, partials);
+            // Do some fixes on parameters.
+            fixMissingParamProperties(param);
+        });
+    }
+}
+
+/**
  * @typedef {Object} ParamOption
  * @property {string} l
  * @property {string} v
@@ -233,52 +329,8 @@ export class Widget {
      */
     constructor(widget, partials) {
         partials = partials ?? {};
+        applyPartials(widget, partials);
         this.#widget = widget;
-        const parameters = widget.parameters;
-        if (!parameters) {
-            return;
-        }
-        // Do some fixes on parameters
-        parameters.forEach((param, i) => {
-            // Case of a partial
-            if (param.partial) {
-                if (!partials[param.partial]) {
-                    console.error("Cannot find partial for ", param.partial, partials);
-                    return;
-                }
-                parameters[i] = partials[param.partial];
-            }
-            if (!param.type) {
-                if (param.options) {
-                    param.type = 'select';
-                } else if (typeof param.value === "boolean") {
-                    // Infer type from value
-                    param.type = 'checkbox';
-                } else if (typeof param.value === "number") {
-                    param.type = 'numeric';
-                } else if (typeof param.value === "string") {
-                    param.type = param.options ? 'select' : 'textfield';
-                }
-            }
-            if (!param.value) {
-                switch (param.type) {
-                    case ('checkbox'):
-                        param.value = false; break;
-                    case ('numeric'):
-                        param.value = 0; break;
-                    case ('select'):
-                        param.value = param.options?.[0];
-                        if (typeof (param.value) === 'object') {
-                            param.value = param.value.v;
-                        }
-                        break;
-                    case ('color'):
-                        param.value = '#ffffff'; break;
-                    default:
-                        param.value = '';
-                }
-            }
-        });
     }
     /**
      * @returns {string}
@@ -366,12 +418,11 @@ export class Widget {
      * @returns {boolean}
      */
     isFor(userId) {
-        // These are administrators
         if (this.#widget.hidden === true) {
             return false;
         }
         let grantStr = (this.#widget.for || '').trim();
-        if (grantStr === '' || grantStr === '*' || userId < 2) {
+        if (grantStr === '' || grantStr === '*') {
             return true;
         }
         let allowMode = true;
@@ -383,6 +434,7 @@ export class Widget {
         const isAllowed = (allowMode && grantList.indexOf(userId + "") >= 0) || (!allowMode && grantList.indexOf(userId + "") < 0);
         return isAllowed;
     }
+
     /**
      * @param {string=} scope
      * @returns {boolean}

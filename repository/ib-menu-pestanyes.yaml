@@ -14,17 +14,14 @@ template: |
   </ul>
   <div class="tab-content">
   {{#each}}[pestanyes]<div class="tab-pane {{#if}}[i==1]active{{/if}} iedib-tabpane" id="{{ID}}_{{i}}">
-  <p>{{i}}) Lorem  ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
-  dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-  consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-  Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+  <p>{{i}}) @LOREM</p>
   </div>{{/each}}
   </div>
   </div> 
   <!--fi menu pestanyes-->
   <p><br></p>
 selectors: div.iedib-tabmenu.tabbable
-unpack: "div.tab-content > div.tab-pane > *"
+unwrap: "div.tab-content > div.tab-pane > *"
 parameters: 
   - name: pestanyes
     value: 2
@@ -32,7 +29,7 @@ parameters:
     min: 1
     max: 6
     tip: Un nombre de pestanyes excessiu pot causar problemes de visualització en mòbils. 
-  - partial: $ID
+  - '@ID'
 stars: 2
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 2023.01.07

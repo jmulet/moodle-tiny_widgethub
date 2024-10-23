@@ -8,9 +8,9 @@ template: |
   <!--ini bstable-->
   {{#responsiu}}<div class="table-responsive">{{/responsiu}}
   <table class="table{{#franges}} table-striped{{/franges}}{{#vores}} table-bordered{{/vores}}{{#hover}} table-hover{{/hover}} iedib-bstable">
-  {{#capsaleres}}<thead><tr>{{#each}}[j=columnes]<th role="col">Títol{{j}}</th>{{/each}}</tr></thead>{{/capsaleres}}
-  <tbody class="table-group-divider">{{#each}}[files]<tr>{{#each}}[columnes]<td> </td>{{/each}}</tr>{{/each}}</tbody>
-  {{#peu}}<tfoot class="table-group-divider"><tr>{{#each}}[columnes]<th>Resum{{j}}</th>{{/each}}</tr></tfoot>{{/peu}}
+  {{#capsaleres}}<thead><tr>{{#each}}[j=cols]<th role="col">Títol{{j}}</th>{{/each}}</tr></thead>{{/capsaleres}}
+  <tbody class="table-group-divider">{{#each}}[files]<tr>{{#each}}[cols]<td> </td>{{/each}}</tr>{{/each}}</tbody>
+  {{#peu}}<tfoot class="table-group-divider"><tr>{{#each}}[cols]<th>Resum{{j}}</th>{{/each}}</tr></tfoot>{{/peu}}
   </table> 
   {{#responsiu}}</div>{{/responsiu}}
   {{#if}}[desc!='']<p
@@ -24,7 +24,7 @@ parameters:
     value: 3
     title: N. files
     min: 1 
-  - name: columnes
+  - name: cols
     value: 3
     title: N. columnes
     min: 1 
@@ -41,16 +41,16 @@ parameters:
     value: true
     title: Mostra franges
     tip: Les files senars tenen un fons gris fluix
-    bind: hasClass <table-striped>  
+    bind: hasClass('table-striped')
   - name: hover
     value: false
     title: Realça fila seleccionada
     tip: Quan es passa el ratolí per sobre una fila, aquesta es realça
-    bind: hasClass <table-hover>
+    bind: hasClass('table-hover')
   - name: vores
     value: false
     title: Mostra voreres
-    bind: hasClass <table-bordered>
+    bind: hasClass('table-bordered')
   - name: responsiu
     value: false
     title: Comportament responsiu

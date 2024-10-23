@@ -21,7 +21,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/** @typedef {(ctx: import('./contextInit').ItemMenuContext) => import('./extension/contextactions').UserDefinedItem[]} Provider */
+/** @typedef {(ctx: import('./contextInit').ItemMenuContext) => import('./extension/contextmenus').UserDefinedItem[]} Provider */
 /** @typedef {'onInit' | 'contentSet' | 'widgetInserted' | 'widgetRemoved' | 'ctxAction'} EventName */
 /** @type {Map<string, ((editor: import('./plugin').TinyMCE, ...args: any[]) => void)[]>}> */
 const _listeners = new Map();

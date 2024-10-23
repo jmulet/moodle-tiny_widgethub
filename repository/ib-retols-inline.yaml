@@ -8,7 +8,7 @@ template: >
    &nbsp; <span class="iedib-ret iedib-ret-{{severity}}">{{_txt}}</span> &nbsp; 
 insertquery: .iedib-ret
 selectors: .iedib-ret
-unpack: ""
+unwrap: ""
 parameters: 
   - name: severity
     value: alerta
@@ -18,12 +18,12 @@ parameters:
       - {v: 'important', l: 'Important'}
       - {v: 'ampliacio', l: 'Ampliació'}
       - {v: 'consell', l: 'Consell'}
-    bind: classRegex <iedib-ret-(.*)>
+    bind: classRegex('iedib-ret-(.*)')
   - name: _txt
     value: contingut a ressaltar
     title: Text a ressaltar
     type: textarea
-    when: "{{SNPT_MODE}}!='selection'" 
+    when: "SELECT_MODE!='selection'" 
 stars: 2
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 2021.06.21

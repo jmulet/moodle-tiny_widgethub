@@ -30,7 +30,7 @@ parameters:
     value: 300
     title: Amplada en px de la columna esquerra
     min: 0
-    bind: <td.iedib-formulacio> styleRegex <width:(.*)px>
+    bind: styleRegex('width:(.*)px', 'td.iedib-formulacio')
 for: '7,14'
 scope: ^page-mod-book-edit$
 stars: 0
