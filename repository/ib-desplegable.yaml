@@ -33,7 +33,7 @@ parameters:
     value: true
     title: Desplegables independents
     tip: Si la casella està marcada, es pot desplegar més d'un quadre alhora. Si està desmarcada, quan es desplega un quadre, es tanquen tots els altres.
-  - '@ID'
+  - __ID__
 stars: 1
 contextmenu:
   - predicate: div.accordion-group

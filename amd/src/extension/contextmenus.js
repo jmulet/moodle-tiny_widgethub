@@ -1,5 +1,4 @@
 /* eslint-disable max-len */
-
 import {registerMenuItemProvider} from "../extension";
 import {findVariableByName} from "../util";
 import * as Action from './contextactions';
@@ -25,7 +24,7 @@ const SUPPORTED_SIZES = [
 
 /**
  * @typedef {{type: string, text: string, icon?: string, onAction: (api?: *) => void}} MenuItem
- * @typedef {{name: string, title: string, widgetKeys?: string[], icon?:string, action?: ()=> void, subMenuItems?: () => string | MenuItem[]}} UserDefinedItem
+ * @typedef {{name: string, title: string, condition?: string | RegExp | (() => boolean), icon?:string, action?: ()=> void, subMenuItems?: () => string | MenuItem[]}} UserDefinedItem
  */
 
 /**
@@ -39,7 +38,7 @@ function provider(ctx) {
      */
     const imageEffectsNestedMenu = {
         name: 'imageEffects',
-        widgetKeys: ['imatge'],
+        condition: 'imatge',
         title: 'Efectes d\'imatge',
         subMenuItems: () => {
             const elem = ctx.path?.elem;
@@ -64,12 +63,31 @@ function provider(ctx) {
     };
 
     /**
+     * Converts a raw image into a snippet
+     * @param {import("../contextInit").ItemMenuContext} ctx
+     * @returns {UserDefinedItem}
+     */
+    const imageSwitchToSnippet = {
+        name: 'imageSwitchToSnippet',
+        condition: () => {
+           // We are not inside a widget image and the
+           // selectedElement right clicked must be a tag img
+           const key = ctx.path?.widget?.key;
+           const selectedElement = ctx.path?.selectedElement;
+           return (key !== undefined && key !== 'imatge' && key !== 'grid-imatge' &&
+                selectedElement?.prop('tagName') === 'IMG');
+        },
+        title: 'Convertir a snippet imatge',
+        onAction: Action.imageSwitchToSnippetAction(ctx)
+    };
+
+    /**
      * @param {import("../contextInit").ItemMenuContext} ctx
      * @returns {UserDefinedItem}
      */
      const changeBoxLanguageNestedMenu = {
         name: 'changeBoxLanguage',
-        widgetKeys: ['capsa-generica', 'capsa-exemple-cols', 'capsa-exemple-rows', 'capsa-exemple-simple', 'tasca-exercici'],
+        condition: /capsa-.*|tasca-exercici/,
         title: 'Idioma',
         subMenuItems: () => {
             const elem = ctx.path?.elem;
@@ -87,12 +105,12 @@ function provider(ctx) {
     };
 
      /**
-     * @param {import("../contextInit").ItemMenuContext} ctx
-     * @returns {UserDefinedItem}
-     */
+      * @param {import("../contextInit").ItemMenuContext} ctx
+      * @returns {UserDefinedItem}
+      */
      const changeBoxSizeNestedMenu = {
         name: 'changeBoxSize',
-        widgetKeys: ['capsa-generica', 'capsa-exemple-cols', 'capsa-exemple-rows', 'capsa-exemple-simple', 'tasca-exercici'],
+        condition: /^capsa-.*|^tasca-exercici$/,
         title: 'Mida',
         subMenuItems: () => {
             const elem = ctx.path?.elem;
@@ -111,12 +129,12 @@ function provider(ctx) {
     };
 
       /**
-     * @param {import("../contextInit").ItemMenuContext} ctx
-     * @returns {UserDefinedItem}
-     */
+       * @param {import("../contextInit").ItemMenuContext} ctx
+       * @returns {UserDefinedItem}
+       */
       const changeBoxSeverityNestedMenu = {
         name: 'changeBoxSeverity',
-        widgetKeys: ['capsa-generica'],
+        condition: 'capsa-generica',
         title: 'Tipus',
         subMenuItems: () => {
             const elem = ctx.path?.elem;
@@ -134,14 +152,78 @@ function provider(ctx) {
         }
     };
 
+      /**
+      * @param {import("../contextInit").ItemMenuContext} ctx
+      * @returns {UserDefinedItem}
+      */
+      const switchBoxRowsExample = {
+        name: 'switchBoxRowsExample',
+        condition: 'capsa-exemple-cols',
+        title: 'Convertir a exemple 2 files',
+        onAction: Action.switchBoxRowsExampleAction(ctx)
+    };
+
+     /**
+      * @param {import("../contextInit").ItemMenuContext} ctx
+      * @returns {UserDefinedItem}
+      */
+     const switchBoxSimpleExample = {
+        name: 'switchBoxSimpleExample',
+        condition: 'capsa-exemple-rows',
+        title: 'Convertir a exemple simple',
+        onAction: Action.switchBoxSimpleExampleAction(ctx)
+    };
+
+    /**
+       * @param {import("../contextInit").ItemMenuContext} ctx
+       * @returns {UserDefinedItem}
+       */
+    const numberedListNestedMenu = {
+        name: 'numberedListNestedMenu',
+        condition: () => {
+            const selectedElement = ctx.path?.selectedElement;
+            // TODO:: It must search an OL in the path, probably selectedElement is LI or so!!!!!
+            return selectedElement?.closest("ol")?.[0] !== undefined;
+        },
+        icon: 'list-num-default',
+        title: 'Llista',
+        subMenuItems: () => {
+            return [
+                {
+                    type: 'tooglemenuitem',
+                    text: 'Embellit',
+                    onAction: () => {
+                        // Toggle class
+                    },
+                    onSetup: () => {
+                        // Determine if the class is there
+                    }
+                },
+                {
+                    type: 'menuitem',
+                    text: 'Comença a',
+                    onAction: () => {
+                        // Open input dialog, set the value and retrieve new value
+                    },
+                }
+            ];
+        }
+    };
+
     return [
         // Image actions
         imageEffectsNestedMenu,
+        imageSwitchToSnippet,
 
         // Box actions
         changeBoxLanguageNestedMenu,
         changeBoxSizeNestedMenu,
         changeBoxSeverityNestedMenu,
+        switchBoxRowsExample,
+        switchBoxSimpleExample,
+
+        // Others
+        numberedListNestedMenu,
     ];
 }
 

@@ -217,13 +217,15 @@ export function expandPartial(obj, partials) {
         return obj;
     }
     let partialKey;
-    if (typeof obj === 'string' && obj.startsWith(`@`)) {
+    if (typeof obj === 'string' && obj.startsWith('__') && obj.endsWith('__')) {
         partialKey = obj;
         obj = {};
     } else if (typeof obj === 'object' && obj.partial) {
         partialKey = obj.partial;
+        delete obj.partial;
     }
     if (partialKey) {
+        partialKey = partialKey.replace(/__/g, '');
         if (!partials[partialKey]) {
             console.error(`Cannot find partial for ${partialKey}`);
         } else {
@@ -244,10 +246,9 @@ export function expandPartial(obj, partials) {
  */
 export function applyPartials(widget, partials) {
     // Expand partials in template.
-    const regex = /@([\w\d]+)([\s<'"])/g;
-    widget.template = widget.template.replace(regex, (s0, s1, s2) => {
-        const expl = partials['@' + s1];
-        return expl ? expl + s2 : s0;
+    const regex = /__([\w\d]+)__/g;
+    widget.template = widget.template.replace(regex, (s0, s1) => {
+        return partials[s1] ?? s0;
     });
 
     // Expand partials in parameters.
@@ -257,8 +258,14 @@ export function applyPartials(widget, partials) {
             param = expandPartial(param, partials);
             parameters[i] = param;
             // Treat inner partials
-            param.bind = expandPartial(param.bind, partials);
-            param.transform = expandPartial(param.transform, partials);
+            let prop = expandPartial(param.bind, partials);
+            if (prop) {
+                param.bind = prop;
+            }
+            prop = expandPartial(param.transform, partials);
+            if (prop) {
+                param.transform = prop;
+            }
             // Do some fixes on parameters.
             fixMissingParamProperties(param);
         });

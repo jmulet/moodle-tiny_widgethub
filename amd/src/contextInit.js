@@ -20,6 +20,7 @@ import jQuery from "jquery";
 import {getDomSrv} from './service/domSrv';
 import {getWidgetPropertiesCtrl} from './controller/widgetPropertiesCtrl';
 import {getMenuItemProviders, getListeners} from './extension';
+import {get_strings} from 'core/str';
 
 /**
  * Tiny WidgetHub plugin.
@@ -90,6 +91,22 @@ function hasBindings(widget) {
  */
 const needsContextMenu = function(widget) {
     return widget.hasBindings() || (widget.unwrap ?? '').trim().length > 0;
+};
+
+/**
+ * @param {string | RegExp | (() => boolean) | undefined} condition
+ * @param {string} key
+ * @returns {boolean}
+ */
+const matchesCondition = function(condition, key) {
+    if (typeof condition === 'string') {
+        return condition.split(',').map(e => e.trim()).includes(key);
+    } else if (condition instanceof RegExp) {
+        return condition.test(key);
+    } else if (typeof condition === 'function') {
+        return condition();
+    }
+    return false;
 };
 
 /**
@@ -199,6 +216,17 @@ const predefinedActionsFactory = function(editor, domSrv) {
                 // Good candidate to remove the entire widget
                 $root.remove();
             }
+        },
+        /**
+         * Toggles a snippet as printable or not
+         * @param {PathResult} context
+         */
+        printable: (context) => {
+            const elem = context?.elem;
+            if (!elem) {
+                return;
+            }
+            elem.toggleClass('d-print-none');
         }
     });
 };
@@ -212,7 +240,7 @@ const predefinedActionsFactory = function(editor, domSrv) {
  * and binds the corresponding actions.
  * @param {import("./plugin").TinyMCE} editor
  */
-export function initContextActions(editor) {
+export async function initContextActions(editor) {
     // Setup context shared by the entire structure of menus
     /**
      * Keep track of the last context found
@@ -224,6 +252,23 @@ export function initContextActions(editor) {
 
     // Define icons
     defineIcons(editor);
+
+    // Get translations
+    const component = 'tiny_widgethub';
+    const [
+        strProperties, strUnwrap, strMoveUp, strMoveDown, strMoveAfter, strMoveBefore,
+        strInsert, strRemove, strPrintable
+    ] = await get_strings([
+        {key: 'properties', component},
+        {key: 'unwrap', component},
+        {key: 'moveup', component},
+        {key: 'movedown', component},
+        {key: 'moveafter', component},
+        {key: 'movebefore', component},
+        {key: 'insert', component},
+        {key: 'remove', component},
+        {key: 'printable', component}
+    ]);
 
     const widgetList = Object.values(getWidgetDict(editor));
     const domSrv = getDomSrv();
@@ -245,12 +290,12 @@ export function initContextActions(editor) {
     // Generic button action for opening the properties modal
     editor.ui.registry.addButton('widgethub_modal_btn', {
         icon: ICONS.gear,
-        tooltip: 'Properties',
+        tooltip: strProperties,
         onAction: showPropertiesAction
     });
     editor.ui.registry.addMenuItem('widgethub_modal_item', {
         icon: ICONS.gear,
-        text: 'Properties',
+        text: strProperties,
         onAction: showPropertiesAction
     });
 
@@ -278,43 +323,56 @@ export function initContextActions(editor) {
     // Generic button action for unwrapping those widgets that support this feature
     editor.ui.registry.addButton('widgethub_unwrap_btn', {
         icon: ICONS.arrowUpFromBracket,
-        tooltip: 'Unwrap',
+        tooltip: strUnwrap,
         onAction: genericAction('unwrap')
     });
     editor.ui.registry.addMenuItem('widgethub_unwrap_item', {
         icon: ICONS.arrowUpFromBracket,
-        text: 'Unwrap',
+        text: strUnwrap,
         onAction: genericAction('unwrap')
     });
     editor.ui.registry.addMenuItem('widgethub_moveup_item', {
         icon: ICONS.arrowUp,
-        text: 'Move before',
+        text: strMoveUp,
         onAction: genericAction('movebefore')
     });
     editor.ui.registry.addMenuItem('widgethub_movedown_item', {
         icon: ICONS.arrowDown,
-        text: 'Move after',
+        text: strMoveDown,
         onAction: genericAction('moveafter')
     });
     editor.ui.registry.addMenuItem('widgethub_moveleft_item', {
         icon: ICONS.arrowLeft,
-        text: 'Move before',
+        text: strMoveBefore,
         onAction: genericAction('movebefore')
     });
     editor.ui.registry.addMenuItem('widgethub_moveright_item', {
         icon: ICONS.arrowRight,
-        text: 'Move after',
+        text: strMoveAfter,
         onAction: genericAction('moveafter')
     });
     editor.ui.registry.addMenuItem('widgethub_insertafter_item', {
         icon: ICONS.clone,
-        text: 'Insert',
+        text: strInsert,
         onAction: genericAction('insertafter')
     });
     editor.ui.registry.addMenuItem('widgethub_remove_item', {
         icon: ICONS.remove,
-        text: 'Remove',
+        text: strRemove,
         onAction: genericAction('remove')
+    });
+    editor.ui.registry.addToggleMenuItem('widgethub_printable_item', {
+        icon: 'print',
+        text: strPrintable,
+        onAction: genericAction('printable'),
+        onSetup: (/** @type {*} */ api) => {
+            let toggleState = true;
+            if (ctx.path?.elem?.hasClass('d-print-none')) {
+                toggleState = false;
+            }
+            api.setActive(toggleState);
+            return () => {};
+        }
     });
 
     // Let extensions to register additional menuItem and nestedMenuItem
@@ -365,7 +423,10 @@ export function initContextActions(editor) {
                     // Does the element matches the predicate?
                     /** @type {HTMLElement | null} */
                     let targetElem = null;
-                    if (element.matches(cm.predicate)) {
+                    // If predicate is unset then use the widget root elem
+                    if (!cm.predicate) {
+                        targetElem = ctx.path?.elem?.[0] ?? null;
+                    } else if (element.matches(cm.predicate)) {
                         targetElem = element;
                     } else {
                         targetElem = element.closest(cm.predicate);
@@ -382,7 +443,7 @@ export function initContextActions(editor) {
             menuItems = menuItems.map(e => e === '|' ? '|' : `widgethub_${e}_item`);
             // Check if the current widget has any action registered by extensions
             const actionNames = widgetsWithExtensions
-                .filter(e => e.widgetKeys?.includes(widget.key))
+                .filter(e => matchesCondition(e.condition, widget.key))
                 .map(e => `widgethub_${e.name}`);
             menuItems.push(...actionNames);
 

@@ -8,7 +8,7 @@ template: >-
   <div class="iedib-fragment {{#notranslate}}notranslate{{/notranslate}}" data-lang="{{LANG}}" {{#if}}[amplada_max>0]style="max-width: {{amplada_max}}px;"{{/if}}>
   <h4>{{#I18n}}msg{{/I18n}}:</h4>
   <div class="iedib-iq">
-  <p>@LOREM</p>
+  <p>__LOREM__</p>
   </div>
   </div>
   <!-- end fragment text -->
@@ -17,7 +17,7 @@ insertquery: .iedib-fragment>div.iedib-iq
 selectors: div.iedib-fragment
 unwrap: div.iedib-iq > *
 parameters: 
-  - '@LANG'
+  - __LANG__
   - name: amplada_max
     value: 0
     title: Amplada màxima (px)

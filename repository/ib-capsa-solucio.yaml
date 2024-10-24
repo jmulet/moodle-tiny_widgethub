@@ -8,7 +8,7 @@ template: |
   <!--begin: Capsa solució -->
   <div class="iedib-capsa iedib-solucio">
   <div class="iedib-central">
-  <p>@LOREM</p>
+  <p>__LOREM__</p>
   </div>
   </div>
   <!--end: Capsa solució--> 

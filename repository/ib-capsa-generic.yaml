@@ -15,7 +15,7 @@ template: |
       <p class="iedib-titolLateral">{{#I18n}}msg_{{tipus}}{{/I18n}}<span class="iedib-{{tipus}}-logo"></span></p>
     </div>
     <div class="iedib-central">
-      <p>@LOREM</p>
+      <p>__LOREM__</p>
     </div>
   </div>
   <!--end: Capsa {{tipus}} {{mida}}--> <p><br></p>  
@@ -39,7 +39,7 @@ parameters:
       - {v: gran, l: Gran}
       - {v: mitjana, l: Mitjana}
       - {v: petita, l: Petita} 
-  - '@LANG'
+  - __LANG__
 I18n:
   msg_alerta:
     ca: ALERTA
@@ -72,5 +72,7 @@ I18n:
     fr: INTRODUCTION
     de: EINFÜHRUNG
 stars: 2
+contextmenu:
+  - actions: printable
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 2023.01.07

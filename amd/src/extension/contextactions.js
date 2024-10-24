@@ -1,4 +1,5 @@
-import { addRequires, cleanUnusedRequires } from "./dependencies";
+import {addRequires, cleanUnusedRequires} from './dependencies';
+import jQuery from 'jquery';
 
 /**
  * @param {import("../contextInit").ItemMenuContext} ctx
@@ -118,3 +119,87 @@ export function changeBoxSeverityAction(ctx, severity) {
         }
     };
 }
+
+/**
+ * @param {import("../contextInit").ItemMenuContext} ctx
+ * @returns {() => void} The action to execute
+ */
+export function switchBoxSimpleExampleAction(ctx) {
+    return () => {
+        const $target = ctx.path?.elem;
+        const widget = ctx.path?.widget;
+        if (!$target || !widget) {
+            return;
+        }
+        const lang = $target.attr("data-lang") || "ca";
+        const solLabel = widget.I18n?.sol?.[lang] ?? 'Solució';
+        const formulacio = $target.find("div.iedib-formulacio-rows > *").clone();
+        const resolucio = $target.find("div.iedib-resolucio-rows >  *").clone();
+        const lateral = $target.find("p.iedib-titolLateral").html();
+        const newSnpt = jQuery('<div class="iedib-capsa iedib-capsa-gran iedib-exemple-border" data-lang="' + lang + '">' +
+            '<div class="iedib-lateral iedib-exemple">' +
+            '<p class="iedib-titolLateral">' + lateral + '</span></p>' +
+            '</div>' +
+            '<div class="iedib-central">' +
+            // Formulacio
+            // Resolució
+            '<br></div></div>');
+        const central = newSnpt.find('div.iedib-central');
+        central.append(formulacio);
+        if (resolucio.find('div.accordion').length === 0) {
+            central.append("<p><b>" + solLabel + "</b>:</p>");
+        }
+        central.append(resolucio);
+        $target.replaceWith(newSnpt);
+    };
+}
+
+/**
+ * @param {import("../contextInit").ItemMenuContext} ctx
+ * @returns {() => void} The action to execute
+ */
+export function switchBoxRowsExampleAction(ctx) {
+    return () => {
+        const $target = ctx.path?.elem;
+        if (!$target) {
+            return;
+        }
+        const lang = $target.attr("data-lang") || "ca";
+        const lateral = $target.find("p.iedib-titolLateral").html();
+        const formulacio = $target.find("div.span4.iedib-formulacio > *");
+        const resolucio = $target.find("div.span8.iedib-resolucio > div.iedib-central > *");
+        const newSnpt = jQuery('<div class="iedib-capsa iedib-capsa-gran iedib-exemple-border" data-lang="' + lang + '">' +
+            '<div class="iedib-lateral iedib-exemple">' +
+            '<p class="iedib-titolLateral">' + lateral + '</p>' +
+            '</div>' +
+            '<div class="iedib-formulacio-rows">' +
+            // Add formulació
+            '</div>' +
+            '<div class="iedib-resolucio-rows">' +
+            // Add resolució
+            '</div></div>');
+
+        newSnpt.find('div.iedib-formulacio-rows').append(formulacio);
+        newSnpt.find('div.iedib-resolucio-rows').append(resolucio);
+        $target.replaceWith(newSnpt);
+    };
+}
+
+/**
+ * @param {import("../contextInit").ItemMenuContext} ctx
+ * @returns {() => void} The action to execute
+ */
+export function imageSwitchToSnippetAction(ctx) {
+    return () => {
+        const $target = ctx.path?.elem;
+        if (!$target) {
+            return;
+        }
+        const $snpt = jQuery('<div class="iedib-figura iedib-grid-responsive"></div');
+        $snpt.append($target.clone());
+        // eslint-disable-next-line max-len
+        $snpt.append(jQuery('<p class="iedib-img-footer"><span class="iedib-caption-counter">Imatge:</span> <span class="iedib-caption-title">Descripció</span></p>'));
+        $target.replaceWith($snpt);
+    };
+}
+

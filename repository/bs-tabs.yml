@@ -18,7 +18,7 @@ template: |
   <div class="tab-content">
   <% for(var i=1; i<=tabs; i++) { %>
   <div class="tab-pane<%= effect ? ' ' + effect : '' %><%= i==1 ? ' show active' : '' %>" id="<%=ID%>_<%=i%>" role="tabpanel">
-  <p><%=i%> @LOREM</p>
+  <p><%=i%> __LOREM__</p>
   </div>
   <% } %>
   </div>

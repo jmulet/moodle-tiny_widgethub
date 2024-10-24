@@ -28,7 +28,7 @@ selectors:
   - div.iedib-capsa.iedib-exemple-border
   - .iedib-fluid
 parameters: 
-  - '@LANG'
+  - __LANG__
 I18n:
   msg:
     ca: EXEMPLE

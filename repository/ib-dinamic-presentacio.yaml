@@ -81,7 +81,7 @@ parameters:
     value: false
     title: Activa el tema fosc
     bind: hasClass('theme-dark')
-  - '@ID'
+  - __ID__
 requires: /sd/presentacio.min.js
 stars: 2
 contextmenu:

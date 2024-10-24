@@ -14,7 +14,7 @@ template: |
   </ul>
   <div class="tab-content">
   {{#each}}[pestanyes]<div class="tab-pane {{#if}}[i==1]active{{/if}} iedib-tabpane" id="{{ID}}_{{i}}">
-  <p>{{i}}) @LOREM</p>
+  <p>{{i}}) __LOREM__</p>
   </div>{{/each}}
   </div>
   </div> 
@@ -29,7 +29,7 @@ parameters:
     min: 1
     max: 6
     tip: Un nombre de pestanyes excessiu pot causar problemes de visualització en mòbils. 
-  - '@ID'
+  - __ID__
 stars: 2
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 2023.01.07

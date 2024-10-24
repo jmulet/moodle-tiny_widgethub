@@ -20,7 +20,7 @@ template: |
 insertquery: div.iedib-iq
 selectors: div.iedib-glossari
 parameters: 
-  - '@LANG'
+  - __LANG__
   - name: estil
     value: reading
     title: Funcionalitat

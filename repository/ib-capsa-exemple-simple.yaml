@@ -13,7 +13,7 @@ template: >
     </div>
     <div class="iedib-central">
     <div class="iedib-iq">
-      <p>@LOREM</p>
+      <p>__LOREM__</p>
     </div>
     {{#inclouDesplegable}}<!--begin: accordion answer--> 
     <div id="{{ID}}" class="accordion iedib-accordion">
@@ -33,7 +33,7 @@ template: >
   <p><br></p>
 insertquery: .iedib-iq
 parameters:
-  - '@LANG'
+  - __LANG__
   - name: mida
     value: gran
     title: Mida de la capsa
@@ -44,7 +44,7 @@ parameters:
   - name: inclouDesplegable
     value: true
     title: Inclou desplegable per a la resolució?
-  - '@ID'
+  - __ID__
 I18n:
   msg:
     ca: EXEMPLE

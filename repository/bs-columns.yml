@@ -9,10 +9,10 @@ template: |
   <div class="container">
     <div class="row">
       <div class="col-sm-<%=w1%>">
-        <p>@LOREM</p>
+        <p>__LOREM__</p>
       </div>
       <div class="col-sm-<%=12-w1%>">
-        <p>@LOREM</p>
+        <p>__LOREM__</p>
       </div>
     </div>
   </div>

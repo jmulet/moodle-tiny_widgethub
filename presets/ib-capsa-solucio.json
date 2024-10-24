@@ -3,7 +3,7 @@
     "name": "Capsa solució",
     "category": "capses",
     "instructions": "Aquesta capsa per escriure la solució d'un problema d'una tasca avaluable.\n",
-    "template": "<p><br></p> \n<!--begin: Capsa solució -->\n<div class=\"iedib-capsa iedib-solucio\">\n<div class=\"iedib-central\">\n<p>@LOREM</p>\n</div>\n</div>\n<!--end: Capsa solució--> \n<p><br></p>\n",
+    "template": "<p><br></p> \n<!--begin: Capsa solució -->\n<div class=\"iedib-capsa iedib-solucio\">\n<div class=\"iedib-central\">\n<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n</p>\n</div>\n</div>\n<!--end: Capsa solució--> \n<p><br></p>\n",
     "insertquery": ".iedib-central",
     "selectors": "div.iedib-capsa.iedib-solucio",
     "unwrap": "div.iedib-central > *",

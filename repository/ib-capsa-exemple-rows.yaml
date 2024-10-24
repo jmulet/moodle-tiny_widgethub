@@ -36,11 +36,11 @@ selectors:
   - div.iedib-capsa.iedib-exemple-border
   - .iedib-formulacio-rows
 parameters:
-  - '@LANG'
+  - __LANG__
   - name: inclouDesplegable
     value: true
     title: Inclou desplegable per a la resolució    
-  - '@ID'
+  - __ID__
 I18n:
   msg:
     ca: EXEMPLE

@@ -189,9 +189,9 @@ describe('Options', () => {
 
     test('Should expand the template with partials', () => {
         const partial = {
-            "@LOREM": 'Lorem ipsum dolor it.'
+            "LOREM": 'Lorem ipsum dolor it.'
         }
-        let snpt = {...rawSnpt, template: '<p>@LOREM</p>'};
+        let snpt = {...rawSnpt, template: '<p>__LOREM__</p>'};
         applyPartials(snpt, partial);
         expect(snpt.template).toBe('<p>Lorem ipsum dolor it.</p>');
 
@@ -200,15 +200,36 @@ describe('Options', () => {
         <!--begin: Capsa solució -->
         <div class="iedib-capsa iedib-solucio">
         <div class="iedib-central">
-        <p>@LOREM</p>
+        <p>__LOREM__</p>
         </div>
         </div>
         <!--end: Capsa solució--> 
         <p><br></p>`};
         applyPartials(snpt, partial);
-        expect(snpt.template.indexOf("@LOREM")>=0).toBe(false);
+        expect(snpt.template.indexOf("__LOREM__")>=0).toBe(false);
         expect(snpt.template.indexOf("<p>Lorem ipsum dolor it.</p>")>=0).toBe(true);
+    });
 
-    })
+    test('It should expand partials on parameters', () => {
+        const partial = {
+            ID: {name: 'id', title: 'Identifier', value: '$RND'}
+        };
+        /** @type {*} */
+        let snpt = {...rawSnpt, parameters: ['__ID__']};
+        applyPartials(snpt, partial);
+        expect(snpt.parameters[0]).toStrictEqual({...partial.ID, type: 'textfield'});
+
+        /** @type {*} */
+        snpt = {...rawSnpt, parameters: [{partial: '__ID__'}]};
+        applyPartials(snpt, partial);
+        expect(snpt.parameters[0]).toStrictEqual({...partial.ID, type: 'textfield'});
+
+         /** @type {*} */
+         snpt = {...rawSnpt, parameters: [{partial: '__ID__', value: '12345'}]};
+         applyPartials(snpt, partial);
+         expect(snpt.parameters[0]).toStrictEqual({...partial.ID, type: 'textfield', value: '12345'});
+    });
+
+
 
 });

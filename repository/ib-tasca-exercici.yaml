@@ -37,7 +37,7 @@ template: |
 selectors: div.iedib-capsa.iedib-tasca-exercici
 insertquery: .iedib-tasca>div.iedib-inspoint
 parameters: 
-  - '@LANG'
+  - __LANG__
   - name: tipus
     value: epr
     title: Tipus d'activitat
