@@ -371,7 +371,7 @@ export async function initContextActions(editor) {
                 toggleState = false;
             }
             api.setActive(toggleState);
-            return () => {};
+            return () => ({});
         }
     });
 
@@ -386,12 +386,12 @@ export async function initContextActions(editor) {
                     text: menuItem.title,
                     getSubmenuItems: menuItem.subMenuItems
                 });
-            } else {
+            } else if (menuItem.onAction) {
                 // It is a simple menu item.
                 editor.ui.registry.addMenuItem(`widgethub_${menuItem.name}`, {
                     icon: menuItem.icon,
                     text: menuItem.title,
-                    onAction: menuItem.action
+                    onAction: menuItem.onAction
                 });
             }
     });

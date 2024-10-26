@@ -38,7 +38,7 @@ if ($hassiteconfig) {
         // Main settings.
         $mainsettings = new admin_settingpage($tinycategory . '_settings', get_string('pluginname', $tinycategory));
 
-        // Add basic items to page, snippet count really.
+        // Add basic items to page.
         $mainitems = \tiny_widgethub\settingsutil::create_spage_items();
         foreach ($mainitems as $mainitem) {
             $mainsettings->add($mainitem);
@@ -55,12 +55,18 @@ if ($hassiteconfig) {
         // Add page to category.
         $ADMIN->add($tinycategory, $mainsettings);
 
-        // Add Snippets pages to category (hidden from nav).
-        $spages = \tiny_widgethub\settingsutil::create_widget_spages($conf);
+        // Add setting pages for every widget to category (hidden from nav).
+        $widgetindex = \tiny_widgethub\plugininfo::get_widget_index($conf);
+        $widgetlist = \tiny_widgethub\plugininfo::get_widget_list($conf, $widgetindex);
+        $usedkeys = array_column($widgetindex, 'key');
+        $partials = \tiny_widgethub\plugininfo::get_partials($conf, $widgetindex);
+
+        $spages = \tiny_widgethub\settingsutil::create_widget_setting_pages($widgetlist, $usedkeys, $partials);
+
         foreach ($spages as $page) {
             $ADMIN->add($tinycategory, $page);
         }
-
+        
         // Set the default return to null.
         $settings = null;
     }

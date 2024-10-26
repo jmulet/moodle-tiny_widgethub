@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+/* eslint-disable no-loop-func */
 /* eslint-disable no-console */
 /*
  * This is an utility script for the WidgetHub plugin
@@ -52,14 +54,18 @@ function checkUniqueKeys(list) {
  */
 function testJsonFields(wdg) {
     let nerrs = 0;
-    const requiredFields = ['name', 'key', 'template', 'version', 'author'];
+    const requiredFields = ['name', 'key', 'version', 'author'];
     requiredFields.forEach(key => {
-        if (wdg[key] == null) {
+        if (!wdg[key]) {
             nerrs++;
             console.error(`\tThe key ${key} is required`);
         }
     });
-    if (wdg.parameters != null) {
+    if (!wdg.filter && !wdg.template) {
+        nerrs++;
+        console.error(`\tA template or filter property is required`);
+    }
+    if (wdg.parameters) {
         // Check parameters.
         wdg.parameters.forEach((/** @type {*} */ p) => {
             if (!p.partial && (!p.name || !p.title)) {
@@ -75,7 +81,7 @@ function testJsonFields(wdg) {
         });
     }
     // Check for consistency in HTML template. Most common tags are balanced.
-    if (wdg.template != null) {
+    if (wdg.template) {
         const requiredFields2 = ['span', 'p', 'div', 'li', 'ol', 'ul', 'table', 'td', 'tr', 'th'];
         requiredFields2.forEach((tag) => {
             const nn1 = casesOf(wdg.template, '<' + tag);
@@ -128,6 +134,7 @@ function checkTemplate(parsed) {
  * @param {*} parsed - The parsed widget
  * @returns {number} - The number of errors
  */
+// eslint-disable-next-line no-unused-vars
 function checkEJS(parsed) {
     // TODO: Not implemented
     return 0;
@@ -174,7 +181,6 @@ function checkMustache(parsed) {
                     return;
                 }
                 // var defines a new variable
-                
                 // Ignore special blocks
                 if (['#if', '#var', '#eval', '#each', '#I18n', 'i', 'j'].indexOf(match) > -1) {
                     return;
@@ -206,7 +212,7 @@ function findErrors(parsed) {
 
     // All parameters must have a default value.
     (parsed.parameters || []).forEach((/** @type {*} */ p) => {
-        if (p.value == null) {
+        if (p.value === null || p.value === undefined) {
             console.error(`The parameter ${JSON.stringify(p)} requires a default value in widget ${parsed.key}`, parsed);
             console.error(":-( Parameter value missing! Fix this issue and run the script again.");
             process.exit(1);

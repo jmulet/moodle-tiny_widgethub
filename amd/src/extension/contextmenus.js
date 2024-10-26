@@ -1,6 +1,7 @@
+/* eslint-disable no-console */
 /* eslint-disable max-len */
 import {registerMenuItemProvider} from "../extension";
-import {findVariableByName} from "../util";
+import {convertInt, findVariableByName} from "../util";
 import * as Action from './contextactions';
 
 const SUPPORTED_LANGS = [
@@ -24,7 +25,7 @@ const SUPPORTED_SIZES = [
 
 /**
  * @typedef {{type: string, text: string, icon?: string, onAction: (api?: *) => void}} MenuItem
- * @typedef {{name: string, title: string, condition?: string | RegExp | (() => boolean), icon?:string, action?: ()=> void, subMenuItems?: () => string | MenuItem[]}} UserDefinedItem
+ * @typedef {{name: string, title: string, condition?: string | RegExp | (() => boolean), icon?:string, onAction?: ()=> void, subMenuItems?: () => string | MenuItem[]}} UserDefinedItem
  */
 
 /**
@@ -32,6 +33,38 @@ const SUPPORTED_SIZES = [
  * @returns {UserDefinedItem[]}
  **/
 function provider(ctx) {
+    /**
+     * @param {string} title
+     * @param {string} label
+     * @param {*} initialValue
+     * @param {(api: *) => void} onSubmit
+     */
+    const openInputDialog = function(title, label, initialValue, onSubmit) {
+        ctx.editor?.windowManager.open({
+            title,
+            body: {
+              type: 'panel',
+              items: [
+                {
+                  type: 'input',
+                  name: 'value',
+                  label: label
+                }
+              ]
+            },
+            buttons: [
+              {
+                type: 'submit',
+                text: 'Acceptar'
+              }
+            ],
+            initialData: {
+                value: initialValue
+            },
+            onSubmit
+        });
+    };
+
     /**
      * @param {import("../contextInit").ItemMenuContext} ctx
      * @returns {UserDefinedItem}
@@ -73,9 +106,13 @@ function provider(ctx) {
            // We are not inside a widget image and the
            // selectedElement right clicked must be a tag img
            const key = ctx.path?.widget?.key;
-           const selectedElement = ctx.path?.selectedElement;
-           return (key !== undefined && key !== 'imatge' && key !== 'grid-imatge' &&
-                selectedElement?.prop('tagName') === 'IMG');
+           const elem = ctx.path?.selectedElement;
+           const isImg = (key !== undefined && key !== 'imatge' && key !== 'grid-imatge' &&
+            elem?.prop('tagName') === 'IMG');
+           if (ctx.path && isImg && elem?.[0]) {
+                ctx.path.targetElement = elem;
+           }
+           return isImg;
         },
         title: 'Convertir a snippet imatge',
         onAction: Action.imageSwitchToSnippetAction(ctx)
@@ -153,9 +190,9 @@ function provider(ctx) {
     };
 
       /**
-      * @param {import("../contextInit").ItemMenuContext} ctx
-      * @returns {UserDefinedItem}
-      */
+       * @param {import("../contextInit").ItemMenuContext} ctx
+       * @returns {UserDefinedItem}
+       */
       const switchBoxRowsExample = {
         name: 'switchBoxRowsExample',
         condition: 'capsa-exemple-cols',
@@ -175,39 +212,106 @@ function provider(ctx) {
     };
 
     /**
-       * @param {import("../contextInit").ItemMenuContext} ctx
-       * @returns {UserDefinedItem}
-       */
+     * @param {import("../contextInit").ItemMenuContext} ctx
+     * @returns {UserDefinedItem}
+     */
     const numberedListNestedMenu = {
         name: 'numberedListNestedMenu',
         condition: () => {
             const selectedElement = ctx.path?.selectedElement;
-            // TODO:: It must search an OL in the path, probably selectedElement is LI or so!!!!!
-            return selectedElement?.closest("ol")?.[0] !== undefined;
+            // It must search an OL in the path, probably selectedElement is LI or so!!!!!
+            const target = selectedElement?.closest("ol");
+            if (ctx.path && target?.[0]) {
+                ctx.path.targetElement = target;
+            }
+            return target?.[0] !== undefined;
         },
         icon: 'list-num-default',
         title: 'Llista',
         subMenuItems: () => {
+            // Determine if the class is there
+            const isBeauty = ctx.path?.targetElement?.hasClass('iedib-falist');
             return [
                 {
-                    type: 'tooglemenuitem',
+                    type: 'menuitem',
                     text: 'Embellit',
+                    icon: isBeauty ? 'checkmark' : undefined,
                     onAction: () => {
+                        console.log("beauty action");
                         // Toggle class
-                    },
-                    onSetup: () => {
-                        // Determine if the class is there
+                        const $target = ctx.path?.targetElement;
+                        if (!$target) {
+                            return;
+                        }
+                        $target.toggleClass('iedib-falist');
+                        // Make sure that start and style are in sync
+                        const startAt = $target.attr("start") || "1";
+                        if ($target.hasClass('iedib-falist')) {
+                            const beginAt = parseInt(startAt);
+                            $target.css("counter-reset", "iedibfalist-counter " + (beginAt - 1));
+                        } else {
+                            $target.css("counter-reset", "");
+                        }
                     }
                 },
                 {
                     type: 'menuitem',
                     text: 'Comença a',
                     onAction: () => {
+                        console.log("start at");
+                        // Get the start property of the list
+                        const startAt1 = ctx.path?.targetElement?.attr("start") ?? "1";
                         // Open input dialog, set the value and retrieve new value
+                        openInputDialog('Comença la numeració a ...', '', startAt1,
+                        (/** @type {*} */ api) => {
+                            api.close();
+                            const $target = ctx.path?.targetElement;
+                            if (!$target) {
+                                return;
+                            }
+                            // Change the number at which start
+                            const startAt2 = api.getData().value ?? "1";
+                            const beginAt3 = convertInt(startAt2, 1);
+                            $target.attr("start", beginAt3);
+                            $target.css("counter-reset", "iedibfalist-counter " + (beginAt3 - 1));
+                        });
                     },
                 }
             ];
         }
+    };
+
+    /**
+     * @param {import("../contextInit").ItemMenuContext} ctx
+     * @returns {UserDefinedItem}
+     */
+    const tablesMaxWidthMenu = {
+        name: 'tablesMaxWidthMenu',
+        condition: 'taula-predefinida,taula-bs',
+        title: 'Amplada taula',
+        onAction: () => {
+            const $target = ctx.path?.elem;
+            if (!$target) {
+                return;
+            }
+            // Get the initial width
+            const startAt1 = ($target.css("max-width") || "-1").replace("px", "");
+            // Open input dialog, set the value and retrieve new value
+            openInputDialog('Amplada màxima en (px)', '-1=sense limit', startAt1,
+            (/** @type {*} */ api) => {
+                const $target = ctx.path?.elem;
+                if (!$target) {
+                    return;
+                }
+                const maxwidth = convertInt(api.getData().value, 0);
+                if (maxwidth > 0) {
+                    $target.css("max-width", maxwidth + "px");
+                } else {
+                    $target.css("max-width", "");
+                }
+                api.close();
+            });
+        },
     };
 
     return [
@@ -224,6 +328,7 @@ function provider(ctx) {
 
         // Others
         numberedListNestedMenu,
+        tablesMaxWidthMenu,
     ];
 }
 

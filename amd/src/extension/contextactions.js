@@ -191,7 +191,9 @@ export function switchBoxRowsExampleAction(ctx) {
  */
 export function imageSwitchToSnippetAction(ctx) {
     return () => {
-        const $target = ctx.path?.elem;
+        // eslint-disable-next-line no-console
+        console.log('imageSwitchToSnippetAction');
+        const $target = ctx.path?.targetElement;
         if (!$target) {
             return;
         }

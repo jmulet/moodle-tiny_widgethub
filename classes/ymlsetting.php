@@ -144,10 +144,11 @@ class ymlsetting extends \admin_setting {
         global $PAGE;
 
         // Add javascript handler for setting pages.
+        // Avoid passing too much data through amd call by using hidden input elements.
         $PAGE->requires->js_call_amd(
             'tiny_widgethub/widget_settings',
             'init',
-            [['id' => $this->windex, 'keys' => $this->usedkeys, 'partials' => $this->partials]]
+            [['id' => $this->windex, 'keys' => $this->usedkeys]]
         );
 
         $json = get_config('tiny_widgethub', 'def_' . $this->windex);
@@ -164,11 +165,17 @@ class ymlsetting extends \admin_setting {
                 'class'=>'form-control', 'rows' => '8', 'spellcheck' => 'false', 'style' => 'display:none'])
                 . $json
                 . \html_writer::end_tag('textarea');
+
+        $partialsinput = \html_writer::empty_tag('input', [
+            'id' => 'id_s_tiny_widgethub_partials_' . $this->windex,
+            'type' => 'hidden',
+            'value' => json_encode($this->partials)
+        ]);
           
         return format_admin_setting(
             $this,
             $this->visiblename,
-            '<div class="form-textarea">' . $divyml . $textareajson . '</div>',
+            '<div class="form-textarea">' . $divyml . $textareajson . $partialsinput . '</div>',
             $this->information,
             true,
             '',

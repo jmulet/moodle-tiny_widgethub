@@ -52,17 +52,14 @@ class settingsutil {
 
     /**
      * Creates setting pages for every widget.
-     * @param object $conf
+     * @param array $widgetlist
+     * @param array $usedkeys
+     * @param object $partials
      * @return \admin_settingpage[]
      */
-    public static function create_widget_spages($conf) {
-        $widgetindex = plugininfo::get_widget_index($conf);
-        $widgetlist = plugininfo::get_widget_list($conf, $widgetindex);
-        $usedkeys = [];
-        $partials = plugininfo::get_partials($conf, $widgetindex);
-
+    public static function create_widget_setting_pages($widgetlist, $usedkeys, $partials) {
         $pages = [];
-        // Stat creating a page for a new widget identified by id = 0.
+        // Start creating a page for a new widget identified by id = 0.
         $emptywidget = new \stdClass();
         $emptywidget->id = 0;
         $pages[] = self::create_page_for_widget($emptywidget, $usedkeys, $partials);
@@ -82,7 +79,9 @@ class settingsutil {
     private static function create_page_for_widget($widget, $usedkeys, $partials) {
         $windx = $widget->id;
         $title = get_string('createwidget', 'tiny_widgethub');
-        if (!empty($widget->key) && !empty($widget->name)) {
+        if (!empty($widget->key) && $widget->key == 'partials') {
+            $title = get_string('edit', 'tiny_widgethub') . ' partials';
+        } else if (!empty($widget->key) && !empty($widget->name)) {
             $title = get_string('edit', 'tiny_widgethub') . ' ' . $widget->name;
         }
         // Page Settings for every widget.
@@ -107,20 +106,6 @@ class settingsutil {
                 $partials
             )
         );
-        /*
-        $jsonsetting = new \admin_setting_configtextarea(
-            'tiny_widgethub/def_' . $windx,
-            get_string('def', 'tiny_widgethub'),
-            get_string('def_desc', 'tiny_widgethub'),
-            '',
-            PARAM_RAW
-        );
-        $jsonsetting->set_updatedcallback(function () use ($windx) {
-            plugininfo::update_widget_index($windx);
-            // Redirect to the category page.
-            redirect(new \moodle_url('/admin/category.php', ['category' => 'tiny_widgethub']));
-        });
-        */
         return $settingspage;
     }
     

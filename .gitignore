@@ -8,6 +8,6 @@ TODO
 package-lock.json
 .DS_Store
 amd/tests/
-styles.scss
+scripts/styles.css
 copy.sh
 playground/

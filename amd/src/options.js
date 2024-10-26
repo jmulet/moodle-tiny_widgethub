@@ -247,9 +247,11 @@ export function expandPartial(obj, partials) {
 export function applyPartials(widget, partials) {
     // Expand partials in template.
     const regex = /__([\w\d]+)__/g;
-    widget.template = widget.template.replace(regex, (s0, s1) => {
-        return partials[s1] ?? s0;
-    });
+    if (widget.template) {
+        widget.template = widget.template.replace(regex, (s0, s1) => {
+            return partials[s1] ?? s0;
+        });
+    }
 
     // Expand partials in parameters.
     const parameters = widget.parameters;
@@ -304,21 +306,22 @@ export function applyPartials(widget, partials) {
  * @typedef {Object} RawWidget
  * @property {number} id
  * @property {string} key
- * @property {string} category
- * @property {string=} scope - Regex for idenfying allowed body ids
  * @property {string} name
- * @property {string=} instructions
+ * @property {string} category
+ * @property {string} [scope] - Regex for idenfying allowed body ids
+ * @property {string} [instructions]
  * @property {'mustache' | 'ejs'} [engine]
- * @property {string} template
- * @property {Param[]=} parameters
+ * @property {string} [template]
+ * @property {string} [filter]
+ * @property {Param[]} [parameters]
  * @property {Object.<string, Object<string, string>>} [I18n]
  * @property {string | string[]} [selectors]
- * @property {string=} insertquery
- * @property {string=} unwrap
- * @property {string=} for
+ * @property {string} [insertquery]
+ * @property {string} [unwrap]
+ * @property {string} [for]
  * @property {string} version
  * @property {string} author
- * @property {boolean=} hidden
+ * @property {boolean} [hidden]
  * @property {Action[]} [contextmenu]
  * @property {Action[]} [contexttoolbar]
  */
@@ -361,7 +364,7 @@ export class Widget {
      * @returns {string}
      */
     get template() {
-        return this.#widget.template;
+        return this.#widget.template ?? this.#widget.filter ?? '';
     }
     /**
      * @returns {string}
@@ -443,6 +446,13 @@ export class Widget {
     }
 
     /**
+     * @returns {boolean}
+     */
+    isFilter() {
+        return this.#widget.template === undefined && this.#widget.filter !== undefined;
+    }
+
+    /**
      * @param {string=} scope
      * @returns {boolean}
      */
@@ -454,12 +464,6 @@ export class Widget {
         }
         const regex = new RegExp(widgetScopes);
         return (regex.exec(scope) ?? null) !== null;
-    }
-    /**
-     * @returns {boolean}
-     */
-    isFilter() {
-        return this.category?.toLowerCase() === "filtres";
     }
     /**
      * @returns {boolean}

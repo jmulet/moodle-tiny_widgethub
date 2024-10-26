@@ -23,7 +23,7 @@
     background: #eeeeee;
 }  
 .iedib-sd-area::before {
-    content: "Àrea d'snippets amb connectors. No la modifiqueu ni esborreu. Manteniu-la sempre al final de la pàgina.";
+    content: "Àrea de components amb connectors JS. No la modifiqueu ni esborreu. Manteniu-la sempre al final de la pàgina.";
     color: rgb(50, 0, 0);
 }  
 .iedib-sd-area>script {
@@ -32,4 +32,19 @@
 } 
 .iedib-sd-area>script::after {
     content: attr(src);
+}
+.notranslate {
+    border: 1px dashed orange;
+}
+.iedib-capsa>.iedib-tasca.iedib-central {
+    border-bottom: 1px dashed gray;
+    border-left: 1px dashed gray;
+    border-right: 1px dashed gray;
+}
+/** Troll **/
+.iedib-ret-trl {
+    font-size: inherit!important;
+    color: gray!important;
+    opacity: 1!important;
+    text-decoration: gray dotted underline overline;
 }

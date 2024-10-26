@@ -5,6 +5,7 @@ import CodeProEditor from './libs/cm6pro-lazy';
 import {load, dump} from './libs/js_yaml-lazy';
 import {get_strings as getStrings} from 'core/str';
 import {getTemplateSrv} from './service/templateSrv';
+import {applyPartials} from './options';
 
 const templateSrv = getTemplateSrv();
 
@@ -16,16 +17,20 @@ export default {
     /**
      * @param {number} id
      * @returns {{
-     *     $ymlArea: JQuery<HTMLElement>,
-     *     $jsonArea: JQuery<HTMLElement>,
+     *     $ymlArea: JQuery<HTMLTextAreaElement>,
+     *     $jsonArea: JQuery<HTMLTextAreaElement>,
+     *     $partialInput: JQuery<HTMLInputElement>,
      * }}
      */
     getAreas: function(id) {
         /** @type {*} */
         const $ymlArea = jQuery(`#id_s_tiny_widgethub_defyml_${id}`);
+        /** @type {*} */
         const $jsonArea = jQuery(`#id_s_tiny_widgethub_def_${id}`);
+        /** @type {*} */
+        const $partialInput = jQuery(`#id_s_tiny_widgethub_partials_${id}`);
         return {
-            $ymlArea, $jsonArea
+            $ymlArea, $jsonArea, $partialInput
         };
     },
     /**
@@ -52,10 +57,11 @@ export default {
     },
     /**
      * @param {string} yml
-     * @param {{id: number, keys: string[], partials: any}} opts
+     * @param {{id: number, keys: string[]}} opts
+     * @param {Record<string, *>} partials
      * @returns {Promise<{msg: string, json?: string, html?: string}>}
      */
-    validate: async function(yml, opts) {
+    validate: async function(yml, opts, partials) {
         /**
          * @type {{
          *     msg: string,
@@ -66,12 +72,13 @@ export default {
         const validation = {msg: '', html: '', json: undefined};
         try {
             // Check if the code is a valid Yaml
-            /** @type {import('./options').RawWidget | undefined} */
+            /** @type {import('./options').RawWidget} */
             let jsonObj;
             try {
                 jsonObj = load(yml, null) ?? {};
             } catch (ex) {
                 validation.msg = "Yaml syntax error:: " + ex;
+                return validation;
             }
             validation.json = JSON.stringify(jsonObj, null, 0);
 
@@ -80,8 +87,8 @@ export default {
                 validation.msg = "Yaml file must contain a 'key' property. ";
             } else if (jsonObj.key === "partials") {
                 return validation;
-            } else if (jsonObj.key !== 'partials' && (!jsonObj.name || !jsonObj.template)) {
-                validation.msg += "Widgets must have 'name' and 'template' properties. ";
+            } else if (jsonObj.key !== 'partials' && (!jsonObj.name || !(jsonObj.template && jsonObj.filter))) {
+                validation.msg += "Widgets must have 'name' and 'template or filter' properties. ";
             }
             // Check for duplicated keys
             if (opts.id === 0 && jsonObj?.key) {
@@ -91,19 +98,12 @@ export default {
                 }
             }
             // Handle partials in parameters
-            const partials = opts.partials;
-            const paramsCopy = (jsonObj?.parameters || []).map(param => {
-                let pc = {...param};
-                if (pc.partial && partials[pc.partial]) {
-                    pc = Object.assign(pc, partials[pc.partial]);
-                }
-                return pc;
-            });
+            applyPartials(jsonObj, partials);
             // Try to parse the template with the correct renderer
-            const translations = jsonObj?.I18n || {};
+            const translations = jsonObj?.I18n ?? {};
             /** @type {Object.<string, any>} */
             const ctx = {};
-            paramsCopy.forEach(param => {
+            (jsonObj.parameters ?? []).forEach(param => {
                 ctx[param.name] = param.value;
             });
             const engine = jsonObj?.engine;
@@ -121,14 +121,15 @@ export default {
      * @returns
      */
     init: async function(opts) {
-        console.info("Init AMD called with opts ", JSON.stringify(opts));
         const i18n = await getStrings([
             {key: 'preview', component: 'tiny_widgethub'},
             {key: 'delete', component: 'tiny_widgethub'},
             {key: 'savechanges', component: 'tiny_widgethub'}
         ]);
 
-        const {$ymlArea, $jsonArea} = this.getAreas(opts.id);
+        const {$ymlArea, $jsonArea, $partialInput} = this.getAreas(opts.id);
+        // Partials are passed through a hidden input element
+        const partials = JSON.parse($partialInput.val() || '{}');
 
         // Hide the control that handles JSON and it is actually saved
         $jsonArea.css("display", "none");
@@ -150,7 +151,7 @@ export default {
             <i class="fas fa fa-magnifying-glass"></i> ${i18n[0]}</button>`);
         $previewBtn.on('click', async() => {
             const yml = codeProEditor.getValue();
-            const validation = await this.validate(yml, opts);
+            const validation = await this.validate(yml, opts, partials);
             if (validation.msg) {
                 alert(validation.msg);
             } else if (validation.html) {
@@ -192,7 +193,7 @@ export default {
             // Must update the content from the Yaml control
             const yml = codeProEditor.getValue();
             // First validate the definition of the widget
-            const validation = await this.validate(yml, opts);
+            const validation = await this.validate(yml, opts, partials);
             if (validation.msg) {
                 alert(validation.msg);
             } else {

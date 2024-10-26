@@ -192,7 +192,7 @@ class plugininfo extends plugin implements
             // Update its key and name.
             $widgetindex[$id] = [
                 'key' => $widget->key,
-                'name' => $widget->name,
+                'name' => isset($widget->name) ? $widget->name : $widget->key,
             ];
         }
         set_config('index', json_encode($widgetindex), 'tiny_widgethub');
@@ -234,22 +234,19 @@ class plugininfo extends plugin implements
      * Searches the index for a widget with key named partials
      * @param object $conf
      * @param array $widgetindex (optional)
-     * @return object | null if not found
+     * @return object if not found or empty object otherwise
      */
     public static function get_partials($conf, $widgetindex): ?object {
         if (!isset($widgetindex)) {
             $widgetindex = self::get_widget_index($conf);
         }
-        $indexid = array_search('partials', array_column($widgetindex, 'key'));
-        $partials = null;
+        $indexid = array_search('partials',
+        array_combine(array_keys($widgetindex), array_column($widgetindex, 'key')));
+        $partials = (object)[];
         if ($indexid) {
             $definition = $conf->{'def_' . $indexid};
             if (!empty($definition)) {
                 $partials = json_decode($definition, false);
-                if (isset($partials)) {
-                    // Also include the internal widget id.
-                    $partials->id = $indexid;
-                }
             }
         }
         return $partials;
