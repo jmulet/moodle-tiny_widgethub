@@ -257,7 +257,7 @@ export class WidgetPickerCtrl {
          **/
         const categories = {};
         allButtons.forEach(btn => {
-            const catName = btn.category.toUpperCase();
+            const catName = btn.category?.toUpperCase();
             let found = categories[catName];
             if (!found) {
                 const color = hashCode(catName) % 360;

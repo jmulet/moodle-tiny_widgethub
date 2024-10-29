@@ -6,7 +6,7 @@ instructions: >
   Decidiu si la segona fila conté un desplegable.
 template: |
   <p><br></p>
-  <div class="iedib-capsa iedib-capsa-gran iedib-exemple-border" data-lang="{{LANG}}">
+  <div class="iedib-capsa iedib-capsa-gran iedib-exemple-border" data-lang="{{_lang}}">
   <!--begin: Capsa exemple 2 files -->
   <div class="iedib-lateral iedib-exemple">
   <p class="iedib-titolLateral">{{#I18n}}msg{{/I18n}}<span class="iedib-exemple-logo"></span></p>

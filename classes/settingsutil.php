@@ -47,6 +47,14 @@ class settingsutil {
             '',
             PARAM_RAW
         );
+        // Define additional settings in json format.
+        $items[] = new \admin_setting_configtextarea(
+            'tiny_widgethub/cfg',
+            'tiny_widgethub_cfg',
+            get_string('cfg', 'tiny_widgethub'),
+            '{"imgbaseurl": "https://ibsuite.es/iedib/snippets", "disable.plugin.pages": "", "enable.contextmenu.level": "1", "enable.ibquizz.userlist": ""}',
+            PARAM_RAW
+        );
         return $items;
     }
 

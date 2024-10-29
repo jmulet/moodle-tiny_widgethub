@@ -87,7 +87,7 @@ export default {
                 validation.msg = "Yaml file must contain a 'key' property. ";
             } else if (jsonObj.key === "partials") {
                 return validation;
-            } else if (jsonObj.key !== 'partials' && (!jsonObj.name || !(jsonObj.template && jsonObj.filter))) {
+            } else if (jsonObj.key !== 'partials' && (!jsonObj.name || !(jsonObj.template || jsonObj.filter))) {
                 validation.msg += "Widgets must have 'name' and 'template or filter' properties. ";
             }
             // Check for duplicated keys

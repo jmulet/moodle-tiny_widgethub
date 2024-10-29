@@ -188,7 +188,7 @@ export class WidgetParamsCtrl {
       this.storage.setToSession("recentsnpt", recentWidgets.join(","), true);
 
       if (this.widget.isFilter()) {
-         this.applyWidgetFilter(this.editor, this.widget.template || '', false, ctxFromDialogue);
+         this.applyWidgetFilter(this.widget.template || '', false, ctxFromDialogue);
          return;
       }
       const interpoledCode = await this.generateInterpolatedCode(ctxFromDialogue);

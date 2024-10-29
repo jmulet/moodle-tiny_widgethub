@@ -160,7 +160,7 @@ const Transformers = {
     // @ts-ignore
     "encodeHTML": function(txt) {
         // @ts-ignore
-        return this.encodeURIComponent(txt || "");
+        return encodeURIComponent(txt || "");
     },
     // @ts-ignore
     "escapeQuotes": function(txt) {

@@ -9,7 +9,7 @@
         "hidden": true
     },
     "LANG": {
-        "name": "LANG",
+        "name": "_lang",
         "value": "ca",
         "title": "Idioma",
         "options": [

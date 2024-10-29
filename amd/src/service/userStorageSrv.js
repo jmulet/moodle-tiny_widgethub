@@ -142,7 +142,7 @@ export class UserStorageSrv {
         const MLS = this._localStore; // Only configuration params
 
         // @ts-ignore
-        if (typeof (theValueMap) === 'object') {
+        if (typeof (value) === 'object') {
             if (MLSC && key === 'saveall_data' || key === 'values') {
                 MLSC[key] = MLSC[key] || {};
             } else {

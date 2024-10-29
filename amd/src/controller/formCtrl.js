@@ -125,7 +125,7 @@ export class FormCtrl {
                currentval = saveAllData[sname][pname];
             }
          }
-         if (pname.startsWith("$") && values[pname]) {
+         if (pname.startsWith("_") && values[pname]) {
             currentval = values[pname];
          }
          return currentval;
@@ -248,7 +248,7 @@ export class FormCtrl {
             value = stream(param.transform).reduce(value);
          }
          ctx[pname] = value;
-         if (pname.trim().startsWith("$")) {
+         if (pname.trim().startsWith("_")) {
             toPersist[pname] = value;
          }
       });

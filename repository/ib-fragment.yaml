@@ -5,7 +5,7 @@ instructions: |
   Si voleu reduir l'amplada podeu establir una amplada màxima, p.e. 400 px.
 template: >-
   <p><br></p> <!-- begin fragment text -->
-  <div class="iedib-fragment {{#notranslate}}notranslate{{/notranslate}}" data-lang="{{LANG}}" {{#if}}[amplada_max>0]style="max-width: {{amplada_max}}px;"{{/if}}>
+  <div class="iedib-fragment {{#notranslate}}notranslate{{/notranslate}}" data-lang="{{_lang}}" {{#if}}[amplada_max>0]style="max-width: {{amplada_max}}px;"{{/if}}>
   <h4>{{#I18n}}msg{{/I18n}}:</h4>
   <div class="iedib-iq">
   <p>__LOREM__</p>

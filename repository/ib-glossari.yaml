@@ -5,8 +5,8 @@ instructions: >
   Aquest snippet permet incloure un glossari per a idiomes.
 template: |
   <p><br></p>
-  <div class="iedib-glossari iedib-glossari-{{estil}}"
   <!-- begin glossari -->
+  <div class="iedib-glossari iedib-glossari-{{estil}}"
   style="max-width:{{mida}}px;{{#centrat}}margin:auto;{{/centrat}}"> 
   <p><b>{{#I18n}}msg{{/I18n}}</b></p> 
   <div class="iedib-iq">

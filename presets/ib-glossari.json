@@ -3,12 +3,12 @@
     "name": "Glossari",
     "category": "idiomes",
     "instructions": "Aquest snippet permet incloure un glossari per a idiomes.\n",
-    "template": "<p><br></p>\n<div class=\"iedib-glossari iedib-glossari-{{estil}}\"\n<!-- begin glossari -->\nstyle=\"max-width:{{mida}}px;{{#centrat}}margin:auto;{{/centrat}}\"> \n<p><b>{{#I18n}}msg{{/I18n}}</b></p> \n<div class=\"iedib-iq\">\n  <p><b>Term</b>: Definition</p> \n  <p><b>Term</b>: Definition</p>  \n  <p><b>Term</b>: Definition</p>\n</div>\n<!-- end glossari -->\n</div>  \n<p><br></p>\n",
+    "template": "<p><br></p>\n<!-- begin glossari -->\n<div class=\"iedib-glossari iedib-glossari-{{estil}}\"\nstyle=\"max-width:{{mida}}px;{{#centrat}}margin:auto;{{/centrat}}\"> \n<p><b>{{#I18n}}msg{{/I18n}}</b></p> \n<div class=\"iedib-iq\">\n  <p><b>Term</b>: Definition</p> \n  <p><b>Term</b>: Definition</p>  \n  <p><b>Term</b>: Definition</p>\n</div>\n<!-- end glossari -->\n</div>  \n<p><br></p>\n",
     "insertquery": "div.iedib-iq",
     "selectors": "div.iedib-glossari",
     "parameters": [
         {
-            "name": "LANG",
+            "name": "_lang",
             "value": "ca",
             "title": "Idioma",
             "options": [

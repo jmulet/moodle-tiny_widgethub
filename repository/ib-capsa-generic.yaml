@@ -10,7 +10,7 @@ instructions: >
   Triau una mida i idioma per a la capsa.
 template: |
   <p><br></p><!--begin: Capsa {{tipus}} {{mida}} -->
-  <div class="iedib-capsa iedib-capsa-{{mida}} iedib-{{tipus}}-border" data-lang="{{LANG}}">
+  <div class="iedib-capsa iedib-capsa-{{mida}} iedib-{{tipus}}-border" data-lang="{{_lang}}">
     <div class="iedib-lateral iedib-{{tipus}}">
       <p class="iedib-titolLateral">{{#I18n}}msg_{{tipus}}{{/I18n}}<span class="iedib-{{tipus}}-logo"></span></p>
     </div>

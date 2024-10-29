@@ -278,6 +278,7 @@ export function applyPartials(widget, partials) {
  * @typedef {Object} ParamOption
  * @property {string} l
  * @property {string} v
+ * @property {{to: string, content: string}} [a]
  */
 /**
  * @typedef {Object} Param
@@ -296,6 +297,7 @@ export function applyPartials(widget, partials) {
  * @property {string=} when
  * @property {boolean} [hidden]
  * @property {boolean} [editable]
+ * @property {string} [for]
  */
 /**
  * @typedef {Object} Action
@@ -321,7 +323,9 @@ export function applyPartials(widget, partials) {
  * @property {string} [for]
  * @property {string} version
  * @property {string} author
+ * @property {string[]} [requires]
  * @property {boolean} [hidden]
+ * @property {number} [stars]
  * @property {Action[]} [contextmenu]
  * @property {Action[]} [contexttoolbar]
  */
