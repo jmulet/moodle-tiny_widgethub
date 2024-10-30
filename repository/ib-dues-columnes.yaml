@@ -9,7 +9,7 @@ template: |
   <!--ini dues columnes-->
   <div class="row-fluid iedib-tabpane">
   <div class="span{{amplada_col1}}">
-  <p></p>
+  <p>__LOREM__</p>
   </div>
   <div class="span{{amplada_col2}}">
   <img src="https://www.actualidadliteratura.com/wp-content/uploads/2019/06/tablilla-en-latin.jpg" alt="Demo" style="max-width:300px;" role="presentation" class="img-fluid align-middle"/>

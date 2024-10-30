@@ -81,7 +81,7 @@ const defineIcons = function(editor) {
  * @returns {boolean}
  */
 function hasBindings(widget) {
-    return widget.parameters?.some(param => param.bind !== undefined) ?? false;
+    return widget.parameters?.some(param => param.bind !== undefined);
 }
 
 /**

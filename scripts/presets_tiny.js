@@ -31,6 +31,14 @@ function casesOf(str, needle) {
 }
 
 /**
+ * @param {*} w
+ * @returns {boolean}
+ */
+function isFilter(w) {
+    return w.template === undefined && w.filter !== undefined;
+}
+
+/**
  * Detect the number of duplicated items in the list
  * @param {string[]} list
  * @returns {number} The number of errors
@@ -118,6 +126,9 @@ function testJsonFields_contents(wdg) {
  * @returns {number} - The number of errors
  */
 function checkTemplate(parsed) {
+    if (isFilter(parsed)) {
+        return 0;
+    }
     // Detect the type of engine
     let engine = parsed.engine;
     if (!engine) {
@@ -316,7 +327,7 @@ doFiles.forEach((f) => {
 const partials = Object.values(widgets).filter((/** @type {*} */ w) => w.key === "partials")[0];
 if (partials) {
     Object.values(widgets)
-        .filter((w) => w.key !== "partials")
+        .filter((w) => w.key !== "partials" && !isFilter(w))
         .forEach((w) => {
             applyPartials(w, partials);
     });

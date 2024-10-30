@@ -843,3 +843,35 @@ export function toRgba(hex, alpha) {
     }
     return `rgba(${r},${g},${b},${alpha2})`;
 }
+
+/**
+ * Simple debounce function
+ * @param {(evt?: any) => void} cb
+ * @param {number} [delay]
+ */
+/**
+ * Simple debounce function
+ * @param {(...args: unknown[]) => void} cb
+ * @param {number} [delay]
+ * @returns {((...args: unknown[]) => void) & {clear: () => void}}
+ */
+export function debounce(cb, delay = 1000) {
+    /** @type{number | null} */
+    let timeoutId = null;
+    const debounced = (/** @type {unknown[]} */ ...args) => {
+        if (timeoutId) {
+            window.clearTimeout(timeoutId);
+        }
+        timeoutId = window.setTimeout(() => {
+          cb(...args);
+        }, delay);
+    };
+    debounced.clear = () => {
+        if (!timeoutId) {
+            return;
+        }
+        window.clearTimeout(timeoutId);
+        timeoutId = null;
+    };
+    return debounced;
+}

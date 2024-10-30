@@ -20,6 +20,30 @@ $solucio-fons-color: rgb(219, 242, 248);
 $solucio-border-color: rgb(13, 38, 68);
 
 /********************************** WidgetHub plugin styles */
+.tiny_widgethub-container {
+  position: relative;
+}
+
+.tiny_widgethub-preview {
+  display: none;
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  width: 250px;
+  height: 150px;
+  border-radius: 4px;
+  box-shadow: 3px 3px gray;
+  overflow: hidden;
+  background: white;
+  z-index: 1000;
+}
+
+.tiny_widgethub-preview > * {
+  margin: auto;
+  transform: scale(70%);
+  transform-origin: 50% 0;
+}
+
 .tiny_widgethub-previewpanel {
   border: 1px solid gray;
   min-width: 100%;
@@ -118,6 +142,10 @@ div.tiny_widgethub-growl {
   display:table;
 }
 
+.tiny_widgethub-disabled > button {
+  opacity: 60%;
+}
+
 .tiny_widgethub-lateral {
   display: table-cell;
   position: relative;
@@ -146,35 +174,6 @@ div.tiny_widgethub-growl {
 .tiny_widgethub-instructionstext {
   font-size: 90%;
   line-height: 1.25em;
-}
-
-.tiny_widgethub-btn:hover {
-  background-color: #343a40;
-  color: white;
-}
-
-.tiny_widgethub-btn {
-  width: 95%;
-  display: inline-block;
-  font-weight: 400;
-  text-align: center;
-  white-space: nowrap;
-  vertical-align: middle;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  border: 1px solid #343a40;
-  padding: .375rem .75rem;
-  line-height: 1;
-  border-radius: .25rem;
-  transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
-  color: #343a40;
-  background-color: rgba(255, 255, 255, 0.8);
-  background-image: none;
-  border-color: #343a40;
-  cursor: pointer;
-  margin: 2px;
 }
 
 h4.tiny_widgethub-headertext {

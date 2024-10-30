@@ -28,42 +28,7 @@ import { getEditorOptions } from '../options';
 import { getModalSrv } from '../service/modalSrv';
 import { getTemplateSrv } from '../service/templateSrv';
 import { getUserStorage } from '../service/userStorageSrv';
-import {genID, hashCode, searchComp} from '../util';
-
-/**
- * Convert a simple input element in a typeahead widget
- */
-class TypeAheadInput {
-    _inputElem;
-    _listener;
-    /** @type {number | undefined} */
-    _sfTimeout;
-    /**
-     * @param {HTMLElement} inputElem
-     * @param {Function} callback
-     * @param {number=} delay
-     */
-    constructor(inputElem, callback, delay) {
-        this._inputElem = inputElem;
-        this._listener = () => {
-            if (this._sfTimeout) {
-                window.clearTimeout(this._sfTimeout);
-                this._sfTimeout = undefined;
-            }
-            this._sfTimeout = window.setTimeout(() => callback(), delay ?? 800);
-        };
-        this._inputElem.addEventListener('keyup', this._listener);
-    }
-    off() {
-        if (this._sfTimeout) {
-            window.clearTimeout(this._sfTimeout);
-            this._sfTimeout = undefined;
-        }
-        if (this._listener) {
-            this._inputElem.removeEventListener('keyup', this._listener);
-        }
-    }
-}
+import {debounce, genID, hashCode, searchComp} from '../util';
 
 /**
  * @param {HTMLElement} el
@@ -177,20 +142,23 @@ export class WidgetPickerCtrl {
             });
             // Event listeners.
             // Click on clear text
-            const widgetSearchElem = this.modal.body.find("input")[0];
-            widgetSearchElem.value = searchText;
-            this.modal.body.find(`#widget-clearfilter-btn${data.rid}`)[0].addEventListener('click', () => {
-                widgetSearchElem.value = "";
+            const widgetSearchElem = this.modal.body.find("input");
+            widgetSearchElem.val(searchText);
+            const debouncedKeyup = debounce(onSearchKeyup, 800);
+            widgetSearchElem.on('keyup', debouncedKeyup);
+
+            this.modal.body.find(`#widget-clearfilter-btn${data.rid}`).on('click', () => {
+                debouncedKeyup.clear();
+                widgetSearchElem.val("");
+                widgetSearchElem.trigger("focus");
                 onSearchKeyup();
             });
-            // Click on any widget button
-            this.modal.body[0].addEventListener('click',
+            // Click on any widget button (bubbles)
+            this.modal.body.on('click',
                 /** @param {Event} event */
                 (event) => {
                     this.handlePickModalClick(event);
                 });
-
-            this._typeAheadInput = new TypeAheadInput(widgetSearchElem, onSearchKeyup);
         }
 
         // Update the list of recently used widgets

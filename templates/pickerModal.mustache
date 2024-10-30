@@ -91,10 +91,13 @@
                 <div style="display:table-cell;column-count:1;padding:5px">
                   {{#buttons}}
                     <div id="{{elementid}}_{{widgetindex}}" 
-                        class="tiny_widgethub-buttons mdl-align{{#hidden}} tiny_widgethub-hidden{{/hidden}}"{{#selectable}} data-selectable="true"{{/selectable}}>
+                        class="btn-group tiny_widgethub-buttons mdl-align{{#hidden}} tiny_widgethub-hidden{{/hidden}}"{{#selectable}} data-selectable="true"{{/selectable}}>
                       <button style="width:85%;{{#disabled}}opacity:0.4;{{/disabled}}" title="{{widgettitle}}" data-category="{{category}}" 
-                      class="tiny_widgethub-btn{{^disabled}} tiny_widgethub-btndisabled{{/disabled}}" data-key="{{widgetkey}}"> 
+                      class="btn tiny_widgethub-btn{{^disabled}} tiny_widgethub-btndisabled{{/disabled}}" data-key="{{widgetkey}}" data-insert="false"> 
                       <span>{{#disabled}}<i class="fa fas fa-ban"></i>{{/disabled}} {{widgetname}} {{{widgetfawesome}}} </span>
+                      </button>
+                      <button class="btn tiny_widgethub-btn{{^disabled}} tiny_widgethub-btndisabled{{/disabled}}" data-key="{{widgetkey}}" data-insert="true">
+                        <i class="fa-solid fa-arrow-turn-down"></i>
                       </button>
                     </div>
                   {{/buttons}}
@@ -102,6 +105,7 @@
             </div>
             {{/categories}}
             </div>
+            <div class="tiny_widgethub-preview"></div>
         </div>
     {{/body}}
 {{/ core/modal }}

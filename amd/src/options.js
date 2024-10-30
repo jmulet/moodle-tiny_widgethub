@@ -422,7 +422,7 @@ export class Widget {
     get defaults() {
         /** @type {Object.<string, any> } */
         const obj = {};
-        this.parameters.forEach((param) => {
+        (this.#widget.parameters ?? []).forEach((param) => {
             obj[param.name] = param.value;
         });
         return obj;
@@ -473,7 +473,7 @@ export class Widget {
      * @returns {boolean}
      */
     hasBindings() {
-        return this.parameters.filter(param => param.bind !== undefined).length > 0;
+        return (this.#widget.parameters ?? []).some(param => param.bind !== undefined);
     }
     /**
      * Recovers the property value named name of the original definition

@@ -2,7 +2,7 @@ key: filtre-notranslate
 name: Notranslate LaTeX
 category: filtres
 instructions: Aquest filtre encapsula les fòrmules LaTeX amb la classe notranslate per evitar que Google les tradueixi.
-template: >
+filter: >
     var inlineRegex2 = /\\\(((?:.|\n)+?)\\\)/mgi;
     var displayRegex2 = /\\\[((?:.|\n)+?)\\\]/mgi;
     var divDisplaynotranslateRegex = /<\s*div\s+class\s*=\s*\"\s*notranslate\s*\"\s*>(\s*\\\[((?:.|\n)+?)\\\]\s*)<\/\s*div\s*>/mgi;

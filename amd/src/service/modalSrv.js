@@ -75,7 +75,7 @@ ModalRegistry.register(IBContextModal.TYPE, IBContextModal, IBContextModal.TEMPL
  * @typedef {{ destroyOnHidden: boolean | undefined}} ModalOpts
  */
 
-export class CoreModalSrv {
+export class ModalSrv {
     /**
      * @param {'picker' | 'params' | 'context'} name
      * @param {object} templateContext
@@ -105,14 +105,14 @@ export class CoreModalSrv {
     }
 }
 
-/** @type {CoreModalSrv | undefined} */
+/** @type {ModalSrv | undefined} */
 let instanceSrv;
 /**
- * @returns {CoreModalSrv}
+ * @returns {ModalSrv}
  */
 export function getModalSrv() {
     if (!instanceSrv) {
-        instanceSrv = new CoreModalSrv();
+        instanceSrv = new ModalSrv();
     }
     return instanceSrv;
 }
