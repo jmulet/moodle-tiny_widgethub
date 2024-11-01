@@ -23,12 +23,12 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import { getWidgetParamsFactory } from '../controller/widgetParamsCtrl';
-import { getEditorOptions } from '../options';
-import { getModalSrv } from '../service/modalSrv';
-import { getTemplateSrv } from '../service/templateSrv';
-import { getUserStorage } from '../service/userStorageSrv';
-import {debounce, genID, hashCode, searchComp} from '../util';
+import {getWidgetParamsFactory} from '../controller/widgetParamsCtrl';
+import {getEditorOptions} from '../options';
+import {getModalSrv} from '../service/modalSrv';
+import {getTemplateSrv} from '../service/templateSrv';
+import {getUserStorage} from '../service/userStorageSrv';
+import {debounce, genID, hashCode, searchComp, toggleClass} from '../util';
 
 /**
  * @param {HTMLElement} el
@@ -64,9 +64,6 @@ export class WidgetPickerCtrl {
         this.templateSrv = templateSrv;
         /** @type {import('../service/userStorageSrv').UserStorageSrv} */
         this.storage = userStorage;
-
-        // Trigger preloading templates
-        this.modalSrv.create('picker', {});
     }
 
     show() {
@@ -87,7 +84,7 @@ export class WidgetPickerCtrl {
             const searchText = (widgetSearchElem.value || '');
             this.storage.setToSession('searchtext', searchText, true);
             /** @type {NodeListOf<HTMLElement>} */
-            const allbtns = document.querySelectorAll(".tiny_widgethub-buttons");
+            const allbtns = document.querySelectorAll(".btn-group");
             /** @type {NodeListOf<HTMLElement>} */
             const allcatgs = document.querySelectorAll(".tiny_widgethub-category");
 
@@ -113,7 +110,7 @@ export class WidgetPickerCtrl {
                 });
             }
             allcatgs.forEach((el) => {
-                const count = el.querySelectorAll(".tiny_widgethub-buttons:not(.tiny_widgethub-hidden)").length;
+                const count = el.querySelectorAll(".btn-group:not(.tiny_widgethub-hidden)").length;
                 toggleVisible(el, count > 0);
             });
             console.log("Num shown buttons is ", numshown);
@@ -236,7 +233,8 @@ export class WidgetPickerCtrl {
          * @property {string} iconname
          * @property {boolean} disabled
          * @property {boolean} selectable
-         * @property {string} widgetfawesome
+         * @property {boolean} isfilter
+         * @property {boolean} filterset
          */
         /**
          * @typedef {Object} Category
@@ -245,11 +243,15 @@ export class WidgetPickerCtrl {
          * @property {string} color
          * @property {Button[]} buttons
          */
+        // Parse filters that are autoset by the user.
+        const autoFilters = this.storage.getFromLocal("startup.filters", "")
+            .split(",").map(f => f.trim());
         /**
          * @type {Object.<string, Category>}
          **/
         const categories = {};
         allButtons.forEach(btn => {
+            const isFilter = btn.isFilter();
             const catName = (btn.category ?? 'MISC').toUpperCase();
             let found = categories[catName];
             if (!found) {
@@ -274,9 +276,10 @@ export class WidgetPickerCtrl {
                 widgetname: btn.name,
                 widgettitle: btn.name + " " + catName,
                 iconname: "fa fas fa-eye",
-                disabled: btn.isUsableInScope(),
+                disabled: !btn.isUsableInScope(),
                 selectable: btn.insertquery != null,
-                widgetfawesome: "" // TODO
+                isfilter: isFilter,
+                filterset: isFilter && autoFilters.includes(btn.key)
             });
         });
         const categoriesList = Object.values(categories);
@@ -342,15 +345,44 @@ export class WidgetPickerCtrl {
         if (!target) {
             return;
         }
-        const button = target.closest('button.tiny_widgethub-btn');
-        const aRecent = target.closest('a[data-key]');
+        /** @type {HTMLElement | undefined} */
+        const buttonWrapper = target.closest('[data-key]');
+        /** @type {Widget | null} */
         let widget = null;
-        if (button ?? aRecent) {
-            const selectedButton = (button ?? aRecent).dataset.key;
-            widget = this.editorOptions.widgetDict[selectedButton];
+        if (buttonWrapper) {
+            const selectedButton = buttonWrapper?.dataset?.key;
+            if (selectedButton) {
+                widget = this.editorOptions.widgetDict[selectedButton];
+            }
         }
         if (!widget) {
             return;
+        }
+        /** @type {HTMLElement | undefined} */
+        const button = target.closest('button.btn');
+        // Check if it is a toggle button to autoset a filter
+        if (button?.dataset?.auto) {
+            const isSet = button.dataset.auto !== "true";
+            button.dataset.auto = isSet + '';
+            toggleClass(button, 'btn-primary', 'btn-outline-primary');
+            const key = widget.key;
+            // Persist option
+            const autoFilters = new Set(this.storage.getFromLocal('startup.filters', '').split(''));
+            if (isSet) {
+                autoFilters.add(key);
+            } else {
+                autoFilters.delete(key);
+            }
+            this.storage.setToLocal('startup.filters', [...autoFilters].join(","), true);
+            return;
+        }
+        /** @type {HTMLElement | undefined} */
+        const aRecent = target.closest('a[data-key]');
+        // If it is a recently used widget, recover the used parameters
+        /** @type {Record<string, any> | undefined} */
+        let ctx;
+        if (aRecent) {
+            ctx = this.storage.getRecentUsed().filter(e => e.key === widget.key)[0]?.p;
         }
         // Must open a configuration dialogue for the current widget
         let confirmMsg = null;
@@ -358,31 +390,35 @@ export class WidgetPickerCtrl {
             confirmMsg = "Aquest widget no és adequat per a la pàgina actual. Segur que voleu continuar?";
         }
 
+        const forceInsert = aRecent !== null || button.dataset.insert === 'true';
         if (confirmMsg) {
             this.editor.windowManager.confirm(confirmMsg,
             /** @param {*} state */
             (state) => {
                 if (state) {
-                    this.handlePickModalAction(widget);
+                    this.handlePickModalAction(widget, forceInsert, ctx);
                 }
             });
         } else {
-            this.handlePickModalAction(widget);
+            this.handlePickModalAction(widget, forceInsert, ctx);
         }
     }
 
     /**
      * @param {import('../options').Widget} widget
+     * @param {boolean} [forceInsert]
+     * @param {Record<string, *>} [ctx]
      */
-    handlePickModalAction(widget) {
-        this.modal.hide();
+    handlePickModalAction(widget, forceInsert, ctx) {
+        this.modal?.destroy();
+        this.modal = undefined;
         const paramsController = this.widgetParamsFactory(widget);
         // Keep reference to the calling parentCtrl
         paramsController.parentCtrl = this;
         // Decide whether to show the form or directly doInsert
-        if (widget.parameters.length === 0 && !widget.instructions) {
+        if (forceInsert || (widget.parameters ?? []).length === 0 && !widget.instructions) {
             // Do insert directly
-            paramsController.insertWidget({});
+            paramsController.insertWidget(ctx ?? {});
         } else {
             paramsController.handleAction();
         }

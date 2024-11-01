@@ -23,7 +23,7 @@
  */
 
 import {getButtonImage} from 'editor_tiny/utils';
-import {get_string as getString} from 'core/str';
+import * as coreStr from 'core/str';
 import Common from './common';
 import * as cfg from 'core/config';
 import {initContextActions} from './contextInit';
@@ -31,12 +31,15 @@ import {getAdditionalCss, isPluginVisible} from './options';
 import jQuery from "jquery";
 import {getWidgetPickCtrl} from './controller/widgetPickerCtrl';
 import {getListeners} from './extension';
+import {getUserStorage} from './service/userStorageSrv';
+import {getEditorOptions} from './options';
+import {applyWidgetFilterFactory} from './util';
 
 export const getSetup = async() => {
     // Get some translations
     const [widgetNameTitle, buttonImage] = await Promise.all([
         // @ts-ignore
-        getString('settings', Common.component),
+        coreStr.getString('settings', Common.component),
         getButtonImage('icon', Common.component),
     ]);
 
@@ -75,12 +78,40 @@ export const getSetup = async() => {
 };
 
 /**
+ * If the user has selected automatic apply of filters on startup, apply them!
+ * @param {import('./plugin').TinyMCE} editor
+ */
+const autoFilter = (editor) => {
+    const storage = getUserStorage(editor);
+    const requiresFilter = storage.getFromLocal("startup.filters", "").split(",");
+
+    if (requiresFilter.length > 0) {
+        const editorOptions = getEditorOptions(editor);
+        const widgetsFound = requiresFilter.map(key => editorOptions.widgetDict[key]).filter(w => w !== undefined);
+        const applyWidgetFilter = applyWidgetFilterFactory(editor, coreStr);
+
+        // Apply the filters and show the result
+        widgetsFound.forEach(w => applyWidgetFilter(w.template ?? '', true));
+
+        // Apply it also on save
+        const pageForm = document.querySelector('form.mform');
+        if (pageForm && pageForm.querySelector('div[data-fieldtype="editor"]')) {
+            pageForm.addEventListener('submit', () => {
+                widgetsFound.forEach(w => applyWidgetFilter(w.template ?? '', true));
+                return true;
+            });
+        }
+    }
+};
+
+/**
  * Inject styles and scripts into editor's iframe
  * @param {import('./plugin').TinyMCE} editor
  */
 function initializer(editor) {
     editor.once('SetContent', () => {
         // Run all subscribers
+        autoFilter(editor);
         getListeners('contentSet').forEach(listener => listener(editor));
     });
     // Add the bootstrap, CSS, etc... into the editor's iframe

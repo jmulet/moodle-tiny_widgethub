@@ -81,7 +81,7 @@ export class TemplateSrv {
                 ctx[key] = genID();
             }
         });
-        const lang = ctx.LANG;
+        const lang = ctx._lang;
         for (let wordKey in translations) {
             const dict = translations[wordKey];
             ctx.I18n[wordKey] = dict[lang] || dict.en || dict.es || wordKey;
@@ -159,7 +159,7 @@ export class TemplateSrv {
                 // @ts-ignore
                 const key = render(text).trim();
                 const dict = translations[key] || {};
-                return dict[ctx.LANG] || dict.en || dict.ca || key;
+                return dict[ctx._lang] || dict.en || dict.ca || key;
             };
         ctx.each = () =>
             /**

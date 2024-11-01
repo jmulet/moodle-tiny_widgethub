@@ -875,3 +875,18 @@ export function debounce(cb, delay = 1000) {
     };
     return debounced;
 }
+
+/**
+ * @param {HTMLElement} elem
+ * @param {...string} classNames
+ */
+export function toggleClass(elem, ...classNames) {
+    const classList = elem.classList;
+    classNames.forEach(name => {
+        if (classList.contains(name)) {
+            classList.remove(name);
+        } else {
+            classList.add(name);
+        }
+    });
+}

@@ -446,6 +446,9 @@ export class Widget {
         grantStr = grantStr.replace(/[+\- ]/g, '');
         const grantList = grantStr.split(",");
         const isAllowed = (allowMode && grantList.indexOf(userId + "") >= 0) || (!allowMode && grantList.indexOf(userId + "") < 0);
+        if (!isAllowed) {
+            console.warn(`Widget ${this.#widget.key} not allowed to user ${userId}: ${grantList}`);
+        }
         return isAllowed;
     }
 
