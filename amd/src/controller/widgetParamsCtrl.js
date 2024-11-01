@@ -174,27 +174,28 @@ export class WidgetParamsCtrl {
     * @returns
     */
    async insertWidget(ctxFromDialogue) {
-      const recentWidgets = this.storage.getFromSession("recentsnpt", "").split(",")
-         .filter((/** @type{string}**/ e) => e.trim());
-      const pos = recentWidgets.indexOf(this.widget.key);
+      /** @type {key: string, p: Dict<any>}[] */
+      const recentList = this.storage.getRecentUsed();
+      const pos = recentList.map(e => e.key).indexOf(this.widget.key);
       if (pos >= 0) {
-         recentWidgets.splice(pos, 1);
+         recentList.splice(pos, 1);
       }
-      recentWidgets.unshift(this.widget.key);
-      if (recentWidgets.length > 4) {
-         recentWidgets.splice(5, recentWidgets.length - 4);
+      recentList.unshift({key: this.widget.key, p: ctxFromDialogue});
+      if (recentList.length > 4) {
+         recentList.splice(5, recentList.length - 4);
       }
 
-      this.storage.setToSession("recentsnpt", recentWidgets.join(","), true);
+      this.storage.setToSession("recent", JSON.stringify(recentList), true);
 
       if (this.widget.isFilter()) {
-         this.applyWidgetFilter(this.widget.template || '', false, ctxFromDialogue);
+         this.applyWidgetFilter(this.widget.template ?? '', false, ctxFromDialogue);
          return;
       }
       const interpoledCode = await this.generateInterpolatedCode(ctxFromDialogue);
       // Normal insert mode
       this.editor.selection.setContent(interpoledCode);
       this.editor.focus();
+
       // Call any subscriber
       getListeners('widgetInserted').forEach(listener => listener(this.editor, this.widget, ctxFromDialogue));
    }

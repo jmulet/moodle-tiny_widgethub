@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-import { getEditorOptions } from '../options';
+import {getEditorOptions} from '../options';
 
 /**
  * Tiny WidgetHub plugin.
@@ -47,11 +47,11 @@ export class UserStorageSrv {
         /**
          * @type {Record<string, any>}
          */
-        this._localStore = { values: {} };
+        this._localStore = {values: {}};
         /**
          * @type {Record<string, any>}
          */
-        this._sessionStore = { searchtext: '' };
+        this._sessionStore = {searchtext: ''};
         this.loadStore();
     }
 
@@ -197,6 +197,19 @@ export class UserStorageSrv {
         if (persist) {
             this.saveStore("session");
         }
+    }
+
+    /**
+     * @returns {{key: string, p: Record<string, any>}[]}
+     */
+     getRecentUsed() {
+        let recentList = [];
+        try {
+           recentList = JSON.parse(this.getFromSession("recent", "[]"));
+        } catch (ex) {
+           console.error('Cannot parse recent', ex);
+        }
+        return recentList;
     }
 }
 

@@ -295,10 +295,9 @@ export class WidgetPickerCtrl {
         });
 
          // Update the list of recently used widgets
-         const recent = this.storage.getFromSession("recentsnpt", "").split(",")
-             .filter((/** @type {string} **/ key) => {
+        const recentList = this.storage.getRecentUsed().filter((/** @type {any} **/ recent) => {
                 // In select mode must filter widgets that do support it
-                key = key?.trim();
+                const key = recent.key;
                 const widget = snptDict[key];
                 if (!widget) {
                     return false;
@@ -307,7 +306,8 @@ export class WidgetPickerCtrl {
                 const isSelection = this.isSelectMode();
                 return key.length > 0 && (!isSelection || (isSelection && selectable));
              })
-             .map((/** @type {string} **/ key) => {
+             .map((/** @type {any} **/ recent) => {
+                const key = recent.key;
                  const snpt = snptDict[key];
                  if (snpt) {
                      return {
@@ -327,7 +327,7 @@ export class WidgetPickerCtrl {
             selectMode: this.isSelectMode(),
             elementid: this.editor.id,
             categories: categoriesList, ...(data ?? {}),
-            recent
+            recent: recentList
         };
     }
 
