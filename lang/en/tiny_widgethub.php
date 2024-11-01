@@ -31,6 +31,7 @@ $string['def'] = 'Yml definition';
 $string['def_desc'] = 'Yaml definition of the widget';
 $string['delete'] = 'Delete';
 $string['dialogtitle'] = 'Select a widget';
+$string['directinsert'] = 'Insert directly';
 $string['edit'] = 'Edit';
 $string['emptylist'] = 'No widgets have been found for the search criteria';
 $string['filterres'] = 'Result of the filter';

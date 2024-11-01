@@ -67,45 +67,66 @@
         {{#str}} dialogtitle, tiny_widgethub {{/str}}
     {{/title}}
     {{$body}}
-        <span style="position:absolute;top:-5px;right:50px;font-size:80%;color:#5960b8;padding:5px;font-weight:bold;" 
-        class="ib-blink{{^selectMode}} tiny_widgethub-hidden{{/selectMode}}">
+        <span class="ib-blink{{^selectMode}} tiny_widgethub-hidden{{/selectMode}}">
             <i class="fa fas fa-object-group"></i> {{#str}} selectmode, tiny_widgethub {{/str}}
         </span>
 
         <div id="{{elementid}}" class="tiny_widgethub-container">
-           <div style="text-align:center;position:relative;vertical-align:middle;margin-top:5px;">
-                <input id="widget-filter{{rid}}" type="text" placeholder="{{#str}} wsearch, tiny_widgethub {{/str}}" style="width:80%" value="{{searchText}}">
-                <button id="widget-clearfilter-btn{{rid}}" class="btn btn-sm btn-secondary" title="{{#str}} rmfilter, tiny_widgethub {{/str}}">
+           <div class="tiny_widgethub-top input-group">
+                <input id="widget-filter{{rid}}" type="text" class="form-control" placeholder="{{#str}} wsearch, tiny_widgethub {{/str}}" style="width:80%" value="{{searchText}}">
+                <button id="widget-clearfilter-btn{{rid}}" class="ml-1 btn btn-sm btn-secondary" title="{{#str}} rmfilter, tiny_widgethub {{/str}}">
                     <i class="fa fas fa-times"></i>
                 </button>
-            </div>
-            <div class="tiny_widgethub-categorycontainer" style="max-height:450px;overflow:auto;">
-            <span class="tiny_widgethub-emptylist tiny_widgethub-hidden">{{#str}} emptylist, tiny_widgethub {{/str}}</span>
-            <div class="tiny_widgethub-recent"></div>
-            {{#categories}}
-            <div class="tiny_widgethub-category{{#hidden}} tiny_widgethub-hidden{{/hidden}}"
-                style="border: 2px solid hsl({{color}}, 40%);background: hsl({{color}}, 98%);">
-                <div class="tiny_widgethub-lateral" style="background: hsl({{color}}, 40%)!important;">
-                    <p class="tiny_widgethub-title">{{name}}</p>
+                <div class="tiny_widgethub-recent p-2">
+                    {{#recent}}
+                    <a href="javascript:void(0)" data-key="{{key}}" data-insert="recent"><span class="badge badge-secondary">{{name}}</span></a>
+                    {{/recent}}
                 </div>
-                <div style="display:table-cell;column-count:1;padding:5px">
-                  {{#buttons}}
-                    <div id="{{elementid}}_{{widgetindex}}" 
-                        class="btn-group tiny_widgethub-buttons mdl-align{{#hidden}} tiny_widgethub-hidden{{/hidden}}"{{#selectable}} data-selectable="true"{{/selectable}}>
-                      <button style="width:85%;{{#disabled}}opacity:0.4;{{/disabled}}" title="{{widgettitle}}" data-category="{{category}}" 
-                      class="btn tiny_widgethub-btn{{^disabled}} tiny_widgethub-btndisabled{{/disabled}}" data-key="{{widgetkey}}" data-insert="false"> 
-                      <span>{{#disabled}}<i class="fa fas fa-ban"></i>{{/disabled}} {{widgetname}} {{{widgetfawesome}}} </span>
-                      </button>
-                      <button class="btn tiny_widgethub-btn{{^disabled}} tiny_widgethub-btndisabled{{/disabled}}" data-key="{{widgetkey}}" data-insert="true">
-                        <i class="fa-solid fa-arrow-turn-down"></i>
-                      </button>
+            </div>
+            
+            <div class="row mt-2">
+                <div class="col-md-4" style="position: relative">
+                    <ul id="list-categories" class="nav nav-pills flex-md-column">
+                        {{#categories}}
+                            <li class="nav-item">
+                                <a class="nav-link" href="#cat-{{name}}">{{name}}</a>
+                            </li>
+                        {{/categories}}
+                    </ul>
+                    <div class="tiny_widgethub-preview"></div>
+                </div>
+                <div class="col-md-8 pl-md-0 tiny_widgethub-categorycontainer"
+                     data-spy="scroll" data-bs-spy="scroll" data-target="#list-categories" data-offset="0">
+                
+                    <div class="tiny_widgethub-emptylist tiny_widgethub-hidden"><span>{{#str}} emptylist, tiny_widgethub {{/str}}</span></div>
+                    {{#categories}}
+                    <div class="tiny_widgethub-category{{#hidden}} tiny_widgethub-hidden{{/hidden}}"
+                        style="border: 2px solid hsl({{color}}, 40%);background: hsl({{color}}, 96%);" id="cat-{{name}}">
+                        <div class="tiny_widgethub-lateral" style="background: hsl({{color}}, 40%);">
+                            <p class="tiny_widgethub-title">{{name}}</p>
+                        </div>
+                        <div class="d-flex flex-column px-4 py-2">
+                            {{#buttons}}
+                                <div id="{{elementid}}_{{widgetindex}}" style="align-items: flex-end;"
+                                    class="row mb-1 btn-group{{#hidden}} tiny_widgethub-hidden{{/hidden}}{{#disabled}} tiny_widgethub-disabled{{/disabled}}"
+                                    {{#selectable}} data-selectable="true"{{/selectable}}>
+
+                                <button title="{{widgettitle}}" data-category="{{category}}" 
+                                    class="col-10 btn btn-outline-primary tiny_widgethub-btn" data-key="{{widgetkey}}" data-insert="false"> 
+                                        <span>{{#disabled}}<i class="fa fas fa-ban"></i>{{/disabled}} {{widgetname}} {{{widgetfawesome}}} </span>
+                                </button>
+                                <button class="col-2 btn btn-outline-primary" data-key="{{widgetkey}}" data-insert="true" title="{{#str}} directinsert, tiny_widgethub {{/str}}">
+                                    <i class="fa-solid fa-arrow-turn-down"></i>
+                                </button>
+
+                                </div>
+                            {{/buttons}}
+                        </div>
                     </div>
-                  {{/buttons}}
+                    {{/categories}}
+
                 </div>
             </div>
-            {{/categories}}
-            </div>
-            <div class="tiny_widgethub-preview"></div>
         </div>
     {{/body}}
 {{/ core/modal }}

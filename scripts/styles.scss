@@ -22,20 +22,32 @@ $solucio-border-color: rgb(13, 38, 68);
 /********************************** WidgetHub plugin styles */
 .tiny_widgethub-container {
   position: relative;
+  div.tiny_widgethub-top {
+    position: relative;
+    vertical-align: middle;
+    margin-top: 5px;
+    display: flex;
+  }
 }
 
 .tiny_widgethub-preview {
   display: none;
   position: absolute;
-  bottom: 4px;
-  left: 4px;
-  width: 250px;
-  height: 150px;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 30%;
+  max-height: 150px;
+  border: 1px solid gray;
   border-radius: 4px;
   box-shadow: 3px 3px gray;
   overflow: hidden;
   background: white;
   z-index: 1000;
+}
+
+.tiny_widgethub-recent {
+  flex-basis: 100%;
 }
 
 .tiny_widgethub-preview > * {
@@ -44,12 +56,17 @@ $solucio-border-color: rgb(13, 38, 68);
   transform-origin: 50% 0;
 }
 
+#list-categories {
+  font-size: 0.8rem;
+  background: whitesmoke;
+}
+
 .tiny_widgethub-previewpanel {
   border: 1px solid gray;
-  min-width: 100%;
+  width: 98%;
   height: 300px;
   margin: 5px;
-  padding: 20px;
+  padding: 10px;
   overflow: auto;
 }
 
@@ -136,10 +153,23 @@ div.tiny_widgethub-growl {
   margin: 45px;
 }
 
+.tiny_widgethub-categorycontainer {
+  position: relative;
+  max-height: 450px; 
+  overflow: hidden auto;
+}
+
 .tiny_widgethub-category {
   margin:2px auto;
-  width:90%;
+  width: 99%;
   display:table;
+}
+
+.tiny_widgethub-category button {
+  height: 40px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .tiny_widgethub-disabled > button {
@@ -1295,6 +1325,12 @@ ol.iedib-falist>li::before {
   }
 }
 
+@media screen and (max-width: 768px) {
+  .tiny_widgethub-preview {
+    display: none!important;
+  } 
+}
+
 /* 
   ##Device = Desktops
   ##Screen = 1281px to higher resolution desktops
@@ -1432,6 +1468,13 @@ div.popover {
 }
 
 .ib-blink {
+  position: absolute;
+  top: -5px;
+  right: 55px;
+  font-size: 80%;
+  color: #5960b8;
+  padding: 5px;
+  font-weight: bold;
   animation: ib_blinker 1s infinite;
 }
 

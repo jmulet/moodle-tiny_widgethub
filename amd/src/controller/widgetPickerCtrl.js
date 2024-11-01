@@ -42,12 +42,6 @@ const toggleVisible = function(el, visible) {
     }
 };
 
-const Templates = {
-    RECENT_SNPT: `<div style="margin:10px 45px;font-size:85%;">{{#recent}} 
-    {{#name}}<a href="javascript:void(0)" data-key="{{key}}"><span class="badge badge-secondary">{{name}}</span></a>{{/name}}
-    {{/recent}}`
-};
-
 export class WidgetPickerCtrl {
     /**
      * @param {import('../plugin').TinyMCE} editor
@@ -70,15 +64,22 @@ export class WidgetPickerCtrl {
         this.templateSrv = templateSrv;
         /** @type {import('../service/userStorageSrv').UserStorageSrv} */
         this.storage = userStorage;
+
+        // Trigger preloading templates
+        this.modalSrv.create('picker', {});
     }
 
     show() {
         this.modal?.show();
     }
 
+    isSelectMode() {
+        return this.editor.selection.getContent().trim().length > 0;
+    }
+
     async handleAction() {
         // Type on search input
-        const selectMode = this.editor.selection.getContent().trim().length > 0;
+        const selectMode = this.isSelectMode();
 
         const onSearchKeyup = () => {
             let numshown = 0;
@@ -140,6 +141,43 @@ export class WidgetPickerCtrl {
                 this.modal.destroy();
                 this.modal = null;
             });
+
+            try {
+                this.modal.body.find(".tiny_widgethub-categorycontainer")
+                    .scrollspy('refresh');
+            } catch (ex) {
+                console.error("Problem setting scrollspy", ex);
+            }
+
+            // Confiure preview panel
+            const previewPanel = this.modal.body.find("div.tiny_widgethub-preview");
+            const widgetTable = this.editorOptions.widgetDict;
+
+            const mouseEnterDebounced = debounce(async(evt) => {
+                const key = evt.target?.dataset?.key ?? '';
+                const widget = widgetTable[key];
+                if (!widget || widget.isFilter()) {
+                    // Filters do not offer preview
+                    return;
+                }
+                /** @type {string | undefined} */
+                let html = widget._preview;
+                if (!html) {
+                    // Generate preview with default parameters
+                    html = await this.generatePreview(widget);
+                    widget._preview = html;
+                }
+                previewPanel.html(html);
+                previewPanel.css("display", "block");
+            }, 1000);
+
+            const oMouseOut = () => {
+                mouseEnterDebounced.clear();
+                previewPanel.html('');
+                previewPanel.css("display", "none");
+            };
+
+
             // Event listeners.
             // Click on clear text
             const widgetSearchElem = this.modal.body.find("input");
@@ -154,40 +192,26 @@ export class WidgetPickerCtrl {
                 onSearchKeyup();
             });
             // Click on any widget button (bubbles)
-            this.modal.body.on('click',
+            this.modal.body.find('div.tiny_widgethub-categorycontainer, div.tiny_widgethub-recent').on('click',
                 /** @param {Event} event */
                 (event) => {
+                    mouseEnterDebounced.clear();
+                    previewPanel.css("display", "none");
+                    console.log(event.target);
                     this.handlePickModalClick(event);
                 });
+            // Preview panel
+            this.modal.body.find(".btn-group")
+                .on("mouseenter", mouseEnterDebounced)
+                .on("mouseout", oMouseOut);
         }
-
-        // Update the list of recently used widgets
-        const snptDict = this.editorOptions.widgetDict;
-        const recentWidgets = this.storage.getFromSession("recentsnpt", "").split(",")
-            .filter((/** @type {string} **/ key) => key.trim())
-            .map((/** @type {string} **/ key) => {
-            const snpt = snptDict[key];
-            if (snpt) {
-                return {
-                    key: key,
-                    name: snpt.name
-                };
-            } else {
-                return {
-                    key: key,
-                    name: ""
-                };
-            }
-        });
-        let recentHTML = "";
-        if (recentWidgets.length) {
-            recentHTML = this.templateSrv.renderMustache(Templates.RECENT_SNPT, {recent: recentWidgets});
-        }
-        this.modal.body.find(".tiny_widgethub-recent").html(recentHTML);
 
         this.modal.show();
         onSearchKeyup();
         setTimeout(() => {
+            if (!this.modal?.body) {
+                return;
+            }
             const widgetSearchElem = this.modal.body.find("input")[0];
             widgetSearchElem.focus();
         }, 400);
@@ -200,7 +224,8 @@ export class WidgetPickerCtrl {
      * @returns {Object.<string, any>} data
      */
     getPickTemplateContext(data) {
-        const allButtons = Object.values(this.editorOptions.widgetDict);
+        const snptDict = this.editorOptions.widgetDict;
+        const allButtons = Object.values(snptDict);
         /**
          * @typedef {Object} Button
          * @property {boolean} hidden
@@ -225,12 +250,12 @@ export class WidgetPickerCtrl {
          **/
         const categories = {};
         allButtons.forEach(btn => {
-            const catName = btn.category?.toUpperCase();
+            const catName = (btn.category ?? 'MISC').toUpperCase();
             let found = categories[catName];
             if (!found) {
                 const color = hashCode(catName) % 360;
                 let sat = '30%';
-                if (catName.toLowerCase() === 'obsolet') {
+                if (catName.toLowerCase().startsWith('obsolet')) {
                     sat = '0%'; // Gray
                 }
                 found = {
@@ -242,15 +267,16 @@ export class WidgetPickerCtrl {
                 categories[catName] = found;
             }
             found.buttons.push({
-                    hidden: false,
-                    category: catName,
-                    widgetkey: btn.key,
-                    widgetname: btn.name,
-                    widgettitle: btn.name + " " + catName,
-                    iconname: "fa fas fa-eye",
-                    disabled: !btn.isUsableInScope(),
-                    selectable: btn.insertquery != null,
-                    widgetfawesome: "" // TODO
+                hidden: false,
+                category: catName,
+                widgetindex: btn.id,
+                widgetkey: btn.key,
+                widgetname: btn.name,
+                widgettitle: btn.name + " " + catName,
+                iconname: "fa fas fa-eye",
+                disabled: btn.isUsableInScope(),
+                selectable: btn.insertquery != null,
+                widgetfawesome: "" // TODO
             });
         });
         const categoriesList = Object.values(categories);
@@ -268,10 +294,41 @@ export class WidgetPickerCtrl {
             cat.hidden = cat.buttons.filter(btn => !btn.hidden).length == 0;
         });
 
-        return {rid: genID(),
-            selectMode: this.editor.selection.getContent().trim().length > 0,
+         // Update the list of recently used widgets
+         const recent = this.storage.getFromSession("recentsnpt", "").split(",")
+             .filter((/** @type {string} **/ key) => {
+                // In select mode must filter widgets that do support it
+                key = key?.trim();
+                const widget = snptDict[key];
+                if (!widget) {
+                    return false;
+                }
+                const selectable = widget.insertquery !== undefined;
+                const isSelection = this.isSelectMode();
+                return key.length > 0 && (!isSelection || (isSelection && selectable));
+             })
+             .map((/** @type {string} **/ key) => {
+                 const snpt = snptDict[key];
+                 if (snpt) {
+                     return {
+                         key: key,
+                         name: snpt.name
+                     };
+                 } else {
+                     return {
+                         key: key,
+                         name: ""
+                     };
+                 }
+             });
+
+        return {
+            rid: genID(),
+            selectMode: this.isSelectMode(),
             elementid: this.editor.id,
-            categories: categoriesList, ...(data ?? {})};
+            categories: categoriesList, ...(data ?? {}),
+            recent
+        };
     }
 
     /**
