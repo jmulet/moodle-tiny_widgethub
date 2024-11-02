@@ -52,7 +52,7 @@ class settingsutil {
             'tiny_widgethub/cfg',
             'tiny_widgethub_cfg',
             get_string('cfg', 'tiny_widgethub'),
-            '{"imgbaseurl": "https://ibsuite.es/iedib/snippets", "disable.plugin.pages": "", "enable.contextmenu.level": "1", "enable.ibquizz.userlist": ""}',
+            '{"imgBaseUrl": "https://ibsuite.es/iedib/snippets", "disable.plugin.pages": "", "enable.contextmenu.level": "1", "enable.ibquizz.userlist": ""}',
             PARAM_RAW
         );
         return $items;

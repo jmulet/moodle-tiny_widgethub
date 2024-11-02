@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import {addRequires, cleanUnusedRequires} from './dependencies';
 import jQuery from 'jquery';
 
@@ -45,26 +46,32 @@ export function changeBoxLangAction(ctx, iso) {
             return;
         }
         const $lateral = elem.find('.iedib-titolLateral');
-        let snippetKey = widget.key;
-        const isTascaExercici = elem.attr('data-proposat') === 'true';
+        const isTascaExercici = elem.attr('data-proposat') !== undefined ||
+                elem.find('.iedib-tasca.iedib-central').length > 0;
+
         let theType;
-        ["alerta", "ampliacio", "consell", "important", "introduccio"].forEach((ty) => {
-            if (elem.hasClass("iedib-" + ty + "-border")) {
-                theType = ty;
+        let langKey = "msg";
+        if (isTascaExercici) {
+            if (elem.find('.iedib-tasca.iedib-proposat').length) {
+                langKey = "msg_epr";
+            } else {
+                // Must see if it is tava or tapr
+                langKey = "msg_" + (elem.attr('data-proposat') ?? "tapr");
             }
-        });
-        if (isTascaExercici) {
-            snippetKey = 'tasca-exercici';
+        } else {
+            ["alerta", "ampliacio", "consell", "important", "introduccio"].forEach((ty) => {
+                if (elem.hasClass("iedib-" + ty + "-border")) {
+                    theType = ty;
+                }
+            });
+            langKey = "msg_" + theType;
         }
+        console.log("Changing language", langKey, iso);
         const I18n = widget.I18n;
-        let langKey = snippetKey === "capsa-generica" ? "msg_" + theType : "msg";
-        if (isTascaExercici) {
-            langKey = 'msg_epr';
-        }
         if (I18n?.[langKey]?.[iso]) {
             if (isTascaExercici) {
                 const h4 = elem.find('.iedib-central h4').first();
-                h4.html(I18n[langKey][iso]);
+                h4.html(I18n[langKey][iso] + ":");
             } else {
                 $lateral.html(I18n[langKey][iso]);
                 $lateral.append('<span class="iedib-' + theType + '-logo"></span>');

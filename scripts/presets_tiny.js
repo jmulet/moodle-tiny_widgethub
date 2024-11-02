@@ -355,8 +355,8 @@ Object.entries(widgets).forEach(([f, parsed]) => {
         hashes[parsed.key] = hashNow;
         // Save-it
         const filename = f.replace(".yaml", ".json").replace(".yml", ".json");
-        if (!testMode) {
-            fs.writeFileSync(path.join(targetDirectory, filename), output, { encoding: "utf-8" });
+        if (!testMode && (filename.startsWith("ib-") || filename.startsWith("partials"))) {
+            fs.writeFileSync(path.join(targetDirectory, filename), output, {encoding: "utf-8"});
             console.log(` [Saved] ${filename}`);
         }
     } else {

@@ -106,7 +106,7 @@ export function cleanUnusedRequires(editor) {
         return 0;
     }
     // All scripts in sdArea
-    /** @type {HTMLScriptElement[]} */
+    /** @type {NodeListOf<HTMLScriptElement>} */
     const allScripts = sdArea.querySelectorAll("script");
     let changes = 0;
     allScripts.forEach((scriptElem) => {
@@ -217,9 +217,10 @@ function widgetInserted(editor, widget, ctxFromDialogue) {
  * @returns {number}
  */
 function alphaWalker(editor, query, attr, ishash, prefix, changesWorker) {
+    /** @type {NodeListOf<HTMLElement>} */
     const all = editor.getBody().querySelectorAll(query);
     let casos = 0;
-    all.each((/** @type{HTMLElement} */ ele) => {
+    all.forEach((/** @type{HTMLElement} */ ele) => {
         let localChange = 0;
         let old = ele.getAttribute(attr) || "";
         if (ishash) {
@@ -228,11 +229,19 @@ function alphaWalker(editor, query, attr, ishash, prefix, changesWorker) {
                 old = '#' + old.split('#')[1];
             }
             if (RegExp(/^#\d/).exec(old)) {
-                ele.setAttribute(attr, '#' + prefix + old.substring(1));
+                old = '#' + prefix + old.substring(1);
+                ele.setAttribute(attr, old);
+                if (attr === 'href') {
+                    ele.dataset.mceHref = old;
+                }
                 localChange += 1;
             }
         } else if (RegExp(/^\d/).exec(old)) {
-                ele.setAttribute(attr, prefix + old);
+                old = prefix + old;
+                ele.setAttribute(attr, old);
+                if (attr === 'href') {
+                    ele.dataset.mceHref = old;
+                }
                 localChange += 1;
         }
         if (localChange && changesWorker) {
@@ -248,6 +257,7 @@ function alphaWalker(editor, query, attr, ishash, prefix, changesWorker) {
  */
 function changesWorker(ele) {
     const newId = ele.getAttribute("id");
+    /** @type {NodeListOf<HTMLElement>} */
     const allAs = ele.querySelectorAll('a.accordion-toggle[data-toggle="collapse"]');
     allAs.forEach((asel) => {
         asel.setAttribute("data-parent", '#' + newId);
@@ -274,8 +284,7 @@ export function alphaFixingRefractor(editor) {
     if (casos > 0) {
         editor.notificationManager.open({
             text: "S'ha millorat la configuració d'alguns snippets. Desau els canvis de la pàgina.",
-            type: 'info',
-            timeout: 3000
+            type: 'info'
         });
         editor.setDirty(true);
     }

@@ -174,7 +174,7 @@ export class WidgetParamsCtrl {
     * @returns
     */
    async insertWidget(ctxFromDialogue) {
-      /** @type {key: string, p: Dict<any>}[] */
+      /** @type {{key: string, p: Record<string, any>}[]} */
       const recentList = this.storage.getRecentUsed();
       const pos = recentList.map(e => e.key).indexOf(this.widget.key);
       if (pos >= 0) {

@@ -255,7 +255,7 @@ export class FormCtrl {
       if (this.storage) {
          if (Object.keys(toPersist).length) {
             // Only those starting with $
-            this.storage.setToLocal('valors', toPersist, true);
+            this.storage.setToLocal('values', toPersist, true);
          }
          // Should all values be persisted?
          const mustSaveAll = this.storage.getFromLocal('saveall', false);

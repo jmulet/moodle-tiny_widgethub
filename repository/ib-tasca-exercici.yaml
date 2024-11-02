@@ -10,8 +10,8 @@ instructions: >
 template: |
   <p><br></p>
   <!-- begin tasca-execici -->
-  <div class="iedib-capsa iedib-tasca-exercici" data-lang="{{_lang}}">
-  <div class="iedib-tasca {{#if}}[tipus=='epr']iedib-proposat{{/if}} iedib-central">
+  <div class="iedib-capsa iedib-tasca-exercici" data-lang="{{_lang}}" data-proposat="{{epr}}">
+  <div class="iedib-tasca{{#if}}[tipus=='epr'] iedib-proposat{{/if}} iedib-central">
   <span class="iedib-tasca-logo"></span>
   <h4>{{#I18n}}msg_{{tipus}}{{/I18n}}:</h4>
   <div class="iedib-inspoint">
@@ -49,16 +49,16 @@ parameters:
     value: 1
     title: Enumera els exercicis des de num.
     min: 1
-    when: "{{tipus}}=='epr'"
+    when: "tipus=='epr'"
   - name: fancy
     value: false
     title: Estil d'enumerat embellit
-    when: "{{tipus}}=='epr'"
+    when: "tipus=='epr'"
   - name: _contingut
     value: ""
     title: Contingut per defecte (només exercicis)
     type: textarea
-    when: "{{tipus}}=='epr' && {{SELECT_MODE}}!='selection'"
+    when: "tipus=='epr' && SELECT_MODE!='selection'"
 I18n:
   msg_tava:
     ca: TASCA AVALUABLE
@@ -81,4 +81,4 @@ I18n:
 stars: 2
 scope: ^page-mod-book-edit$
 author: Josep Mulet Pol <pep.mulet@gmail.com>
-version: 2021.03.30
+version: 2024.11.02
