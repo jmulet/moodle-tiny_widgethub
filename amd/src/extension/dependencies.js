@@ -1,19 +1,19 @@
 /* eslint-disable no-console */
 import {subscribe} from "../extension";
+import {getGlobalConfig} from "../options";
 import {addBaseToUrl, evalInContext} from "../util";
-
-//const IMG_BASE_URL = "https://iedib.net/assets";
-const IMG_BASE_URL = "https://ibsuite.es/iedib/snippets";
 
 /**
 /**
  * Adds the required scripts defined in the list
  * @param {import("../plugin").TinyMCE} editor
  * @param {string[] | undefined} requireList
- * @returns {boolean}
+ * @returns {number}
  */
 export function addRequires(editor, requireList) {
-    let dependenciesUpdated = false;
+    const imgBaseUrl = getGlobalConfig(editor, 'imgBaseUrl', 'https://iedib.net/assets');
+
+    let dependenciesUpdated = 0;
     const tiny = editor.getBody();
     let sdArea = tiny.querySelector("div.iedib-sd-area");
 
@@ -81,13 +81,13 @@ export function addRequires(editor, requireList) {
     if (sdArea && scriptsToInsert.length > 0) {
         // Insert the scripts in the area
         scriptsToInsert.forEach(scriptUrl => {
-            const depen = addBaseToUrl(IMG_BASE_URL, scriptUrl);
+            const depen = addBaseToUrl(imgBaseUrl, scriptUrl);
             const scriptNode = editor.dom.create("script", {src: depen});
             scriptNode.setAttribute("type", "mce-no/type");
             scriptNode.setAttribute("data-mce-src", depen);
             sdArea.append(scriptNode);
+            dependenciesUpdated++;
         });
-        dependenciesUpdated = true;
     }
     return dependenciesUpdated;
 }
@@ -95,6 +95,7 @@ export function addRequires(editor, requireList) {
 /**
  * Removes those scripts that are not longer required
  * @param {import("../plugin").TinyMCE} editor
+ * @returns {number}
  */
 export function cleanUnusedRequires(editor) {
     console.log("Removing unused requires...");
@@ -102,58 +103,67 @@ export function cleanUnusedRequires(editor) {
     const sdArea = tiny.querySelector("div.iedib-sd-area");
     if (!sdArea) {
         console.log("No sdArea found");
-        return;
+        return 0;
     }
     // All scripts in sdArea
     /** @type {HTMLScriptElement[]} */
     const allScripts = sdArea.querySelectorAll("script");
+    let changes = 0;
     allScripts.forEach((scriptElem) => {
         const src = (scriptElem.src || '').trim();
         let found = null;
         if (src.endsWith('sd/zoom.min.js') || src.endsWith('sd/lightbox.min.js')) {
             // No longer supported; always remove them
             scriptElem.remove();
+            changes++;
         } else if (src.endsWith('sd/images.min.js')) {
             // Elements that require images.min.js
             found =
             tiny.querySelectorAll('[role="snptd_zoom"],[data-snptd="zoom"],[role="snptd_lightbox"],[data-snptd="lightbox"]');
             if (!found.length) {
                 scriptElem.remove();
+                changes++;
             }
         } else if (src.endsWith('sd/presentacio.min.js')) {
             // Elements that require presentacio.min.js
             found = tiny.querySelectorAll('[role="snptd_presentacio"],[data-snptd="presentacio"]');
             if (!found.length) {
                 scriptElem.remove();
+                changes++;
             }
         } else if (src.endsWith('sd/speak.min.js')) {
             // Elements that require presentacio.min.js
             found = tiny.querySelectorAll('a[href^="#speak_"]');
             if (!found.length) {
                 scriptElem.remove();
+                changes++;
             }
         } else if (src.endsWith('sd/talea.min.js')) {
             // Elements that require talea.min.js
             found = tiny.querySelectorAll('[role="snptd_talea"],[data-snptd="talea"]');
             if (!found.length) {
                 scriptElem.remove();
+                changes++;
             }
         } else if (src.endsWith('sd/narracio.min.js')) {
             // Elements that require narracio.min.js
             found = tiny.querySelectorAll('[role="snptd_narracio"],[data-snptd="narracio"]');
             if (!found.length) {
                 scriptElem.remove();
+                changes++;
             }
         } else if (src.endsWith('sd/quizz.min.js')) {
             // Elements that require quizz.min.js
             found = tiny.querySelectorAll('div[data-quizz-group]');
             if (!found.length) {
                 scriptElem.remove();
+                changes++;
             }
         } else if (src.endsWith('sd/programacio.min.js')) {
             found = tiny.querySelectorAll('pre.iedib-code');
             if (!found.length) {
                 scriptElem.remove();
+                changes++;
             }
         }
     });
@@ -161,7 +171,9 @@ export function cleanUnusedRequires(editor) {
     // Get rid of sdArea if no scripts are left
     if (!sdArea.querySelectorAll("script").length) {
         sdArea.remove();
+        changes++;
     }
+    return changes;
 }
 /**
  * @param {import("../plugin").TinyMCE} editor
@@ -182,16 +194,95 @@ function widgetInserted(editor, widget, ctxFromDialogue) {
             requireList.push(parts[0].trim());
          }
       }
+      let changes = 0;
       if (requireList.length > 0) {
           // Now handle the filtered list of requires
-          addRequires(editor, requireList);
+          changes += addRequires(editor, requireList);
       } else {
           // Always try to remove unused requires
-          cleanUnusedRequires(editor);
+          changes += cleanUnusedRequires(editor);
+      }
+      if (changes > 0) {
+        editor.setDirty(true);
       }
 }
 
+/**
+ * @param {import("../plugin").TinyMCE} editor
+ * @param {string} query
+ * @param {string} attr
+ * @param {boolean} ishash
+ * @param {string} prefix
+ * @param {(ele: HTMLElement) => void} [changesWorker]
+ * @returns {number}
+ */
+function alphaWalker(editor, query, attr, ishash, prefix, changesWorker) {
+    const all = editor.getBody().querySelectorAll(query);
+    let casos = 0;
+    all.each((/** @type{HTMLElement} */ ele) => {
+        let localChange = 0;
+        let old = ele.getAttribute(attr) || "";
+        if (ishash) {
+            // It starts with # and after that the actual id value
+            if (attr === 'href') {
+                old = '#' + old.split('#')[1];
+            }
+            if (RegExp(/^#\d/).exec(old)) {
+                ele.setAttribute(attr, '#' + prefix + old.substring(1));
+                localChange += 1;
+            }
+        } else if (RegExp(/^\d/).exec(old)) {
+                ele.setAttribute(attr, prefix + old);
+                localChange += 1;
+        }
+        if (localChange && changesWorker) {
+            changesWorker(ele);
+        }
+        casos += localChange;
+    });
+    return casos;
+}
+
+/**
+ * @param {HTMLElement} ele
+ */
+function changesWorker(ele) {
+    const newId = ele.getAttribute("id");
+    const allAs = ele.querySelectorAll('a.accordion-toggle[data-toggle="collapse"]');
+    allAs.forEach((asel) => {
+        asel.setAttribute("data-parent", '#' + newId);
+    });
+}
+/**
+ *
+ * @param {import("../plugin").TinyMCE} editor
+ */
+export function alphaFixingRefractor(editor) {
+    console.log("alphaFixingRefractor", editor, editor.dom, editor.getElement());
+    const prefix = 'f_';
+    let casos = 0;
+    try {
+        casos += alphaWalker(editor, '.accordion.iedib-accordion', 'id', false, prefix, changesWorker);
+        const casos2 = alphaWalker(editor, 'ul.nav.nav-tabs>li>a', 'href', true, prefix);
+        if (casos2 > 0) {
+            casos += casos2 + alphaWalker(editor, '.tab-pane.iedib-tabpane', 'id', false, prefix);
+        }
+    } catch (ex) {
+        console.error(ex);
+    }
+    // Show a message
+    if (casos > 0) {
+        editor.notificationManager.open({
+            text: "S'ha millorat la configuració d'alguns snippets. Desau els canvis de la pàgina.",
+            type: 'info',
+            timeout: 3000
+        });
+        editor.setDirty(true);
+    }
+}
+
 subscribe('contentSet', addRequires);
+subscribe('contentSet', alphaFixingRefractor);
 subscribe('widgetInserted', widgetInserted);
 subscribe('widgetRemoved', cleanUnusedRequires);
 subscribe('ctxAction', cleanUnusedRequires);

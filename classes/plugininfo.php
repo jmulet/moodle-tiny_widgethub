@@ -120,7 +120,7 @@ class plugininfo extends plugin implements
             // Configuration.
             $params['sharecss'] = $conf->sharecss;
             $params['additionalcss'] = $conf->additionalcss;
-            $params['cfg'] = $conf->cfg;
+            $params['cfg'] = json_decode($conf->cfg ?? '{}') ?? new stdClass();
         }
         return $params;
     }

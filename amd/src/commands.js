@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 
 // This file is part of Moodle - http://moodle.org/
 //
@@ -27,7 +28,7 @@ import * as coreStr from 'core/str';
 import Common from './common';
 import * as cfg from 'core/config';
 import {initContextActions} from './contextInit';
-import {getAdditionalCss, isPluginVisible} from './options';
+import {getAdditionalCss, getGlobalConfig, isPluginVisible, Shared} from './options';
 import jQuery from "jquery";
 import {getWidgetPickCtrl} from './controller/widgetPickerCtrl';
 import {getListeners} from './extension';
@@ -47,8 +48,17 @@ export const getSetup = async() => {
     return (editor) => {
         // Check if the option visible is set.
         if (!isPluginVisible(editor)) {
+            // No capabilities required.
             return;
         }
+        // Check if there is a config option to disable the plugin for the current page.
+        /** @type {string[]} */
+        const disableOnPages = getGlobalConfig(editor, "disable.plugin.pages", "").split(",");
+        if (disableOnPages.includes(Shared.currentScope)) {
+            console.warn('WidgetHub plugin is disabled on this page.');
+            return;
+        }
+
         // Register the Icon.
         editor.ui.registry.addIcon(Common.icon, buttonImage.html);
 
@@ -158,8 +168,11 @@ function initializer(editor) {
             };
             // Run all subscribers
             getListeners('onInit').forEach(listener => listener(editor));
-            // Initialize context toolbars and menus
-            initContextActions(editor);
+
+            if (parseInt(getGlobalConfig(editor, 'enable.contextmenu.level', '1')) > 0) {
+                // Initialize context toolbars and menus
+                initContextActions(editor);
+            }
         };
 
         head.appendChild(scriptJQ);

@@ -33,6 +33,7 @@ const widgetList = getPluginOptionName(pluginName, 'widgetlist');
 
 const shareStyles = getPluginOptionName(pluginName, 'sharestyles');
 const additionalCss = getPluginOptionName(pluginName, 'additionalcss');
+const globalConfig = getPluginOptionName(pluginName, 'cfg');
 
 /**
  * @param {import('./plugin').TinyMCE} editor
@@ -69,6 +70,11 @@ export const register = (editor) => {
         processor: 'string',
         "default": "",
     });
+
+    registerOption(globalConfig, {
+        processor: 'string',
+        "default": "{}",
+    });
 };
 
 /**
@@ -83,6 +89,17 @@ export const isPluginVisible = (editor) => editor.options.get(showPlugin);
  */
 export const getAdditionalCss = (editor) => {
     return editor.options.get(additionalCss);
+};
+
+/**
+ * @param {import('./plugin').TinyMCE} editor
+ * @param {string} key
+ * @param {string} defaultValue
+ * @returns {string} - An object with the key/value properties
+ */
+export const getGlobalConfig = (editor, key, defaultValue) => {
+    const dict = editor.options.get(globalConfig) ?? {};
+    return dict[key] ?? defaultValue;
 };
 
 /**
@@ -155,18 +172,10 @@ export class EditorOptions {
 /**
  * @typedef {object} Shared
  * @property {string} currentScope
- * @property {boolean} activatePopup
- * @property {object} globalConfig
- * @const
  */
-let activatePopup = true;
 export const Shared = {
     // In which type of activity the editor is being used
-    currentScope: document.querySelector('body')?.id,
-    // Whether to activate the contextual popup or not
-    activatePopup: activatePopup,
-    // Hold other global configuration
-    globalConfig: {}
+    currentScope: document.querySelector('body')?.id ?? '',
 };
 
 /**
@@ -445,7 +454,8 @@ export class Widget {
         }
         grantStr = grantStr.replace(/[+\- ]/g, '');
         const grantList = grantStr.split(",");
-        const isAllowed = (allowMode && grantList.indexOf(userId + "") >= 0) || (!allowMode && grantList.indexOf(userId + "") < 0);
+        const isAllowed = (allowMode && grantList.indexOf(userId + "") >= 0) ||
+                         (!allowMode && grantList.indexOf(userId + "") < 0);
         if (!isAllowed) {
             console.warn(`Widget ${this.#widget.key} not allowed to user ${userId}: ${grantList}`);
         }
