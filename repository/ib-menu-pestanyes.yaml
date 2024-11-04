@@ -30,6 +30,9 @@ parameters:
     max: 6
     tip: Un nombre de pestanyes excessiu pot causar problemes de visualització en mòbils. 
   - __ID__
+contextmenu:
+  - predicate: div.tabbable.iedib-tabmenu>ul.nav.nav-tabs>li
+    actions: moveleft moveright insertafter | remove  
 stars: 2
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 2023.01.07

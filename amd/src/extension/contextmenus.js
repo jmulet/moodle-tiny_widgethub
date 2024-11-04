@@ -189,6 +189,46 @@ function provider(ctx) {
         }
     };
 
+
+     /**
+       * @param {import("../contextInit").ItemMenuContext} ctx
+       * @returns {UserDefinedItem}
+       */
+     const twoColumnsNestedMenu = {
+        name: 'twoColumnsNestedMenu',
+        condition: 'two-cols',
+        title: 'Mida columnes',
+        subMenuItems: () => {
+            const elem = ctx.path?.elem;
+            const widget = ctx.path?.widget;
+            if (!elem || !widget) {
+                return '';
+            }
+            /** @type {*} */
+            const menuItems = [{
+                type: 'menuitem',
+                text: "A una columna",
+                onAction: Action.changeColumnWidth(ctx, 0)
+            }];
+
+            const firstSpan =
+            (elem.find("div:first-child").attr('class')?.split(' ') ?? [])
+            .filter(c => c.startsWith('span')).map(c => c.replace('span', ''))[0];
+
+            for (let i = 2; i < 12; i = i + 2) {
+                const tpc = parseInt((100 * i / 12.0).toFixed(0));
+                const label = tpc + "% | " + (100 - tpc) + "%";
+                let isCurrent = firstSpan && convertInt(firstSpan, 0) == i;
+                menuItems.push({
+                    type: 'menuitem',
+                    text: label,
+                    icon: isCurrent ? 'checkmark' : undefined,
+                    onAction: Action.changeColumnWidth(ctx, i)
+                });
+            }
+            return menuItems;
+        }
+    };
       /**
        * @param {import("../contextInit").ItemMenuContext} ctx
        * @returns {UserDefinedItem}
@@ -285,6 +325,34 @@ function provider(ctx) {
      * @param {import("../contextInit").ItemMenuContext} ctx
      * @returns {UserDefinedItem}
      */
+   const accordionIndependentBehaviorNestedMenu = {
+        name: 'accordionIndependentBehavior',
+        condition: 'desplegable2',
+        title: 'Comportament',
+        subMenuItems: () => {
+            const $target = ctx.path?.elem;
+            if (!$target) {
+                return;
+            }
+             // Is Accordion behavior?
+            const isDependentBehavior =
+            ($target.find("div.accordion-body").attr("data-parent") ?? null) !== null;
+
+            // eslint-disable-next-line consistent-return
+            return [false, true].map(opt => ({
+                type: 'menuitem',
+                text: opt ? 'Independents' : 'Dependents',
+                icon: isDependentBehavior === opt ? undefined : 'checkmark',
+                onAction: Action.setAccordionBehavior(ctx, opt)
+            }));
+        }
+    };
+
+
+    /**
+     * @param {import("../contextInit").ItemMenuContext} ctx
+     * @returns {UserDefinedItem}
+     */
     const tablesMaxWidthMenu = {
         name: 'tablesMaxWidthMenu',
         condition: 'taula-predefinida,taula-bs',
@@ -295,7 +363,9 @@ function provider(ctx) {
                 return;
             }
             // Get the initial width
-            const startAt1 = ($target.css("max-width") || "-1").replace("px", "");
+            const startAt1 = ($target.css("max-width") || "-1")
+                .replace("px", "").replace("none", "-1");
+            console.log("startAt1", startAt1);
             // Open input dialog, set the value and retrieve new value
             openInputDialog('Amplada màxima en (px)', '-1=sense limit', startAt1,
             (/** @type {*} */ api) => {
@@ -303,7 +373,7 @@ function provider(ctx) {
                 if (!$target) {
                     return;
                 }
-                const maxwidth = convertInt(api.getData().value, 0);
+                const maxwidth = convertInt(api.getData().value.replace("px", "").trim(), 0);
                 if (maxwidth > 0) {
                     $target.css("max-width", maxwidth + "px");
                 } else {
@@ -327,8 +397,10 @@ function provider(ctx) {
         switchBoxSimpleExample,
 
         // Others
+        accordionIndependentBehaviorNestedMenu,
         numberedListNestedMenu,
         tablesMaxWidthMenu,
+        twoColumnsNestedMenu
     ];
 }
 

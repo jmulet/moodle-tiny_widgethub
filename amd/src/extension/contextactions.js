@@ -212,3 +212,52 @@ export function imageSwitchToSnippetAction(ctx) {
     };
 }
 
+/**
+ * @param {import("../contextInit").ItemMenuContext} ctx
+ * @param {number} colSpan
+ * @returns {() => void} The action to execute
+ */
+export function changeColumnWidth(ctx, colSpan) {
+    return () => {
+        const $target = ctx.path?.elem;
+        if (!$target) {
+            return;
+        }
+        if (colSpan <= 0 || colSpan > 12) {
+            // Set to one column flow
+            const columns = $target.find("div");
+            columns.removeClass();
+            $target.replaceWith(columns);
+        } else {
+            // Define the spans
+            const first = $target.find("div:first-child");
+            const last = $target.find("div:last-child");
+            first.removeClass();
+            last.removeClass();
+            first.addClass("span" + colSpan);
+            last.addClass("span" + (12 - colSpan));
+        }
+    };
+}
+
+/**
+ * @param {import("../contextInit").ItemMenuContext} ctx
+ * @param {boolean} isDependentBehavior
+ * @returns {() => void} The action to execute
+ */
+export function setAccordionBehavior(ctx, isDependentBehavior) {
+    return () => {
+        const $target = ctx.path?.elem;
+        if (!$target) {
+            return;
+        }
+        if (isDependentBehavior) {
+            // Behavior individual
+            $target.find("div.accordion-body").removeAttr("data-parent");
+        } else {
+            // Behavior accordion
+            const acid = $target.attr("id");
+            $target.find("div.accordion-body").attr("data-parent", "#" + acid);
+        }
+    };
+}

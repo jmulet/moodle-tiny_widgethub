@@ -137,6 +137,7 @@ const predefinedActionsFactory = function(editor, domSrv) {
         /**
          * Moves the selected element above in the parent container
          * unless it is the first one
+         * Only on tabbed widgets!
          * If $e or any of its descendants references another element in
          * the widget, then it also must be moved before its sibling
          * @param {PathResult} context
@@ -150,17 +151,20 @@ const predefinedActionsFactory = function(editor, domSrv) {
             const prev = $e.prev();
             if (prev) {
                 prev.insertAfter($e);
-                domSrv.findReferences($e, $root).forEach($ref => {
-                    const prev2 = $ref.prev();
-                    if (prev2) {
-                        prev2.insertAfter($ref);
-                    }
-                });
+                if (prev.closest(".nav").length) {
+                    domSrv.findReferences($e, $root).forEach($ref => {
+                        const prev2 = $ref.prev();
+                        if (prev2) {
+                            prev2.insertAfter($ref);
+                        }
+                    });
+                }
             }
         },
         /**
          * Moves the selected element above in the parent container
          * unless it is the first one
+         * Only on tabbed widgets!
          * If $e or any of its descendants references another element in
          * the widget, then it also must be moved after its sibling
          * @param {PathResult} context
@@ -174,12 +178,14 @@ const predefinedActionsFactory = function(editor, domSrv) {
             const next = $e.next();
             if (next) {
                 next.insertBefore($e);
-                domSrv.findReferences($e, $root).forEach($ref => {
-                    const next2 = $ref.next();
-                    if (next2) {
-                        next2.insertBefore($ref);
-                    }
-                });
+                if (next.closest(".nav").length) {
+                    domSrv.findReferences($e, $root).forEach($ref => {
+                        const next2 = $ref.next();
+                        if (next2) {
+                            next2.insertBefore($ref);
+                        }
+                    });
+                }
             }
         },
         /**

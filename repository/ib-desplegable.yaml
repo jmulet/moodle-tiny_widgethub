@@ -37,6 +37,6 @@ parameters:
 stars: 1
 contextmenu:
   - predicate: div.accordion-group
-    actions: moveleft moveright insertafter | remove
+    actions: moveup movedown insertafter | remove
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 2021.03.31
