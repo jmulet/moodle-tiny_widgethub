@@ -169,6 +169,21 @@ function initializer(editor) {
             // Run all subscribers
             getListeners('onInit').forEach(listener => listener(editor));
 
+            // Inject css from site Admin
+            let adminCss = (getAdditionalCss(editor) ?? '').trim();
+            if (adminCss) {
+                // Commented URLs are interpreted as loadCss
+                const regex = /\/\*{2}\s+(http(s?):\/\/.*)\s+\*{2}\//gm;
+                adminCss = adminCss.replace(regex, (_, $1) => {
+                    // console.log("Loading ", $1);
+                    editor.dom.loadCSS($1);
+                    return '';
+                });
+                if (adminCss.trim()) {
+                    editor.dom.addStyle(adminCss);
+                }
+            }
+
             if (parseInt(getGlobalConfig(editor, 'enable.contextmenu.level', '1')) > 0) {
                 // Initialize context toolbars and menus
                 initContextActions(editor);
@@ -176,11 +191,6 @@ function initializer(editor) {
         };
 
         head.appendChild(scriptJQ);
-        // Inject css from site Admin
-        const adminCss = getAdditionalCss(editor) || '';
-        if (adminCss.trim()) {
-            editor.dom.addStyle(adminCss);
-        }
     });
 }
 

@@ -572,7 +572,11 @@ const bindingFactory = function($e) {
                     if (typeof val === "boolean") {
                         val = val ? 1 : 0;
                     }
-                    return elem.attr(attrName, val + "");
+                    const attrVal = val + '';
+                    elem.attr(attrName, attrVal);
+                    if (attrName === 'href' || attrName === 'src') {
+                        elem.attr('data-mce-' + attrName, attrVal);
+                    }
                 }
             };
         },
@@ -605,6 +609,9 @@ const bindingFactory = function($e) {
                 setValue: (bool) => {
                     if (xor(neg, bool)) {
                         elem.attr(attrName, attrValue || '');
+                        if (attrName === 'href' || attrName === 'src') {
+                            elem.attr('data-mce-' + attrName, attrValue + '');
+                        }
                     } else {
                         elem.removeAttr(attrName);
                     }
@@ -634,7 +641,7 @@ const bindingFactory = function($e) {
             const attrName = parts[0].trim();
             let attrValue = '';
             if (parts.length > 1) {
-                attrValue = parts[1].replace(/["']/g, '').trim();
+                attrValue = parts[1].trim(); //.replace(/["']/g, '')
             }
             return {
                 getValue() {
@@ -650,7 +657,13 @@ const bindingFactory = function($e) {
                 },
                 // @ts-ignore
                 setValue(val) {
-                    elem.attr(attrName, attrValue.replace("(.*)", val + ""));
+                    const oldValue = elem.attr(attrName) ?? '';
+                    // @ts-ignore
+                    const newValue = oldValue.replace(RegExp(attrValue), ($0, $1) => $0.replace($1, val));
+                    elem.attr(attrName, newValue);
+                    if (attrName === 'href' || attrName === 'src') {
+                        elem.attr('data-mce-' + attrName, newValue);
+                    }
                 }
             };
         },
@@ -683,6 +696,8 @@ const bindingFactory = function($e) {
                 setValue(bool) {
                     if (xor(bool, neg)) {
                         elem.css(styName, styValue ?? '');
+                        //TODO: better way to update data-mce-style
+                        elem.attr('data-mce-style', elem[0].style.cssText);
                     } else {
                         const st = elem.prop('style');
                         st.removeProperty(styName);
@@ -713,12 +728,14 @@ const bindingFactory = function($e) {
             const styName = parts[0].trim();
             let styValue = '';
             if (parts.length > 1) {
-                styValue = parts[1].replace(/["']/g, '').trim();
+                styValue = parts[1].trim(); //.replace(/["']/g, '')
             }
             return {
+                /** @returns {string | null} */
                 getValue() {
                     const st = elem.prop('style');
                     const has = st.getPropertyValue(styName) != null;
+                    console.log("getValue style regex", st, has);
                     if (has) {
                         if (styValue) {
                             const match = st.getPropertyValue(styName).match(styValue);
@@ -735,8 +752,14 @@ const bindingFactory = function($e) {
                 },
                 // @ts-ignore
                 setValue(val) {
+                    console.log("styRegex set value", val);
                     if (styValue) {
-                        elem.css(styName, styValue.replace("(.*)", val + ""));
+                        const oldValue = elem.prop('style').getPropertyValue(styName) ?? '';
+                        // @ts-ignore
+                        const newValue = oldValue.replace(RegExp(styValue), ($0, $1) => $0.replace($1, val));
+                        elem.css(styName, newValue);
+                        // TODO: better way to update data-mce-style
+                        elem.attr('data-mce-style', elem[0].style.cssText);
                     } else {
                         // @ts-ignore
                         elem.css(styName, val);

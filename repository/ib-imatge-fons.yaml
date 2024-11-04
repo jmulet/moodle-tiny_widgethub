@@ -20,7 +20,9 @@ parameters:
     value: https://iedib.net/assets/img/subtle-prism.svg
     title: URL de la imatge
     type: image
-    tip: També podeu pujar una imatge al vostre curs i enllaçar-la aquí. 
+    tip: També podeu pujar una imatge al vostre curs i enllaçar-la aquí.
+    bind: | 
+      styleRegex("background-image:url(['\"]?(.*)['\"]?)")
 stars: 2
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 2022.06.24

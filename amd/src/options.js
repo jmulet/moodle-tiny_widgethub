@@ -72,8 +72,8 @@ export const register = (editor) => {
     });
 
     registerOption(globalConfig, {
-        processor: 'string',
-        "default": "{}",
+        processor: 'object',
+        "default": {},
     });
 };
 
@@ -99,6 +99,7 @@ export const getAdditionalCss = (editor) => {
  */
 export const getGlobalConfig = (editor, key, defaultValue) => {
     const dict = editor.options.get(globalConfig) ?? {};
+    console.log("getGlobalConfig", key, defaultValue, dict);
     return dict[key] ?? defaultValue;
 };
 

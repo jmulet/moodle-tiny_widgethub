@@ -58,7 +58,7 @@ export function changeBoxLangAction(ctx, iso) {
                 // Must see if it is tava or tapr
                 langKey = "msg_" + (elem.attr('data-proposat') ?? "tapr");
             }
-        } else {
+        } else if (widget.key === 'capsa-generica') {
             ["alerta", "ampliacio", "consell", "important", "introduccio"].forEach((ty) => {
                 if (elem.hasClass("iedib-" + ty + "-border")) {
                     theType = ty;

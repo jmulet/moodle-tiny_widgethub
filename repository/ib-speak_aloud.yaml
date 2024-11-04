@@ -38,10 +38,9 @@ parameters:
     title: Inclou globus?
     bind: hasAttr('data-toggle="popover"')
   - name: title
-    value: "-"
+    value: ''
     title: Títol globus
     when: "globus==1"
-    tip: Escriviu - si voleu eliminar el títol.
     bind: attr('data-title')
   - name: txtglobus
     value: Contingut anotació

@@ -71,10 +71,9 @@
         },
         {
             "name": "title",
-            "value": "-",
+            "value": "",
             "title": "Títol globus",
             "when": "globus==1",
-            "tip": "Escriviu - si voleu eliminar el títol.",
             "bind": "attr('data-title')"
         },
         {

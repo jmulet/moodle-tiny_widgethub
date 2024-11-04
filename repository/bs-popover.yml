@@ -7,7 +7,7 @@ template: |
   <a href="javascript:void(0)" data-toggle="popover" data-trigger="click" 
   data-original-title="{{title}}" data-content="{{{anotation}}}" data-html="true" data-container="body"
   data-placement="{{placement}}"><span class="whb-inspoint">{{word}}</span></a>
-selectors: a[data-toggle="popover"]
+selectors: a[data-toggle="popover"]:not([href^="#speak_"])
 unwrap: .whb-inspoint
 insertquery: .whb-inspoint
 parameters:

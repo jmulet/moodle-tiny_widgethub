@@ -8,7 +8,7 @@
     "parameters": [
         {
             "name": "Text_Peu",
-            "value": "Escriviu una descripció",
+            "value": "Escriviu una descripció.",
             "title": "Descripció",
             "type": "textfield"
         },

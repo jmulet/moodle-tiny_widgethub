@@ -3,7 +3,7 @@
     "name": "Anotació globus multi-propòsit",
     "category": "bootstrap",
     "instructions": "Afegeix una anotació tipus globus a una paraula/es. S'activa quan es passa el ratolí per sobre o es fa click.\n",
-    "template": "<a href=\"javascript:void(0)\" data-toggle=\"popover\" data-trigger=\"click\" \ndata-original-title=\"{{titol}}\" data-content=\"{{{anotacio}}}\" data-html=\"true\" data-container=\"body\"\ndata-placement=\"auto\"><span class=\"iedib-inspoint\">{{paraula}}</span></a>\n",
+    "template": "<a href=\"javascript:void(0)\" data-toggle=\"popover\" data-trigger=\"{{trigger}}\" \ndata-original-title=\"{{titol}}\" data-content=\"{{{anotacio}}}\" data-html=\"true\" data-container=\"body\"\ndata-placement=\"auto\"><span class=\"iedib-inspoint\">{{paraula}}</span></a>\n",
     "insertquery": ".iedib-inspoint",
     "selectors": "a[data-toggle=\"popover\"]:not([href^=\"#speak_\"])",
     "unwrap": ".iedib-inspoint",
@@ -32,6 +32,17 @@
             "transform": "escapeQuotes",
             "tip": "Si es vol, el contingut del globus pot contenir codi HTML bàsic",
             "bind": "attr('data-content')"
+        },
+        {
+            "name": "trigger",
+            "title": "Condició d'activació",
+            "value": "click",
+            "options": [
+                "click",
+                "hover",
+                "focus"
+            ],
+            "bind": "attr('data-trigger')"
         }
     ],
     "stars": 2,

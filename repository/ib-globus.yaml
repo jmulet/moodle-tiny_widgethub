@@ -4,7 +4,7 @@ category: bootstrap
 instructions: >
   Afegeix una anotació tipus globus a una paraula/es. S'activa quan es passa el ratolí per sobre o es fa click.
 template: |
-  <a href="javascript:void(0)" data-toggle="popover" data-trigger="click" 
+  <a href="javascript:void(0)" data-toggle="popover" data-trigger="{{trigger}}" 
   data-original-title="{{titol}}" data-content="{{{anotacio}}}" data-html="true" data-container="body"
   data-placement="auto"><span class="iedib-inspoint">{{paraula}}</span></a>
 insertquery: .iedib-inspoint
@@ -30,6 +30,11 @@ parameters:
     transform: escapeQuotes
     tip: Si es vol, el contingut del globus pot contenir codi HTML bàsic
     bind: attr('data-content')
+  - name: trigger
+    title: Condició d'activació
+    value: click
+    options: ['click', 'hover', 'focus']
+    bind: attr('data-trigger')
 stars: 2
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 2022.10.12

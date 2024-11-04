@@ -95,6 +95,15 @@ export class ModalSrv {
             templateContext,
             large: true,
         });
+        // Override styles imposed by body.tox-fullscreen on modals
+        modal.modal.css({
+            'max-width': '800px',
+            'height': 'initial'
+        });
+        modal.header.css({
+            'height': '61.46px',
+            'padding': '1rem 1rem'
+        });
         if (onHidden) {
             // @ts-ignore
             modal.getRoot().on(ModalEvents.hidden, () => {

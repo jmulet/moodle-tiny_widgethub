@@ -31,6 +31,7 @@ template: >
   <!--end: Capsa exemple {{mida}}-->
   </div>
   <p><br></p>
+selectors: div.iedib-capsa.iedib-exemple-border:not(:has(.iedib-formulacio-rows)):not(:has(.iedib-fluid))
 insertquery: .iedib-iq
 parameters:
   - __LANG__
