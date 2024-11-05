@@ -290,16 +290,6 @@ export function alphaFixingRefractor(editor) {
     }
 }
 
-/**
- *
- * @param {import("../plugin").TinyMCE} editor
- */
-function injectCssFromDynamicSnippets(editor) {
-    const imgBaseUrl = getGlobalConfig(editor, 'imgBaseUrl', 'https://iedib.net/assets');
-    editor.dom.loadCSS(addBaseToUrl(imgBaseUrl, 'sd/all.css'));
-}
-
-subscribe('onInit', injectCssFromDynamicSnippets);
 subscribe('contentSet', addRequires);
 subscribe('contentSet', alphaFixingRefractor);
 subscribe('widgetInserted', widgetInserted);

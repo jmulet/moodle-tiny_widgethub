@@ -28,12 +28,11 @@ import * as coreStr from 'core/str';
 import Common from './common';
 import * as cfg from 'core/config';
 import {initContextActions} from './contextInit';
-import {getAdditionalCss, getGlobalConfig, isPluginVisible, Shared} from './options';
+import {getAdditionalCss, getGlobalConfig, getWidgetDict, isPluginVisible, Shared, getEditorOptions} from './options';
 import jQuery from "jquery";
 import {getWidgetPickCtrl} from './controller/widgetPickerCtrl';
 import {getListeners} from './extension';
 import {getUserStorage} from './service/userStorageSrv';
-import {getEditorOptions} from './options';
 import {applyWidgetFilterFactory} from './util';
 
 export const getSetup = async() => {
@@ -67,11 +66,27 @@ export const getSetup = async() => {
             widgetPickCtrl.handleAction();
         };
 
-        // Register the Toolbar Button.
-        editor.ui.registry.addButton(Common.component, {
+        const storage = getUserStorage(editor);
+        const widgetsDict = getWidgetDict(editor);
+        // Register the Toolbar SplitButton - including recently used widgets
+        editor.ui.registry.addSplitButton(Common.component, {
             icon: Common.icon,
             tooltip: widgetNameTitle,
+            columns: 1,
+            fetch: (/** @type ((items: *[]) => void) */callback) => {
+                const items = storage.getRecentUsed().map(e => ({
+                    type: 'choiceitem',
+                    text: widgetsDict[e.key],
+                    value: e.key
+                }));
+                callback(items);
+            },
             onAction: defaultAction,
+            onItemAction: (/** @type {*} */ api, /** @type {string} */ key) => {
+                const widgetPickCtrl = getWidgetPickCtrl(editor);
+                const ctx = storage.getRecentUsed().filter(e => e.key === key)[0].p;
+                widgetPickCtrl.handlePickModalAction(widgetsDict[key], true, ctx);
+            }
         });
 
         // Add the Menu Item.
@@ -80,6 +95,31 @@ export const getSetup = async() => {
             icon: Common.icon,
             text: widgetNameTitle,
             onAction: defaultAction,
+        });
+
+        const getMatchedWidgets = (/** @type {string} */ pattern) => {
+            return Object.values(widgetsDict).filter((w) => w.name.toLowerCase().indexOf(pattern.toLowerCase()) !== -1);
+        };
+
+        // Add an Autocompleter @<search widget name>.
+        editor.ui.registry.addAutocompleter(Common.component + '_autocompleter', {
+            trigger: '@',
+            columns: 1,
+            minChars: 3,
+            fetch: (/** @type {string}*/ pattern) => {
+                    const results = getMatchedWidgets(pattern).map((/** @type {import('./options').Widget} */ w) => ({
+                        type: 'autocompleteitem',
+                        value: w.key,
+                        text: w.name
+                      }));
+                    return Promise.resolve(results);
+            },
+            onAction: (/** @type {*}*/ api, /** @type {Range}*/ rng, /** @type {string}*/ key) => {
+                api.hide();
+                editor.selection.setRng(rng);
+                const widgetPickCtrl = getWidgetPickCtrl(editor);
+                widgetPickCtrl.handlePickModalAction(widgetsDict[key], true);
+            }
         });
 
         // Initialize context menus, styles and scripts into editor's iframe

@@ -44,7 +44,7 @@ class settingsutil {
             'tiny_widgethub/additionalcss',
             'tiny_widgethub_additionalcss',
             get_string('additionalcss', 'tiny_widgethub'),
-            '',
+            '/** https://iedib.net/assets/sd/all.css */',
             PARAM_RAW
         );
         // Define additional settings in json format.

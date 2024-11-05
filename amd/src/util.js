@@ -539,16 +539,17 @@ const bindingFactory = function($e) {
                     });
                     return performCasting(ret, castTo);
                 },
-                // @ts-ignore
                 setValue: (val) => {
                     const cl = elem.attr('class')?.split(/\s+/) ?? [];
                     // @ts-ignore
                     cl.forEach(c => {
                         if (c.match(classExpr)) {
                             elem.removeClass(c);
+                            const newCls = c.replace(RegExp(classExpr),
+                                ($0, $1) => $0.replace($1, val + ''));
+                            elem.addClass(newCls);
                         }
                     });
-                    elem.addClass(classExpr.replace("(.*)", val + ""));
                 }
             };
         },
@@ -595,7 +596,7 @@ const bindingFactory = function($e) {
             const attrName = parts[0].trim();
             let attrValue = '';
             if (parts.length > 1) {
-                attrValue = parts[1].replace(/["']/g, '').trim();
+                attrValue = parts[1].trim();
             }
             return {
                 getValue: () => {
@@ -641,11 +642,11 @@ const bindingFactory = function($e) {
             const attrName = parts[0].trim();
             let attrValue = '';
             if (parts.length > 1) {
-                attrValue = parts[1].trim(); //.replace(/["']/g, '')
+                attrValue = parts[1].trim();
             }
             return {
                 getValue() {
-                    let found = elem.attr(attrName) != null;
+                    const found = elem.attr(attrName) != null;
                     if (found) {
                         const match = elem.attr(attrName)?.match(attrValue);
                         if (match?.[1] && typeof (match[1]) === "string") {
@@ -661,9 +662,6 @@ const bindingFactory = function($e) {
                     // @ts-ignore
                     const newValue = oldValue.replace(RegExp(attrValue), ($0, $1) => $0.replace($1, val));
                     elem.attr(attrName, newValue);
-                    if (attrName === 'href' || attrName === 'src') {
-                        elem.attr('data-mce-' + attrName, newValue);
-                    }
                 }
             };
         },
@@ -683,7 +681,7 @@ const bindingFactory = function($e) {
             /** @type {string | undefined} */
             let styValue;
             if (parts.length > 1) {
-                styValue = parts[1].replace(/["']/g, '').trim();
+                styValue = parts[1].trim();
             }
             return {
                 getValue() {
@@ -728,7 +726,7 @@ const bindingFactory = function($e) {
             const styName = parts[0].trim();
             let styValue = '';
             if (parts.length > 1) {
-                styValue = parts[1].trim(); //.replace(/["']/g, '')
+                styValue = parts[1].trim();
             }
             return {
                 /** @returns {string | null} */
