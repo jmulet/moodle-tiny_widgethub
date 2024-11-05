@@ -150,7 +150,7 @@ export class WidgetPickerCtrl {
             const previewPanel = this.modal.body.find("div.tiny_widgethub-preview");
             const widgetTable = this.editorOptions.widgetDict;
 
-            const mouseEnterDebounced = debounce(async(evt) => {
+            const mouseEnterDebounced = debounce(async(/** @type {*} */ evt) => {
                 const key = evt.target?.dataset?.key ?? '';
                 const widget = widgetTable[key];
                 if (!widget || widget.isFilter()) {
@@ -168,7 +168,7 @@ export class WidgetPickerCtrl {
                 previewPanel.css("display", "block");
             }, 1000);
 
-            const oMouseOut = () => {
+            const onMouseOut = () => {
                 mouseEnterDebounced.clear();
                 previewPanel.html('');
                 previewPanel.css("display", "none");
@@ -200,7 +200,7 @@ export class WidgetPickerCtrl {
             // Preview panel
             this.modal.body.find(".btn-group")
                 .on("mouseenter", mouseEnterDebounced)
-                .on("mouseout", oMouseOut);
+                .on("mouseout", onMouseOut);
         }
 
         this.modal.show();
@@ -215,6 +215,16 @@ export class WidgetPickerCtrl {
     }
 
     /**
+     * @param {import('../options').Widget} widget
+     * @returns {Promise<string>}
+     */
+    generatePreview(widget) {
+        const toInterpolate = {...widget.defaults};
+        // Decide which template engine to use
+        const engine = widget.prop('engine');
+        return this.templateSrv.render(widget.template ?? "", toInterpolate, widget.I18n, engine);
+    }
+    /**
      * Get the template context for the dialogue.
      *
      * @param {Object.<string, any>=} data
@@ -227,6 +237,7 @@ export class WidgetPickerCtrl {
          * @typedef {Object} Button
          * @property {boolean} hidden
          * @property {string} category
+         * @property {number} widgetindex
          * @property {string} widgetkey
          * @property {string} widgetname
          * @property {string} widgettitle
@@ -347,7 +358,7 @@ export class WidgetPickerCtrl {
         }
         /** @type {HTMLElement | undefined} */
         const buttonWrapper = target.closest('[data-key]');
-        /** @type {Widget | null} */
+        /** @type {import('../options').Widget | null} */
         let widget = null;
         if (buttonWrapper) {
             const selectedButton = buttonWrapper?.dataset?.key;
@@ -390,7 +401,7 @@ export class WidgetPickerCtrl {
             confirmMsg = "Aquest widget no és adequat per a la pàgina actual. Segur que voleu continuar?";
         }
 
-        const forceInsert = aRecent !== null || button.dataset.insert === 'true';
+        const forceInsert = aRecent !== null || button?.dataset?.insert === 'true';
         if (confirmMsg) {
             this.editor.windowManager.confirm(confirmMsg,
             /** @param {*} state */

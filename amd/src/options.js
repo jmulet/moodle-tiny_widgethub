@@ -99,7 +99,6 @@ export const getAdditionalCss = (editor) => {
  */
 export const getGlobalConfig = (editor, key, defaultValue) => {
     const dict = editor.options.get(globalConfig) ?? {};
-    console.log("getGlobalConfig", key, defaultValue, dict);
     return dict[key] ?? defaultValue;
 };
 
@@ -331,6 +330,7 @@ export function applyPartials(widget, partials) {
  * @property {string} [insertquery]
  * @property {string} [unwrap]
  * @property {string} [for]
+ * @property {string} [autocomplete]
  * @property {string} version
  * @property {string} author
  * @property {string[]} [requires]
@@ -346,6 +346,8 @@ export function applyPartials(widget, partials) {
 export class Widget {
     #widget;
     #instructionsParsed = false;
+    /** @type {string | undefined} */
+    _preview;
 
     /**
      * @param {RawWidget} widget
@@ -355,6 +357,12 @@ export class Widget {
         partials = partials ?? {};
         applyPartials(widget, partials);
         this.#widget = widget;
+    }
+    /**
+     * @returns {number}
+     */
+     get id() {
+        return this.#widget.id;
     }
     /**
      * @returns {string}

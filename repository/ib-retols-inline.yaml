@@ -8,6 +8,7 @@ template: '&nbsp; <span class="iedib-ret iedib-ret-{{severity}}">{{_txt}}</span>
 insertquery: .iedib-ret
 selectors: .iedib-ret
 unwrap: '*'
+autocomplete: severity
 parameters: 
   - name: severity
     value: alerta

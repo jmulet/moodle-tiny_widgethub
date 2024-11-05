@@ -116,7 +116,7 @@ export class WidgetParamsCtrl {
     */
     render(ctx) {
         const defaultsCopy = {...this.widget.defaults};
-        const toInterpolate = Object.assign(defaultsCopy, ctx || {});
+        const toInterpolate = Object.assign(defaultsCopy, ctx ?? {});
         // Decide which template engine to use
         let engine = this.widget.prop('engine');
         return this.templateSrv.render(this.widget.template ?? "", toInterpolate,
@@ -130,7 +130,6 @@ export class WidgetParamsCtrl {
    async generateInterpolatedCode(ctxFromDialogue) {
       const sel = this.editor.selection.getContent();
       // Decideix quin mode de selecció estam
-      console.log("Selection", this.editor.selection, sel);
       let interpoledComponentCode = await this.render(ctxFromDialogue);
       if (sel.trim() && this.widget.insertquery) {
          let query = this.widget.insertquery.trim();

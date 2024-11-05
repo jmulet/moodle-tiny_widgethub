@@ -3,7 +3,7 @@
     "name": "Tasca-Exercici",
     "category": "capses",
     "instructions": "Aquesta snippet ha d'anar obligatòriament a peu de pàgina.  Triau si voleu referènciar una <b>tasca avaluable</b>, <b>tasca d'aprenentatge</b> que teniu publicada al grid o bé,  voleu incloure <b>exercicis proposats</b> (textual, h5p, etc.). En aquest darrer cas, podeu especificar un contingut per defecte.\n",
-    "template": "<p><br></p>\n<!-- begin tasca-execici -->\n<div class=\"iedib-capsa iedib-tasca-exercici\" data-lang=\"{{_lang}}\">\n<div class=\"iedib-tasca {{#if}}[tipus=='epr']iedib-proposat{{/if}} iedib-central\">\n<span class=\"iedib-tasca-logo\"></span>\n<h4>{{#I18n}}msg_{{tipus}}{{/I18n}}:</h4>\n<div class=\"iedib-inspoint\">\n{{#var}}tipus_epr=(tipus=='epr'){{/var}}\n{{^tipus_epr}}\n  <p>Et proposo que realitzis aquesta tasca que trobaràs en les capsa del lliurament # per\n  practicar els continguts vists fins ara.</p>\n{{/tipus_epr}}\n{{#tipus_epr}}\n  {{#var}}empty_cont=(_contingut==''){{/var}}\n  {{#empty_cont}}\n    <ol {{#fancy}} {{#if}}[enumera>1]style=\"counter-reset: iedibfalist-counter {{#eval}}enumera-1{{/eval}};\"{{/if}}\n    class=\"iedib-falist\"{{/fancy}} {{#if}}[enumera>1]start=\"{{enumera}}\"{{/if}}>\n    <li><p>Exercici 1</p></li><li><p>Exercici2 <em>E.g. incloure h5p, etc.</em></p></li></ol>\n  {{/empty_cont}}\n  {{^empty_cont}} {{{_contingut}}} {{/empty_cont}} \n{{/tipus_epr}}\n</div>\n</div>\n</div>\n<!-- end tasca-exercici -->\n<p><br></p>\n",
+    "template": "<p><br></p>\n<!-- begin tasca-execici -->\n<div class=\"iedib-capsa iedib-tasca-exercici\" data-lang=\"{{_lang}}\" data-proposat=\"{{tipus}}\">\n<div class=\"iedib-tasca{{#if}}[tipus=='epr'] iedib-proposat{{/if}} iedib-central\">\n<span class=\"iedib-tasca-logo\"></span>\n<h4>{{#I18n}}msg_{{tipus}}{{/I18n}}:</h4>\n<div class=\"iedib-inspoint\">\n{{#var}}tipus_epr=(tipus=='epr'){{/var}}\n{{^tipus_epr}}\n  <p>Et proposo que realitzis aquesta tasca que trobaràs en les capsa del lliurament # per\n  practicar els continguts vists fins ara.</p>\n{{/tipus_epr}}\n{{#tipus_epr}}\n  {{#var}}empty_cont=(_contingut==''){{/var}}\n  {{#empty_cont}}\n    <ol {{#fancy}} {{#if}}[enumera>1]style=\"counter-reset: iedibfalist-counter {{#eval}}enumera-1{{/eval}};\"{{/if}}\n    class=\"iedib-falist\"{{/fancy}} {{#if}}[enumera>1]start=\"{{enumera}}\"{{/if}}>\n    <li><p>Exercici 1</p></li><li><p>Exercici2 <em>E.g. incloure h5p, etc.</em></p></li></ol>\n  {{/empty_cont}}\n  {{^empty_cont}} {{{_contingut}}} {{/empty_cont}} \n{{/tipus_epr}}\n</div>\n</div>\n</div>\n<!-- end tasca-exercici -->\n<p><br></p>\n",
     "selectors": "div.iedib-capsa.iedib-tasca-exercici",
     "insertquery": ".iedib-tasca>div.iedib-inspoint",
     "parameters": [
@@ -58,20 +58,20 @@
             "value": 1,
             "title": "Enumera els exercicis des de num.",
             "min": 1,
-            "when": "{{tipus}}=='epr'"
+            "when": "tipus=='epr'"
         },
         {
             "name": "fancy",
             "value": false,
             "title": "Estil d'enumerat embellit",
-            "when": "{{tipus}}=='epr'"
+            "when": "tipus=='epr'"
         },
         {
             "name": "_contingut",
             "value": "",
             "title": "Contingut per defecte (només exercicis)",
             "type": "textarea",
-            "when": "{{tipus}}=='epr' && {{SELECT_MODE}}!='selection'"
+            "when": "tipus=='epr' && SELECT_MODE!='selection'"
         }
     ],
     "I18n": {
@@ -100,5 +100,5 @@
     "stars": 2,
     "scope": "^page-mod-book-edit$",
     "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
-    "version": "2021.03.30"
+    "version": "2024.11.02"
 }

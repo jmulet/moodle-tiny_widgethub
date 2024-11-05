@@ -9,21 +9,22 @@ instructions: >
   <b>Introducció</b>: Serveix per introduir un lliurament o una secció d'ell. 
   Triau una mida i idioma per a la capsa.
 template: |
-  <p><br></p><!--begin: Capsa {{tipus}} {{mida}} -->
-  <div class="iedib-capsa iedib-capsa-{{mida}} iedib-{{tipus}}-border" data-lang="{{_lang}}">
-    <div class="iedib-lateral iedib-{{tipus}}">
-      <p class="iedib-titolLateral">{{#I18n}}msg_{{tipus}}{{/I18n}}<span class="iedib-{{tipus}}-logo"></span></p>
+  <p><br></p><!--begin: Capsa {{severity}} {{mida}} -->
+  <div class="iedib-capsa iedib-capsa-{{mida}} iedib-{{severity}}-border" data-lang="{{_lang}}">
+    <div class="iedib-lateral iedib-{{severity}}">
+      <p class="iedib-titolLateral">{{#I18n}}msg_{{severity}}{{/I18n}}<span class="iedib-{{severity}}-logo"></span></p>
     </div>
     <div class="iedib-central">
       <p>__LOREM__</p>
     </div>
   </div>
-  <!--end: Capsa {{tipus}} {{mida}}--> <p><br></p>  
+  <!--end: Capsa {{severity}} {{mida}}--> <p><br></p>  
 insertquery: .iedib-central
 selectors: .iedib-capsa.iedib-alerta-border,.iedib-capsa.iedib-ampliacio-border,.iedib-capsa.iedib-consell-border,.iedib-capsa.iedib-important-border,.iedib-capsa.iedib-introduccio-border
 unwrap: div.iedib-central > *
+autocomplete: severity
 parameters: 
-  - name: tipus
+  - name: severity
     value: alerta
     title: Propòsit de la capsa
     options: 

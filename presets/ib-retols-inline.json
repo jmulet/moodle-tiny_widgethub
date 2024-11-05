@@ -7,6 +7,7 @@
     "insertquery": ".iedib-ret",
     "selectors": ".iedib-ret",
     "unwrap": "*",
+    "autocomplete": "severity",
     "parameters": [
         {
             "name": "severity",

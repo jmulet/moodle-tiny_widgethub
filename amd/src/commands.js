@@ -33,7 +33,7 @@ import jQuery from "jquery";
 import {getWidgetPickCtrl} from './controller/widgetPickerCtrl';
 import {getListeners} from './extension';
 import {getUserStorage} from './service/userStorageSrv';
-import {applyWidgetFilterFactory} from './util';
+import {applyWidgetFilterFactory, findVariableByName, searchComp} from './util';
 
 export const getSetup = async() => {
     // Get some translations
@@ -76,9 +76,9 @@ export const getSetup = async() => {
             fetch: (/** @type ((items: *[]) => void) */callback) => {
                 const items = storage.getRecentUsed().map(e => ({
                     type: 'choiceitem',
-                    text: widgetsDict[e.key],
+                    text: widgetsDict[e.key]?.name,
                     value: e.key
-                }));
+                })).filter(item => item.text !== undefined);
                 callback(items);
             },
             onAction: defaultAction,
@@ -98,29 +98,63 @@ export const getSetup = async() => {
         });
 
         const getMatchedWidgets = (/** @type {string} */ pattern) => {
-            return Object.values(widgetsDict).filter((w) => w.name.toLowerCase().indexOf(pattern.toLowerCase()) !== -1);
+            return Object.values(widgetsDict).filter((w) => searchComp(w.name, pattern));
         };
 
         // Add an Autocompleter @<search widget name>.
-        editor.ui.registry.addAutocompleter(Common.component + '_autocompleter', {
-            trigger: '@',
-            columns: 1,
-            minChars: 3,
-            fetch: (/** @type {string}*/ pattern) => {
-                    const results = getMatchedWidgets(pattern).map((/** @type {import('./options').Widget} */ w) => ({
-                        type: 'autocompleteitem',
-                        value: w.key,
-                        text: w.name
-                      }));
-                    return Promise.resolve(results);
-            },
-            onAction: (/** @type {*}*/ api, /** @type {Range}*/ rng, /** @type {string}*/ key) => {
-                api.hide();
-                editor.selection.setRng(rng);
-                const widgetPickCtrl = getWidgetPickCtrl(editor);
-                widgetPickCtrl.handlePickModalAction(widgetsDict[key], true);
-            }
-        });
+        const autoCompleteTrigger = getGlobalConfig(editor, 'autocomplete.trigger', '@');
+        if (autoCompleteTrigger) {
+            editor.ui.registry.addAutocompleter(Common.component + '_autocompleter', {
+                trigger: autoCompleteTrigger,
+                columns: 1,
+                minChars: 3,
+                fetch: (/** @type {string}*/ pattern) => {
+                        /** @type {{type: string, value: string, text: string}[]} */
+                        const results = [];
+                        getMatchedWidgets(pattern).forEach((/** @type {import('./options').Widget} */ w) => {
+                            const varname = w.prop('autocomplete')?.trim();
+                            const param = findVariableByName(varname, w.parameters);
+                            if (!param?.options) {
+                                results.push({
+                                    type: 'autocompleteitem',
+                                    value: w.key,
+                                    text: w.name
+                                });
+                            } else {
+                                param.options.forEach(opt => {
+                                    let value = opt;
+                                    let label = opt;
+                                    if (typeof opt === 'object') {
+                                        value = opt.v;
+                                        label = opt.l;
+                                    }
+                                    results.push({
+                                        type: 'autocompleteitem',
+                                        value: `${w.key}|${varname}:${value}`,
+                                        text: w.name + " " + label
+                                    });
+                                });
+                            }
+                        });
+                        return Promise.resolve(results);
+                },
+                onAction: (/** @type {*}*/ api, /** @type {Range}*/ rng, /** @type {string}*/ value) => {
+                    api.hide();
+                    const pair = value.split('|');
+                    const key = pair[0].trim();
+                    /** @type {Record<string, *>} */
+                    const ctx = {};
+                    if (pair.length === 2) {
+                        const [varname, value] = pair[1].split(":");
+                        ctx[varname] = value;
+                    }
+                    editor.selection.setRng(rng);
+                    editor.insertContent('');
+                    const widgetPickCtrl = getWidgetPickCtrl(editor);
+                    widgetPickCtrl.handlePickModalAction(widgetsDict[key], true, ctx);
+                }
+            });
+        }
 
         // Initialize context menus, styles and scripts into editor's iframe
         initializer(editor);
