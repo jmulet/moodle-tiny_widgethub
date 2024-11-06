@@ -31,22 +31,22 @@ import jquery from "jquery";
 const questionPopover = '{{#tooltip}}<a href="javascript:void(0)" data-toggle="popover" data-trigger="hover" data-content="{{tooltip}}"><i class="fa fas fa-question-circle text-info"></i></a>{{/tooltip}}';
 
 export const Templates = {
-   TEXTFIELDTEMPLATE: `<div id="{{elementid}}" class="form-group row ml-1{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+   TEXTFIELDTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <div class="col-sm-7"><input type="text" id="{{elementid}}_ftmpl" class="form-control" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/></div>
    </div>`,
 
-   IMAGETEMPLATE: `<div id="{{elementid}}" class="form-group row ml-1{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+   IMAGETEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <div class="col-sm-7">
    <input type="text" id="{{elementid}}_ftmpl" class="form-control d-inline-block w-75" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
    <button class="whb-image-picker btn btn-sm btn-secondary d-inline-block" title="Search"><i class="fas fa fa-search"></i></button>
    </div>
    </div>`,
 
-   NUMERICTEMPLATE: `<div id="{{elementid}}" class="form-group row ml-1{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="col-sm-5 col-form-label"  for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+   NUMERICTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="col-sm-5 col-form-label"  for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <div class="col-sm-7"><input type="number" id="{{elementid}}_fntmpl" class="form-control" data-bar="{{varname}}" {{{minMax}}} {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/></div>
    </div>`,
 
-   COLORTEMPLATE: `<div id="{{elementid}}" class="form-group row ml-1{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="col-sm-5 col-form-label"  for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+   COLORTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="col-sm-5 col-form-label"  for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <div class="col-sm-7">
    <span class="w-50 tiny_widgethub-pattern">
       <input type="color" id="{{elementid}}_fctmpl" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
@@ -58,13 +58,13 @@ export const Templates = {
    <textarea id="{{elementid}}_tatmpl" rows="3" class="form-control" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} {{#tooltip}}title="{{tooltip}}"{{/tooltip}}>{{defaultvalue}}</textarea>
    </div>`,
 
-   CHECKBOXTEMPLATE: `<div id="{{elementid}}" class="d-table w-75 m-2{{#hidden}} tiny_widgethub-hidden{{/hidden}}">
+   CHECKBOXTEMPLATE: `<div id="{{elementid}}" class="form-group w-75 m-2{{#hidden}} tiny_widgethub-hidden{{/hidden}}">
    <label>
    <input title="{{varname}}" id="{{elementid}}_cbtmpl" {{#disabled}}disabled{{/disabled}} type="checkbox" data-bar="{{varname}}" value="{{defaultvalue}}" {{#defaultvalue}}checked{{/defaultvalue}}/></span>
    {{vartitle}}</label> <span>&nbsp;&nbsp;  ${questionPopover}</span>
    </div>`,
 
-   SELECTTEMPLATE: `<div id="{{elementid}}" class="form-group row ml-1{{#hidden}} tiny_widgethub-hidden{{/hidden}}">
+   SELECTTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} tiny_widgethub-hidden{{/hidden}}">
    <label class="col-sm-5 col-form-label" for="{{elementid}}_stmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <div class="col-sm-7">
    <select id="{{elementid}}_stmpl" class="form-control" data-bar="{{varname}}" {{#if disabled}}disabled{{/if}} {{#if tooltip}}title="{{tooltip}}"{{/if}}>
@@ -377,10 +377,7 @@ export class FormCtrl {
             const showme = evalInContext(novesVariables, condicio);
             let theComponent = cc.component;
             if (theComponent) {
-               theComponent = theComponent.parent();
-               if (cc.type === 'checkbox') {
-                  theComponent = theComponent.parent();
-               }
+               theComponent = theComponent.closest('form-group');
                // Only change visibilities of nodes not hidden from user
                console.log("Changing visibilities of ", theComponent, " condition ", condicio, " evals to ", showme);
                if (!theComponent.attr('data-amagat')) {

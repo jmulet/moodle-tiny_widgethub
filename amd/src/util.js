@@ -444,9 +444,11 @@ export const performCasting = function(value, type) {
                 if (!isNaN(parsed)) {
                     value = parsed;
                 } else {
+                    value = 0;
                     console.error(`Error parsing number ${value}`);
                 }
             } catch (ex) {
+                value = 0;
                 console.error(`Error parsing number ${value}`);
             }
             break;
@@ -659,9 +661,13 @@ const bindingFactory = function($e) {
                 // @ts-ignore
                 setValue(val) {
                     const oldValue = elem.attr(attrName) ?? '';
-                    // @ts-ignore
-                    const newValue = oldValue.replace(RegExp(attrValue), ($0, $1) => $0.replace($1, val));
-                    elem.attr(attrName, newValue);
+                    if (oldValue) {
+                        // @ts-ignore
+                        const newValue = oldValue.replace(RegExp(attrValue), ($0, $1) => $0.replace($1, val));
+                        elem.attr(attrName, newValue);
+                    } else {
+                        elem.attr(attrName, attrValue.replace('(.*)', val + ''));
+                    }
                 }
             };
         },
@@ -732,36 +738,43 @@ const bindingFactory = function($e) {
                 /** @returns {string | null} */
                 getValue() {
                     const st = elem.prop('style');
-                    const has = st.getPropertyValue(styName) != null;
-                    console.log("getValue style regex", st, has);
-                    if (has) {
+                    const currentVal = st.getPropertyValue(styName);
+                    console.log("getValue style regex", st, currentVal);
+                    if (currentVal) {
                         if (styValue) {
-                            const match = st.getPropertyValue(styName).match(styValue);
+                            const match = currentVal.match(styValue);
                             if (match?.[1] && (typeof match[1]) === "string") {
                                 return performCasting(match[1], castTo);
                             }
                         } else {
-                            const match = st.getPropertyValue(styName);
-                            return performCasting(match, castTo);
+                            return performCasting(currentVal, castTo);
                         }
-                        return '';
                     }
-                    return null;
+                    return performCasting('', castTo);
                 },
                 // @ts-ignore
                 setValue(val) {
                     console.log("styRegex set value", val);
+                    let newValue;
                     if (styValue) {
-                        const oldValue = elem.prop('style').getPropertyValue(styName) ?? '';
-                        // @ts-ignore
-                        const newValue = oldValue.replace(RegExp(styValue), ($0, $1) => $0.replace($1, val));
-                        elem.css(styName, newValue);
-                        // TODO: better way to update data-mce-style
-                        elem.attr('data-mce-style', elem[0].style.cssText);
+                        // Case val <= 0 && styName contains width or height
+                        if ((styName.includes("width") || styName.includes("height")) && (parseFloat(val + '') < 0)) {
+                            newValue = '';
+                        } else {
+                            const oldValue = elem.prop('style').getPropertyValue(styName) ?? '';
+                            if (oldValue) {
+                                // @ts-ignore
+                                newValue = oldValue.replace(RegExp(styValue), ($0, $1) => $0.replace($1, val));
+                            } else {
+                                newValue = styValue.replace('(.*)', val + '');
+                            }
+                        }
                     } else {
-                        // @ts-ignore
-                        elem.css(styName, val);
+                        newValue = val;
                     }
+                    elem.css(styName, newValue);
+                    // TODO: better way to update data-mce-style
+                    elem.attr('data-mce-style', elem[0].style.cssText);
                 }
             };
         }

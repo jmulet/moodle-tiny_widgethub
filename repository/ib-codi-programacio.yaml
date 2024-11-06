@@ -30,8 +30,8 @@ parameters:
     value: false
     title: Enumera les línies
     bind: notHasClass('nohljsln', 'code')
-    when: "syntax==1"
-requires: "/sd/programacio.min.js | syntax==1"
+    when: "syntax"
+requires: "/sd/programacio.min.js | syntax"
 stars: 2
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 2023.01.07

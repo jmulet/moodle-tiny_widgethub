@@ -22,7 +22,7 @@ template: |
   </div>
   <!--fi presentació diapositives-->
   <p><br></p>
-selectors: div[role="snptd_presentacio"].tabbable 
+selectors: div[role="snptd_presentacio"], div[data-snptd="presentacio"]
 unwrap: div.tab-content > div.tab-pane > *
 parameters: 
   - name: pestanyes
@@ -51,14 +51,14 @@ parameters:
     value: false
     title: Inici automàtic
     tip: S'inicia automàticament la presentació, sempre que les durades siguin diferent de 0 i el pas cíclic estigui activat.
-    when: "{{loop}}==1 && {{durades}}!='0' && {{durades}}!=''"
+    when: "loop && durades!='0' && durades!=''"
     bind: attr('data-autostart')
   - name: start
     value: 1
     title: Comença en
     tip: Comença la reproducció en el número de diapositiva indicada.
     min: 1
-    bind: attr('data-start')
+    bind: attr('data-start', null, 'number')
   - name: full
     value: false
     title: Empra tota l'amplada de pàgina
