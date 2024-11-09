@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 /* eslint-disable no-alert */
 import jQuery from 'jquery';
-import CodeProEditor from './libs/cm6pro-lazy';
+import YmlEditor from './libs/ymleditor-lazy';
 import {load, dump} from './libs/js_yaml-lazy';
 import {get_strings as getStrings} from 'core/str';
 import {getTemplateSrv} from './service/templateSrv';
@@ -150,7 +150,7 @@ export default {
         const $previewBtn = jQuery(`<button type="button" class="btn btn-secondary m-1">
             <i class="fas fa fa-magnifying-glass"></i> ${i18n[0]}</button>`);
         $previewBtn.on('click', async() => {
-            const yml = codeProEditor.getValue();
+            const yml = ymleditor.getValue();
             const validation = await this.validate(yml, opts, partials);
             if (validation.msg) {
                 alert(validation.msg);
@@ -186,12 +186,12 @@ export default {
             $target.append($deleteBtn);
         }
 
-        const codeProEditor = new CodeProEditor($ymlArea[0]);
+        const ymleditor = new YmlEditor($ymlArea[0]);
 
         $saveBtn.on("click",
             async() => {
             // Must update the content from the Yaml control
-            const yml = codeProEditor.getValue();
+            const yml = ymleditor.getValue();
             // First validate the definition of the widget
             const validation = await this.validate(yml, opts, partials);
             if (validation.msg) {
@@ -207,6 +207,6 @@ export default {
             }
         });
 
-        this.updateYaml(opts.id, codeProEditor);
+        this.updateYaml(opts.id, ymleditor);
     }
 };

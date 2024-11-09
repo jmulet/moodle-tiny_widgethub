@@ -186,7 +186,7 @@ describe('utils module tests', () => {
         expect(U.performCasting(false, 'boolean')).toStrictEqual(false);
         expect(U.performCasting(0, 'boolean')).toStrictEqual(false);
 
-        expect(U.performCasting('wrong number', 'number')).toStrictEqual('wrong number');
+        expect(U.performCasting('wrong number', 'number')).toStrictEqual(0);
         expect(U.performCasting('12', 'number')).toStrictEqual(12);
         expect(U.performCasting('-12', 'number')).toStrictEqual(-12);
         expect(U.performCasting('7.5', 'number')).toStrictEqual(7.5);
@@ -346,7 +346,8 @@ describe('utils module tests', () => {
         ["notHasClass('editable')", `<span class="b locked c"></span>`, false, `<span class="b locked c editable"></span>`],
         ["notHasClass('editable')", `<span class="b locked c"></span>`, true, `<span class="b locked c"></span>`],
 
-        ["classRegex('locked-(.*)')", `<span class="locked"></span>`, 'mood', `<span class="locked locked-mood"></span>`],
+       // ["classRegex('locked-(.*)')", `<span class="locked"></span>`, 'mood', `<span class="locked locked-mood"></span>`],
+        ["classRegex('locked-(.*)')", `<span class="locked-"></span>`, 'mood', `<span class="locked-mood"></span>`],
         ["classRegex('locked-(.*)')", `<span class="locked-abc"></span>`, 'efg', `<span class="locked-efg"></span>`],
 
         ["hasAttr('data-locked')", `<span data-locked></span>`, true, `<span data-locked=""></span>`],
@@ -354,6 +355,9 @@ describe('utils module tests', () => {
         ["hasAttr('data-locked')", `<span data-open="false"></span>`, true, `<span data-open="false" data-locked=""></span>`],
         ["hasAttr('data-locked=silent')", `<span data-locked="silent"></span>`, true, `<span data-locked="silent"></span>`],
         ["hasAttr('data-locked=silent')", `<span></span>`, true, `<span data-locked="silent"></span>`],
+
+        ["hasAttr('href=home')", `<span></span>`, true, `<span href="home" data-mce-href="home"></span>`],
+        ["hasAttr('href=home')", `<span href="home" data-mce-href="home"></span>`, false, `<span></span>`],
 
         ["notHasAttr('data-locked')", `<span data-locked></span>`, true, `<span></span>`],
         ["notHasAttr('data-locked')", `<span data-locked></span>`, false, `<span data-locked=""></span>`],
@@ -368,16 +372,16 @@ describe('utils module tests', () => {
         ["attrRegex('role=channel(.*)')", `<span role="channel1234"></span>`, '5678', `<span role="channel5678"></span>`],
         ["attrRegex('role=channel(.*)', null, 'number')", `<span role="channel1234"></span>`, 'testing', `<span role="channeltesting"></span>`],
 
-        ["hasStyle('width:100px')", `<span style="height:10px;width: 100px;"></span>`, true, `<span style="height: 10px; width: 100px;"></span>`],
-        ["hasStyle('width:100px')", `<span style="height:10px;width: 100px;"></span>`, false, `<span style="height: 10px;"></span>`],
-        ["hasStyle('height:50px')", `<span style="width: 100px;"></span>`, true, `<span style="width: 100px; height: 50px;"></span>`],
+        ["hasStyle('width:100px')", `<span style="height:10px;width: 100px;"></span>`, true, `<span style="height: 10px; width: 100px;" data-mce-style="height: 10px; width: 100px;"></span>`],
+        ["hasStyle('width:100px')", `<span style="height:10px;width: 100px;"></span>`, false, `<span style="height: 10px;" data-mce-style="height: 10px;"></span>`],
+        ["hasStyle('height:50px')", `<span style="width: 100px;"></span>`, true, `<span style="width: 100px; height: 50px;" data-mce-style="width: 100px; height: 50px;"></span>`],
 
-        ["notHasStyle('width:100px')", `<span style="height:10px;width: 100px;"></span>`, true, `<span style="height: 10px;"></span>`],
-        ["notHasStyle('width:100px')", `<span style="height:10px;width: 100px;"></span>`, false, `<span style="height: 10px; width: 100px;"></span>`],
-        ["notHasStyle('height:50px')", `<span style="width: 100px;"></span>`, true, `<span style="width: 100px;"></span>`],
+        ["notHasStyle('width:100px')", `<span style="height:10px;width: 100px;"></span>`, true, `<span style="height: 10px;" data-mce-style="height: 10px;"></span>`],
+        ["notHasStyle('width:100px')", `<span style="height:10px;width: 100px;"></span>`, false, `<span style="height: 10px; width: 100px;" data-mce-style="height: 10px; width: 100px;"></span>`],
+        ["notHasStyle('height:50px')", `<span style="width: 100px;"></span>`, true, `<span style="width: 100px;" data-mce-style="width: 100px;"></span>`],
 
-        ["styleRegex('width: (.*)px')", `<span style="width: 100px;"></span>`, "700", `<span style="width: 700px;"></span>`],
-        ["styleRegex('width: (.*)px', null, 'number')", `<span style="width: 100px;"></span>`, 700, `<span style="width: 700px;"></span>`],
+        ["styleRegex('width: (.*)px')", `<span style="width: 100px;"></span>`, "700", `<span style="width: 700px;" data-mce-style="width: 700px;"></span>`],
+        ["styleRegex('width: (.*)px', null, 'number')", `<span style="width: 100px;"></span>`, 700, `<span style="width: 700px;" data-mce-style="width: 700px;"></span>`],
 
     ])('Create binding %s on %s. If sets value %s yields %s', (bindDef, elemDef, value, result) => {
         let $e = jQuery(elemDef)

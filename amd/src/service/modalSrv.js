@@ -68,7 +68,7 @@ class IBContextModal extends Modal {
 ModalRegistry.register(IBContextModal.TYPE, IBContextModal, IBContextModal.TEMPLATE);
 
 /**
- * @typedef {JQuery<HTMLElement> & {header: JQuery<HTMLElement>, body: JQuery<HTMLElement>, footer: JQuery<HTMLElement>,destroy: () => void, show: () => void, getRoot: () => {on: () => void}}} ModalDialogue
+ * @typedef {JQuery<HTMLElement> & {header: JQuery<HTMLElement>, body: JQuery<HTMLElement>, footer: JQuery<HTMLElement>, destroy: () => void, show: () => void, getRoot: () => {on: () => void}}} ModalDialogue
  */
 
 /**

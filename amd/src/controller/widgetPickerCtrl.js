@@ -24,7 +24,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import {getWidgetParamsFactory} from '../controller/widgetParamsCtrl';
-import {getEditorOptions} from '../options';
+import {getEditorOptions, getWidgetDict} from '../options';
 import {getModalSrv} from '../service/modalSrv';
 import {getTemplateSrv} from '../service/templateSrv';
 import {getUserStorage} from '../service/userStorageSrv';
@@ -43,6 +43,10 @@ const toggleVisible = function(el, visible) {
 };
 
 export class WidgetPickerCtrl {
+    /** @type {import('../service/modalSrv').ModalDialogue} */
+    // @ts-ignore
+    modal;
+
     /**
      * @param {import('../plugin').TinyMCE} editor
      * @param {import('../options').EditorOptions} editorOptions
@@ -64,6 +68,8 @@ export class WidgetPickerCtrl {
         this.templateSrv = templateSrv;
         /** @type {import('../service/userStorageSrv').UserStorageSrv} */
         this.storage = userStorage;
+        /** @type {number} */
+        this.scrollPos = 0;
     }
 
     show() {
@@ -74,144 +80,167 @@ export class WidgetPickerCtrl {
         return this.editor.selection.getContent().trim().length > 0;
     }
 
-    async handleAction() {
-        // Type on search input
+     // Type on search input
+    onSearchKeyup() {
         const selectMode = this.isSelectMode();
+        let numshown = 0;
+        const widgetSearchElem = this.modal.body.find("input")[0];
+        const searchText = (widgetSearchElem.value || '');
+        this.storage.setToSession('searchtext', searchText, true);
+        /** @type {NodeListOf<HTMLElement>} */
+        const allbtns = document.querySelectorAll(".btn-group");
+        /** @type {NodeListOf<HTMLElement>} */
+        const allcatgs = document.querySelectorAll(".tiny_widgethub-category");
 
-        const onSearchKeyup = () => {
-            let numshown = 0;
-            const widgetSearchElem = this.modal.body.find("input")[0];
-            const searchText = (widgetSearchElem.value || '');
-            this.storage.setToSession('searchtext', searchText, true);
-            /** @type {NodeListOf<HTMLElement>} */
-            const allbtns = document.querySelectorAll(".btn-group");
-            /** @type {NodeListOf<HTMLElement>} */
-            const allcatgs = document.querySelectorAll(".tiny_widgethub-category");
-
-            // Are we in selectMode, does the widget support it? insertquery
-            if (!searchText) {
-                allbtns.forEach(
-                    (el) => {
-                    const visible = !selectMode || (selectMode && el.dataset.selectable === "true");
-                    toggleVisible(el, visible);
-                    if (visible) {
-                        numshown++;
-                    }
-                });
-            } else {
-                allbtns.forEach((el) => {
-                    let visible = !selectMode || (selectMode && el.dataset.selectable === "true");
-                    const el2 = el.querySelector('button');
-                    visible = visible && searchComp(el2?.title + "", searchText);
-                    toggleVisible(el, visible);
-                    if (visible) {
-                        numshown++;
-                    }
-                });
-            }
-            allcatgs.forEach((el) => {
-                const count = el.querySelectorAll(".btn-group:not(.tiny_widgethub-hidden)").length;
-                toggleVisible(el, count > 0);
+        // Are we in selectMode, does the widget support it? insertquery
+        if (!searchText) {
+            allbtns.forEach(
+                (el) => {
+                const visible = !selectMode || (selectMode && el.dataset.selectable === "true");
+                toggleVisible(el, visible);
+                if (visible) {
+                    numshown++;
+                }
             });
-            console.log("Num shown buttons is ", numshown);
-            // If no result show emptyList message
-            toggleVisible(this.modal.body.find(".tiny_widgethub-emptylist")[0], numshown == 0);
+        } else {
+            allbtns.forEach((el) => {
+                let visible = !selectMode || (selectMode && el.dataset.selectable === "true");
+                const el2 = el.querySelector('button');
+                visible = visible && searchComp(el2?.title + "", searchText);
+                toggleVisible(el, visible);
+                if (visible) {
+                    numshown++;
+                }
+            });
+        }
+        allcatgs.forEach((el) => {
+            const count = el.querySelectorAll(".btn-group:not(.tiny_widgethub-hidden)").length;
+            toggleVisible(el, count > 0);
+        });
+        console.log("Num shown buttons is ", numshown);
+        // If no result show emptyList message
+        toggleVisible(this.modal.body.find(".tiny_widgethub-emptylist")[0], numshown == 0);
+    }
+
+    async createModal() {
+        const searchText = this.storage.getFromSession("searchtext", "");
+        const data = this.getPickTemplateContext({
+            searchText: searchText
+        });
+        console.log(" data  is  ", data);
+        // @ts-ignore
+        this.modal = await this.modalSrv.create('picker', data);
+
+        try {
+            this.modal.body.find(".tiny_widgethub-categorycontainer")
+                // @ts-ignore
+                .scrollspy('refresh');
+        } catch (ex) {
+            console.error("Problem setting scrollspy", ex);
+        }
+
+        // Confiure preview panel
+        const previewPanel = this.modal.body.find("div.tiny_widgethub-preview");
+        const widgetTable = this.editorOptions.widgetDict;
+
+        const mouseEnterDebounced = debounce(async(/** @type {*} */ evt) => {
+            const key = evt.target?.closest('.btn-group')?.dataset?.key ?? '';
+            const widget = widgetTable[key];
+            if (!widget || widget.isFilter()) {
+                // Filters do not offer preview
+                return;
+            }
+            /** @type {string | undefined} */
+            let html = widget._preview;
+            if (!html) {
+                // Generate preview with default parameters
+                html = await this.generatePreview(widget);
+                widget._preview = html;
+            }
+            previewPanel.html(html);
+            previewPanel.css("display", "block");
+        }, 1000);
+
+        const onMouseOut = () => {
+            mouseEnterDebounced.clear();
+            previewPanel.html('');
+            previewPanel.css("display", "none");
         };
 
 
-        // Show modal with buttons.
-        if (this.modal) {
-            console.log("Estic en mode selecció? " + selectMode);
-            if (selectMode) {
-                this.modal.header.find("span.ib-blink").removeClass("tiny_widgethub-hidden");
-            } else {
-                this.modal.header.find("span.ib-blink").addClass("tiny_widgethub-hidden");
-            }
-        } else {
-            const searchText = this.storage.getFromSession("searchtext", "");
-            const data = this.getPickTemplateContext({
-                searchText: searchText
-            });
-            console.log(" data  is  ", data);
-            // @ts-ignore
-            this.modal = await this.modalSrv.create('picker', data, () => {
-                this.modal.destroy();
-                this.modal = null;
-            });
+        // Event listeners.
+        // Click on clear text
+        const widgetSearchElem = this.modal.body.find("input");
+        widgetSearchElem.val(searchText);
+        const debouncedKeyup = debounce(this.onSearchKeyup.bind(this), 800);
+        widgetSearchElem.on('keyup', debouncedKeyup);
 
-            try {
-                this.modal.body.find(".tiny_widgethub-categorycontainer")
-                    .scrollspy('refresh');
-            } catch (ex) {
-                console.error("Problem setting scrollspy", ex);
-            }
-
-            // Confiure preview panel
-            const previewPanel = this.modal.body.find("div.tiny_widgethub-preview");
-            const widgetTable = this.editorOptions.widgetDict;
-
-            const mouseEnterDebounced = debounce(async(/** @type {*} */ evt) => {
-                const key = evt.target?.dataset?.key ?? '';
-                const widget = widgetTable[key];
-                if (!widget || widget.isFilter()) {
-                    // Filters do not offer preview
-                    return;
-                }
-                /** @type {string | undefined} */
-                let html = widget._preview;
-                if (!html) {
-                    // Generate preview with default parameters
-                    html = await this.generatePreview(widget);
-                    widget._preview = html;
-                }
-                previewPanel.html(html);
-                previewPanel.css("display", "block");
-            }, 1000);
-
-            const onMouseOut = () => {
+        this.modal.body.find(`#widget-clearfilter-btn${data.rid}`).on('click', () => {
+            debouncedKeyup.clear();
+            widgetSearchElem.val("");
+            widgetSearchElem.trigger("focus");
+            this.onSearchKeyup();
+        });
+        // Click on any widget button (bubbles)
+        this.modal.body.find('div.tiny_widgethub-categorycontainer, div.tiny_widgethub-recent').on('click',
+            /** @param {Event} event */
+            (event) => {
                 mouseEnterDebounced.clear();
-                previewPanel.html('');
                 previewPanel.css("display", "none");
-            };
-
-
-            // Event listeners.
-            // Click on clear text
-            const widgetSearchElem = this.modal.body.find("input");
-            widgetSearchElem.val(searchText);
-            const debouncedKeyup = debounce(onSearchKeyup, 800);
-            widgetSearchElem.on('keyup', debouncedKeyup);
-
-            this.modal.body.find(`#widget-clearfilter-btn${data.rid}`).on('click', () => {
-                debouncedKeyup.clear();
-                widgetSearchElem.val("");
-                widgetSearchElem.trigger("focus");
-                onSearchKeyup();
+                console.log(event.target);
+                this.handlePickModalClick(event);
             });
-            // Click on any widget button (bubbles)
-            this.modal.body.find('div.tiny_widgethub-categorycontainer, div.tiny_widgethub-recent').on('click',
-                /** @param {Event} event */
-                (event) => {
-                    mouseEnterDebounced.clear();
-                    previewPanel.css("display", "none");
-                    console.log(event.target);
-                    this.handlePickModalClick(event);
-                });
-            // Preview panel
-            this.modal.body.find(".btn-group")
-                .on("mouseenter", mouseEnterDebounced)
-                .on("mouseout", onMouseOut);
+
+        // Preview panel
+        this.modal.body.find(".btn-group")
+            .on("mouseenter", mouseEnterDebounced)
+            .on("mouseout", onMouseOut);
+
+        // Store current scroll
+        const scrollPane = this.modal.body.find('.tiny_widgethub-categorycontainer');
+        scrollPane.on('scroll', debounce(() => {
+            this.scrollPos = Math.round(scrollPane.scrollTop() ?? 0);
+        }, 100));
+    }
+
+
+    async handleAction() {
+        this.storage.loadStore();
+
+        if (!this.modal) {
+            // Create the modal if not exists.
+            await this.createModal();
+        } else {
+            // Update list of recent
+            const widgetDict = getWidgetDict(this.editor);
+            const html = this.storage.getRecentUsed()
+               .filter(r => widgetDict[r.key] !== undefined)
+               .map(r =>
+                `<a href="javascript:void(0)" data-key="${r.key}" data-insert="recent"><span class="badge badge-secondary">${widgetDict[r.key].name}</span></a>`)
+               .join('\n');
+               this.modal.body.find('.tiny_widgethub-recent').html(html);
+        }
+
+        const selectMode = this.isSelectMode();
+        console.log("Estic en mode selecció? " + selectMode);
+        if (selectMode) {
+            this.modal.header.find("span.ib-blink").removeClass("tiny_widgethub-hidden");
+        } else {
+            this.modal.header.find("span.ib-blink").addClass("tiny_widgethub-hidden");
         }
 
         this.modal.show();
-        onSearchKeyup();
+
         setTimeout(() => {
             if (!this.modal?.body) {
                 return;
             }
-            const widgetSearchElem = this.modal.body.find("input")[0];
-            widgetSearchElem.focus();
-        }, 400);
+            if (this.scrollPos > 0) {
+                console.log("Setting scroll to ", this.scrollPos);
+                this.modal.body.find('.tiny_widgethub-categorycontainer').scrollTop(this.scrollPos);
+            }
+            this.modal.body.find("input").trigger('focus');
+        }, 200);
     }
 
     /**
@@ -421,8 +450,7 @@ export class WidgetPickerCtrl {
      * @param {Record<string, *>} [ctx]
      */
     handlePickModalAction(widget, forceInsert, ctx) {
-        this.modal?.destroy();
-        this.modal = undefined;
+        this.modal?.hide();
         const paramsController = this.widgetParamsFactory(widget);
         // Keep reference to the calling parentCtrl
         paramsController.parentCtrl = this;

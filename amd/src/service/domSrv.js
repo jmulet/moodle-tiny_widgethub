@@ -171,13 +171,16 @@ export class DomSrv {
         // If no widget is found and selectedElement has a parent OL or IMG,
         // force detection with a fake widget.
         if (!res.widget) {
-            const parent = res.selectedElement.closest('OL,IMG');
-            const tag = res.selectedElement.prop('tagName');
+            const parent = res.selectedElement.closest('ol,img');
+            let tag = res.selectedElement.prop('tagName');
             const isTag = tag === 'OL' || tag === 'IMG';
-            if (isTag || parent.length) {
+            if (isTag || parent[0]) {
+                if (!isTag) {
+                    tag = parent.prop('tagName');
+                }
                 /** @ts-ignore */
                 res.widget = {key: `!${tag}`, prop: () => ''};
-                res.targetElement = parent ?? res.selectedElement;
+                res.targetElement = isTag ? res.selectedElement : parent;
             }
         }
         return res;

@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "link": "ln -sf ../../amd/src src",
-    "test": "npm run link && ./node_modules/.bin/jest --collect-coverage --no-cache"
+    "test": "./node_modules/.bin/jest --collect-coverage --no-cache"
   },
   "keywords": [],
   "author": "Josep Mulet Pol",

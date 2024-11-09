@@ -22,9 +22,8 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {EditorView, basicSetup} from "codemirror";
+import {EditorView, minimalSetup} from "codemirror";
 import {autocompletion} from "@codemirror/autocomplete";
-import {Compartment} from '@codemirror/state';
 import {ensureSyntaxTree} from "@codemirror/language";
 import {yaml} from "@codemirror/lang-yaml";
 
@@ -42,12 +41,13 @@ const completions = [
     {label: 'author', type: 'variable', info: 'Optional. The author of the snippet'},
 ];
 
-function myCompletions(context) {
+function myCompletions(/** @type {*} */ context) {
     console.log("context", context);
     const tree = ensureSyntaxTree(context.state, context.state.doc.length, 1000);
     console.log("tree", tree);
-    const parent = tree.parent;
-    console.log("parent", parent);
+    if (!tree) {
+        return null;
+    }
     let before = context.matchBefore(/\w+/);
     // If completion wasn't explicitly started and there
     // is no word before the cursor, don't open completions.
@@ -61,7 +61,7 @@ function myCompletions(context) {
     };
 }
 
-export default class CodeProEditor {
+export default class YmlEditor {
     /**
      * @member {HTMLElement} _parentElement
      * @member {string | TinyMCE} _source
@@ -77,13 +77,10 @@ export default class CodeProEditor {
     }
 
     _init() {
-        this.themeConfig = new Compartment();
-        this.linewrapConfig = new Compartment();
-        const language = new Compartment();
         this._editorView = new EditorView({
             extensions: [
-                basicSetup,
-                language.of(yaml()),
+                minimalSetup,
+                yaml(),
                 autocompletion({override: [myCompletions]}),
             ],
             parent: this._parentElement
@@ -91,19 +88,18 @@ export default class CodeProEditor {
     }
     /**
      *
-     * @param {string | TinyMCE} source
+     * @param {string} source
      */
     setValue(source) {
         this._source = source;
         let code = source || '';
         const view = this._editorView;
-        view.dispatch({changes: {from: 0, to: view.state.doc.length, insert: code}});
+        view?.dispatch({changes: {from: 0, to: view.state.doc.length, insert: code}});
     }
     /**
      * @returns {string}
      */
     getValue() {
-        return this._editorView.state.doc.toString();
+        return this._editorView?.state?.doc?.toString() ?? '';
     }
 }
-

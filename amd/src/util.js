@@ -545,10 +545,18 @@ const bindingFactory = function($e) {
                     const cl = elem.attr('class')?.split(/\s+/) ?? [];
                     // @ts-ignore
                     cl.forEach(c => {
-                        if (c.match(classExpr)) {
-                            elem.removeClass(c);
+                        const match = c.match(classExpr);
+                        if (!match) {
+                            return;
+                        }
+                        elem.removeClass(c);
+                        if (match?.[1]) {
+                            console.log(c, classExpr, c.match(classExpr));
                             const newCls = c.replace(RegExp(classExpr),
                                 ($0, $1) => $0.replace($1, val + ''));
+                            elem.addClass(newCls);
+                        } else {
+                            const newCls = classExpr.replace('(.*)', val + '');
                             elem.addClass(newCls);
                         }
                     });
@@ -617,6 +625,9 @@ const bindingFactory = function($e) {
                         }
                     } else {
                         elem.removeAttr(attrName);
+                        if (attrName === 'href' || attrName === 'src') {
+                            elem.removeAttr('data-mce-' + attrName);
+                        }
                     }
                 }
             };
@@ -700,12 +711,12 @@ const bindingFactory = function($e) {
                 setValue(bool) {
                     if (xor(bool, neg)) {
                         elem.css(styName, styValue ?? '');
-                        //TODO: better way to update data-mce-style
-                        elem.attr('data-mce-style', elem[0].style.cssText);
                     } else {
                         const st = elem.prop('style');
                         st.removeProperty(styName);
                     }
+                    // TODO: better way to update data-mce-style
+                    elem.attr('data-mce-style', elem[0].style.cssText);
                 }
             };
         },

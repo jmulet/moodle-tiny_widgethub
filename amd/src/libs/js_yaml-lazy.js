@@ -1,9 +1,5 @@
 // @ts-nocheck
-/* eslint-disable no-unmodified-loop-condition */
-/* eslint-disable complexity */
-/* eslint-disable no-control-regex */
-/* eslint-disable camelcase */
-/* eslint-disable jsdoc/require-param-type */
+/* eslint-disable */
 
 // This file is part of Moodle - http://moodle.org/
 //

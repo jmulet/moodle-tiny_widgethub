@@ -8,8 +8,7 @@ import { ModalSrv } from "../../src/service/modalSrv";
 jest.mock("core/modal", () => ({
     __esModule: true,
     default: class {
-        registerEventListeners() {
-        }
+        registerEventListeners() {}
     }
 }), { virtual: true });
 
@@ -28,7 +27,15 @@ jest.mock("core/modal_factory", () => ({
             return Promise.resolve({                
                 getRoot: () => ({
                     on: _onFn
-                })
+                }),
+                modal: {
+                    css: jest.fn()
+                },
+                header: {
+                    css: jest.fn()
+                },
+                body: jest.fn(),
+                footer: jest.fn()
             })
         }
     }

@@ -50,6 +50,8 @@ describe('ContextInit', () => {
                     addMenubarItem: jest.fn(),
                     addMenuItem: jest.fn(),
                     addContextMenu: jest.fn(),
+                    addToggleMenuButton: jest.fn(),
+                    addToggleMenuItem: jest.fn(),
                     getAll: jest.fn().mockReturnValue("")
                 }
             },

@@ -19,7 +19,7 @@ const context = {
     two: 2,
     five: 5,
     four: 4,
-    "LANG": "en"
+    "_lang": "en"
 };
 
 const translations = {
@@ -39,8 +39,8 @@ describe('TemplateSrv', () => {
         test.each([
             ['Hi <%= name %>!', {name: 'Moodle'}, "Hi Moodle!"],
             ["<%= name === 'Moodle' ? 'LMS' : 'Not' %>", {name: 'Moodle'}, "LMS"],
-            ["<%= I18n['animal'] %>", {LANG: 'es'}, "gato"],
-            ["{{#I18n}}animal{{/I18n}}", {LANG: 'en'}, "cat"],
+            ["<%= I18n['animal'] %>", {_lang: 'es'}, "gato"],
+            ["{{#I18n}}animal{{/I18n}}", {_lang: 'en'}, "cat"],
         ])('Test ejs template renderer', async (template, ctx, expected) => {
             const translations = {
                 "animal": {
@@ -81,13 +81,13 @@ describe('TemplateSrv', () => {
         test("Translations", ()=> {
             let out = templateSrv.renderMustache("Aquest és l'widget {{#I18n}}snptKey{{/I18n}}", context, translations);
             expect(out).toBe("Aquest és l'widget Watch out!");
-            context["LANG"] = "ca"
+            context["_lang"] = "ca"
             out = templateSrv.renderMustache("Aquest és l'widget {{#I18n}}snptKey{{/I18n}}", context, translations);
             expect(out).toBe("Aquest és l'widget Alerta");
-            context["LANG"] = "ru"
+            context["_lang"] = "ru"
             out = templateSrv.renderMustache("Aquest és l'widget {{#I18n}}snptKey{{/I18n}}", context, translations);
             expect(out).toBe("Aquest és l'widget Watch out!");
-            context["LANG"] = "ru"
+            context["_lang"] = "ru"
             out = templateSrv.renderMustache("Aquest és l'widget {{#I18n}}notFound{{/I18n}}", context, translations);
             expect(out).toBe("Aquest és l'widget notFound");
         });

@@ -1,7 +1,5 @@
 // @ts-nocheck
-/* eslint-disable complexity */
-/* eslint-disable no-new-func */
-/* eslint-disable no-console */
+/* eslint-disable */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify

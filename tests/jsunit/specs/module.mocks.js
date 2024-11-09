@@ -1,4 +1,22 @@
 // @ts-ignore
+/**
+ * Mock the window object requirejs
+ * @param {string[]} deps 
+ * @param {*} cb 
+ */
+// @ts-ignore
+const requirejs = (deps, cb) => {
+    // @ts-ignore
+    const resolves = deps.map(d => d.replace("tiny_widgethub", "../src")).map(d => require(d)).map(n => n.default ?? n);
+    cb(...resolves);
+};
+// @ts-ignore
+global.window = global.window || {};
+// @ts-ignore
+global.window["require"] = requirejs;
+// @ts-ignore
+global.requirejs = requirejs;
+
 module.exports = function applyMocks(jest) { 
     jest.mock("jquery", () => {
         const $ = require('../node_modules/jquery/dist/jquery.js');
@@ -25,7 +43,6 @@ module.exports = function applyMocks(jest) {
             if (m.index === regex.lastIndex) {
                 regex.lastIndex++;
             }
-            
             // The result can be accessed through the `m`-variable.
             map.set(m[1], m[2]);
         }
@@ -40,7 +57,9 @@ module.exports = function applyMocks(jest) {
         };
         return {
             _esModule: true,
-            default: coreStr
+            default: coreStr,
+            get_string: coreStr.get_string,
+            get_strings
         };
     }, { virtual: true }); 
     jest.mock("core/log", () => {
@@ -95,22 +114,9 @@ module.exports = function applyMocks(jest) {
              
         }
     }), {virtual: true});
+     
+    jest.mock('editor_tiny/utils', () => ({
+        __esModule: true,
+        displayFilepicker: jest.fn()
+    }), {virtual: true});
 };
-
-/**
- * Mock the window object requirejs
- * @param {string[]} deps 
- * @param {*} cb 
- */
-// @ts-ignore
-const requirejs = (deps, cb) => {
-    // @ts-ignore
-    const resolves = deps.map(d => d. replace("tiny_widgethub", "../src")).map(d => require(d)).map(n => n.default ?? n);
-    cb(...resolves);
-};
-// @ts-ignore
-global.window = global.window || {};
-// @ts-ignore
-global.window["require"] = requirejs;
-// @ts-ignore
-global.requirejs = requirejs;

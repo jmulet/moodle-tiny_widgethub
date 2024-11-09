@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 require('../module.mocks')(jest);
-const {DomSrv} = require("../../src/service/domSrv");
+const {DomSrv, getDomSrv} = require("../../src/service/domSrv");
 
 /** @ts-ignore */
 const jQuery = require("jquery").default;
@@ -13,6 +13,13 @@ let domSrv;
 describe("DomSrv", () => {
     beforeEach(() => {
         domSrv = new DomSrv(jQuery);
+    });
+
+    test('It must create from cache', () => {
+        const d1 = getDomSrv();
+        const d2 = getDomSrv();
+        expect(d1).toBeTruthy();
+        expect(Object.is(d1, d2)).toBe(true);
     });
 
     test('The jquery node must be cloned', () => {
@@ -93,4 +100,85 @@ describe("DomSrv", () => {
         expect(found.length).toBe(1);
         expect(found[0].text().trim()).toBe("Content 1");
     });
+
+    test.each([
+        ['<span></span>', undefined, false],
+        ['<span></span>', 'span', true],
+        ['<span></span>', 'span.d-print-none', false],
+        ['<span class="d-print-none"></span>', ['span.d-print-none'], true],
+        ['<span class="d-print-none"></span>', ['span.d-print-none', 'i.fa'], false],
+        ['<span role="presentation" class="d-print-none"><i class="fa fa-check"></i></span>', ['span.d-print-none', 'i.fa'], true],
+    ])
+    ('Element %s matches the selectors %s yields %s', (elemHtml, selectors, result) => {
+        const div = document.createElement("DIV");
+        div.innerHTML = elemHtml;
+        const firstChild = div.firstChild;
+        expect(domSrv.matchesSelectors(firstChild, selectors)).toStrictEqual(result);
+    });
+
+    test.each([
+        ['d1', 'widget1', 'd1'],
+        ['d2', 'widget2', 'd2'],
+        ['d3', 'widget2', 'd2'],
+        ['d4', 'widget2', 'd2'],
+        ['d5', 'widget2', 'd2'],
+        ['d6', 'widget2', 'd2'],
+        ['d7', 'widget1', 'd1'],
+        ['d8', 'widget1', 'd1'],
+        ['d9', 'widget1', 'd1'],
+        ['d10', undefined, undefined],
+        ['d11', '!OL', 'd11'],
+        ['d12', '!OL', 'd11'],
+        ['d13', undefined, undefined],
+        ['d14', '!IMG', 'd14'],
+    ])
+    ('findWidgetOnEventPath clicked at %s finds widget key=%s at element %s', (idClicked, keyFound, idFound) => {
+        document.body.innerHTML = `
+            <div id="d1" class="iedib-capsa-exemple">
+               <ul id="d2" role="snptd_image">
+                 <li id="d3">
+                    <img id="d4">
+                 </li>
+                 <li id="d5"> <span id="d6"></span> </li>
+               </ul>
+
+               <ol id="d7">
+                <li id="d8"> item1 </li>
+               </ol>
+
+               <p id="d9">Text</p>
+            </div>
+            <p id="d10"> External text </p>
+            <ol id="d11">
+                <li id="d12"> item1 </li>
+            </ol>
+            <div id="d13">
+              <img id="d14">
+            </div>
+        `;
+        /** @type {any} */
+        const rawWidget1 = {
+            key: 'widget1',
+            selectors: 'div.iedib-capsa-exemple'
+        };
+        /** @type {any} */
+        const rawWidget2 = {
+            key: 'widget2',
+            selectors: 'ul[role="snptd_image"]'
+        }
+        /** @type {import('../../src/options').Widget[]} */
+        const widgetList = [rawWidget1, rawWidget2];
+        const selectedElement = document.body.querySelector('#'+idClicked);
+        expect(selectedElement?.id).toBe(idClicked);
+        const pathResult = domSrv.findWidgetOnEventPath(widgetList, selectedElement);
+        expect(pathResult.selectedElement[0]).toBe(selectedElement);
+        expect(pathResult.widget?.key).toBe(keyFound)
+        if (!keyFound?.startsWith("!")) {
+            expect(pathResult.targetElement).toBeUndefined();
+            expect(pathResult.elem?.attr("id")).toBe(idFound);
+        } else {
+            expect(pathResult.elem).toBeUndefined();
+            expect(pathResult.targetElement?.attr("id")).toBe(idFound);
+        }
+    })
 });
