@@ -8,6 +8,19 @@ import {getTemplateSrv} from './service/templateSrv';
 import {applyPartials} from './options';
 
 const templateSrv = getTemplateSrv();
+const DEFAULT_DOC =
+`key: minimal-sample-key
+name: Minimal sample widget
+category: Examples
+template: |
+  <p><br></p>
+  <p>Write your template {{greeting}}</p>
+  <p><br></p>
+parameters:
+  - name: greeting
+    value: Hello world!
+author: Your name <email@site.com>
+version: 1.0.0`;
 
 /**
  * @class
@@ -42,7 +55,11 @@ export default {
         const {$jsonArea} = this.getAreas(id);
         const json = (($jsonArea.val() ?? '') + '').trim();
         if (!json) {
-            codeProEditor.setValue('');
+            if (id) {
+                codeProEditor.setValue('');
+            } else {
+                codeProEditor.setValue(DEFAULT_DOC);
+            }
             return;
         }
         try {
