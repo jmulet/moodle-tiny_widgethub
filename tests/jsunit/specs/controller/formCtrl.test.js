@@ -2,32 +2,37 @@
  * @jest-environment jsdom
  */
 require('../module.mocks')(jest);
+const { getTemplateSrv } = require('../../src/service/templateSrv');
 
-/** @type {Record<string, string>} */
-const Templates = require("../../src/controller/formCtrl").Templates;
+const wait = (/** @type{number} */ delay) => {
+    return new Promise( (resolve) => {
+        setTimeout(resolve, delay);
+    });
+};
 
 // Make test reproducible
 const util = require("../../src/util");
 
 /** @ts-ignore */
 const jQuery = require("jquery").default;
-const FormCtrl = require("../../src/controller/formCtrl").FormCtrl;
+const {FormCtrl, getFormCtrl, Templates} = require("../../src/controller/formCtrl");
 
 const mockEditor = {
     id: 12345, 
     selection: {
         getContent: jest.fn().mockImplementation(() => "text selected")
+    },
+    options: {
+        get: () => 0
     }
 };
 
 /** @type {*} */
 const mockUserStorage = {
-    getFromLocal: () => {
-        return undefined;
-    },
-    getFromSession: () => {
-        return undefined;
-    }
+    getFromLocal: jest.fn(),
+    getFromSession: jest.fn(),
+    setToLocal: jest.fn(),
+    setToSession: jest.fn()
 };
 
 /** @type {*} */
@@ -47,8 +52,8 @@ const mockFileSrv = {
 let formCtrl;
 
 describe("FormCtrl", () => {
-
     beforeEach(() => {
+        jest.clearAllMocks();
         let _id = 0;
         util.genID = () => {
             _id += 1;
@@ -59,6 +64,16 @@ describe("FormCtrl", () => {
 
     it("FormCtrl is created", () => {
         expect(formCtrl).not.toBeNull();
+    });
+
+    it("Create instance from cache", () => {
+        const f1 = getFormCtrl(mockEditor);
+        const f2 = getFormCtrl(mockEditor);
+        expect(f1).toBeTruthy();
+        expect(Object.is(f1, f2)).toBe(true);
+        const f3 = getFormCtrl({...mockEditor, id: 123456});
+        expect(f3).toBeTruthy();
+        expect(Object.is(f1, f3)).toBe(false);
     });
 
     it("FormCtrl creates a context for a widget", () => {
@@ -115,6 +130,7 @@ describe("FormCtrl", () => {
         expect(markup).toBe(`<b>${type} template</b>`);
         let templateName = type.toUpperCase() + "TEMPLATE";
         expect(mockTemplateSrv.renderMustache)
+            // @ts-ignore
             .toHaveBeenLastCalledWith(Templates[templateName], expect.anything());
     });
 
@@ -148,7 +164,7 @@ describe("FormCtrl", () => {
                 </select>
             </div>`);
 
-        const extracted = formCtrl.extractFormParameters(widget, form);
+        const extracted = formCtrl.extractFormParameters(widget, form, false);
         expect(extracted).toStrictEqual({
             p1: "Example",
             p2: "A long text in the area",
@@ -158,7 +174,6 @@ describe("FormCtrl", () => {
             p6: "b"
         });
     });
-
 
     it("Must extractFormParameters with transforms", () => {
         /** @type {*} */
@@ -177,11 +192,157 @@ describe("FormCtrl", () => {
                 <textarea data-bar="p2"> A long text in the area   </textarea>    
             </div>`);
 
-        const extracted = formCtrl.extractFormParameters(widget, form);
+        const extracted = formCtrl.extractFormParameters(widget, form, false);
         expect(extracted).toStrictEqual({
             p1: "Example",
             p2: "A LONG TEXT IN THE AREA"
         });
     });
 
+    it("Use stored values for all variables starting with _ when saveall unset", () => {
+        // Use the real templateSrv
+        formCtrl = new FormCtrl(mockEditor, mockUserStorage, getTemplateSrv(), mockFileSrv, jQuery);
+        mockUserStorage.getFromLocal = jest.fn().mockImplementation((key, def) => {
+            if (key === 'values') {
+                return {_saved: 'The new value'};
+            } else if (key === 'saveall') {
+                return false;
+            } else if (key === 'saveall_data') {
+                return {}
+            }
+            return def;
+        });
+        /** @type {any} */
+        const widget = {
+            name: "widget-name",
+            defaults: {_saved: "old", age: 18},
+            parameters: [
+                {name: "_saved", value: "old", type: "textfield"},
+                {name: "age", value: 18, min: 1, max: 110, type: "numeric"}
+            ],
+            isFilter: () => false
+        };
+        const ctx = formCtrl.createContext(widget);
+        expect(mockUserStorage.getFromLocal).toHaveBeenCalledWith('values', {});
+        expect(mockUserStorage.getFromLocal).toHaveBeenCalledWith('saveall', false);
+        expect(mockUserStorage.getFromLocal).toHaveBeenCalledWith('saveall_data', {});
+        expect(ctx.name).toBe(widget.name);
+        expect(ctx.filter).toBe(false);
+        expect(ctx.controls).toHaveLength(2);
+        expect(ctx.controls[0]).toBeTruthy();
+        const $control0 = jQuery(ctx.controls[0]).find('input');
+        expect($control0.val()).toBe("The new value");
+        expect($control0.attr('type')).toBe('text');
+        const $control1 = jQuery(ctx.controls[1]).find('input');
+        expect($control1.attr('min')).toBe('1');
+        expect($control1.attr('type')).toBe('number');
+        expect($control1.attr('max')).toBe('110');
+        expect($control1.val()).toBe('18');
+    });
+
+
+    it("Use stored values for all variables starting with _ when saveall is ON", () => {
+        // Use the real templateSrv
+        formCtrl = new FormCtrl(mockEditor, mockUserStorage, getTemplateSrv(), mockFileSrv, jQuery);
+        mockUserStorage.getFromLocal = jest.fn().mockImplementation((key, def) => {
+            if (key === 'values') {
+                return {_saved: 'The new value'};
+            } else if (key === 'saveall') {
+                return true;
+            } else if (key === 'saveall_data') {
+                return {wk111: {_saved: 'The new value 22', age: 49}};
+            }
+            return def;
+        });
+        /** @type {any} */
+        const widget = {
+            key: "wk111",
+            name: "widget-name",
+            defaults: {_saved: "old", age: 18},
+            parameters: [
+                {name: "_saved", value: "old", type: "textfield"},
+                {name: "age", value: 18, min: 1, max: 110, type: "numeric"}
+            ],
+            isFilter: () => false
+        };
+        const ctx = formCtrl.createContext(widget);
+        expect(mockUserStorage.getFromLocal).toHaveBeenCalledWith('values', {});
+        expect(mockUserStorage.getFromLocal).toHaveBeenCalledWith('saveall', false);
+        expect(mockUserStorage.getFromLocal).toHaveBeenCalledWith('saveall_data', {});
+        expect(ctx.name).toBe(widget.name);
+        expect(ctx.filter).toBe(false);
+        expect(ctx.controls).toHaveLength(2);
+        expect(ctx.controls[0]).toBeTruthy();
+        const $control0 = jQuery(ctx.controls[0]).find('input');
+        expect($control0.val()).toBe("The new value 22");
+        expect($control0.attr('type')).toBe('text');
+        const $control1 = jQuery(ctx.controls[1]).find('input');
+        expect($control1.attr('min')).toBe('1');
+        expect($control1.attr('type')).toBe('number');
+        expect($control1.attr('max')).toBe('110');
+        expect($control1.val()).toBe('49');
+    });
+
+
+    it('Applies field watchers showing and hidding controls depending on input', async() => {
+        // Use the real templateSrv
+        formCtrl = new FormCtrl(mockEditor, mockUserStorage, getTemplateSrv(), mockFileSrv, jQuery);
+        /** @type {any} */
+        const widget = {
+            key: "wk111",
+            name: "widget-name",
+            defaults: {opt: false, lst: 'spain', txt: 'Not editable'},
+            parameters: [
+                {name: "opt", value: false, type: "checkbox"},
+                {name: "lst", value: 'spain', type: "select", options: ['france', 'spain', 'italy', 'germany'], when: 'opt'},
+                {name: "txt", value: 'Not editable', type: "textfield", when: "opt && lst==='italy'", disabled: true}
+            ],
+            isFilter: () => false
+        };
+        const ctx = formCtrl.createContext(widget);
+        expect(ctx.controls).toHaveLength(3);
+        const $form = jQuery(`<div>${ctx.controls.join('\n')}</div>`);
+        const $optInput = $form.find('[data-bar="opt"]');
+        const $lstInput = $form.find('[data-bar="lst"]');
+        const $txtInput = $form.find('[data-bar="txt"]');
+        const $optControl = $optInput.closest('.form-group');
+        const $lstControl = $lstInput.closest('.form-group');
+        const $txtControl = $txtInput.closest('.form-group');
+        // check initial values
+        expect($optInput.prop('checked')).toBe(false);
+        expect($lstInput.val()).toBe('spain');
+        expect($txtInput.val()).toBe('Not editable');
+        formCtrl.applyFieldWatchers($form, widget.defaults, widget, false);
+        expect(mockUserStorage.setToLocal).not.toHaveBeenCalled();
+
+        
+        // Expect only the first element to be visible
+        expect($optControl.css('display')).toBe('block');
+        expect($lstControl.css('display')).toBe('none');
+        expect($txtControl.css('display')).toBe('none');
+
+        // Click on the checkbox
+        $optInput.prop("checked", true).change();
+        await wait(500);
+        expect($lstControl.css('display')).toBe('block');
+        expect($txtControl.css('display')).toBe('none');
+
+        // Select the italy option
+        $lstControl.val('italy');
+        $lstControl.find('option[value=spain]').attr('selected', false);
+        $lstControl.find('option[value=italy]').attr('selected', true);
+        $lstControl.change(); // Problem doUpdateVisibilities not called????
+        $optInput.change();
+        await wait(500);
+        expect($lstControl.css('display')).toBe('block');
+        expect($txtControl.css('display')).toBe('block');
+
+        // Click on the checkbox again
+        $optInput.prop("checked", false).change();
+        await wait(500);
+        // Expect only the first element to be visible
+        expect($optControl.css('display')).toBe('block');
+        expect($lstControl.css('display')).toBe('none');
+        expect($txtControl.css('display')).toBe('none');
+    });
 });

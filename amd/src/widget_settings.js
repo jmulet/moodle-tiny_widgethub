@@ -145,6 +145,10 @@ export default {
         ]);
 
         const {$ymlArea, $jsonArea, $partialInput} = this.getAreas(opts.id);
+        $ymlArea.css({
+            "min-height": "200px",
+            "border": "1px solid gray"
+        });
         // Partials are passed through a hidden input element
         const partials = JSON.parse($partialInput.val() || '{}');
 

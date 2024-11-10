@@ -77,7 +77,7 @@ export class WidgetParamsCtrl {
       this.#modal = modal;
       modal.body.find(`a[href="#${data.idTabpane}_1"`).on("click", async() => {
          // Handle preview;
-         const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, modal.body.find("form"));
+         const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, modal.body.find("form"), true);
          await this.updatePreview(data.idTabpane, ctxFromDialogue);
       });
       this.formCtrl.attachPickers(modal.body);
@@ -91,7 +91,7 @@ export class WidgetParamsCtrl {
       });
       modal.footer.find("button.btn-primary").on("click", async() => {
          // Go back to main menú
-         const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, modal.body.find("form"));
+         const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, modal.body.find("form"), true);
          modal.hide();
          await this.insertWidget(ctxFromDialogue);
          modal.destroy();

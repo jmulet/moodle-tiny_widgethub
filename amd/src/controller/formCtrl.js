@@ -67,7 +67,7 @@ export const Templates = {
    SELECTTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} tiny_widgethub-hidden{{/hidden}}">
    <label class="col-sm-5 col-form-label" for="{{elementid}}_stmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <div class="col-sm-7">
-   <select id="{{elementid}}_stmpl" class="form-control" data-bar="{{varname}}" {{#if disabled}}disabled{{/if}} {{#if tooltip}}title="{{tooltip}}"{{/if}}>
+   <select id="{{elementid}}_stmpl" class="form-control" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} {{#tooltip}}title="{{tooltip}}"{{/tooltip}}>
    {{#options}}
    <option value="{{optionValue}}"{{#selected}} selected{{/selected}}>{{optionLabel}}</option>
    {{/options}}
@@ -116,17 +116,17 @@ export class FormCtrl {
        * @returns {any}
        */
       const obtainCurrentValue = (param) => {
-         const sname = widget.name;
+         const sname = widget.key;
          const pname = param.name;
          let currentval = defaults[pname];
+         if (pname.startsWith("_") && values[pname]) {
+            currentval = values[pname];
+         }
          if (mustSaveAll) {
             // Search the last used value of this parameter
             if ((saveAllData[sname]?.[pname] ?? null) !== null) {
                currentval = saveAllData[sname][pname];
             }
-         }
-         if (pname.startsWith("_") && values[pname]) {
-            currentval = values[pname];
          }
          return currentval;
       };
@@ -211,9 +211,10 @@ export class FormCtrl {
     * This is used in insertWidget
     * @param {import('../options').Widget} widget
     * @param {JQuery<HTMLElement>} form
+    * @param {boolean} doStore
     * @returns {Record<string, any>} - The updated parameters dict
     */
-   extractFormParameters(widget, form) {
+   extractFormParameters(widget, form, doStore) {
       /** @type {Object.<string, any>}  */
       const ctx = {};
       /** @type {Object.<string, any>}  */
@@ -252,7 +253,7 @@ export class FormCtrl {
             toPersist[pname] = value;
          }
       });
-      if (this.storage) {
+      if (doStore && this.storage) {
          if (Object.keys(toPersist).length) {
             // Only those starting with $
             this.storage.setToLocal('values', toPersist, true);
@@ -367,9 +368,9 @@ export class FormCtrl {
       const doUpdateVisibilities = () => {
          updatableComponents.forEach(cc => {
             // Evaluate condition
-            console.log("Amagant ", cc);
+            console.log("Updating ", cc);
             const condicio = cc.condition;
-            const novesVariables = this.extractFormParameters(widget, $formElem);
+            const novesVariables = this.extractFormParameters(widget, $formElem, false);
             console.log("Obtained the new variables from the form ", novesVariables);
             // Add to the new variables the internal variables
             novesVariables.SELECT_MODE = selectMode;
@@ -377,7 +378,7 @@ export class FormCtrl {
             const showme = evalInContext(novesVariables, condicio);
             let theComponent = cc.component;
             if (theComponent) {
-               theComponent = theComponent.closest('form-group');
+               theComponent = theComponent.closest('.form-group');
                // Only change visibilities of nodes not hidden from user
                console.log("Changing visibilities of ", theComponent, " condition ", condicio, " evals to ", showme);
                if (!theComponent.attr('data-amagat')) {
@@ -394,10 +395,9 @@ export class FormCtrl {
       // Apply the watchers
       widget.parameters.forEach((varobj) => {
          const control = $formElem.find(`[data-bar="${cleanParameterName(varobj.name)}"]`);
-         if (watchedvars.indexOf(varobj.name) < 0 || !control) {
+         if (watchedvars.indexOf(varobj.name) < 0 || !control[0]) {
             return;
          }
-         console.log("that must be watched", varobj);
          let evtName = "change";
          if (varobj.type === 'textfield' || varobj.type === 'textarea') {
             evtName = "keyup";

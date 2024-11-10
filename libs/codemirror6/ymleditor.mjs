@@ -23,7 +23,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {EditorView, minimalSetup} from "codemirror";
+import {EditorView, basicSetup} from "codemirror";
 import {autocompletion} from "@codemirror/autocomplete";
 import {ensureSyntaxTree} from "@codemirror/language";
 import {yaml} from "@codemirror/lang-yaml";
@@ -80,6 +80,12 @@ const BIND_OPTIONS = [
     {label: "set: function(e, value){} ", type: 'variable', info: 'How to set the variable value to jQuery<HTMLElement> e'},
 ];
 
+/**
+ * @param {*} node
+ * @param {*} context
+ * @param {string[]} keys
+ * @returns
+ */
 function getKeysUpNode(node, context, keys) {
     if (!node.buffer && node.type?.name === 'Key') {
         keys.push(context.state.sliceDoc(node.from, node.to));
@@ -108,7 +114,7 @@ function getKeysUpNode(node, context, keys) {
  * @returns {Array<*> | null}
  */
 function getOptionsFor(flatTree) {
-    if (flatTree.length === 1 && flatTree[0] === '^') {
+    if (flatTree.length === 0 || (flatTree.length === 1 && flatTree[0] === '^')) {
         return ROOT_OPTIONS;
     } else if (flatTree.filter(e => e !== '^' && e !== '-')[0] === 'parameters') {
         return PARAMETERS_OPTIONS;
@@ -165,7 +171,7 @@ export default class YmlEditor {
     _init() {
         this._editorView = new EditorView({
             extensions: [
-                minimalSetup,
+                basicSetup,
                 yaml(),
                 autocompletion({override: [myCompletions]}),
             ],

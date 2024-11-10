@@ -123,7 +123,7 @@ export class WidgetPropertiesCtrl {
             const form = this.#modal?.body?.find("form");
             let updatedValues = paramValues;
             if (form) {
-                updatedValues = this.formCtrl.extractFormParameters(widget, form);
+                updatedValues = this.formCtrl.extractFormParameters(widget, form, true);
             }
             this.#modal?.destroy();
             // Apply Param Values To DOM
