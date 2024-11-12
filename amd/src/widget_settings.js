@@ -82,8 +82,8 @@ export default {
         /**
          * @type {{
          *     msg: string,
-         *  html: string,
-         *  json: string | undefined
+         *     html: string,
+         *     json: string | undefined
          * }}
          * */
         const validation = {msg: '', html: '', json: undefined};
@@ -101,11 +101,17 @@ export default {
 
             // Check if the structure is correct
             if (!jsonObj?.key) {
-                validation.msg = "Yaml file must contain a 'key' property. ";
+                validation.msg = "Yaml file must have 'key' property. ";
             } else if (jsonObj.key === "partials") {
                 return validation;
-            } else if (jsonObj.key !== 'partials' && (!jsonObj.name || !(jsonObj.template || jsonObj.filter))) {
-                validation.msg += "Widgets must have 'name' and 'template or filter' properties. ";
+            } else if (jsonObj.key !== 'partials') {
+                if (!jsonObj.name || !(jsonObj.template || jsonObj.filter)) {
+                    validation.msg += "Widgets must have 'name' and 'template or filter' properties. ";
+                } else if (jsonObj.template && jsonObj.filter) {
+                    validation.msg += "Cannot have template and filter simultaneously. "; 
+                } else if (!jsonObj.author || !jsonObj.version) {
+                    validation.msg += "Widgets must have 'author' and 'version' properties. ";
+                }
             }
             // Check for duplicated keys
             if (opts.id === 0 && jsonObj?.key) {
@@ -134,7 +140,7 @@ export default {
 
     /**
      * Load all widgets
-     * @param {{id: number, keys: string[], partials: any}} opts
+     * @param {{id: number, keys: string[]}} opts
      * @returns
      */
     init: async function(opts) {
@@ -199,7 +205,7 @@ export default {
                 $jsonArea.trigger('focusin');
                 $jsonArea.val('');
                 $jsonArea.trigger('change');
-                $ymlArea.html('');
+                $ymlArea.val('');
                 $previewPanel.html('');
                 // Send form by skipping validation
                 $form.trigger('submit');
