@@ -67,7 +67,7 @@
         {{#str}} dialogtitle, tiny_widgethub {{/str}}
     {{/title}}
     {{$body}}
-        <span class="ib-blink{{^selectMode}} tiny_widgethub-hidden{{/selectMode}}">
+        <span class="ib-blink{{^selectMode}} d-none{{/selectMode}}">
             <i class="fa fas fa-object-group"></i> {{#str}} selectmode, tiny_widgethub {{/str}}
         </span>
 
@@ -98,9 +98,9 @@
                 <div class="col-md-8 pl-md-0 tiny_widgethub-categorycontainer"
                      data-spy="scroll" data-bs-spy="scroll" data-target="#{{rid}}_list" data-offset="0">
                 
-                    <div class="tiny_widgethub-emptylist tiny_widgethub-hidden"><span>{{#str}} emptylist, tiny_widgethub {{/str}}</span></div>
+                    <div class="tiny_widgethub-emptylist d-none"><span>{{#str}} emptylist, tiny_widgethub {{/str}}</span></div>
                     {{#categories}}
-                    <div class="tiny_widgethub-category{{#hidden}} tiny_widgethub-hidden{{/hidden}}"
+                    <div class="tiny_widgethub-category{{#hidden}} d-none{{/hidden}}"
                         style="border: 2px solid hsl({{color}}, 40%);background: hsl({{color}}, 96%);" id="{{rid}}_{{name}}">
                         <div class="tiny_widgethub-lateral" style="background: hsl({{color}}, 40%);">
                             <p class="tiny_widgethub-title">{{name}}</p>
@@ -108,7 +108,7 @@
                         <div class="d-flex flex-column px-4 py-2">
                            {{#buttons}}
                                 <div style="align-items: flex-end;" data-key="{{widgetkey}}"
-                                    class="row mb-1 btn-group{{#hidden}} tiny_widgethub-hidden{{/hidden}}{{#disabled}} tiny_widgethub-disabled{{/disabled}}"
+                                    class="row mb-1 btn-group{{#hidden}} d-none{{/hidden}}{{#disabled}} tiny_widgethub-disabled{{/disabled}}"
                                     {{#selectable}} data-selectable="true"{{/selectable}}>
                                 {{#isfilter}}
                                   <button class="col-2 btn {{#filterset}}btn-primary{{/filterset}} {{^filterset}}btn-outline-primary{{/filterset}}" data-auto="{{filterset}}" title="Automatic">

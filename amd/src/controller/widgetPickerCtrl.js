@@ -34,11 +34,11 @@ import {debounce, genID, hashCode, searchComp, toggleClass} from '../util';
  * @param {HTMLElement} el
  * @param {boolean} visible
  */
-const toggleVisible = function(el, visible) {
+export const setVisibility = function(el, visible) {
     if (visible) {
-        el.classList.remove("tiny_widgethub-hidden");
+        el.classList.remove("d-none");
     } else {
-        el.classList.add("tiny_widgethub-hidden");
+        el.classList.add("d-none");
     }
 };
 
@@ -72,62 +72,88 @@ export class WidgetPickerCtrl {
         this.scrollPos = 0;
     }
 
-    show() {
-        this.modal?.show();
-    }
-
     isSelectMode() {
         return this.editor.selection.getContent().trim().length > 0;
     }
 
-     // Type on search input
-    onSearchKeyup() {
-        const selectMode = this.isSelectMode();
+    /**
+     * Shows or hides buttons according to the search text condition
+     * When text == '', all non-hidden buttons should be displayed
+     * @param {JQuery<HTMLElement>} bodyForm
+     * @param {string} searchText
+     * @returns {number}
+     */
+    setWidgetButtonsVisibility(bodyForm, searchText) {
         let numshown = 0;
-        const widgetSearchElem = this.modal.body.find("input")[0];
-        const searchText = (widgetSearchElem.value || '');
+        const selectMode = this.isSelectMode();
+        /** @type {JQuery<HTMLDivElement>} */
+        const allbtns = bodyForm.find(".btn-group");
+        allbtns.each((i, el) => {
+            // Is supported in select mode?
+            let visible = !selectMode || (selectMode && el.dataset.selectable === "true");
+            const el2 = el.querySelector('button');
+            // Does fullfill the search criteria?
+            visible &&= el2 !== null && (searchText.trim() === '' || searchComp(el2.textContent ?? '', searchText) ||
+                searchComp(el2.title ?? '', searchText));
+            setVisibility(el, visible);
+            if (visible) {
+                numshown++;
+            }
+        });
+        return numshown;
+    }
+
+    /**
+     * Callback on keyup event
+     */
+    onSearchKeyup() {
+        const searchText = this.modal.body.find("input").val() ?? '';
         this.storage.setToSession('searchtext', searchText, true);
-        /** @type {NodeListOf<HTMLElement>} */
-        const allbtns = document.querySelectorAll(".btn-group");
-        /** @type {NodeListOf<HTMLElement>} */
-        const allcatgs = document.querySelectorAll(".tiny_widgethub-category");
 
         // Are we in selectMode, does the widget support it? insertquery
-        if (!searchText) {
-            allbtns.forEach(
-                (el) => {
-                const visible = !selectMode || (selectMode && el.dataset.selectable === "true");
-                toggleVisible(el, visible);
-                if (visible) {
-                    numshown++;
-                }
-            });
-        } else {
-            allbtns.forEach((el) => {
-                let visible = !selectMode || (selectMode && el.dataset.selectable === "true");
-                const el2 = el.querySelector('button');
-                visible = visible && searchComp(el2?.title + "", searchText);
-                toggleVisible(el, visible);
-                if (visible) {
-                    numshown++;
-                }
-            });
-        }
-        allcatgs.forEach((el) => {
-            const count = el.querySelectorAll(".btn-group:not(.tiny_widgethub-hidden)").length;
-            toggleVisible(el, count > 0);
+        const numshown = this.setWidgetButtonsVisibility(this.modal.body, searchText);
+        // If no button visible, show emptyList message
+        setVisibility(this.modal.body.find(".tiny_widgethub-emptylist")[0], numshown == 0);
+
+        // Hide categories without any button visible
+        /** @type {JQuery<HTMLElement>} */
+        const allcatgs = this.modal.body.find(".tiny_widgethub-category");
+        allcatgs.each((_, el) => {
+            const count = el.querySelectorAll(".btn-group:not(.d-none)").length;
+            setVisibility(el, count > 0);
         });
-        console.log("Num shown buttons is ", numshown);
-        // If no result show emptyList message
-        toggleVisible(this.modal.body.find(".tiny_widgethub-emptylist")[0], numshown == 0);
+    }
+
+    /**
+     * @param {*} evt
+     */
+    async onMouseEnterButton(evt) {
+        const widgetTable = this.editorOptions.widgetDict;
+        const key = evt.target?.closest('.btn-group')?.dataset?.key ?? '';
+        const widget = widgetTable[key];
+        if (!widget || widget.isFilter()) {
+            // Filters do not offer preview
+            return;
+        }
+        /** @type {string | undefined} */
+        let html = widget._preview;
+        if (!html) {
+            // Generate preview with default parameters
+            html = await this.generatePreview(widget);
+            widget._preview = html;
+        }
+        this.modal.body.find("div.tiny_widgethub-preview")
+            .html(html)
+            .css("display", "block");
     }
 
     async createModal() {
+        /** @type {string} */
         const searchText = this.storage.getFromSession("searchtext", "");
-        const data = this.getPickTemplateContext({
-            searchText: searchText
-        });
-        console.log(" data  is  ", data);
+        const data = {
+            ...this.getPickTemplateContext(),
+            searchText
+        };
         // @ts-ignore
         this.modal = await this.modalSrv.create('picker', data);
 
@@ -139,34 +165,15 @@ export class WidgetPickerCtrl {
             console.error("Problem setting scrollspy", ex);
         }
 
-        // Confiure preview panel
-        const previewPanel = this.modal.body.find("div.tiny_widgethub-preview");
-        const widgetTable = this.editorOptions.widgetDict;
-
-        const mouseEnterDebounced = debounce(async(/** @type {*} */ evt) => {
-            const key = evt.target?.closest('.btn-group')?.dataset?.key ?? '';
-            const widget = widgetTable[key];
-            if (!widget || widget.isFilter()) {
-                // Filters do not offer preview
-                return;
-            }
-            /** @type {string | undefined} */
-            let html = widget._preview;
-            if (!html) {
-                // Generate preview with default parameters
-                html = await this.generatePreview(widget);
-                widget._preview = html;
-            }
-            previewPanel.html(html);
-            previewPanel.css("display", "block");
-        }, 1000);
+        // Confiure preview panel events
+        const mouseEnterDebounced = debounce(this.onMouseEnterButton, 1000);
 
         const onMouseOut = () => {
             mouseEnterDebounced.clear();
-            previewPanel.html('');
-            previewPanel.css("display", "none");
+            this.modal.body.find("div.tiny_widgethub-preview")
+                .html('')
+                .css("display", "none");
         };
-
 
         // Event listeners.
         // Click on clear text
@@ -186,8 +193,8 @@ export class WidgetPickerCtrl {
             /** @param {Event} event */
             (event) => {
                 mouseEnterDebounced.clear();
-                previewPanel.css("display", "none");
-                console.log(event.target);
+                this.modal.body.find("div.tiny_widgethub-preview")
+                    .css("display", "none");
                 this.handlePickModalClick(event);
             });
 
@@ -214,19 +221,19 @@ export class WidgetPickerCtrl {
             // Update list of recent
             const widgetDict = getWidgetDict(this.editor);
             const html = this.storage.getRecentUsed()
-               .filter(r => widgetDict[r.key] !== undefined)
-               .map(r =>
-                `<a href="javascript:void(0)" data-key="${r.key}" data-insert="recent"><span class="badge badge-secondary">${widgetDict[r.key].name}</span></a>`)
-               .join('\n');
-               this.modal.body.find('.tiny_widgethub-recent').html(html);
+                .filter(r => widgetDict[r.key] !== undefined)
+                .map(r =>
+                    `<a href="javascript:void(0)" data-key="${r.key}" data-insert="recent"><span class="badge badge-secondary">${widgetDict[r.key].name}</span></a>`)
+                .join('\n');
+            this.modal.body.find('.tiny_widgethub-recent').html(html);
         }
 
         const selectMode = this.isSelectMode();
         console.log("Estic en mode selecció? " + selectMode);
         if (selectMode) {
-            this.modal.header.find("span.ib-blink").removeClass("tiny_widgethub-hidden");
+            this.modal.header.find("span.ib-blink").removeClass("d-none");
         } else {
-            this.modal.header.find("span.ib-blink").addClass("tiny_widgethub-hidden");
+            this.modal.header.find("span.ib-blink").addClass("d-none");
         }
 
         this.modal.show();
@@ -243,6 +250,11 @@ export class WidgetPickerCtrl {
         }, 200);
     }
 
+
+    show() {
+        this.modal?.show();
+    }
+
     /**
      * @param {import('../options').Widget} widget
      * @returns {Promise<string>}
@@ -253,36 +265,39 @@ export class WidgetPickerCtrl {
         const engine = widget.prop('engine');
         return this.templateSrv.render(widget.template ?? "", toInterpolate, widget.I18n, engine);
     }
+
+    /**
+     * @typedef {Object} Button
+     * @property {boolean} hidden
+     * @property {string} category
+     * @property {number} widgetindex
+     * @property {string} widgetkey
+     * @property {string} widgetname
+     * @property {string} widgettitle
+     * @property {string} iconname
+     * @property {boolean} disabled
+     * @property {boolean} selectable
+     * @property {boolean} isfilter
+     * @property {boolean} filterset
+     */
+    /**
+     * @typedef {Object} Category
+     * @property {string} name
+     * @property {boolean} hidden
+     * @property {string} color
+     * @property {Button[]} buttons
+     */
+    /**
+     *  @typedef {{rid: string, selectMode: boolean, elementid: string, categories: Category[], recent: *[]}} TemplateContext
+     */
     /**
      * Get the template context for the dialogue.
      *
-     * @param {Object.<string, any>=} data
-     * @returns {Object.<string, any>} data
+     * @returns {TemplateContext} data
      */
-    getPickTemplateContext(data) {
+    getPickTemplateContext() {
         const snptDict = this.editorOptions.widgetDict;
         const allButtons = Object.values(snptDict);
-        /**
-         * @typedef {Object} Button
-         * @property {boolean} hidden
-         * @property {string} category
-         * @property {number} widgetindex
-         * @property {string} widgetkey
-         * @property {string} widgetname
-         * @property {string} widgettitle
-         * @property {string} iconname
-         * @property {boolean} disabled
-         * @property {boolean} selectable
-         * @property {boolean} isfilter
-         * @property {boolean} filterset
-         */
-        /**
-         * @typedef {Object} Category
-         * @property {string} name
-         * @property {boolean} hidden
-         * @property {string} color
-         * @property {Button[]} buttons
-         */
         // Parse filters that are autoset by the user.
         const autoFilters = this.storage.getFromLocal("startup.filters", "")
             .split(",").map(f => f.trim());
@@ -337,39 +352,39 @@ export class WidgetPickerCtrl {
             cat.hidden = cat.buttons.filter(btn => !btn.hidden).length == 0;
         });
 
-         // Update the list of recently used widgets
+        // Update the list of recently used widgets
         const recentList = this.storage.getRecentUsed().filter((/** @type {any} **/ recent) => {
-                // In select mode must filter widgets that do support it
+            // In select mode must filter widgets that do support it
+            const key = recent.key;
+            const widget = snptDict[key];
+            if (!widget) {
+                return false;
+            }
+            const selectable = widget.insertquery !== undefined;
+            const isSelection = this.isSelectMode();
+            return key.length > 0 && (!isSelection || (isSelection && selectable));
+        })
+            .map((/** @type {any} **/ recent) => {
                 const key = recent.key;
-                const widget = snptDict[key];
-                if (!widget) {
-                    return false;
+                const snpt = snptDict[key];
+                if (snpt) {
+                    return {
+                        key: key,
+                        name: snpt.name
+                    };
+                } else {
+                    return {
+                        key: key,
+                        name: ""
+                    };
                 }
-                const selectable = widget.insertquery !== undefined;
-                const isSelection = this.isSelectMode();
-                return key.length > 0 && (!isSelection || (isSelection && selectable));
-             })
-             .map((/** @type {any} **/ recent) => {
-                const key = recent.key;
-                 const snpt = snptDict[key];
-                 if (snpt) {
-                     return {
-                         key: key,
-                         name: snpt.name
-                     };
-                 } else {
-                     return {
-                         key: key,
-                         name: ""
-                     };
-                 }
-             });
+            });
 
         return {
             rid: genID(),
             selectMode: this.isSelectMode(),
             elementid: this.editor.id,
-            categories: categoriesList, ...(data ?? {}),
+            categories: categoriesList,
             recent: recentList
         };
     }
@@ -433,12 +448,12 @@ export class WidgetPickerCtrl {
         const forceInsert = aRecent !== null || button?.dataset?.insert === 'true';
         if (confirmMsg) {
             this.editor.windowManager.confirm(confirmMsg,
-            /** @param {*} state */
-            (state) => {
-                if (state) {
-                    this.handlePickModalAction(widget, forceInsert, ctx);
-                }
-            });
+                /** @param {*} state */
+                (state) => {
+                    if (state) {
+                        this.handlePickModalAction(widget, forceInsert, ctx);
+                    }
+                });
         } else {
             this.handlePickModalAction(widget, forceInsert, ctx);
         }
