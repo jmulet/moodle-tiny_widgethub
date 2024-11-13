@@ -32,42 +32,42 @@ const questionPopover = '{{#tooltip}}<a href="javascript:void(0)" data-toggle="p
 
 export const Templates = {
    TEXTFIELDTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
-   <div class="col-sm-7"><input type="text" id="{{elementid}}_ftmpl" class="form-control" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/></div>
+   <div class="col-sm-7"><input type="text" id="{{elementid}}_ftmpl" class="form-control" name="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/></div>
    </div>`,
 
    IMAGETEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <div class="col-sm-7">
-   <input type="text" id="{{elementid}}_ftmpl" class="form-control d-inline-block w-75" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
+   <input type="text" id="{{elementid}}_ftmpl" class="form-control d-inline-block w-75" name="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
    <button class="whb-image-picker btn btn-sm btn-secondary d-inline-block" title="Search"><i class="fas fa fa-search"></i></button>
    </div>
    </div>`,
 
    NUMERICTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="col-sm-5 col-form-label"  for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
-   <div class="col-sm-7"><input type="number" id="{{elementid}}_fntmpl" class="form-control" data-bar="{{varname}}" {{{minMax}}} {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/></div>
+   <div class="col-sm-7"><input type="number" id="{{elementid}}_fntmpl" class="form-control" name="{{varname}}" {{{minMax}}} {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/></div>
    </div>`,
 
    COLORTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label class="col-sm-5 col-form-label"  for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <div class="col-sm-7">
    <span class="w-50 tiny_widgethub-pattern">
-      <input type="color" id="{{elementid}}_fctmpl" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
+      <input type="color" id="{{elementid}}_fctmpl" name="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
    </span>
-   <input type="range" id="{{elementid}}_fcatmpl" title="Opacity" data-bar="{{varname}}_alpha" {{#disabled}}disabled{{/disabled}} value="{{defaultvalueAlpha}}" min="0" max="1" step="0.01"/>
+   <input type="range" id="{{elementid}}_fcatmpl" title="Opacity" name="{{varname}}_alpha" {{#disabled}}disabled{{/disabled}} value="{{defaultvalueAlpha}}" min="0" max="1" step="0.01"/>
    </div></div>`,
 
    TEXTAREATEMPLATE: `<div id="{{elementid}}" class="form-group{{#hidden}} tiny_widgethub-hidden{{/hidden}}"><label for="{{elementid}}_tatmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
-   <textarea id="{{elementid}}_tatmpl" rows="3" class="form-control" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} {{#tooltip}}title="{{tooltip}}"{{/tooltip}}>{{defaultvalue}}</textarea>
+   <textarea id="{{elementid}}_tatmpl" rows="3" class="form-control" name="{{varname}}" {{#disabled}}disabled{{/disabled}} {{#tooltip}}title="{{tooltip}}"{{/tooltip}}>{{defaultvalue}}</textarea>
    </div>`,
 
    CHECKBOXTEMPLATE: `<div id="{{elementid}}" class="form-group w-75 m-2{{#hidden}} tiny_widgethub-hidden{{/hidden}}">
    <label>
-   <input title="{{varname}}" id="{{elementid}}_cbtmpl" {{#disabled}}disabled{{/disabled}} type="checkbox" data-bar="{{varname}}" value="{{defaultvalue}}" {{#defaultvalue}}checked{{/defaultvalue}}/></span>
+   <input title="{{varname}}" id="{{elementid}}_cbtmpl" {{#disabled}}disabled{{/disabled}} type="checkbox" name="{{varname}}" value="{{defaultvalue}}" {{#defaultvalue}}checked{{/defaultvalue}}/></span>
    {{vartitle}}</label> <span>&nbsp;&nbsp;  ${questionPopover}</span>
    </div>`,
 
    SELECTTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} tiny_widgethub-hidden{{/hidden}}">
    <label class="col-sm-5 col-form-label" for="{{elementid}}_stmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <div class="col-sm-7">
-   <select id="{{elementid}}_stmpl" class="form-control" data-bar="{{varname}}" {{#disabled}}disabled{{/disabled}} {{#tooltip}}title="{{tooltip}}"{{/tooltip}}>
+   <select id="{{elementid}}_stmpl" class="form-control" name="{{varname}}" {{#disabled}}disabled{{/disabled}} {{#tooltip}}title="{{tooltip}}"{{/tooltip}}>
    {{#options}}
    <option value="{{optionValue}}"{{#selected}} selected{{/selected}}>{{optionLabel}}</option>
    {{/options}}
@@ -223,7 +223,7 @@ export class FormCtrl {
       widget.parameters.forEach(param => {
          const pname = param.name;
          const cleanPname = cleanParameterName(pname);
-         const $elem = form.find(`[data-bar="${cleanPname}"]`);
+         const $elem = form.find(`[name="${cleanPname}"]`);
          if (!$elem.length) {
             ctx[pname] = defaults[pname];
             return;
@@ -240,7 +240,7 @@ export class FormCtrl {
             }
          } else if ($elem.prop("tagName") === "INPUT" && $elem.attr("type") === "color") {
             // Must also find the corresponding alpha channel value
-            const $slider = form.find(`[data-bar="${cleanPname}_alpha"]`);
+            const $slider = form.find(`[name="${cleanPname}_alpha"]`);
             const alpha = $slider.val() ?? 1;
             value = toRgba(value, +alpha);
          }
@@ -296,9 +296,9 @@ export class FormCtrl {
       // Find all color pickers
       body.find('input[type="color"]').each((_, e) => {
          const $inputColor = this.jQuery(e);
-         const bar = ($inputColor.attr('data-bar') ?? '');
+         const name = ($inputColor.attr('name') ?? '');
          // Find corresponding range slider
-         const $inputRange = body.find(`input[data-bar="${bar}_alpha"]`);
+         const $inputRange = body.find(`input[name="${name}_alpha"]`);
          const opacity = $inputRange.val() ?? 1;
          $inputColor.css('opacity', '' + opacity);
          // Bind envent change
@@ -337,7 +337,7 @@ export class FormCtrl {
          if (varobj.when) {
             const condition = varobj.when;
             const t = varobj.type;
-            const control = $formElem.find(`[data-bar="${cleanParameterName(varobj.name)}"]`);
+            const control = $formElem.find(`[name="${cleanParameterName(varobj.name)}"]`);
             if (!control.length || !t) {
                continue;
             }
@@ -394,7 +394,7 @@ export class FormCtrl {
 
       // Apply the watchers
       widget.parameters.forEach((varobj) => {
-         const control = $formElem.find(`[data-bar="${cleanParameterName(varobj.name)}"]`);
+         const control = $formElem.find(`[name="${cleanParameterName(varobj.name)}"]`);
          if (watchedvars.indexOf(varobj.name) < 0 || !control[0]) {
             return;
          }

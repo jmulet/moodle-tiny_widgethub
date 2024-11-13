@@ -152,12 +152,12 @@ describe("FormCtrl", () => {
         };
         const form = jQuery(`
             <div>
-                <input type="text" data-bar="p1" value="Example">
-                <textarea data-bar="p2">A long text in the area</textarea>    
-                <input type="number" data-bar="p3" value="1975">
-                <input type="checkbox" data-bar="p4" checked>
-                <input type="color" data-bar="p5" value="#AABBCC">
-                <select data-bar="p6">
+                <input type="text" name="p1" value="Example">
+                <textarea name="p2">A long text in the area</textarea>    
+                <input type="number" name="p3" value="1975">
+                <input type="checkbox" name="p4" checked>
+                <input type="color" name="p5" value="#AABBCC">
+                <select name="p6">
                     <option label="L1">a</option>
                     <option label="L2" selected>b</option>
                     <option label="L3">c</option>
@@ -188,8 +188,8 @@ describe("FormCtrl", () => {
         };
         const form = jQuery(`
             <div>
-                <input type="text" data-bar="p1" value="   Example  ">
-                <textarea data-bar="p2"> A long text in the area   </textarea>    
+                <input type="text" name="p1" value="   Example  ">
+                <textarea name="p2"> A long text in the area   </textarea>    
             </div>`);
 
         const extracted = formCtrl.extractFormParameters(widget, form, false);
@@ -302,9 +302,9 @@ describe("FormCtrl", () => {
         const ctx = formCtrl.createContext(widget);
         expect(ctx.controls).toHaveLength(3);
         const $form = jQuery(`<div>${ctx.controls.join('\n')}</div>`);
-        const $optInput = $form.find('[data-bar="opt"]');
-        const $lstInput = $form.find('[data-bar="lst"]');
-        const $txtInput = $form.find('[data-bar="txt"]');
+        const $optInput = $form.find('[name="opt"]');
+        const $lstInput = $form.find('[name="lst"]');
+        const $txtInput = $form.find('[name="txt"]');
         const $optControl = $optInput.closest('.form-group');
         const $lstControl = $lstInput.closest('.form-group');
         const $txtControl = $txtInput.closest('.form-group');

@@ -34,7 +34,7 @@ import * as coreStr from "core/str";
 
 export class WidgetParamsCtrl {
    /** @type {import('../service/modalSrv').ModalDialogue | null} */
-   #modal = null;
+   modal = null;
 
    /**
     * @type {import('./widgetPickerCtrl').WidgetPickerCtrl | undefined }
@@ -71,10 +71,10 @@ export class WidgetParamsCtrl {
       // Show modal with buttons.
       const data = this.formCtrl.createContext(this.widget);
       const modal = await this.modalSrv.create('params', data, () => {
-         this.#modal?.destroy();
-         this.#modal = null;
+         this.modal?.destroy();
+         this.modal = null;
       });
-      this.#modal = modal;
+      this.modal = modal;
       modal.body.find(`a[href="#${data.idTabpane}_1"`).on("click", async() => {
          // Handle preview;
          const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, modal.body.find("form"), true);
@@ -104,10 +104,8 @@ export class WidgetParamsCtrl {
       modal.show();
    }
 
-   destroy() {
-      if (this.#modal) {
-         this.#modal.destroy();
-      }
+   destroy() { 
+      this.modal?.destroy();
    }
 
    /**
@@ -140,6 +138,7 @@ export class WidgetParamsCtrl {
          // We are in selection mode
          const tmpDiv = document.createElement("div");
          tmpDiv.innerHTML = interpoledComponentCode;
+         console.log(interpoledComponentCode);
          const insertPoint = tmpDiv.querySelector(query);
          if (insertPoint) {
             if (replaceMode) {
@@ -150,19 +149,21 @@ export class WidgetParamsCtrl {
                insertPoint.innerHTML = sel;
             }
             interpoledComponentCode = tmpDiv.innerHTML;
+         } else {
+            console.error("Cannot find insert point", query);
          }
       }
       return interpoledComponentCode;
    }
 
    /**
-    * @param {number} idTabpane
+    * @param {string} idTabpane
     * @param {Object.<string, any>} ctxFromDialogue
     * @returns
     */
    async updatePreview(idTabpane, ctxFromDialogue) {
       const interpoledCode = await this.generateInterpolatedCode(ctxFromDialogue);
-      const $previewPanel = this.#modal?.body?.find(`#${idTabpane}_1`);
+      const $previewPanel = this.modal?.body?.find(`#${idTabpane}_1`);
       if ($previewPanel) {
          $previewPanel.html(interpoledCode);
       }
@@ -188,6 +189,7 @@ export class WidgetParamsCtrl {
 
       if (this.widget.isFilter()) {
          this.applyWidgetFilter(this.widget.template ?? '', false, ctxFromDialogue);
+         this.editor.focus();
          return;
       }
       const interpoledCode = await this.generateInterpolatedCode(ctxFromDialogue);
@@ -198,7 +200,6 @@ export class WidgetParamsCtrl {
       // Call any subscriber
       getListeners('widgetInserted').forEach(listener => listener(this.editor, this.widget, ctxFromDialogue));
    }
-
 }
 
 
