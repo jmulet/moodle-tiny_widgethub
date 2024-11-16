@@ -23,7 +23,8 @@ const mockUserStorage = {
     getFromLocal: jest.fn().mockReturnValue(""),
     getFromSession: jest.fn().mockReturnValue(""),
     setToSession: jest.fn(),
-    getRecentUsed: jest.fn().mockReturnValue([])
+    getRecentUsed: jest.fn().mockReturnValue([]),
+    loadStore: jest.fn()
 };
 
 /** @type {*} */
@@ -275,7 +276,37 @@ describe("WidgetPickerCtrl", () => {
         await widgetPickCtrl.createModal();
 
         expect(widgetPickCtrl.modal).toBeTruthy();
-
     });
+
+    it('Must handle action', async() => {
+        const header = jQuery('<div><span class="ib-blink"></span></div>');
+        // Assuming modal is not created
+        const spyCreateModal =
+            jest.spyOn(widgetPickCtrl, 'createModal').mockImplementation(() => {
+            return new Promise(resolve => {
+                // @ts-ignore
+                widgetPickCtrl.modal = {
+                    header,
+                    body: jQuery('<div></div>'),
+                    show: jest.fn(),
+                };
+                resolve();
+            });
+        });
+
+        await widgetPickCtrl.handleAction();
+        expect(spyCreateModal).toHaveBeenCalledTimes(1);
+        expect(widgetPickCtrl.modal.show).toHaveBeenCalled();
+        expect(header.find('.ib-blink').hasClass('d-none')).toBe(true);
+
+        // Now that modal is created 
+        // Set selection mode
+        mockEditor.selection.getContent = jest.fn().mockReturnValue("ABC");
+        await widgetPickCtrl.handleAction();
+        spyCreateModal.mockReset();
+        expect(spyCreateModal).toHaveBeenCalledTimes(0);
+        expect(widgetPickCtrl.modal.show).toHaveBeenCalled();
+        expect(header.find('.ib-blink').hasClass('d-none')).toBe(false);
+    })
 
 });

@@ -104,20 +104,20 @@ export function searchComp(str1, needle) {
 
 /** Default transformers */
 const Transformers = {
-    // @ts-ignore
-    "toUpperCase": function(txt) {
+    /** @param {string} txt */
+    toUpperCase: function(txt) {
         return (txt + "").toUpperCase();
     },
-    // @ts-ignore
-    "toLowerCase": function(txt) {
+    /** @param {string} txt */
+    toLowerCase: function(txt) {
         return (txt + "").toLowerCase();
     },
-    // @ts-ignore
-    "trim": function(txt) {
+   /** @param {string} txt */
+    trim: function(txt) {
         return (txt + "").trim();
     },
-    // @ts-ignore
-    "ytId": function(txt) {
+    /** @param {string} txt */
+    ytId: function(txt) {
         // Finds the youtubeId in a text
         const rx = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/;
         const r = (txt || '').match(rx);
@@ -126,17 +126,17 @@ const Transformers = {
         }
         return txt;
     },
-    // @ts-ignore
-    "vimeoId": function(txt) {
+    /** @param {string} txt */
+    vimeoId: function(txt) {
         const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?(\d+)/;
-        const match = (txt || "").match(regExp);
+        const match = (txt || "").match(new RegExp);
         if (match?.[5]) {
             return match[5];
         }
         return txt;
     },
-    // @ts-ignore
-    "serveGDrive": function(txt) {
+    /** @param {string} txt */
+    serveGDrive: function(txt) {
         // Expecting https://drive.google.com/file/d/1DDUzcFrOlzWb3CBdFPJ1NCNXClvPbm5B/preview
         const res = (txt + "").match(/https:\/\/drive.google.com\/file\/d\/([a-zA-Z0-9_]+)\//);
         if (res?.length) {
@@ -145,25 +145,25 @@ const Transformers = {
         }
         return txt;
     },
-    // @ts-ignore
-    "removeHTML": function(txt) {
+    /** @param {string} txt */
+    removeHTML: function(txt) {
         return (txt || '').replace(/<[^>]*>?/gm, '');
     },
-    // @ts-ignore
-    "escapeHTML": function(txt) {
+    /** @param {string} txt */
+    escapeHTML: function(txt) {
         return (txt || '').replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
     },
-    // @ts-ignore
-    "encodeHTML": function(txt) {
+   /** @param {string} txt */
+    encodeHTML: function(txt) {
         // @ts-ignore
         return encodeURIComponent(txt || "");
     },
-    // @ts-ignore
-    "escapeQuotes": function(txt) {
+    /** @param {string} txt */
+    escapeQuotes: function(txt) {
         return (txt || '').replace(/"/gm, "'");
     }
 };
@@ -474,8 +474,22 @@ const xor = function(a, b) {
 };
 
 /**
- *
- * @param {JQuery<HTMLElement>} $e
+ * @param {string} str
+ * @param {*} match
+ * @param {string} replacement
+ * @returns {string}
+ */
+const replaceStrPart = function(str, match, replacement) {
+    if (!match.indices) {
+        console.error("RegExp match does not include indices");
+        return str;
+    }
+    const [a, b] = match.indices[1];
+    return str.substring(0, a) + replacement + str.substring(b);
+};
+
+/**
+ * @param {JQuery<HTMLElement>} $e - The target element
  * @returns
  */
 const bindingFactory = function($e) {
@@ -487,7 +501,7 @@ const bindingFactory = function($e) {
          * @param {boolean=} neg
          * @returns {Binding}
          */
-        "hasClass": (className, query, neg) => {
+        hasClass: (className, query, neg) => {
             /** @type {JQuery<HTMLElement>} */
             let elem = $e;
             if (query) {
@@ -515,7 +529,7 @@ const bindingFactory = function($e) {
          * @returns {Binding}
          */
         notHasClass: (className, query) => {
-            return methods['hasClass'](className, query, true);
+            return methods.hasClass(className, query, true);
         },
         /**
          * @param {string} classExpr
@@ -523,7 +537,7 @@ const bindingFactory = function($e) {
          * @param {string=} castTo
          * @returns {Binding}
          */
-        "classRegex": (classExpr, query, castTo) => {
+        classRegex: (classExpr, query, castTo) => {
             let elem = $e;
             if (query) {
                 elem = $e.find(query);
@@ -534,7 +548,7 @@ const bindingFactory = function($e) {
                     // @ts-ignore
                     const cl = elem.attr('class')?.split(/\s+/) ?? [];
                     cl.forEach(c => {
-                        const match = c.match(classExpr);
+                        const match = RegExp(classExpr).exec(c);
                         if (match?.[1] && typeof (match[1]) === "string") {
                             ret = match[1];
                         }
@@ -545,20 +559,13 @@ const bindingFactory = function($e) {
                     const cl = elem.attr('class')?.split(/\s+/) ?? [];
                     // @ts-ignore
                     cl.forEach(c => {
-                        const match = c.match(classExpr);
-                        if (!match) {
+                        const match = new RegExp(classExpr, 'd').exec(c);
+                        if (match === null) {
                             return;
                         }
                         elem.removeClass(c);
-                        if (match?.[1]) {
-                            console.log(c, classExpr, c.match(classExpr));
-                            const newCls = c.replace(RegExp(classExpr),
-                                ($0, $1) => $0.replace($1, val + ''));
-                            elem.addClass(newCls);
-                        } else {
-                            const newCls = classExpr.replace('(.*)', val + '');
-                            elem.addClass(newCls);
-                        }
+                        const newCls = replaceStrPart(c, match, val + '');
+                        elem.addClass(newCls);
                     });
                 }
             };
@@ -569,7 +576,7 @@ const bindingFactory = function($e) {
          * @param {string=} castTo
          * @returns {Binding}
          */
-        "attr": (attrName, query, castTo) => {
+        attr: (attrName, query, castTo) => {
             let elem = $e;
             if (query) {
                 elem = $e.find(query);
@@ -597,7 +604,7 @@ const bindingFactory = function($e) {
          * @param {boolean=} neg
          * @returns {Binding}
          */
-        "hasAttr": (attr, query, neg) => {
+        hasAttr: (attr, query, neg) => {
             let elem = $e;
             if (query) {
                 elem = $e.find(query);
@@ -637,8 +644,8 @@ const bindingFactory = function($e) {
          * @param {string=} query
          * @returns {Binding}
          */
-        "notHasAttr": (attr, query) => {
-            return methods['hasAttr'](attr, query, true);
+        notHasAttr: (attr, query) => {
+            return methods.hasAttr(attr, query, true);
         },
         /**
          * @param {string} attr - Regex of attr
@@ -646,7 +653,7 @@ const bindingFactory = function($e) {
          * @param {string=} castTo
          * @returns {Binding}
          */
-        "attrRegex": function(attr, query, castTo) {
+        attrRegex: function(attr, query, castTo) {
             let elem = $e;
             if (query) {
                 elem = $e.find(query);
@@ -673,8 +680,9 @@ const bindingFactory = function($e) {
                 setValue(val) {
                     const oldValue = elem.attr(attrName) ?? '';
                     if (oldValue) {
+                        const match = new RegExp(attrValue, 'd').exec(oldValue);
                         // @ts-ignore
-                        const newValue = oldValue.replace(RegExp(attrValue), ($0, $1) => $0.replace($1, val));
+                        const newValue = replaceStrPart(oldValue, match, val + '');
                         elem.attr(attrName, newValue);
                     } else {
                         elem.attr(attrName, attrValue.replace('(.*)', val + ''));
@@ -688,7 +696,7 @@ const bindingFactory = function($e) {
          * @param {boolean=} neg
          * @returns {Binding}
          */
-        "hasStyle": function(sty, query, neg) {
+        hasStyle: function(sty, query, neg) {
             let elem = $e;
             if (query) {
                 elem = $e.find(query);
@@ -725,8 +733,8 @@ const bindingFactory = function($e) {
          * @param {string=} query
          * @returns {Binding}
          */
-        "notHasStyle": (sty, query) => {
-            return methods['hasStyle'](sty, query, true);
+        notHasStyle: (sty, query) => {
+            return methods.hasStyle(sty, query, true);
         },
         /**
          * @param {string} attr - styName:styValue where styValue is a regex with (.*)
@@ -734,7 +742,7 @@ const bindingFactory = function($e) {
          * @param {string=} castTo
          * @returns {Binding}
          */
-        "styleRegex": function(attr, query, castTo) {
+        styleRegex: function(attr, query, castTo) {
             let elem = $e;
             if (query) {
                 elem = $e.find(query);
@@ -774,14 +782,15 @@ const bindingFactory = function($e) {
                         } else {
                             const oldValue = elem.prop('style').getPropertyValue(styName) ?? '';
                             if (oldValue) {
+                                const match = new RegExp(styValue, 'd').exec(oldValue);
                                 // @ts-ignore
-                                newValue = oldValue.replace(RegExp(styValue), ($0, $1) => $0.replace($1, val));
+                                newValue = replaceStrPart(oldValue, match, val + '');
                             } else {
                                 newValue = styValue.replace('(.*)', val + '');
                             }
                         }
                     } else {
-                        newValue = val;
+                        newValue = val + '';
                     }
                     elem.css(styName, newValue);
                     // TODO: better way to update data-mce-style

@@ -24,7 +24,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import {getWidgetParamsFactory} from '../controller/widgetParamsCtrl';
-import {getEditorOptions, getWidgetDict} from '../options';
+import {getEditorOptions} from '../options';
 import {getModalSrv} from '../service/modalSrv';
 import {getTemplateSrv} from '../service/templateSrv';
 import {getUserStorage} from '../service/userStorageSrv';
@@ -219,7 +219,7 @@ export class WidgetPickerCtrl {
             await this.createModal();
         } else {
             // Update list of recent
-            const widgetDict = getWidgetDict(this.editor);
+            const widgetDict = this.editorOptions.widgetDict;
             const html = this.storage.getRecentUsed()
                 .filter(r => widgetDict[r.key] !== undefined)
                 .map(r =>
