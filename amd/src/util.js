@@ -2,7 +2,6 @@
 /* eslint-disable no-eq-null */
 /* eslint-disable no-bitwise */
 /* eslint-disable no-new-func */
-/* eslint-disable dot-notation */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -129,7 +128,7 @@ const Transformers = {
     /** @param {string} txt */
     vimeoId: function(txt) {
         const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?(\d+)/;
-        const match = (txt || "").match(new RegExp);
+        const match = new RegExp(regExp).exec(txt || "");
         if (match?.[5]) {
             return match[5];
         }
@@ -384,37 +383,6 @@ export function addBaseToUrl(base, url) {
     const out = pathJoin(base, url);
     return out;
 }
-/**
- * Creates a script tag and adds it to the head section. It handles loading and error cases
- * @param {string} url
- * @param {string} [id]
- * @param {() => void} [onSuccess]
- * @param {() => void} [onError]
- */
-export function addScript(url, id, onSuccess, onError) {
-    if (id && document.head.querySelector('script#' + id) != null) {
-        // Check if already in head
-        return;
-    }
-    const newScript = document.createElement('script');
-    newScript.type = "text/javascript";
-    newScript.src = url;
-    if (id) {
-        newScript.setAttribute("id", id);
-    }
-    newScript.onload = () => {
-        if (onSuccess) {
-            onSuccess();
-        }
-    };
-    newScript.onerror = function() {
-        console.error("Error loading ", url);
-        if (onError) {
-            onError();
-        }
-    };
-    document.head.append(newScript);
-}
 
 /**
  * @param {*} value
@@ -489,6 +457,25 @@ const replaceStrPart = function(str, match, replacement) {
 };
 
 /**
+ * Replaces the first capturing group in regexExpr by replacement,
+ * The remaining capturing groups are removed.
+ * @param {string} regexExpr
+ * @param {string} replacement
+ * @returns {string}
+ */
+const getValueFromRegex = function(regexExpr, replacement) {
+    const reParser = /\((?!\?:).*?\)/g;
+    let capturingGroupCount = 0;
+    return regexExpr.replace(reParser, () => {
+        capturingGroupCount++;
+        if (capturingGroupCount === 1) {
+            return replacement + '';
+        }
+        return ""; // Remove all other capturing groups
+    });
+};
+
+/**
  * @param {JQuery<HTMLElement>} $e - The target element
  * @returns
  */
@@ -544,29 +531,33 @@ const bindingFactory = function($e) {
             }
             return {
                 getValue: () => {
-                    let ret = "";
-                    // @ts-ignore
-                    const cl = elem.attr('class')?.split(/\s+/) ?? [];
-                    cl.forEach(c => {
-                        const match = RegExp(classExpr).exec(c);
-                        if (match?.[1] && typeof (match[1]) === "string") {
-                            ret = match[1];
-                        }
-                    });
+                    let ret = '';
+                    const clazz = elem.attr('class') ?? '';
+                    const match = new RegExp(classExpr).exec(clazz);
+                    if (match?.[1] && typeof (match[1]) === "string") {
+                        ret = match[1];
+                    }
                     return performCasting(ret, castTo);
                 },
                 setValue: (val) => {
                     const cl = elem.attr('class')?.split(/\s+/) ?? [];
-                    // @ts-ignore
+                    let found = false;
                     cl.forEach(c => {
                         const match = new RegExp(classExpr, 'd').exec(c);
                         if (match === null) {
                             return;
                         }
+                        found = true;
                         elem.removeClass(c);
                         const newCls = replaceStrPart(c, match, val + '');
                         elem.addClass(newCls);
                     });
+                    // If not found, then set the regExp replacing the
+                    // first capturing group with val, and removing the remaining groups.
+                    if (!found) {
+                        const newCls = getValueFromRegex(classExpr, val + '');
+                        elem.addClass(newCls);
+                    }
                 }
             };
         },
@@ -676,16 +667,18 @@ const bindingFactory = function($e) {
                     }
                     return null;
                 },
-                // @ts-ignore
                 setValue(val) {
                     const oldValue = elem.attr(attrName) ?? '';
-                    if (oldValue) {
-                        const match = new RegExp(attrValue, 'd').exec(oldValue);
-                        // @ts-ignore
-                        const newValue = replaceStrPart(oldValue, match, val + '');
-                        elem.attr(attrName, newValue);
+                    const match = new RegExp(attrValue, 'd').exec(oldValue);
+                    let newValue;
+                    if (match) {
+                        newValue = replaceStrPart(oldValue, match, val + '');
                     } else {
-                        elem.attr(attrName, attrValue.replace('(.*)', val + ''));
+                        newValue = getValueFromRegex(attrValue, val + '');
+                    }
+                    elem.attr(attrName, newValue);
+                    if (attrName === 'href' || attrName === 'src') {
+                        elem.attr('data-mce-' + attrName, newValue + '');
                     }
                 }
             };
@@ -758,7 +751,6 @@ const bindingFactory = function($e) {
                 getValue() {
                     const st = elem.prop('style');
                     const currentVal = st.getPropertyValue(styName);
-                    console.log("getValue style regex", st, currentVal);
                     if (currentVal) {
                         if (styValue) {
                             const match = currentVal.match(styValue);
@@ -773,7 +765,6 @@ const bindingFactory = function($e) {
                 },
                 // @ts-ignore
                 setValue(val) {
-                    console.log("styRegex set value", val);
                     let newValue;
                     if (styValue) {
                         // Case val <= 0 && styName contains width or height
@@ -805,7 +796,7 @@ const bindingFactory = function($e) {
 /**
  * @typedef {Object} Binding
  * @property {() => unknown} getValue
- * @property {(value: unknown) => void} setValue
+ * @property {(value: string | boolean | number) => void} setValue
  */
 /**
  * @param {string | {get: string, set: string}} definition

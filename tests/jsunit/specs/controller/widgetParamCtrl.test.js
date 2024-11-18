@@ -7,17 +7,8 @@ require('../module.mocks')(jest);
 
 const{WidgetParamsCtrl, getWidgetParamsFactory} = require("../../src/controller/widgetParamsCtrl");
  
-const mockEditor = {
-    id: 12345, 
-    selection: {
-        getContent: jest.fn().mockReturnValue(''),
-        setContent: jest.fn()
-    },
-    options: {
-        get: jest.fn().mockImplementation(() => 12456)
-    },
-    focus: jest.fn()
-};
+/** @type {*} */
+let mockEditor;
 
 /** @type {*} */
 const mockUserStorage = {
@@ -74,6 +65,8 @@ describe("WidgetParamsCtrl", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+
+        mockEditor = require('../editor.mock')();
 
         docSpy = jest.spyOn(document, 'createElement');
         widgetParamsCtrl = new WidgetParamsCtrl(mockEditor, mockUserStorage, mockTemplateSrv, mockFileSrv, mockFormCtrl, mockApplyWidgetFilter, widget);

@@ -6,6 +6,16 @@ const U = require("../src/util");
 /** @ts-ignore */
 const jQuery = require("jquery").default;
 
+/**
+ * @param {number} delay 
+ * @returns {Promise<void>}
+ */
+const wait = function(delay) {
+    return new Promise((resolve) => {
+        setTimeout(() => resolve(), delay);
+    });
+}
+
 describe('utils module tests', () => {
 
     test('genID starts with alpha-numeric', () => {
@@ -121,16 +131,9 @@ describe('utils module tests', () => {
     });
 
     it("It applies widgetFilter", async() => {
-        const editor = {
-            notificationManager: {
-                open: jest.fn()
-            },
-            setContent: jest.fn(),
-            getContent: jest.fn().mockImplementation(() => "<p>This is the editor's content</p>"),
-            dom: {
-                window
-            }
-        };
+        /** @type {*} */
+        const editor = require('./editor.mock')();
+        editor.getContent.mockReturnValue("<p>This is the editor's content</p>");
         const coreStr = {
             get_strings: (/** @type {any[]} **/ lst) => {
                 return Promise.resolve(lst.map(e => e.key))
@@ -196,6 +199,7 @@ describe('utils module tests', () => {
         expect(U.performCasting(true, 'string')).toStrictEqual('true');
         expect(U.performCasting(false, 'string')).toStrictEqual('false');
         expect(U.performCasting({a: 1}, 'string')).toStrictEqual('{"a":1}');
+        expect(U.performCasting({a: 1}, 'unktype')).toStrictEqual({"a":1});
     });
 
     test('findVariableByName', () => {
@@ -250,7 +254,9 @@ describe('utils module tests', () => {
         ["ytId", "https://www.youtube.com/watch?v=-nC-Gq-X_84&list=PL3AWnn9QRaOaCYRBo52pDIP0du21Jf-T1", "-nC-Gq-X_84"],
         ["vimeoId", "https://vimeo.com/channels/staffpicks/1003519988", "1003519988"],
         ["serveGDrive", "https://drive.google.com/file/d/1DDUzcFrOlzWb3CBdFPJ1NCNXClvPbm5B/preview", "https://docs.google.com/uc?export=open&id=1DDUzcFrOlzWb3CBdFPJ1NCNXClvPbm5B"],
-        ["removeHTML", "<span>Hi <b>Moodle</b>!</span>", "Hi Moodle!"]
+        ["removeHTML", "<span>Hi <b>Moodle</b>!</span>", "Hi Moodle!"],
+        ["escapeQuotes", "a=\"hello\"", "a='hello'"],
+        ["encodeHTML", "a > & 3", encodeURIComponent("a > & 3")]
     ])("Transformer pipe %s applied to %s gives %s", (pipe, input, output) => {
         const res = U.stream(pipe).reduce(input);
         expect(res).toMatch(output);
@@ -271,13 +277,6 @@ describe('utils module tests', () => {
         expect(U.convertInt('1+1', 33)).toBe(33)
     });
 
-    test('addScript', () => {
-        U.addScript('https://piworld.es', 'scriptTest');
-        expect(document.querySelector('script[src="https://piworld.es"]')).not.toBe(null);
-        U.addScript('https://piworld.es', 'scriptTest');
-        expect(document.querySelectorAll('script[src="https://piworld.es"]').length).toBe(1);
-    });
-
     test.each([
         ["hasClass('editable')", `<span class="a editable"></span>`, true],
         ["hasClass('editable')", `<span class="b locked c"></span>`, false],
@@ -288,6 +287,9 @@ describe('utils module tests', () => {
         ["classRegex('locked-(.*)')", `<span class="locked"></span>`, ''],
         ["classRegex('locked-(.*)')", `<span class="locked-"></span>`, ''],
         ["classRegex('locked-(.*)')", `<span class="locked-abc"></span>`, 'abc'],
+        ["classRegex('locked-([0-9]*)-some(.*)')", `<span class="etc"></span>`, ''],
+        ["classRegex('locked-([0-9]*)-some(.*)')", `<span class="locked--some etc"></span>`, ''],
+        ["classRegex('locked-([0-9]*)-some(.*)')", `<span class="locked-123-somes etc"></span>`, '123'],
 
         ["hasAttr('data-locked')", `<span data-locked></span>`, true],
         ["hasAttr('data-locked')", `<span data-locked="false"></span>`, true],
@@ -305,6 +307,8 @@ describe('utils module tests', () => {
         ["attrRegex('role=channel(.*)')", `<span role="channel1234"></span>`, '1234'],
         ["attrRegex('role=channel(.*)', null, 'number')", `<span role="channel1234"></span>`, 1234],
         ["attrRegex('role=channel(.*)')", `<span role="channel"></span>`, ''],
+        ["attrRegex('role=locked-([0-9]*)-abc')", `<span role="locked--abc"></span>`, ''],
+        ["attrRegex('role=locked-([0-9]*)-abc')", `<span role="locked-123-abc"></span>`, '123'],
 
         ["hasStyle('width')", `<span style="width: 100px;"></span>`, true],
         ["hasStyle('height')", `<span style="width: 100px;"></span>`, false],
@@ -315,7 +319,7 @@ describe('utils module tests', () => {
 
         ["styleRegex('width: (.*)px')", `<span style="width: 100px;"></span>`, "100"],
         ["styleRegex('width: (.*)px', null, 'number')", `<span style="width: 100px;"></span>`, 100]
-    ])('Create binding %s on %s returns %s', (bindDef, elemDef, result) => {
+    ])('Create GET binding %s on %s returns %s', (bindDef, elemDef, result) => {
         let $e = jQuery(elemDef)
         // Binding on the same element
         let binding = U.createBinding(bindDef, $e);
@@ -349,6 +353,9 @@ describe('utils module tests', () => {
        // ["classRegex('locked-(.*)')", `<span class="locked"></span>`, 'mood', `<span class="locked locked-mood"></span>`],
         ["classRegex('locked-(.*)')", `<span class="locked-"></span>`, 'mood', `<span class="locked-mood"></span>`],
         ["classRegex('locked-(.*)')", `<span class="locked-abc"></span>`, 'efg', `<span class="locked-efg"></span>`],
+        ["classRegex('locked-([0-9]*)-some(.*)')", `<span class="etc locked--some"></span>`, '789', `<span class="etc locked-789-some"></span>`],
+        ["classRegex('locked-([0-9]*)-some(.*)')", `<span class="etc locked-123-somes"></span>`, '345', '<span class="etc locked-345-somes"></span>'],
+        ["classRegex('locked-([0-9]*)-some(.*)')", `<span class="etc"></span>`, '790', `<span class="etc locked-790-some"></span>`],
 
         ["hasAttr('data-locked')", `<span data-locked></span>`, true, `<span data-locked=""></span>`],
         ["hasAttr('data-locked')", `<span data-locked></span>`, false, `<span></span>`],
@@ -383,7 +390,7 @@ describe('utils module tests', () => {
         ["styleRegex('width: (.*)px')", `<span style="width: 100px;"></span>`, "700", `<span style="width: 700px;" data-mce-style="width: 700px;"></span>`],
         ["styleRegex('width: (.*)px', null, 'number')", `<span style="width: 100px;"></span>`, 700, `<span style="width: 700px;" data-mce-style="width: 700px;"></span>`],
 
-    ])('Create binding %s on %s. If sets value %s yields %s', (bindDef, elemDef, value, result) => {
+    ])('Create SET binding %s on %s. If sets value %s yields %s', (bindDef, elemDef, value, result) => {
         let $e = jQuery(elemDef)
         // Binding on the same element
         let binding = U.createBinding(bindDef, $e);
@@ -469,4 +476,31 @@ describe('utils module tests', () => {
         expect(U.toRgba("#ff00ff", 0.2587256)).toBe("rgba(255,0,255,0.26)");
     });
 
+    test('debounce', async() => {
+        const cb = jest.fn();
+        const debounced1 = U.debounce(cb, 800);
+        debounced1();
+        await wait(100);
+        debounced1();
+        await wait(1000);
+        expect(cb).toHaveBeenCalledTimes(1);
+
+        // Cancel
+        cb.mockReset();
+        const debounced2 = U.debounce(cb, 800);
+        debounced2();
+        await wait(200);
+        debounced2.clear();
+        await wait(1000);
+        expect(cb).toHaveBeenCalledTimes(0);
+    });
+
+    test('ToggleClass', () => {
+        let elem = document.createElement('SPAN');
+        elem.classList.add('cl1', 'cl2');
+        U.toggleClass(elem, 'cl3', 'cl4');
+        expect([...elem.classList].sort()).toStrictEqual(['cl1', 'cl2', 'cl3', 'cl4']);
+        U.toggleClass(elem, 'cl1', 'cl3');
+        expect([...elem.classList].sort()).toStrictEqual(['cl2', 'cl4']);        
+    });
 });

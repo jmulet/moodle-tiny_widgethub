@@ -108,7 +108,7 @@ export default {
                 if (!jsonObj.name || !(jsonObj.template || jsonObj.filter)) {
                     validation.msg += "Widgets must have 'name' and 'template or filter' properties. ";
                 } else if (jsonObj.template && jsonObj.filter) {
-                    validation.msg += "Cannot have template and filter simultaneously. "; 
+                    validation.msg += "Cannot have template and filter simultaneously. ";
                 } else if (!jsonObj.author || !jsonObj.version) {
                     validation.msg += "Widgets must have 'author' and 'version' properties. ";
                 }

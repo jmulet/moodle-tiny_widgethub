@@ -7,23 +7,20 @@ const util = require('../../src/util');
 util.genID = jest.fn().mockReturnValue("a12345");
 
 const {WidgetPickerCtrl, getWidgetPickCtrl, setVisibility}= require("../../src/controller/widgetPickerCtrl");
+const { getTemplateSrv } = require('../../src/service/templateSrv');
 
-const mockEditor = {
-    id: 12345, 
-    selection: {
-        getContent: jest.fn().mockImplementation(() => "")
-    },
-    options: {
-        get: jest.fn().mockImplementation(() => 345)
-    }
-};
+/** @type {*} */
+let mockEditor;
 
 /** @type {*} */
 const mockUserStorage = {
     getFromLocal: jest.fn().mockReturnValue(""),
     getFromSession: jest.fn().mockReturnValue(""),
     setToSession: jest.fn(),
-    getRecentUsed: jest.fn().mockReturnValue([]),
+    getRecentUsed: jest.fn().mockReturnValue([
+        {key: 'unk', p: {}},
+        {key: 'k1', p: {p1: 'a', p2: 'b', p3: 4, p5: '#ffaabb', p6: 'c'}}
+    ]),
     loadStore: jest.fn()
 };
 
@@ -34,11 +31,6 @@ const mockTemplateSrv = {
     renderEJS: jest.fn()
 };
 
-/** @type {*} */
-const mockFileSrv = {
-    getImagePicker: jest.fn(),
-    displayImagePicker: jest.fn()
-};
 
 /** @type {*} */
 const widget1 = {
@@ -73,7 +65,10 @@ const mockModalSrv = {
     create: jest.fn()
 };
 
-const mockWidgetParamsFactory = jest.fn();
+const mockWidgetParamsFactory = jest.fn().mockReturnValue({
+    insertWidget: jest.fn(),
+    handleAction: jest.fn()
+});
 
 /** @type {WidgetPickerCtrl} */
 let widgetPickCtrl;
@@ -82,6 +77,9 @@ describe("WidgetPickerCtrl", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+
+        mockEditor = require('../editor.mock')();
+
         widgetPickCtrl = new WidgetPickerCtrl(mockEditor, mockEditorOptions, 
             mockWidgetParamsFactory, mockModalSrv, mockTemplateSrv, mockUserStorage);
     })
@@ -307,6 +305,47 @@ describe("WidgetPickerCtrl", () => {
         expect(spyCreateModal).toHaveBeenCalledTimes(0);
         expect(widgetPickCtrl.modal.show).toHaveBeenCalled();
         expect(header.find('.ib-blink').hasClass('d-none')).toBe(false);
-    })
+    });
+
+    test("handlePickModalClick", async() => {
+        /** @type {*} */
+        const modalSrv = require('../modalSrv.mock');
+        const templateSrv = getTemplateSrv();
+        // Create a more realistic instance, with less mocks
+        widgetPickCtrl = new WidgetPickerCtrl(mockEditor, mockEditorOptions, 
+            mockWidgetParamsFactory, modalSrv, templateSrv, mockUserStorage);
+
+        const spyHandlePickModalAction = jest.spyOn(widgetPickCtrl, 'handlePickModalAction');
+        mockEditor.selection.getContent.mockReset().mockReturnValue('');
+
+        await widgetPickCtrl.createModal();
+
+        // Expect the modal contains 2 buttons in 2 categories
+        const modal = widgetPickCtrl.modal;
+        expect(modal).toBeTruthy();
+        expect(modal.body.find('.tiny_widgethub-category')).toHaveLength(2);
+        expect(modal.body.find('.btn-group')).toHaveLength(2);
+        // It must contain one recently used widget
+        expect(widgetPickCtrl.isSelectMode()).toBe(false);
+        expect(modal.body.find('a[data-insert="recent"]')).toHaveLength(1);
+
+        // Trigger click on first button
+        // Not usable in scope
+        widget1.isUsableInScope = () => false;
+        modal.body.find('.btn-group button').first().trigger('click');
+        expect(modal.hide).not.toHaveBeenCalled();
+        expect(modal.destroy).not.toHaveBeenCalled();
+        expect(mockEditor.windowManager.confirm).toHaveBeenCalled();
+        expect(spyHandlePickModalAction).not.toHaveBeenCalled();
+
+        // It is usable in scope
+        widget1.isUsableInScope = () => true;
+        mockEditor.windowManager.confirm.mockReset();
+        modal.body.find('.btn-group button').first().trigger('click');
+        expect(modal.hide).toHaveBeenCalled();
+        expect(modal.destroy).not.toHaveBeenCalled();
+        expect(mockEditor.windowManager.confirm).not.toHaveBeenCalled();
+        expect(spyHandlePickModalAction).toHaveBeenCalled();
+    });
 
 });

@@ -82,5 +82,4 @@ describe("UserStorageSrv", () => {
         expect(userStorageSrv.getFromSession("anobj", {})).toEqual({a:1, b:"post", c: false});
     });
 
-
-})
+});

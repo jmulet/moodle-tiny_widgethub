@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -52,6 +53,12 @@ export default new Promise(async(resolve) => {
         getPluginMetadata(component, pluginName, documentationUrl),
         getCommandSetup(),
     ]);
+
+    // TODO: Remove this in the future. Simply for compatibility with atto
+    tinyMCE.overrideDefaults({
+        ...tinyMCE.defaultOptions,
+        remove_trailing_brs: false
+    });
 
     tinyMCE.PluginManager.add(pluginName,
         /** @param {TinyMCE} editor */

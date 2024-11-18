@@ -113,6 +113,8 @@ describe("DomSrv", () => {
         const div = document.createElement("DIV");
         div.innerHTML = elemHtml;
         const firstChild = div.firstChild;
+        expect(firstChild).toBeTruthy();
+        // @ts-ignore
         expect(domSrv.matchesSelectors(firstChild, selectors)).toStrictEqual(result);
     });
 
@@ -170,6 +172,7 @@ describe("DomSrv", () => {
         const widgetList = [rawWidget1, rawWidget2];
         const selectedElement = document.body.querySelector('#'+idClicked);
         expect(selectedElement?.id).toBe(idClicked);
+        // @ts-ignore
         const pathResult = domSrv.findWidgetOnEventPath(widgetList, selectedElement);
         expect(pathResult.selectedElement[0]).toBe(selectedElement);
         expect(pathResult.widget?.key).toBe(keyFound)

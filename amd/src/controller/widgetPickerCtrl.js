@@ -23,6 +23,7 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+import {get_string} from 'core/str';
 import {getWidgetParamsFactory} from '../controller/widgetParamsCtrl';
 import {getEditorOptions} from '../options';
 import {getModalSrv} from '../service/modalSrv';
@@ -166,7 +167,7 @@ export class WidgetPickerCtrl {
         }
 
         // Confiure preview panel events
-        const mouseEnterDebounced = debounce(this.onMouseEnterButton, 1000);
+        const mouseEnterDebounced = debounce(this.onMouseEnterButton.bind(this), 1000);
 
         const onMouseOut = () => {
             mouseEnterDebounced.clear();
@@ -201,7 +202,7 @@ export class WidgetPickerCtrl {
         // Preview panel
         this.modal.body.find(".btn-group")
             .on("mouseenter", mouseEnterDebounced)
-            .on("mouseout", onMouseOut);
+            .on("mouseout", onMouseOut.bind(this));
 
         // Store current scroll
         const scrollPane = this.modal.body.find('.tiny_widgethub-categorycontainer');
@@ -229,7 +230,6 @@ export class WidgetPickerCtrl {
         }
 
         const selectMode = this.isSelectMode();
-        console.log("Estic en mode selecció? " + selectMode);
         if (selectMode) {
             this.modal.header.find("span.ib-blink").removeClass("d-none");
         } else {
@@ -243,7 +243,6 @@ export class WidgetPickerCtrl {
                 return;
             }
             if (this.scrollPos > 0) {
-                console.log("Setting scroll to ", this.scrollPos);
                 this.modal.body.find('.tiny_widgethub-categorycontainer').scrollTop(this.scrollPos);
             }
             this.modal.body.find("input").trigger('focus');
@@ -354,12 +353,12 @@ export class WidgetPickerCtrl {
 
         // Update the list of recently used widgets
         const recentList = this.storage.getRecentUsed().filter((/** @type {any} **/ recent) => {
-            // In select mode must filter widgets that do support it
             const key = recent.key;
             const widget = snptDict[key];
-            if (!widget) {
+            if (!widget?.isUsableInScope()) {
                 return false;
             }
+            // In select mode must filter widgets that do support it
             const selectable = widget.insertquery !== undefined;
             const isSelection = this.isSelectMode();
             return key.length > 0 && (!isSelection || (isSelection && selectable));
@@ -442,7 +441,7 @@ export class WidgetPickerCtrl {
         // Must open a configuration dialogue for the current widget
         let confirmMsg = null;
         if (!widget.isUsableInScope()) {
-            confirmMsg = "Aquest widget no és adequat per a la pàgina actual. Segur que voleu continuar?";
+            confirmMsg = get_string('confirmusage', 'tiny_widgethub');
         }
 
         const forceInsert = aRecent !== null || button?.dataset?.insert === 'true';

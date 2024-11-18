@@ -66,7 +66,6 @@ export function changeBoxLangAction(ctx, iso) {
             });
             langKey = "msg_" + theType;
         }
-        console.log("Changing language", langKey, iso);
         const I18n = widget.I18n;
         if (I18n?.[langKey]?.[iso]) {
             if (isTascaExercici) {
@@ -198,8 +197,6 @@ export function switchBoxRowsExampleAction(ctx) {
  */
 export function imageSwitchToSnippetAction(ctx) {
     return () => {
-        // eslint-disable-next-line no-console
-        console.log('imageSwitchToSnippetAction');
         const $target = ctx.path?.targetElement;
         if (!$target) {
             return;

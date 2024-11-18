@@ -249,7 +249,6 @@ function initializer(editor) {
                 // Commented URLs are interpreted as loadCss
                 const regex = /\/\*{2}\s+(http(s?):\/\/.*)\s+\*{2}\//gm;
                 adminCss = adminCss.replace(regex, (_, $1) => {
-                    // console.log("Loading ", $1);
                     editor.dom.loadCSS($1);
                     return '';
                 });

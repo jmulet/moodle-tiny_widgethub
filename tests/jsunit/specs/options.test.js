@@ -83,15 +83,16 @@ const rawSnpt3 = {
         { "name": "LANG", "value": "CA", "title": "Idioma", "type": "select", "options": [{ "v": "ca", "l": "Català" }, { "v": "es", "l": "Castellà" }, { "v": "en", "l": "English" }, { "v": "fr", "l": "Francès" }, { "v": "de", "l": "Alemany" }] }]
 };
 
+/** @type {*} */
+let fakeEditor;
+
 describe('Options', () => {
 
+    beforeEach(() => {
+        fakeEditor = require('./editor.mock')();
+    });
+
     test('must register options',() => {
-        const fakeEditor = {
-            id: 1,
-            options: {
-                register: jest.fn()
-            }
-        };
         // Do the call
         register(fakeEditor);
         // And expect

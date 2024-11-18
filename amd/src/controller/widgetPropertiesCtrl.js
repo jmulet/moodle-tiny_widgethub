@@ -41,7 +41,7 @@ import {createBinding} from '../util';
  */
 export class WidgetPropertiesCtrl {
     /** @type {import('../service/modalSrv').ModalDialogue | null} */
-    #modal = null;
+    modal = null;
 
     /**
      * @param {import('../plugin').TinyMCE} editor
@@ -107,36 +107,36 @@ export class WidgetPropertiesCtrl {
 
         // Create the modal
         // @ts-ignore
-        this.#modal = await this.modalSrv.create('context', ctxData, () => {
-            this.#modal?.destroy();
-            this.#modal = null;
+        this.modal = await this.modalSrv.create('context', ctxData, () => {
+            this.modal?.destroy();
+            this.modal = null;
         });
-        this.formCtrl.attachPickers(this.#modal.body);
+        this.formCtrl.attachPickers(this.modal.body);
         // Applying watchers to the form elements
-        this.formCtrl.applyFieldWatchers(this.#modal.body, paramValues, widget, false);
+        this.formCtrl.applyFieldWatchers(this.modal.body, paramValues, widget, false);
 
         // Bind accept action to modal
-        this.#modal.footer.find("button.btn-secondary").on("click", () => {
-            this.#modal?.destroy();
+        this.modal.footer.find("button.btn-secondary").on("click", () => {
+            this.modal?.destroy();
         });
-        this.#modal.footer.find("button.btn-primary").on("click", () => {
-            const form = this.#modal?.body?.find("form");
+        this.modal.footer.find("button.btn-primary").on("click", () => {
+            const form = this.modal?.body?.find("form");
             let updatedValues = paramValues;
             if (form) {
                 updatedValues = this.formCtrl.extractFormParameters(widget, form, true);
             }
-            this.#modal?.destroy();
+            this.modal?.destroy();
             // Apply Param Values To DOM
             Object.keys(bindingsDOM).forEach(key => {
                 bindingsDOM[key].setValue(updatedValues[key]);
             });
             this.editor.setDirty(true);
         });
-        this.#modal.show();
+        this.modal.show();
     }
 
     close() {
-        this.#modal?.destroy();
+        this.modal?.destroy();
     }
 }
 

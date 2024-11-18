@@ -26,6 +26,7 @@ $string['accept'] = 'Accept';
 $string['cancel'] = 'Cancel';
 $string['cfg'] = 'Additional settings';
 $string['configuration'] = 'Configuration';
+$string['confirmusage'] = 'This widget is not suitable for the current page. Do you want to continue?';
 $string['createwidget'] = 'Create new widget';
 $string['def'] = 'Yml definition';
 $string['def_desc'] = 'Yaml definition of the widget';

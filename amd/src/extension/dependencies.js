@@ -98,12 +98,10 @@ export function addRequires(editor, requireList) {
  * @returns {number}
  */
 export function cleanUnusedRequires(editor) {
-    console.log("Removing unused requires...");
     const tiny = editor.getBody();
     const sdArea = tiny.querySelector("div.iedib-sd-area");
     if (!sdArea) {
-        console.log("No sdArea found");
-        return 0;
+       return 0;
     }
     // All scripts in sdArea
     /** @type {NodeListOf<HTMLScriptElement>} */
@@ -268,7 +266,6 @@ function changesWorker(ele) {
  * @param {import("../plugin").TinyMCE} editor
  */
 export function alphaFixingRefractor(editor) {
-    console.log("alphaFixingRefractor", editor, editor.dom, editor.getElement());
     const prefix = 'f_';
     let casos = 0;
     try {

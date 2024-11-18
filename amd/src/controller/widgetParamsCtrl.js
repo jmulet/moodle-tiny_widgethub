@@ -104,7 +104,7 @@ export class WidgetParamsCtrl {
       modal.show();
    }
 
-   destroy() { 
+   destroy() {
       this.modal?.destroy();
    }
 
@@ -138,7 +138,6 @@ export class WidgetParamsCtrl {
          // We are in selection mode
          const tmpDiv = document.createElement("div");
          tmpDiv.innerHTML = interpoledComponentCode;
-         console.log(interpoledComponentCode);
          const insertPoint = tmpDiv.querySelector(query);
          if (insertPoint) {
             if (replaceMode) {

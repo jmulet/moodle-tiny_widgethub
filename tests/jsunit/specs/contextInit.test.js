@@ -30,8 +30,6 @@ const rawSnpt = {
         { "name": "LANG", "value": "CA", "title": "Idioma", "type": "select", "options": [{ "v": "ca", "l": "Català" }, { "v": "es", "l": "Castellà" }, { "v": "en", "l": "English" }, { "v": "fr", "l": "Francès" }, { "v": "de", "l": "Alemany" }] }]
 };
 
-
-const jquery = require('jquery').default;
 const { DomSrv } = require('../src/service/domSrv');
 const srv = require('../src/contextInit');
 

@@ -3,10 +3,12 @@ const {FileSrv, getFileSrv} = require("../../src/service/fileSrv");
 
 /** @type {import('../../src/service/fileSrv').FileSrv} */
 let fileSrv;
-const editor = {id: 1};
+/** @type {*} */
+let editor;
 
 describe('FileSrv', () => {
     beforeEach(() => {
+        editor = require('../editor.mock')();
         fileSrv = new FileSrv(editor);
     });
 

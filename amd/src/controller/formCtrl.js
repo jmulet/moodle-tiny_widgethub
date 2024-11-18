@@ -351,9 +351,7 @@ export class FormCtrl {
             varsInvolved?.forEach(evar => {
                evar = evar.replace(/[{}]*/g, '').trim();
                // Can only watch real variables SELECT_MODE is not a variable
-               console.log("evar", evar, defaultsData);
                if (watchedvars.indexOf(evar) < 0 && (defaultsData[evar] ?? null) !== null) {
-                  console.log("ADDED AS WATCH");
                   watchedvars.push(evar);
                }
             });
@@ -361,17 +359,11 @@ export class FormCtrl {
          watchedvars.push(varobj.name);
       }
 
-      console.log(watchedvars);
-      console.log(updatableComponents);
-
-
       const doUpdateVisibilities = () => {
          updatableComponents.forEach(cc => {
             // Evaluate condition
-            console.log("Updating ", cc);
             const condicio = cc.condition;
             const novesVariables = this.extractFormParameters(widget, $formElem, false);
-            console.log("Obtained the new variables from the form ", novesVariables);
             // Add to the new variables the internal variables
             novesVariables.SELECT_MODE = selectMode;
             // Eval JS condition for new variables
@@ -380,7 +372,6 @@ export class FormCtrl {
             if (theComponent) {
                theComponent = theComponent.closest('.form-group');
                // Only change visibilities of nodes not hidden from user
-               console.log("Changing visibilities of ", theComponent, " condition ", condicio, " evals to ", showme);
                if (!theComponent.attr('data-amagat')) {
                   if (showme) {
                      theComponent.show();

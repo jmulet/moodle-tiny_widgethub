@@ -16,16 +16,9 @@ const util = require("../../src/util");
 /** @ts-ignore */
 const jQuery = require("jquery").default;
 const {FormCtrl, getFormCtrl, Templates} = require("../../src/controller/formCtrl");
-
-const mockEditor = {
-    id: 12345, 
-    selection: {
-        getContent: jest.fn().mockImplementation(() => "text selected")
-    },
-    options: {
-        get: () => 0
-    }
-};
+ 
+/** @type {*} */
+let mockEditor;
 
 /** @type {*} */
 const mockUserStorage = {
@@ -59,6 +52,7 @@ describe("FormCtrl", () => {
             _id += 1;
             return (_id) + "";
         };
+        mockEditor = require('../editor.mock')(12345, 0, "text selected");
         formCtrl = new FormCtrl(mockEditor, mockUserStorage, mockTemplateSrv, mockFileSrv, jQuery);
     })
 

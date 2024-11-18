@@ -277,7 +277,6 @@ function provider(ctx) {
                     text: 'Embellit',
                     icon: isBeauty ? 'checkmark' : undefined,
                     onAction: () => {
-                        console.log("beauty action");
                         // Toggle class
                         const $target = ctx.path?.targetElement;
                         if (!$target) {
@@ -298,7 +297,6 @@ function provider(ctx) {
                     type: 'menuitem',
                     text: 'Comença a',
                     onAction: () => {
-                        console.log("start at");
                         // Get the start property of the list
                         const startAt1 = ctx.path?.targetElement?.attr("start") ?? "1";
                         // Open input dialog, set the value and retrieve new value
@@ -365,7 +363,6 @@ function provider(ctx) {
             // Get the initial width
             const startAt1 = ($target.css("max-width") || "-1")
                 .replace("px", "").replace("none", "-1");
-            console.log("startAt1", startAt1);
             // Open input dialog, set the value and retrieve new value
             openInputDialog('Amplada màxima en (px)', '-1=sense limit', startAt1,
             (/** @type {*} */ api) => {
