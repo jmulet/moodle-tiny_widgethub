@@ -40,7 +40,7 @@
             "title": "Amplada màxima (px)",
             "min": 0,
             "tip": "Per exemple 500. Si no voleu limitar l'amplada, deixeu-la a 0.",
-            "bind": "styleRegex('max-width:(.*)px')"
+            "bind": "styleRegex('max-width:(.*)px', null, 'number')"
         },
         {
             "name": "notranslate",

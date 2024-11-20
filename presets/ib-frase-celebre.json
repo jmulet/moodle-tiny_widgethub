@@ -16,7 +16,7 @@
             "name": "notranslate",
             "value": true,
             "title": "Evita ésser traduït per Google",
-            "bind": "hasClass <notranslate>"
+            "bind": "hasClass('notranslate')"
         }
     ],
     "stars": 1,

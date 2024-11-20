@@ -73,7 +73,7 @@
             "name": "title",
             "value": "",
             "title": "Títol globus",
-            "when": "globus==1",
+            "when": "globus",
             "bind": "attr('data-title')"
         },
         {
@@ -81,7 +81,7 @@
             "value": "Contingut anotació",
             "title": "Contingut globus (HTML)",
             "type": "textarea",
-            "when": "globus==1",
+            "when": "globus",
             "transform": "escapeQuotes",
             "tip": "Si es vol, el contingut del globus pot contenir codi HTML bàsic.",
             "bind": "attr('data-content')"

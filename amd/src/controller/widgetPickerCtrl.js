@@ -469,7 +469,7 @@ export class WidgetPickerCtrl {
         // Keep reference to the calling parentCtrl
         paramsController.parentCtrl = this;
         // Decide whether to show the form or directly doInsert
-        if (forceInsert || (widget.parameters ?? []).length === 0 && !widget.instructions) {
+        if (forceInsert || ((widget.parameters ?? []).length === 0 && !widget.instructions)) {
             // Do insert directly
             paramsController.insertWidget(ctx ?? {});
         } else {
