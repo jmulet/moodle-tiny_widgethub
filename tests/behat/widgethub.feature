@@ -15,9 +15,10 @@ Feature: Tiny widgethub
         | activity | name      | intro     | introformat | course | contentformat | idnumber |
         | page     | PageName1 | PageDesc1 | 1           | C1     | 1             | 1        |
   @javascript @external
-  Scenario: View the widgethub dialog without any widget in TinyMCE editor
+  Scenario: View the widgethub dialog searchs yields no widgets in TinyMCE editor
     Given I log in as "admin"
     When I open my profile in edit mode
     And I set the field "Description" to "Hello tiny!"
     And I click on the "WidgetHub" button for the "Description" TinyMCE editor
+    And I set the field "widgethub_search_textfield" to "xsdsd 233 esddflkdsjf"
     Then I should see "No widgets have been found for the search criteria" in the "Select a widget" "dialogue"

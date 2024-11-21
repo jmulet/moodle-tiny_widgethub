@@ -82,14 +82,14 @@ function provider(ctx) {
                 return AVAILABLE_EFFECTS.map(e => ({
                     type: 'menuitem',
                     text: e.title,
-                    onAction: Action.addImageEffectAction(ctx, e.name)
+                    onAction: Action.addImageEffectAction.bind({ctx, type: e.name})
                 }));
             } else {
                 return [{
                     type: 'menuitem',
                     icon: 'remove',
                     text: 'Treure',
-                    onAction: Action.removeImageEffectsAction(ctx)
+                    onAction: Action.removeImageEffectsAction.bind({ctx})
                 }];
             }
         }
@@ -115,7 +115,7 @@ function provider(ctx) {
            return isImg;
         },
         title: 'Convertir a snippet imatge',
-        onAction: Action.imageSwitchToSnippetAction(ctx)
+        onAction: Action.imageSwitchToSnippetAction.bind({ctx})
     };
 
     /**
@@ -136,7 +136,7 @@ function provider(ctx) {
                 type: 'menuitem',
                 text: title,
                 icon: iso === currentLang ? 'checkmark' : undefined,
-                onAction: Action.changeBoxLangAction(ctx, iso)
+                onAction: Action.changeBoxLangAction.bind({ctx, iso})
             }));
         }
     };
@@ -160,7 +160,7 @@ function provider(ctx) {
                 type: 'menuitem',
                 text: e.l ?? e,
                 icon: elem.hasClass('iedib-capsa-' + (e.v ?? e)) ? 'checkmark' : undefined,
-                onAction: Action.changeBoxSizeAction(ctx, e.v ?? e)
+                onAction: Action.changeBoxSizeAction.bind({ctx, size: e.v ?? e})
             }));
         }
     };
@@ -184,7 +184,7 @@ function provider(ctx) {
                 type: 'menuitem',
                 text: e.l ?? e,
                 icon: elem.hasClass('iedib-' + (e.v ?? e) + '-border') ? 'checkmark' : undefined,
-                onAction: Action.changeBoxSeverityAction(ctx, e.v ?? e)
+                onAction: Action.changeBoxSeverityAction.bind({ctx, severity: e.v ?? e})
             }));
         }
     };
@@ -208,7 +208,7 @@ function provider(ctx) {
             const menuItems = [{
                 type: 'menuitem',
                 text: "A una columna",
-                onAction: Action.changeColumnWidth(ctx, 0)
+                onAction: Action.changeColumnWidth.bind({ctx, colSpan: 0})
             }];
 
             const firstSpan =
@@ -223,7 +223,7 @@ function provider(ctx) {
                     type: 'menuitem',
                     text: label,
                     icon: isCurrent ? 'checkmark' : undefined,
-                    onAction: Action.changeColumnWidth(ctx, i)
+                    onAction: Action.changeColumnWidth.bind({ctx, colSpan: i})
                 });
             }
             return menuItems;
@@ -237,7 +237,7 @@ function provider(ctx) {
         name: 'switchBoxRowsExample',
         condition: 'capsa-exemple-cols',
         title: 'Convertir a exemple 2 files',
-        onAction: Action.switchBoxRowsExampleAction(ctx)
+        onAction: Action.switchBoxRowsExampleAction.bind({ctx})
     };
 
      /**
@@ -248,7 +248,7 @@ function provider(ctx) {
         name: 'switchBoxSimpleExample',
         condition: 'capsa-exemple-rows',
         title: 'Convertir a exemple simple',
-        onAction: Action.switchBoxSimpleExampleAction(ctx)
+        onAction: Action.switchBoxSimpleExampleAction.bind({ctx})
     };
 
     /**
@@ -341,7 +341,7 @@ function provider(ctx) {
                 type: 'menuitem',
                 text: opt ? 'Independents' : 'Dependents',
                 icon: isDependentBehavior === opt ? undefined : 'checkmark',
-                onAction: Action.setAccordionBehavior(ctx, opt)
+                onAction: Action.setAccordionBehavior.bind({ctx, isDependentBehavior: opt})
             }));
         }
     };

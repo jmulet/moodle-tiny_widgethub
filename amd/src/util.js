@@ -750,10 +750,10 @@ const bindingFactory = function($e) {
                 /** @returns {string | null} */
                 getValue() {
                     const st = elem.prop('style');
-                    const currentVal = st.getPropertyValue(styName);
+                    const currentVal = st?.getPropertyValue(styName);
                     if (currentVal) {
                         if (styValue) {
-                            const match = currentVal.match(styValue);
+                            const match = new RegExp(styValue).exec(currentVal);
                             if (match?.[1] && (typeof match[1]) === "string") {
                                 return performCasting(match[1], castTo);
                             }

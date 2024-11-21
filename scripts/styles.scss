@@ -1303,6 +1303,13 @@ ol.iedib-falist>li::before {
     min-width: 100%
   }
 
+  .tiny_widgethub-preview {
+    display: none!important;
+  }
+  
+  div.iedib-capsalera-examen {
+    font-size: 0.7rem;
+  }
 }
 
 /* 
@@ -1323,12 +1330,6 @@ ol.iedib-falist>li::before {
     margin-bottom: -99999px;
     padding-bottom: 99999px;
   }
-}
-
-@media screen and (max-width: 768px) {
-  .tiny_widgethub-preview {
-    display: none!important;
-  } 
 }
 
 /* 

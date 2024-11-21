@@ -318,7 +318,10 @@ describe('utils module tests', () => {
         ["notHasStyle('height')", `<span style="width: 100px;"></span>`, true],
 
         ["styleRegex('width: (.*)px')", `<span style="width: 100px;"></span>`, "100"],
-        ["styleRegex('width: (.*)px', null, 'number')", `<span style="width: 100px;"></span>`, 100]
+        ["styleRegex('width: (.*)px', null, 'number')", `<span style="width: 100px;"></span>`, 100],
+        [`styleRegex("background-image:url\\\\(['\\"]?([^'\\")]*)['\\"]?\\\\)")`, 
+            `<span class="iedib-background-img" style="background-image:url(http://localhost:4545/pluginfile.php/19/mod_page/content/5/icon.png); padding: 10px; min-height: 40px; background-repeat: no-repeat; background-size: cover; background-position: 50% 50%;">
+            Quina probabilitat tinc de guanyar els jocs d'atzar?</span>`, 'http://localhost:4545/pluginfile.php/19/mod_page/content/5/icon.png']
     ])('Create GET binding %s on %s returns %s', (bindDef, elemDef, result) => {
         let $e = jQuery(elemDef)
         // Binding on the same element
@@ -389,6 +392,14 @@ describe('utils module tests', () => {
 
         ["styleRegex('width: (.*)px')", `<span style="width: 100px;"></span>`, "700", `<span style="width: 700px;" data-mce-style="width: 700px;"></span>`],
         ["styleRegex('width: (.*)px', null, 'number')", `<span style="width: 100px;"></span>`, 700, `<span style="width: 700px;" data-mce-style="width: 700px;"></span>`],
+
+        [`styleRegex("background-image:url\\\\(['\\"]?([^'\\")]*)['\\"]?\\\\)")`, 
+            `<span class="iedib-background-img" style="background-image:url('http://localhost:4545/pluginfile.php/19/mod_page/content/5/icon.png'); padding: 10px;">
+            Quina probabilitat tinc de guanyar els jocs d'atzar?</span>`, 
+            'https://iedib.net/example.png', 
+            `<span class="iedib-background-img" style="background-image: url(https://iedib.net/example.png); padding: 10px;" data-mce-style="background-image: url(https://iedib.net/example.png); padding: 10px;">
+            Quina probabilitat tinc de guanyar els jocs d'atzar?</span>`]
+              
 
     ])('Create SET binding %s on %s. If sets value %s yields %s', (bindDef, elemDef, value, result) => {
         let $e = jQuery(elemDef)
