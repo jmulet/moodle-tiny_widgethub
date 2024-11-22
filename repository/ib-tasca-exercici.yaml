@@ -11,7 +11,7 @@ template: |
   <p><br></p>
   <!-- begin tasca-execici -->
   <div class="iedib-capsa iedib-tasca-exercici" data-lang="{{_lang}}" data-proposat="{{tipus}}">
-  <div class="iedib-tasca{{#if}}[tipus=='epr'] iedib-proposat{{/if}} iedib-central">
+  <div class="iedib-tasca {{#if}}[tipus=='epr'] iedib-proposat{{/if}} iedib-central">
   <span class="iedib-tasca-logo"></span>
   <h4>{{#I18n}}msg_{{tipus}}{{/I18n}}:</h4>
   <div class="iedib-inspoint">
