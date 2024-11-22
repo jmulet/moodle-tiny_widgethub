@@ -83,18 +83,25 @@ export class ModalSrv {
      * @returns {Promise<ModalDialogue>}
      */
     async create(name, templateContext, onHidden) {
-        let type;
+        let cls;
         switch (name) {
-            case ('picker'): type = IBPickerModal.TYPE; break;
-            case ('params'): type = IBParamsModal.TYPE; break;
-            case ('context'): type = IBContextModal.TYPE; break;
+            case ('picker'): cls = IBPickerModal; break;
+            case ('params'): cls = IBParamsModal; break;
+            case ('context'): cls = IBContextModal; break;
         }
-        // @ts-ignore
-        const modal = await ModalFactory.create({
-            type,
+        // On versions of Moodle beyond 4.3, call create directly on Modal class
+        const options = {
+            type: cls.TYPE,
             templateContext,
             large: true,
-        });
+        };
+        let modal;
+        if (cls.create) {
+            modal = await cls.create(options);
+        } else {
+            // @ts-ignore
+            modal = await ModalFactory.create(options);
+        }
         // Override styles imposed by body.tox-fullscreen on modals
         modal.modal.css({
             'max-width': '800px',
