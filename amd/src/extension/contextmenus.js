@@ -25,7 +25,7 @@ const SUPPORTED_SIZES = [
 
 /**
  * @typedef {{type: string, text: string, icon?: string, onAction: (api?: *) => void}} MenuItem
- * @typedef {{name: string, title: string, condition?: string | RegExp | (() => boolean), icon?:string, onAction?: ()=> void, subMenuItems?: () => string | MenuItem[]}} UserDefinedItem
+ * @typedef {{name: string, title: string, condition?: string | RegExp | (() => boolean), icon?: string, onAction?: ()=> void, subMenuItems?: () => (string | MenuItem[])}} UserDefinedItem
  */
 
 /**
@@ -66,8 +66,7 @@ function provider(ctx) {
     };
 
     /**
-     * @param {import("../contextInit").ItemMenuContext} ctx
-     * @returns {UserDefinedItem}
+     * @type {UserDefinedItem}
      */
     const imageEffectsNestedMenu = {
         name: 'imageEffects',
@@ -96,9 +95,7 @@ function provider(ctx) {
     };
 
     /**
-     * Converts a raw image into a snippet
-     * @param {import("../contextInit").ItemMenuContext} ctx
-     * @returns {UserDefinedItem}
+     * @type {UserDefinedItem}
      */
     const imageSwitchToSnippet = {
         name: 'imageSwitchToSnippet',
@@ -119,10 +116,9 @@ function provider(ctx) {
     };
 
     /**
-     * @param {import("../contextInit").ItemMenuContext} ctx
-     * @returns {UserDefinedItem}
+     * @type {UserDefinedItem}
      */
-     const changeBoxLanguageNestedMenu = {
+    const changeBoxLanguageNestedMenu = {
         name: 'changeBoxLanguage',
         condition: /capsa-.*|tasca-exercici/,
         title: 'Idioma',
@@ -141,11 +137,10 @@ function provider(ctx) {
         }
     };
 
-     /**
-      * @param {import("../contextInit").ItemMenuContext} ctx
-      * @returns {UserDefinedItem}
-      */
-     const changeBoxSizeNestedMenu = {
+    /**
+     * @type {UserDefinedItem}
+     */
+    const changeBoxSizeNestedMenu = {
         name: 'changeBoxSize',
         condition: /^capsa-.*|^tasca-exercici$/,
         title: 'Mida',
@@ -165,11 +160,10 @@ function provider(ctx) {
         }
     };
 
-      /**
-       * @param {import("../contextInit").ItemMenuContext} ctx
-       * @returns {UserDefinedItem}
-       */
-      const changeBoxSeverityNestedMenu = {
+    /**
+     * @type {UserDefinedItem}
+     */
+    const changeBoxSeverityNestedMenu = {
         name: 'changeBoxSeverity',
         condition: 'capsa-generica',
         title: 'Tipus',
@@ -190,11 +184,10 @@ function provider(ctx) {
     };
 
 
-     /**
-       * @param {import("../contextInit").ItemMenuContext} ctx
-       * @returns {UserDefinedItem}
-       */
-     const twoColumnsNestedMenu = {
+    /**
+     * @type {UserDefinedItem}
+     */
+    const twoColumnsNestedMenu = {
         name: 'twoColumnsNestedMenu',
         condition: 'two-cols',
         title: 'Mida columnes',
@@ -229,22 +222,21 @@ function provider(ctx) {
             return menuItems;
         }
     };
-      /**
-       * @param {import("../contextInit").ItemMenuContext} ctx
-       * @returns {UserDefinedItem}
-       */
-      const switchBoxRowsExample = {
+
+    /**
+     * @type {UserDefinedItem}
+     */
+    const switchBoxRowsExample = {
         name: 'switchBoxRowsExample',
         condition: 'capsa-exemple-cols',
         title: 'Convertir a exemple 2 files',
         onAction: Action.switchBoxRowsExampleAction.bind({ctx})
     };
 
-     /**
-      * @param {import("../contextInit").ItemMenuContext} ctx
-      * @returns {UserDefinedItem}
-      */
-     const switchBoxSimpleExample = {
+    /**
+     * @type {UserDefinedItem}
+     */
+    const switchBoxSimpleExample = {
         name: 'switchBoxSimpleExample',
         condition: 'capsa-exemple-rows',
         title: 'Convertir a exemple simple',
@@ -252,8 +244,7 @@ function provider(ctx) {
     };
 
     /**
-     * @param {import("../contextInit").ItemMenuContext} ctx
-     * @returns {UserDefinedItem}
+     * @type {UserDefinedItem}
      */
     const numberedListNestedMenu = {
         name: 'numberedListNestedMenu',
@@ -320,8 +311,7 @@ function provider(ctx) {
     };
 
     /**
-     * @param {import("../contextInit").ItemMenuContext} ctx
-     * @returns {UserDefinedItem}
+     * @type {UserDefinedItem}
      */
    const accordionIndependentBehaviorNestedMenu = {
         name: 'accordionIndependentBehavior',
@@ -330,13 +320,12 @@ function provider(ctx) {
         subMenuItems: () => {
             const $target = ctx.path?.elem;
             if (!$target) {
-                return;
+                return '';
             }
-             // Is Accordion behavior?
+            // Is Accordion behavior?
             const isDependentBehavior =
             ($target.find("div.accordion-body").attr("data-parent") ?? null) !== null;
 
-            // eslint-disable-next-line consistent-return
             return [false, true].map(opt => ({
                 type: 'menuitem',
                 text: opt ? 'Independents' : 'Dependents',
@@ -348,8 +337,7 @@ function provider(ctx) {
 
 
     /**
-     * @param {import("../contextInit").ItemMenuContext} ctx
-     * @returns {UserDefinedItem}
+     * @type {UserDefinedItem}
      */
     const tablesMaxWidthMenu = {
         name: 'tablesMaxWidthMenu',
@@ -381,6 +369,93 @@ function provider(ctx) {
         },
     };
 
+    /**
+     * @type {UserDefinedItem}
+     */
+    const convertToBsTableMenu = {
+        name: 'convertToBsTableMenu',
+        condition: 'taula-bs',
+        title: 'Convertir a taula Bootstrap',
+        onAction: Action.convert2BootstrapTable.bind({ctx}),
+    };
+
+    /**
+     * @type {UserDefinedItem}
+     */
+    const convertToPredefinedTableMenu = {
+        name: 'convertToPredefinedTableMenu',
+        condition: 'taula-predefinida',
+        title: 'Convertir a taula predefinida',
+        onAction: Action.convert2PrefefinedTable.bind({ctx}),
+    };
+
+     /**
+     * @type {UserDefinedItem}
+     */
+     const responsivenessNestedMenu = {
+        name: 'responsivenessNestedMenu',
+        condition: 'taula-bs',
+        title: 'Responsivitat',
+        subMenuItems: () => {
+            const $target = ctx.path?.elem;
+            if (!$target) {
+                return '';
+            }
+            // Is responsiveness active
+            const isResponsive = $target.parent().hasClass('table-responsible');
+
+            return [{
+                type: 'menuitem',
+                text: isResponsive ? 'Treure' : 'Afegir',
+                onAction: Action.toggleBootstapTableResponsiveness.bind({ctx})
+            }];
+        }
+    };
+
+    /**
+     * @type {UserDefinedItem}
+     */
+    const tablesHeaderNestedMenu = {
+            name: 'tablesHeaderNestedMenu',
+            condition: 'taula-predefinida,taula-bs',
+            title: 'Capçalera',
+            subMenuItems: () => {
+                const $target = ctx.path?.elem;
+                if (!$target) {
+                    return '';
+                }
+                const hasHeader = $target.find('thead').length > 0;
+
+                return [{
+                    type: 'menuitem',
+                    text: hasHeader ? 'Treure' : 'Afegir',
+                    onAction: Action.toggleTableHeader.bind({ctx})
+                }];
+            }
+    };
+
+    /**
+     * @type {UserDefinedItem}
+     */
+    const tablesFooterNestedMenu = {
+        name: 'tablesFooterNestedMenu',
+        condition: 'taula-predefinida,taula-bs',
+        title: 'Peu de taula',
+        subMenuItems: () => {
+            const $target = ctx.path?.elem;
+            if (!$target) {
+                return '';
+            }
+            const hasFooter = $target.find('tfoot').length > 0;
+
+            return [{
+                type: 'menuitem',
+                text: hasFooter ? 'Treure' : 'Afegir',
+                onAction: Action.toggleTableFooter.bind({ctx})
+            }];
+        }
+    };
+
     return [
         // Image actions
         imageEffectsNestedMenu,
@@ -396,8 +471,15 @@ function provider(ctx) {
         // Others
         accordionIndependentBehaviorNestedMenu,
         numberedListNestedMenu,
+        twoColumnsNestedMenu,
+
+        // Tables
         tablesMaxWidthMenu,
-        twoColumnsNestedMenu
+        convertToBsTableMenu,
+        convertToPredefinedTableMenu,
+        responsivenessNestedMenu,
+        tablesHeaderNestedMenu,
+        tablesFooterNestedMenu
     ];
 }
 

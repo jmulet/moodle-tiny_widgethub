@@ -1,5 +1,5 @@
-/* eslint-disable no-console */
-import { addRequires, cleanUnusedRequires } from './dependencies';
+
+import {addRequires, cleanUnusedRequires} from './dependencies';
 import jQuery from 'jquery';
 
 
@@ -233,5 +233,110 @@ export function setAccordionBehavior() {
         // Behavior accordion
         const acid = $target.attr("id");
         $target.find("div.accordion-body").attr("data-parent", "#" + acid);
+    }
+}
+
+/**
+ * @this {{ctx: import("../contextInit").ItemMenuContext}}
+ */
+export function convert2BootstrapTable() {
+    const $target = this.ctx.path?.elem;
+    if (!$target) {
+        return;
+    }
+    $target.removeClass("iedib-table");
+    $target.addClass("table table-striped iedib-bstable");
+    $target.find("td,th").removeAttr("style");
+    $target.find("thead > tr > th").attr("role", "col");
+}
+
+/**
+ * @this {{ctx: import("../contextInit").ItemMenuContext}}
+ */
+export function convert2PrefefinedTable() {
+    const $target = this.ctx.path?.elem;
+    if (!$target) {
+        return;
+    }
+    $target.removeClass("table table-bordered table-hover table-striped table-responsive iedib-bstable");
+    $target.addClass("iedib-table");
+    $target.attr("style", 'table-layout:fixed; border-collapse:collapse; border-spacing:0px; width:96%;');
+    $target.find("td,th").css("border", '1px solid gray');
+}
+
+/**
+ * @this {{ctx: import("../contextInit").ItemMenuContext}}
+ */
+export function toggleTableHeader() {
+    const $target = this.ctx.path?.elem;
+    if (!$target) {
+        return;
+    }
+    let head = $target.find("thead");
+    if (head.length) {
+        head.remove();
+    } else {
+        const jQuery = this.ctx.jQuery;
+        head = jQuery("<thead></thead>");
+        const tr = jQuery("<tr></tr>");
+        $target.find("tr").first().find("td").each(function() {
+            const newTh = jQuery('<th role="col">Títol</th>');
+            const st = jQuery(this).attr("style");
+            newTh.attr("style", st ? st : "");
+            tr.append(newTh);
+        });
+        head.append(tr);
+        $target.prepend(head);
+    }
+}
+
+/**
+ * @this {{ctx: import("../contextInit").ItemMenuContext}}
+ */
+export function toggleTableFooter() {
+    const $target = this.ctx.path?.elem;
+    if (!$target) {
+        return;
+    }
+    let foot = $target.find("tfoot");
+    if (foot.length) {
+        foot.remove();
+    } else {
+        const jQuery = this.ctx.jQuery;
+        foot = jQuery("<tfoot></tfoot>");
+        const tr2 = jQuery("<tr></tr>");
+        $target.find("tbody tr").first().find("td").each(
+        /**
+         * @this {HTMLElement}
+         */
+        function() {
+            const newTd = jQuery("<td>Resum</td>");
+            const st = jQuery(this).attr("style");
+            newTd.attr("style", st ? st : "");
+            tr2.append(newTd);
+        });
+        foot.append(tr2);
+        $target.append(foot);
+    }
+}
+
+
+/**
+ * @this {{ctx: import("../contextInit").ItemMenuContext}}
+ */
+export function toggleBootstapTableResponsiveness() {
+    const $target = this.ctx.path?.elem;
+    if (!$target) {
+        return;
+    }
+
+    if ($target.parent().hasClass("table-responsive")) {
+        // Delete responsiveness
+        $target.parent().replaceWith($target);
+    } else {
+        // Add responsiveness
+        const $div = this.ctx.jQuery('<div class="table-responsive"></div>');
+        $target.replaceWith($div);
+        $div.append($target);
     }
 }

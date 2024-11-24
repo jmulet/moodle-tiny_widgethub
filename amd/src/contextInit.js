@@ -238,7 +238,7 @@ const predefinedActionsFactory = function(editor, domSrv) {
 };
 
 /**
- * @typedef {{editor: import('./plugin').TinyMCE, path?: PathResult}} ItemMenuContext
+ * @typedef {{editor: import('./plugin').TinyMCE, path?: PathResult, jQuery: JQueryStatic}} ItemMenuContext
  */
 
 /**
@@ -254,6 +254,7 @@ export async function initContextActions(editor) {
      */
     const ctx = {
         editor: editor,
+        jQuery
     };
 
     // Define icons
