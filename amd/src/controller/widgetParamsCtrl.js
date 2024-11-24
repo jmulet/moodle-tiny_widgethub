@@ -17,7 +17,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 import {getFormCtrl} from '../controller/formCtrl';
-import { getListeners } from '../extension';
+import {getListeners} from '../extension';
 import {getModalSrv} from '../service/modalSrv';
 import {getTemplateSrv} from '../service/templateSrv';
 import {getUserStorage} from '../service/userStorageSrv';
@@ -100,6 +100,18 @@ export class WidgetParamsCtrl {
       // Change input fields visibilities upon conditions
       const selectMode = this.editor.selection.getContent().trim() != '';
       this.formCtrl.applyFieldWatchers(modal.body, this.widget.defaults, this.widget, selectMode);
+
+      // Help circles require popover
+      try {
+         // @ts-ignore
+         modal.body.popover({
+            container: "body",
+            selector: "[data-toggle=popover][data-trigger=hover]",
+            trigger: "hover"
+         });
+      } catch (ex) {
+         console.error(ex);
+      }
 
       modal.show();
    }

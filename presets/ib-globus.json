@@ -36,7 +36,7 @@
         {
             "name": "trigger",
             "title": "Condició d'activació",
-            "value": "click",
+            "value": "hover",
             "options": [
                 "click",
                 "hover",

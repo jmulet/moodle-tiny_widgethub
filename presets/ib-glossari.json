@@ -60,6 +60,7 @@
             "title": "Amplada màxima en px",
             "min": 0,
             "max": 800,
+            "tooltip": "Escriviu 0 per a no limitar l'amplada",
             "bind": "styleRegex('max-width:(.*)px')"
         },
         {

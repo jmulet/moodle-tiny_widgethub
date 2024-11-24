@@ -132,6 +132,19 @@ export class WidgetPropertiesCtrl {
             });
             this.editor.setDirty(true);
         });
+
+        // Help circles require popover
+        try {
+            // @ts-ignore
+            this.modal.body.popover({
+            container: "body",
+            selector: "[data-toggle=popover][data-trigger=hover]",
+            trigger: "hover"
+            });
+        } catch (ex) {
+            console.error(ex);
+        }
+
         this.modal.show();
     }
 

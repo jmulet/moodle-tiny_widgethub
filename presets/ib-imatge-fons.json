@@ -12,7 +12,7 @@
             "title": "URL de la imatge",
             "type": "image",
             "tip": "També podeu pujar una imatge al vostre curs i enllaçar-la aquí.",
-            "bind": "styleRegex(\"background-image:url(['\\\"]?(.*)['\\\"]?)\")\n"
+            "bind": "styleRegex(\"background-image:url\\\\(['\\\"]?([^'\\\")]*)['\\\"]?\\\\)\")\n"
         }
     ],
     "stars": 2,

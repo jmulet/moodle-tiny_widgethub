@@ -173,7 +173,7 @@ function provider(ctx) {
             if (!elem || !widget) {
                 return '';
             }
-            const severities = findVariableByName('tipus', widget.parameters)?.options;
+            const severities = findVariableByName('severity', widget.parameters)?.options;
             return (severities || []).map((/** @type {*}*/ e) => ({
                 type: 'menuitem',
                 text: e.l ?? e,
@@ -374,7 +374,7 @@ function provider(ctx) {
      */
     const convertToBsTableMenu = {
         name: 'convertToBsTableMenu',
-        condition: 'taula-bs',
+        condition: 'taula-predefinida',
         title: 'Convertir a taula Bootstrap',
         onAction: Action.convert2BootstrapTable.bind({ctx}),
     };
@@ -384,7 +384,7 @@ function provider(ctx) {
      */
     const convertToPredefinedTableMenu = {
         name: 'convertToPredefinedTableMenu',
-        condition: 'taula-predefinida',
+        condition: 'taula-bs',
         title: 'Convertir a taula predefinida',
         onAction: Action.convert2PrefefinedTable.bind({ctx}),
     };
@@ -402,7 +402,7 @@ function provider(ctx) {
                 return '';
             }
             // Is responsiveness active
-            const isResponsive = $target.parent().hasClass('table-responsible');
+            const isResponsive = $target.parent().hasClass('table-responsive');
 
             return [{
                 type: 'menuitem',

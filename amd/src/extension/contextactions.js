@@ -244,8 +244,8 @@ export function convert2BootstrapTable() {
     if (!$target) {
         return;
     }
-    $target.removeClass("iedib-table");
-    $target.addClass("table table-striped iedib-bstable");
+    $target.removeClass("iedib-table").removeAttr('style').removeAttr('border')
+           .addClass("table table-striped iedib-bstable");
     $target.find("td,th").removeAttr("style");
     $target.find("thead > tr > th").attr("role", "col");
 }

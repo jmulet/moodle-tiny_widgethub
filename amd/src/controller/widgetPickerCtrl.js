@@ -234,10 +234,9 @@ export class WidgetPickerCtrl {
                     `<a href="javascript:void(0)" data-key="${r.key}" data-insert="recent"><span class="badge badge-secondary">${widgetDict[r.key].name}</span></a>`)
                 .join('\n');
             this.modal.body.find('.tiny_widgethub-recent').html(html);
-
-            // Call filter function to make sure the list is updated.
-            this.onSearchKeyup();
         }
+        // Call filter function to make sure the list is updated.
+        this.onSearchKeyup();
 
         const selectMode = this.isSelectMode();
         if (selectMode) {
