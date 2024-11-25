@@ -6,8 +6,17 @@ require('../module.mocks')(jest);
 const util = require('../../src/util');
 util.genID = jest.fn().mockReturnValue("a12345");
 
-const {WidgetPickerCtrl, getWidgetPickCtrl, setVisibility}= require("../../src/controller/widgetPickerCtrl");
+const { WidgetPickerCtrl, getWidgetPickCtrl, setVisibility } = require("../../src/controller/widgetPickerCtrl");
 const { getTemplateSrv } = require('../../src/service/templateSrv');
+
+/**
+ * @param {number} delay 
+ */
+const wait = function(delay) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, delay);
+    })
+}
 
 /** @type {*} */
 let mockEditor;
@@ -18,8 +27,8 @@ const mockUserStorage = {
     getFromSession: jest.fn().mockReturnValue(""),
     setToSession: jest.fn(),
     getRecentUsed: jest.fn().mockReturnValue([
-        {key: 'unk', p: {}},
-        {key: 'k1', p: {p1: 'a', p2: 'b', p3: 4, p5: '#ffaabb', p6: 'c'}}
+        { key: 'unk', p: {} },
+        { key: 'k1', p: { p1: 'a', p2: 'b', p3: 4, p5: '#ffaabb', p6: 'c' } }
     ]),
     loadStore: jest.fn()
 };
@@ -36,22 +45,24 @@ const mockTemplateSrv = {
 const widget1 = {
     key: 'k1',
     name: "widget k1",
-    defaults: {p1: "a", p2: 11},
+    defaults: { p1: "a", p2: 11 },
     template: "<p>Hello</p>",
     parameters: [
-        {name: "p1", value: "", type: "textfield"},
-        {name: "p2", value: "", type: "textarea"},
-        {name: "p3", value: 0, type: "numeric"},
-        {name: "p4", value: false, type: "checkbox"},
-        {name: "p5", value: "#000000", type: "color"},
-        {name: "p6", value: "", type: "select", options: ["a", "b", "c"]},
+        { name: "p1", value: "", type: "textfield" },
+        { name: "p2", value: "", type: "textarea" },
+        { name: "p3", value: 0, type: "numeric" },
+        { name: "p4", value: false, type: "checkbox" },
+        { name: "p5", value: "#000000", type: "color" },
+        { name: "p6", value: "", type: "select", options: ["a", "b", "c"] },
     ],
     isUsableInScope: () => true,
     isFilter: () => false
 };
 
-const widget2 = {...widget1, key: 'k2', name: 'widget 2', 
-    template: '{{p1}}-{{p2}}', category: 'video', parameters: []};
+const widget2 = {
+    ...widget1, key: 'k2', name: 'widget 2',
+    template: '{{p1}}-{{p2}}', category: 'video', parameters: []
+};
 
 /** @type {any} */
 const mockEditorOptions = {
@@ -80,7 +91,7 @@ describe("WidgetPickerCtrl", () => {
 
         mockEditor = require('../editor.mock')();
 
-        widgetPickCtrl = new WidgetPickerCtrl(mockEditor, mockEditorOptions, 
+        widgetPickCtrl = new WidgetPickerCtrl(mockEditor, mockEditorOptions,
             mockWidgetParamsFactory, mockModalSrv, mockTemplateSrv, mockUserStorage);
     })
 
@@ -93,7 +104,7 @@ describe("WidgetPickerCtrl", () => {
         const i2 = getWidgetPickCtrl(mockEditor);
         expect(i1).toBeTruthy();
         expect(Object.is(i1, i2)).toBe(true);
-        const i3 = getWidgetPickCtrl({...mockEditor, id: 123456});
+        const i3 = getWidgetPickCtrl({ ...mockEditor, id: 123456 });
         expect(Object.is(i1, i3)).toBe(false)
     });
 
@@ -116,7 +127,7 @@ describe("WidgetPickerCtrl", () => {
         mockEditor.selection.getContent.mockReturnValue("Some text selected");
         expect(widgetPickCtrl.isSelectMode()).toBe(true);
     });
-    
+
     it("setWidgetButtonsVisibility applies search condition", () => {
         document.body.innerHTML = `
         <div id="modal">
@@ -139,7 +150,7 @@ describe("WidgetPickerCtrl", () => {
         `;
         mockEditor.selection.getContent.mockClear();
         mockEditor.selection.getContent.mockReturnValue("");
-        
+
         const $modalBody = jQuery("#modal");
         // @ts-ignore
         widgetPickCtrl.modal = {
@@ -155,7 +166,7 @@ describe("WidgetPickerCtrl", () => {
         expect($modalBody.find('div[data-key]:not(.d-none)').length).toBe(3);
         expect($modalBody.find('div.tiny_widgethub-category:not(.d-none)').length).toBe(2);
         expect($empty.hasClass("d-none")).toBe(true);
-        
+
         $input.val("  ViDEos  ");
         widgetPickCtrl.onSearchKeyup();
         expect(mockUserStorage.setToSession).toHaveBeenCalledWith('searchtext', '  ViDEos  ', true);
@@ -172,7 +183,7 @@ describe("WidgetPickerCtrl", () => {
 
         // select Mode
         mockEditor.selection.getContent.mockClear();
-        mockEditor.selection.getContent.mockReturnValue("Selection"); 
+        mockEditor.selection.getContent.mockReturnValue("Selection");
         $input.val("  ViDEos  ");
         widgetPickCtrl.onSearchKeyup();
         expect(mockUserStorage.setToSession).toHaveBeenCalledWith('searchtext', '  ViDEos  ', true);
@@ -184,9 +195,9 @@ describe("WidgetPickerCtrl", () => {
     it('getPickTemplateContext returns an object for the given widget list', () => {
         mockEditor.selection.getContent.mockClear();
         mockEditor.selection.getContent.mockReturnValue("");
-        
+
         const ctx = widgetPickCtrl.getPickTemplateContext();
-        
+
         expect(ctx.selectMode).toBe(false);
         expect(ctx.rid).toMatch(/^[a-zA-Z]\w*$/);
         expect(ctx.rid).toBe("a12345");
@@ -232,8 +243,8 @@ describe("WidgetPickerCtrl", () => {
         expect(preview).toBe(widget1.template);
         expect(mockTemplateSrv.render).toHaveBeenCalledWith(widget1.template, widget1.defaults, undefined, undefined);
     });
-    
-    it("onMouseEnterButton decides how to render preview", async() => {
+
+    it("onMouseEnterButton decides how to render preview", async () => {
         const btnGroup = document.createElement("div");
         btnGroup.classList.add("btn-group");
         btnGroup.dataset.key = "k1";
@@ -242,10 +253,10 @@ describe("WidgetPickerCtrl", () => {
         // @ts-ignore
         widgetPickCtrl.modal = {
             body: jQuery(`<div><div class="tiny_widgethub-preview" style="display: none;"></div></div>`)
-        }; 
+        };
         widgetPickCtrl.generatePreview = jest.fn().mockReturnValue("The preview");
 
-        await widgetPickCtrl.onMouseEnterButton({target: btnGroup.querySelector("i")});
+        await widgetPickCtrl.onMouseEnterButton({ target: btnGroup.querySelector("i") });
         expect(widgetPickCtrl.generatePreview).toHaveBeenCalledWith(widget1);
         expect(widgetPickCtrl.modal.body.html()).toContain("The preview");
         expect(widgetPickCtrl.modal.body.find(".tiny_widgethub-preview").css('display')).toBe('block');
@@ -276,21 +287,21 @@ describe("WidgetPickerCtrl", () => {
         expect(widgetPickCtrl.modal).toBeTruthy();
     });
 
-    it('Must handle action', async() => {
+    it('Must handle action', async () => {
         const header = jQuery('<div><span class="ib-blink"></span></div>');
         // Assuming modal is not created
         const spyCreateModal =
             jest.spyOn(widgetPickCtrl, 'createModal').mockImplementation(() => {
-            return new Promise(resolve => {
-                // @ts-ignore
-                widgetPickCtrl.modal = {
-                    header,
-                    body: jQuery('<div></div>'),
-                    show: jest.fn(),
-                };
-                resolve();
+                return new Promise(resolve => {
+                    // @ts-ignore
+                    widgetPickCtrl.modal = {
+                        header,
+                        body: jQuery('<div></div>'),
+                        show: jest.fn(),
+                    };
+                    resolve();
+                });
             });
-        });
 
         await widgetPickCtrl.handleAction();
         expect(spyCreateModal).toHaveBeenCalledTimes(1);
@@ -307,12 +318,12 @@ describe("WidgetPickerCtrl", () => {
         expect(header.find('.ib-blink').hasClass('d-none')).toBe(false);
     });
 
-    test("handlePickModalClick", async() => {
+    test("handlePickModalClick", async () => {
         /** @type {*} */
         const modalSrv = require('../modalSrv.mock');
         const templateSrv = getTemplateSrv();
         // Create a more realistic instance, with less mocks
-        widgetPickCtrl = new WidgetPickerCtrl(mockEditor, mockEditorOptions, 
+        widgetPickCtrl = new WidgetPickerCtrl(mockEditor, mockEditorOptions,
             mockWidgetParamsFactory, modalSrv, templateSrv, mockUserStorage);
 
         const spyHandlePickModalAction = jest.spyOn(widgetPickCtrl, 'handlePickModalAction');
@@ -333,11 +344,12 @@ describe("WidgetPickerCtrl", () => {
         // Not usable in scope
         widget1.isUsableInScope = () => false;
         modal.body.find('.btn-group button').first().trigger('click');
+        await wait(500);
         expect(modal.hide).not.toHaveBeenCalled();
         expect(modal.destroy).not.toHaveBeenCalled();
         expect(mockEditor.windowManager.confirm).toHaveBeenCalled();
-        expect(spyHandlePickModalAction).not.toHaveBeenCalled();
-
+        expect(spyHandlePickModalAction).not.toHaveBeenCalled()
+        
         // It is usable in scope
         widget1.isUsableInScope = () => true;
         mockEditor.windowManager.confirm.mockReset();
@@ -345,7 +357,8 @@ describe("WidgetPickerCtrl", () => {
         expect(modal.hide).toHaveBeenCalled();
         expect(modal.destroy).not.toHaveBeenCalled();
         expect(mockEditor.windowManager.confirm).not.toHaveBeenCalled();
-        expect(spyHandlePickModalAction).toHaveBeenCalled();
+        expect(spyHandlePickModalAction).toHaveBeenCalled();       
+       
     });
 
 });

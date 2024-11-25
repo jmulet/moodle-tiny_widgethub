@@ -51,8 +51,11 @@ module.exports = function applyMocks(jest) {
             return Promise.resolve(kps.map(kp => map.get(kp.key) ?? kp.key));
         };
         const coreStr = {
-            /** @param  {{key: string, component: string}}  kp */
-            get_string: (kp) => get_strings([kp]),
+            /** 
+             * @param  {string}  key 
+             * @param  {string}  component 
+             */
+            get_string: (key, component) => Promise.resolve(map.get(key) ?? key),
             get_strings
         };
         return {

@@ -36,6 +36,9 @@ import {debounce, genID, hashCode, searchComp, toggleClass} from '../util';
  * @param {boolean} visible
  */
 export const setVisibility = function(el, visible) {
+    if(!el) {
+        return;
+    }
     if (visible) {
         el.classList.remove("d-none");
     } else {
@@ -449,10 +452,10 @@ export class WidgetPickerCtrl {
         }
         // Must open a configuration dialogue for the current widget
         let confirmMsg = null;
-        if (!widget.isUsableInScope()) {
-            confirmMsg = get_string('confirmusage', 'tiny_widgethub');
-        }
 
+        if (!widget.isUsableInScope()) {
+            confirmMsg = await get_string('confirmusage', 'tiny_widgethub');
+        }
         const forceInsert = aRecent !== null || button?.dataset?.insert === 'true';
         if (confirmMsg) {
             this.editor.windowManager.confirm(confirmMsg,

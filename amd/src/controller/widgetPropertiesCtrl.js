@@ -142,7 +142,7 @@ export class WidgetPropertiesCtrl {
             trigger: "hover"
             });
         } catch (ex) {
-            console.error(ex);
+            // console.error(ex);
         }
 
         this.modal.show();
