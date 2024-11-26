@@ -24,10 +24,11 @@
 
 /**
  * Upgrade the plugin.
+ * @param string $oldversion
+ * @return bool
  */
 function xmldb_tiny_widgethub_upgrade($oldversion) {
-	$presets = \tiny_widgethub\plugininfo::fetch_presets();
-	\tiny_widgethub\plugininfo::save_update_presets($presets);
+    $presets = \tiny_widgethub\plugininfo::fetch_presets();
+    \tiny_widgethub\plugininfo::save_update_presets($presets);
     return true;
 }
-

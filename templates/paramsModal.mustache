@@ -26,17 +26,18 @@
     * none
 
     Context variables required for this template:
+    * name: The widget being configured.
+    * filter: Is this widget a filter?
     * selectMode: The mode of the modal.
     * idTabpane: The id of the tabpane.
-    * widgetname: The name of the widget.
     * instructions: The instructions of the widget.
     * controls: The form controls of the widget.
     
     Example context (json):
     {
-        "selectMode": false,
+        "name": "Dialog title",
+        "filter": false,
         "idTabpane": "idTabpane",
-        "widgetname": "widget name",
         "instructions": "Instructions",
         "controls": [
             "<label>Label</label><input type=\"text\">"

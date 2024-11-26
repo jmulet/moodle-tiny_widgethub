@@ -66,7 +66,6 @@ if ($hassiteconfig) {
         foreach ($spages as $page) {
             $ADMIN->add($tinycategory, $page);
         }
-        
         // Set the default return to null.
         $settings = null;
     }

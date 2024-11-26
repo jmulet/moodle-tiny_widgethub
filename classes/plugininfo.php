@@ -32,29 +32,33 @@ use editor_tiny\plugin_with_menuitems;
 
 
 /**
- * Function to search for the index by the 'key' property
+ * Function to search for the index by the 'key' property.
  * @param array $array
  * @param string $searchKey
  * @return mixed
  */
-function searchByKey($array, $searchKey) {
+function search_by_key($array, $searchkey) {
     foreach ($array as $index => $value) {
-        if ($value['key'] === $searchKey) {
+        if ($value['key'] === $searchkey) {
             return $index;
         }
     }
-    // Return null if not found
+    // Return null if not found.
     return null;
 }
 
-// Function to parse the configuration
-function parseConfig($configString) {
+/**
+ * Function to parse the configuration.
+ * @param string $configstr
+ * @return string[]
+ */
+function parse_config($configstr) {
     $config = [];
-    $lines = explode("\n", trim($configString)); // Split into lines
+    $lines = explode("\n", trim($configstr)); // Split into lines.
     foreach ($lines as $line) {
         if (strpos($line, '=') !== false) {
-            list($key, $value) = explode('=', $line, 2); // Split key-value pair
-            $config[trim($key)] = trim($value); // Trim spaces around key and value
+            list($key, $value) = explode('=', $line, 2); // Split key-value pair.
+            $config[trim($key)] = trim($value); // Trim spaces around key and value.
         }
     }
     return $config;
@@ -134,7 +138,7 @@ class plugininfo extends plugin implements
             $params['sharecss'] = $conf->sharecss;
             $params['additionalcss'] = $conf->additionalcss;
             // Syntax key=value per line.
-            $params['cfg'] = parseConfig($conf->cfg ?? '');
+            $params['cfg'] = parse_config($conf->cfg ?? '');
         }
         return $params;
     }
@@ -157,7 +161,7 @@ class plugininfo extends plugin implements
         }
         // Detect errors in the index.
         $nerrs = 0;
-        foreach(array_keys($widgetindex) as $id) {
+        foreach (array_keys($widgetindex) as $id) {
             if (!isset($conf->{'def_' . $id})) {
                unset($widgetindex[strval($id)]);
                $nerrs++;
@@ -227,7 +231,7 @@ class plugininfo extends plugin implements
         $widgetlist = [];
         foreach (array_keys($widgetindex) as $id) {
             // Check if the key is set
-            if(!isset($conf->{'def_' . $id})) {
+            if (!isset($conf->{'def_' . $id})) {
                 continue;
             }
             $definition = $conf->{'def_' . $id};
@@ -287,9 +291,9 @@ class plugininfo extends plugin implements
      * It removes all the configuration of this plugin. Call this method when uninstalling it.
      * @return void
      */
-    public static function remove_configuration_settings(){
+    public static function remove_configuration_settings() {
         $settings = get_config('tiny_widgethub');
-        foreach($settings as $fieldkey => $fieldname){
+        foreach ($settings as $fieldkey => $fieldname) {
             unset_config($fieldkey, 'tiny_widgethub');
         }
     }
@@ -302,13 +306,13 @@ class plugininfo extends plugin implements
     protected static function parse_widget_preset(\SplFileInfo $fileinfo){
         $file = $fileinfo -> openFile("r");
         $content = "";
-        while(!$file -> eof()){
+        while(!$file -> eof()) {
             $content .= $file->fgets();
         }
-        $preset_object = json_decode($content);
+        $presetobject = json_decode($content);
         // Check it is a valid json.
-        if($preset_object && is_object($preset_object)){
-            return get_object_vars($preset_object);
+        if ($presetobject && is_object($presetobject)) {
+            return get_object_vars($presetobject);
         } else {
             return false;
         }
@@ -324,16 +328,16 @@ class plugininfo extends plugin implements
         $dirs = [];
 
         // Search in the presets folder.
-        $snippet_presets_dir = $CFG->dirroot . '/lib/editor/tiny/plugins/widgethub/presets';
-        if(file_exists($snippet_presets_dir)) {
-            $dirs[] = new \DirectoryIterator($snippet_presets_dir);
+        $snippetpresetsdir = $CFG->dirroot . '/lib/editor/tiny/plugins/widgethub/presets';
+        if (file_exists($snippetpresetsdir)) {
+            $dirs[] = new \DirectoryIterator($snippetpresetsdir);
         }
-        foreach($dirs as $dir) {
+        foreach ($dirs as $dir) {
             foreach ($dir as $fileinfo) {
                 if (!$fileinfo->isDot()) {
                     // Process only .json files.
                     $ext = pathinfo($fileinfo->getFilename())['extension'];
-                    if($ext == 'json') {
+                    if ($ext == 'json') {
                         $preset = self::parse_widget_preset($fileinfo);
                         if ($preset) {
                             $ret[] = $preset;
@@ -356,9 +360,9 @@ class plugininfo extends plugin implements
         // Obtain the index.
         $widgetindex = self::get_widget_index($conf);
         
-        foreach($presets as $preset){
+        foreach ($presets as $preset) {
             // Check if the $preset key is in the $index.
-            $id = searchByKey($widgetindex, $preset['key']);
+            $id = search_by_key($widgetindex, $preset['key']);
             $mustupdate = true;
 
             if ($id == null) {
@@ -385,7 +389,7 @@ class plugininfo extends plugin implements
                 ];
             }
         }
-        
+
         // Save the index.
         set_config('index', json_encode($widgetindex), 'tiny_widgethub');
     }

@@ -28,7 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/adminlib.php');
 
 /**
- * Summary of tiny_widgethub\starts_with
+ * Summary of tiny_widgethub\starts_with.
  * @param string $string
  * @param string $substring
  * @return bool
@@ -47,7 +47,7 @@ function starts_with(string $string, string $substring): bool {
 }
 
 /**
- * Summary of hubpicker
+ * Summary of hubpicker.
  */
 class ymlsetting extends \admin_setting {
     /**
@@ -74,8 +74,8 @@ class ymlsetting extends \admin_setting {
     /**
      * Not a setting, just text.
      * @param string $name unique ascii name.
-     * @param string $visiblename heading
-     * @param string $information text in box
+     * @param string $visiblename heading.
+     * @param string $information text in box.
      * @param int $windex
      * @param array $usedkeys
      * @param object $partials
@@ -92,7 +92,7 @@ class ymlsetting extends \admin_setting {
 
     /**
      * Returns current value of this setting.
-     * @return mixed array or string depending on instance; NULL means no default, user must supply
+     * @return mixed array or string depending on instance; NULL means no default, user must supply.
      */
     public function get_setting() {
         return "";
@@ -107,15 +107,15 @@ class ymlsetting extends \admin_setting {
     }
 
     /**
-     * How the setting is stored
+     * How the setting is stored.
      * @param mixed $data
-     * @return string Returns an empty string or error message
+     * @return string Returns an empty string or error message.
      */
     public function write_setting($data) {
         // Determine how the setting is written according to form $data.
         // Return empty or error message.
         if ($this->windex > 0 && (!isset($data) || $data == '')) {
-            // Get rid of the widget at the current index
+            // Get rid of the widget at the current index.
             unset_config('def_' . $this->windex, 'tiny_widgethub');
             // Update index.
             plugininfo::update_widget_index(0);
@@ -152,7 +152,7 @@ class ymlsetting extends \admin_setting {
         );
 
         $json = get_config('tiny_widgethub', 'def_' . $this->windex);
-        
+    
         $divyml = \html_writer::start_tag('div', [
             'id' => 'id_s_tiny_widgethub_defyml_' . $this->windex,
             'name' => 's_tiny_widgethub_defyml_' . $this->windex
@@ -162,14 +162,15 @@ class ymlsetting extends \admin_setting {
         $textareajson = \html_writer::start_tag('textarea', [
                 'id' => 'id_s_tiny_widgethub_def_' . $this->windex,
                 'name' => 's_tiny_widgethub_def_' . $this->windex,
-                'class'=>'form-control', 'rows' => '8', 'spellcheck' => 'false', 'style' => 'display:none'])
+                'class' => 'form-control', 'rows' => '8', 
+                'spellcheck' => 'false', 'style' => 'display:none',])
                 . $json
                 . \html_writer::end_tag('textarea');
 
         $partialsinput = \html_writer::empty_tag('input', [
             'id' => 'id_s_tiny_widgethub_partials_' . $this->windex,
             'type' => 'hidden',
-            'value' => json_encode($this->partials)
+            'value' => json_encode($this->partials),
         ]);
           
         return format_admin_setting(

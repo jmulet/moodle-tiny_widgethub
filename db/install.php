@@ -27,5 +27,5 @@
  */
 function xmldb_tiny_widgethub_install() {
     $presets = \tiny_widgethub\plugininfo::fetch_presets();
-	\tiny_widgethub\plugininfo::save_update_presets($presets);
+    \tiny_widgethub\plugininfo::save_update_presets($presets);
 }
