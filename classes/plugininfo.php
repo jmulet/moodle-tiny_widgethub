@@ -47,6 +47,19 @@ function searchByKey($array, $searchKey) {
     return null;
 }
 
+// Function to parse the configuration
+function parseConfig($configString) {
+    $config = [];
+    $lines = explode("\n", trim($configString)); // Split into lines
+    foreach ($lines as $line) {
+        if (strpos($line, '=') !== false) {
+            list($key, $value) = explode('=', $line, 2); // Split key-value pair
+            $config[trim($key)] = trim($value); // Trim spaces around key and value
+        }
+    }
+    return $config;
+}
+
 /**
  * Tiny WidgetHub plugin version details.
  */
@@ -120,7 +133,8 @@ class plugininfo extends plugin implements
             // Configuration.
             $params['sharecss'] = $conf->sharecss;
             $params['additionalcss'] = $conf->additionalcss;
-            $params['cfg'] = json_decode($conf->cfg ?? '{}') ?? new stdClass();
+            // Syntax key=value per line.
+            $params['cfg'] = parseConfig($conf->cfg ?? '');
         }
         return $params;
     }

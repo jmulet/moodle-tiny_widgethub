@@ -566,6 +566,7 @@ div.iedib-tasca > h4:first-of-type {
   width: 16px;
   height: 22px;
   position: absolute;
+  left: 0;
   top: -1px;
   font-family: "Font Awesome 6 Free", "FontAwesome";
   font-weight: 900;
@@ -883,6 +884,8 @@ div.iedib-tasca > h4:first-of-type {
 }
 
 h4.iedib-subsub {
+  position: relative;
+  padding-left: 16px;
   font-size: 1.32rem;
   font-style: italic;
   font-weight: bold;
@@ -896,10 +899,12 @@ h4.iedib-subsub {
 
 h4.iedib-subsub::before {
   content: '';
-  display: inline-block;
+  position: absolute;
+  left: 0;
+  top: 6px;
   width: 10px;
   height: 10px;
-  margin-right: 4px;
+  border-radius: 1px;
   background: #bed0f6;
 }
 

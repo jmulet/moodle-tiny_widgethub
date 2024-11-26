@@ -36,7 +36,6 @@ class settingsutil {
             'tiny_widgethub/sharecss',
             'tiny_widgethub_sharecss',
             get_string('sharecss', 'tiny_widgethub'),
-            '',
             1
         );
         // Define additional CSS to include in the editor's iframe.
@@ -47,12 +46,12 @@ class settingsutil {
             '/** https://iedib.net/assets/sd/all.css */',
             PARAM_RAW
         );
-        // Define additional settings in json format.
+        // Define additional settings in key=value syntax per line.
         $items[] = new \admin_setting_configtextarea(
             'tiny_widgethub/cfg',
             'tiny_widgethub_cfg',
             get_string('cfg', 'tiny_widgethub'),
-            '{"imgBaseUrl": "https://ibsuite.es/iedib/snippets", "disable.plugin.pages": "", "enable.contextmenu.level": "1", "enable.ibquizz.userlist": ""}',
+            'imgBaseUrl=https://ibsuite.es/iedib/snippets\ndisable.plugin.pages=\nenable.contextmenu.level=1\nenable.ibquizz.userlist=',
             PARAM_RAW
         );
         return $items;

@@ -9,14 +9,12 @@ import jQuery from 'jquery';
 export function addImageEffectAction() {
     const ctx = this.ctx;
     const type = this.type;
-    return () => {
-        const elem = ctx.path?.elem;
-        if (!elem) {
+    const elem = ctx.path?.elem;
+    if (!elem) {
             return;
-        }
-        elem.attr("data-snptd", type);
-        addRequires(ctx.editor, ["/sd/images.min.js"]);
-    };
+    }
+    elem.attr("data-snptd", type);
+    addRequires(ctx.editor, ["/sd/images.min.js"]);
 }
 
 /**
@@ -29,6 +27,9 @@ export function removeImageEffectsAction() {
         return;
     }
     elem.removeAttr("data-snptd");
+    if (elem.attr("role")?.startsWith("snptd_")) {
+        elem.removeAttr("role");
+    }
     cleanUnusedRequires(ctx.editor);
 }
 

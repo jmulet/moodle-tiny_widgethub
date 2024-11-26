@@ -54,10 +54,10 @@ export default new Promise(async(resolve) => {
         getCommandSetup(),
     ]);
 
-    // TODO: Remove this in the future. Simply for compatibility with atto
     tinyMCE.overrideDefaults({
         ...tinyMCE.defaultOptions,
-        remove_trailing_brs: false
+        remove_trailing_brs: false, // TODO: Remove this in the future. Simply for compatibility with atto
+        allow_script_urls: true,    // Allow href="javascript:void(0)" used in popover
     });
 
     tinyMCE.PluginManager.add(pluginName,
