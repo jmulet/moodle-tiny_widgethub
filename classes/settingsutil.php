@@ -54,8 +54,8 @@ class settingsutil {
             'tiny_widgethub/cfg',
             'tiny_widgethub_cfg',
             get_string('cfg', 'tiny_widgethub'),
-            'imgBaseUrl=https://ibsuite.es/iedib/snippets\ndisable.plugin.pages=\n'.
-            'enable.contextmenu.level=1\nenable.ibquizz.userlist=',
+            "imgBaseUrl=https://ibsuite.es/iedib/snippets\ndisable.plugin.pages=\n".
+            "enable.contextmenu.level=1\nenable.ibquizz.userlist=",
             PARAM_RAW
         );
         return $items;
