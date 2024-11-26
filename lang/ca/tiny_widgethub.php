@@ -21,8 +21,8 @@
  * @copyright   2024 Josep Mulet <pep.mulet@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-$string['additionalcss'] = 'CSS addicional per al iframe de l\'editor';
 $string['accept'] = 'Acceptar';
+$string['additionalcss'] = 'CSS addicional per al iframe de l\'editor';
 $string['cancel'] = 'Cancel·lar';
 $string['cfg'] = 'Configuració addicional';
 $string['configuration'] = 'Configuració';

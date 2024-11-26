@@ -299,13 +299,14 @@ class plugininfo extends plugin implements
     }
 
     /**
+     * Reads the widget definition in json format.
      * @param \SplFileInfo $fileinfo
      * @return array|bool
      */
     protected static function parse_widget_preset(\SplFileInfo $fileinfo) {
         $file = $fileinfo->openFile("r");
         $content = "";
-        while (!$file -> eof()) {
+        while (!$file->eof()) {
             $content .= $file->fgets();
         }
         $presetobject = json_decode($content);
