@@ -54,7 +54,8 @@ class settingsutil {
             'tiny_widgethub/cfg',
             'tiny_widgethub_cfg',
             get_string('cfg', 'tiny_widgethub'),
-            'imgBaseUrl=https://ibsuite.es/iedib/snippets\ndisable.plugin.pages=\nenable.contextmenu.level=1\nenable.ibquizz.userlist=',
+            'imgBaseUrl=https://ibsuite.es/iedib/snippets\ndisable.plugin.pages=\n'.
+            'enable.contextmenu.level=1\nenable.ibquizz.userlist=',
             PARAM_RAW
         );
         return $items;
@@ -95,7 +96,7 @@ class settingsutil {
             $title = get_string('edit', 'tiny_widgethub') . ' ' . $widget->name;
         }
         // Page Settings for every widget.
-        $settingspage = new \admin_settingpage('tiny_widgethub_spage_' . $windx, 
+        $settingspage = new \admin_settingpage('tiny_widgethub_spage_' . $windx,
             $title, 'moodle/site:config', true);
 
         if ($windx > 0) {

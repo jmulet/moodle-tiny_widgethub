@@ -34,7 +34,7 @@ use editor_tiny\plugin_with_menuitems;
 /**
  * Function to search for the index by the 'key' property.
  * @param array $array
- * @param string $searchKey
+ * @param string $searchkey
  * @return mixed
  */
 function search_by_key($array, $searchkey) {
@@ -163,8 +163,8 @@ class plugininfo extends plugin implements
         $nerrs = 0;
         foreach (array_keys($widgetindex) as $id) {
             if (!isset($conf->{'def_' . $id})) {
-               unset($widgetindex[strval($id)]);
-               $nerrs++;
+                unset($widgetindex[strval($id)]);
+                $nerrs++;
             }
         }
         unset($widgetindex[0]); // Remove the temporal entry.
@@ -192,7 +192,7 @@ class plugininfo extends plugin implements
         } else if (empty($widget->key) && empty($widget->name)) {
             // Remove the widget from the index and also the definition.
             unset($widgetindex[strval($id)]);
-            unset_config('def_' . $id, 'tiny_widgethub');            
+            unset_config('def_' . $id, 'tiny_widgethub');
         } else if ($id == 0) {
             // Add the temporal entry to a definitive widget index.
             $tmpwidget = json_decode($conf->def_0);
@@ -230,7 +230,7 @@ class plugininfo extends plugin implements
         }
         $widgetlist = [];
         foreach (array_keys($widgetindex) as $id) {
-            // Check if the key is set
+            // Check if the key is set.
             if (!isset($conf->{'def_' . $id})) {
                 continue;
             }
@@ -299,14 +299,13 @@ class plugininfo extends plugin implements
     }
 
     /**
-     * 
      * @param \SplFileInfo $fileinfo
      * @return array|bool
      */
-    protected static function parse_widget_preset(\SplFileInfo $fileinfo){
-        $file = $fileinfo -> openFile("r");
+    protected static function parse_widget_preset(\SplFileInfo $fileinfo) {
+        $file = $fileinfo->openFile("r");
         $content = "";
-        while(!$file -> eof()) {
+        while (!$file -> eof()) {
             $content .= $file->fgets();
         }
         $presetobject = json_decode($content);
@@ -322,8 +321,8 @@ class plugininfo extends plugin implements
      * Returns an array of all widgets defined in presets as json file
      * @return array
      */
-    public static function fetch_presets(){
-        global $CFG,$PAGE;
+    public static function fetch_presets() {
+        global $CFG;
         $ret = [];
         $dirs = [];
 
@@ -346,7 +345,7 @@ class plugininfo extends plugin implements
                 }
             }
         }
-       return $ret;
+        return $ret;
     }
 
     /**
@@ -359,7 +358,7 @@ class plugininfo extends plugin implements
         $conf = get_config('tiny_widgethub');
         // Obtain the index.
         $widgetindex = self::get_widget_index($conf);
-        
+
         foreach ($presets as $preset) {
             // Check if the $preset key is in the $index.
             $id = search_by_key($widgetindex, $preset['key']);

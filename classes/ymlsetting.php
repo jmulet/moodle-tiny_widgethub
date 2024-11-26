@@ -152,18 +152,18 @@ class ymlsetting extends \admin_setting {
         );
 
         $json = get_config('tiny_widgethub', 'def_' . $this->windex);
-    
         $divyml = \html_writer::start_tag('div', [
             'id' => 'id_s_tiny_widgethub_defyml_' . $this->windex,
-            'name' => 's_tiny_widgethub_defyml_' . $this->windex
+            'name' => 's_tiny_widgethub_defyml_' . $this->windex,
             ])
             . \html_writer::end_tag('div');
 
         $textareajson = \html_writer::start_tag('textarea', [
                 'id' => 'id_s_tiny_widgethub_def_' . $this->windex,
                 'name' => 's_tiny_widgethub_def_' . $this->windex,
-                'class' => 'form-control', 'rows' => '8', 
-                'spellcheck' => 'false', 'style' => 'display:none',])
+                'class' => 'form-control', 'rows' => '8',
+                'spellcheck' => 'false', 'style' => 'display:none',
+                ])
                 . $json
                 . \html_writer::end_tag('textarea');
 
@@ -172,7 +172,7 @@ class ymlsetting extends \admin_setting {
             'type' => 'hidden',
             'value' => json_encode($this->partials),
         ]);
-          
+
         return format_admin_setting(
             $this,
             $this->visiblename,

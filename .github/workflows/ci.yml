@@ -32,7 +32,7 @@ jobs:
       matrix:
         php: ['8.1']
         # 'MOODLE_402_STABLE', 'MOODLE_403_STABLE', 'MOODLE_404_STABLE'
-        moodle-branch: ['MOODLE_401_STABLE']
+        moodle-branch: ['MOODLE_405_STABLE']
         database: [mariadb]
 
     steps:
