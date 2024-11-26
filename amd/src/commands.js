@@ -38,8 +38,7 @@ import {applyWidgetFilterFactory, findVariableByName, searchComp} from './util';
 export const getSetup = async() => {
     // Get some translations
     const [widgetNameTitle, buttonImage] = await Promise.all([
-        // @ts-ignore
-        coreStr.getString('settings', Common.component),
+        coreStr.get_string('settings', Common.component),
         getButtonImage('icon', Common.component),
     ]);
 
