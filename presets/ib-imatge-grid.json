@@ -1,0 +1,113 @@
+{
+    "key": "image-grid",
+    "name": "Graella d'imatges",
+    "category": "obsolet",
+    "instructions": "Crea una graella n files i m columnes on col·locar imatges amb els seus corresponents títols. \nDoble click sobre les imatges per canviar-les. \n<b style=\"color:darkred;\">Reviseu la visualització en dispositius petits!</b>\n",
+    "template": "<p><br></p> <!--begin:: graella d'imatges--> <table class=\"iedib-imggrid\" {{#if}}[effect=='zm']data-snptd=\"zoom\"{{/if}}{{#if}}[effect=='lb']data-snptd=\"lightbox\"{{/if}} style=\"table-layout:{{amplades}};border-collapse: collapse; border-spacing: 0px;width:{{ampladaPercent}}%\"><tbody>{{#each}}[i=files]<tr>{{#each}}[j=columnes]<td><p style=\"text-align:center;vertical-align:top\">{{#if}}[comportament=='sub']<span class=\"iedib-caption-counter\" >a)</span> <span class=\"iedib-caption-title\">Descripció</span>{{/if}}</p></td>{{/each}}</tr><tr>{{#each}}[j=columnes] <td style=\"border: {{gruix}}px solid {{vorera}};text-align:center;\"><img role=\"presentation\" src=\"https://iedib.net/wordpress/wp-content/uploads/2018/12/sample-img.png\" alt=\"Imatge per defecte\" width=\"169\" height=\"112\" class=\"img-fluid align-middle\"></td>{{/each}}</tr><tr>{{#each}}[j=columnes]<td class=\"iedib-imggrid-spacing\" style=\"height: 15px;text-align:center;vertical-align:top\"><p>{{#if}}[comportament=='sub'] &nbsp;&nbsp;{{/if}}{{#if}}[comportament!='sub']<span class=\"iedib-caption-counter\">Figura</span>: <span class=\"iedib-caption-title\">Descripció.</span>{{/if}}</p></td>{{/each}}</tr>{{/each}}{{#if}}[comportament=='sub'] <tr><td colspan=\"{{columnes}}\"><p style=\"text-align: center;vertical-align:top\"><span class=\"iedib-caption-counter\">Figura</span>: <span class=\"iedib-caption-title\">Descripció.</span></p></td></tr>{{/if}}</tbody> </table> <!--end:: graella d'imatges--> <p><br></p>\n",
+    "selectors": "table.iedib-imggrid",
+    "parameters": [
+        {
+            "name": "files",
+            "value": 2,
+            "title": "N. de files",
+            "min": 1
+        },
+        {
+            "name": "columnes",
+            "value": 2,
+            "title": "N. de columnes",
+            "min": 1
+        },
+        {
+            "name": "ampladaPercent",
+            "value": 96,
+            "title": "Amplada en %",
+            "min": 10
+        },
+        {
+            "name": "amplades",
+            "value": "fixed",
+            "title": "Tipus de columna",
+            "tip": "Amplades fixes o adaptables segons contingut",
+            "options": [
+                {
+                    "v": "fixed",
+                    "l": "Fixades"
+                },
+                {
+                    "v": "initial",
+                    "l": "Automàtiques"
+                }
+            ]
+        },
+        {
+            "name": "gruix",
+            "value": 0,
+            "title": "Gruix de la vora",
+            "min": 0
+        },
+        {
+            "name": "vorera",
+            "value": "gray",
+            "title": "Color de la vora",
+            "options": [
+                {
+                    "v": "gray",
+                    "l": "Gris"
+                },
+                {
+                    "v": "black",
+                    "l": "Negre"
+                },
+                {
+                    "v": "cadetblue",
+                    "l": "Blau"
+                },
+                {
+                    "v": "white",
+                    "l": "Blanc"
+                }
+            ]
+        },
+        {
+            "name": "comportament",
+            "value": "sub",
+            "title": "Comportament",
+            "tip": "Triau diverses imatges independents o una sola imatge amb diverses parts",
+            "options": [
+                {
+                    "v": "sub",
+                    "l": "Subimatges"
+                },
+                {
+                    "v": "mult",
+                    "l": "Imatges múltiples"
+                }
+            ]
+        },
+        {
+            "name": "effect",
+            "value": "none",
+            "title": "Efectes",
+            "tip": "Triau quin tipus d'efecte d'ampliació d'imatge voleu",
+            "options": [
+                {
+                    "v": "none",
+                    "l": "Cap"
+                },
+                {
+                    "v": "zm",
+                    "l": "Imatge amb zoom"
+                },
+                {
+                    "v": "lb",
+                    "l": "Pas d'imatges a pantalla completa"
+                }
+            ]
+        }
+    ],
+    "requires": "/sd/images.min.js | effect!='none'",
+    "stars": 0,
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2022.10.28"
+}

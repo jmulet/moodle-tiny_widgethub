@@ -5,7 +5,10 @@
         "module": "NodeNext",
         "moduleResolution": "NodeNext",
         "strict": true,
-        "lib": ["esnext"],
+        "lib": [
+            "es2016",
+            "dom"
+        ],
         "esModuleInterop": true,
         "paths": {
             "editor_tiny/utils": ["../../amd/src/utils"],
@@ -18,7 +21,8 @@
             "core/modal_events": ["../../../../amd/src/modal_events.js"],
             "core/modal": ["../../../../amd/src/modal.js"],
             "core/modal_registry": ["../../../../amd/src/modal_registry.js"],
+            "core/templates": ["../../../../amd/src/templates.js"],
+            "jquery": ["./tests/jsunit/node_modules/jquery/dist/jquery.js"]
         }
-    },
-    
+    }, 
   }

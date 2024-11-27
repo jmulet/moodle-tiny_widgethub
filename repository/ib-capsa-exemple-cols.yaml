@@ -1,0 +1,47 @@
+key: capsa-exemple-cols
+name: Capsa Exemple 2 Columnes
+category: obsolet
+instructions: >
+  Utilitzau aquesta capsa per mostrar un exemple amb l'enunciat i la resolució en dues columnes 
+  diferents.
+template: |
+  <p><br></p>
+  <div class="iedib-capsa iedib-capsa-gran iedib-exemple-border" data-lang="{{_lang}}">
+  <!--begin: Capsa exemple 2 columnes -->
+  <div class="iedib-lateral iedib-exemple">
+  <p class="iedib-titolLateral">{{#I18n}}msg{{/I18n}}<span class="iedib-exemple-logo"></span></p>
+  </div>
+  <div class="row-fluid iedib-fluid">
+    <div class="span4 iedib-formulacio">
+      <p>Escriviu en aquesta columna l'enunciat del problema.</p>
+    </div>
+    <div class="span8 iedib-resolucio">
+      <div class="iedib-central">
+        <p>Escriviu en aquesta altra columna la resolució del problema.</p>
+      </div>
+    </div>
+  </div>
+  <!--end: Capsa exemple 2 columnes-->
+  </div>
+  <p><br></p>
+selectors: 
+  - div.iedib-capsa.iedib-exemple-border
+  - .iedib-fluid
+parameters: 
+  - __LANG__
+I18n:
+  msg:
+    ca: EXEMPLE
+    es: EJEMPLO
+    en: EXAMPLE
+    fr: EXEMPLE
+    de: BEISPIEL
+  sol:
+    ca: Solució
+    es: Solución
+    en: Answer
+    fr: Solution
+    de: Lösung
+stars: 0
+author: Josep Mulet Pol <pep.mulet@gmail.com>
+version: 2023.01.07

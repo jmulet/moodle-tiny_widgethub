@@ -1,0 +1,84 @@
+key: tasca-exercici
+name: Tasca-Exercici
+category: capses
+instructions: >
+  Aquesta snippet ha d'anar obligatòriament a peu de pàgina. 
+  Triau si voleu referènciar una <b>tasca avaluable</b>,
+  <b>tasca d'aprenentatge</b> que teniu publicada al grid o bé, 
+  voleu incloure <b>exercicis proposats</b> (textual, h5p,
+  etc.). En aquest darrer cas, podeu especificar un contingut per defecte.
+template: |
+  <p><br></p>
+  <!-- begin tasca-execici -->
+  <div class="iedib-capsa iedib-tasca-exercici" data-lang="{{_lang}}" data-proposat="{{tipus}}">
+  <div class="iedib-tasca {{#if}}[tipus=='epr'] iedib-proposat{{/if}} iedib-central">
+  <span class="iedib-tasca-logo"></span>
+  <h4>{{#I18n}}msg_{{tipus}}{{/I18n}}:</h4>
+  <div class="iedib-inspoint">
+  {{#var}}tipus_epr=(tipus=='epr'){{/var}}
+  {{^tipus_epr}}
+    <p>Et proposo que realitzis aquesta tasca que trobaràs en les capsa del lliurament # per
+    practicar els continguts vists fins ara.</p>
+  {{/tipus_epr}}
+  {{#tipus_epr}}
+    {{#var}}empty_cont=(_contingut==''){{/var}}
+    {{#empty_cont}}
+      <ol {{#fancy}} {{#if}}[enumera>1]style="counter-reset: iedibfalist-counter {{#eval}}enumera-1{{/eval}};"{{/if}}
+      class="iedib-falist"{{/fancy}} {{#if}}[enumera>1]start="{{enumera}}"{{/if}}>
+      <li><p>Exercici 1</p></li><li><p>Exercici2 <em>E.g. incloure h5p, etc.</em></p></li></ol>
+    {{/empty_cont}}
+    {{^empty_cont}} {{{_contingut}}} {{/empty_cont}} 
+  {{/tipus_epr}}
+  </div>
+  </div>
+  </div>
+  <!-- end tasca-exercici -->
+  <p><br></p>
+selectors: div.iedib-capsa.iedib-tasca-exercici
+insertquery: .iedib-tasca>div.iedib-inspoint
+parameters: 
+  - __LANG__
+  - name: tipus
+    value: epr
+    title: Tipus d'activitat
+    options:
+      - {v: 'epr', l: 'Exercicis proposats'}
+      - {v: 'tava', l: 'Tasca avaluable'}
+      - {v: 'tapr', l: "Tasca d'aprenentatge"}
+  - name: enumera
+    value: 1
+    title: Enumera els exercicis des de num.
+    min: 1
+    when: "tipus=='epr'"
+  - name: fancy
+    value: false
+    title: Estil d'enumerat embellit
+    when: "tipus=='epr'"
+  - name: _contingut
+    value: ""
+    title: Contingut per defecte (només exercicis)
+    type: textarea
+    when: "tipus=='epr' && SELECT_MODE!='selection'"
+I18n:
+  msg_tava:
+    ca: TASCA AVALUABLE
+    es: TAREA EVALUABLE
+    en: ASSESSED TASK
+    fr: TÂCHE ÉVALUABLE
+    de: BEWERTUNGSAKTIVITÄT
+  msg_tapr:
+    ca: TASCA D'APRENENTATGE
+    es: TAREA DE APRENDIZAJE
+    en: LEARNING ASSIGNMENT
+    fr: TÂCHE D'APPRENTISSAGE
+    de: LERNAKTIVITÄT
+  msg_epr:
+    ca: EXERCICIS
+    es: EJERCICIOS
+    en: ACTIVITIES
+    fr: EXERCICES
+    de: ÜBUNGEN
+stars: 2
+scope: ^page-mod-book-edit$
+author: Josep Mulet Pol <pep.mulet@gmail.com>
+version: 2024.11.02

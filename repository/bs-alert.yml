@@ -1,0 +1,38 @@
+key: bs-alert
+name: Alert container
+category: bootstrap
+template: |
+  <p></p>
+  <div class="m-2 alert alert-{{severity}}{{#closable}} alert-dismissible{{/closable}} fade show" role="alert">
+    {{#closable}}
+     <button type="button" class="btn-close close" data-dismiss="alert" data-bs-dismiss="alert" aria-label="Close">
+       <span aria-hidden="true">&times;</span>
+     </button>
+    {{/closable}}
+    <div class="alert-content">
+      <p>Lorem ipsum.</p>
+    </div>
+  </div>
+  <p></p>
+selectors: div[role="alert"].alert
+insertquery: div[role="alert"].alert .alert-content
+unwrap: '*'
+parameters:
+  - name: severity
+    title: Type of alert
+    bind: classRegex('alert-(.*)')
+    value: primary    
+    options:
+      - primary
+      - secondary
+      - success
+      - info
+      - warning
+      - danger
+      - light
+      - dark
+  - name: closable
+    title: Closable
+    value: false
+author: Josep Mulet <pep.mulet@gmail.com>
+version: 1.0.0

@@ -1,0 +1,16 @@
+key: bs-jumbotron
+name: Jumbotron
+category: bootstrap
+instructions: >
+  A lightweight, flexible component that can optionally extend the entire viewport to showcase key marketing messages on your site.
+template: |
+  <div class="jumbotron jumbotron-fluid">
+    <div class="container">
+      <h1 class="display-4">Fluid jumbotron</h1>
+      <p class="lead">This is a modified jumbotron that occupies the entire horizontal space of its parent.</p>
+      <hr class="my-4">
+      <p>It uses utility classes for typography and spacing to space content out within the larger container.</p>
+    </div>
+  </div>
+author: Josep Mulet <pep.mulet@gmail.com>
+version: 1.0.0

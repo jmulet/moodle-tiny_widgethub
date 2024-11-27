@@ -1,245 +1,239 @@
 /* eslint-disable no-console */
-/* eslint-disable no-tabs */
 /* eslint-disable no-alert */
 import jQuery from 'jquery';
-import {templateRenderer} from './util';
-import CodeProEditor from './cm6pro-lazy';
-import {load, dump} from './js_yaml-lazy';
+import YmlEditor from './libs/ymleditor-lazy';
+import {load, dump} from './libs/js_yaml-lazy';
 import {get_strings as getStrings} from 'core/str';
+import {getTemplateSrv} from './service/templateSrv';
+import {applyPartials} from './options';
+
+const templateSrv = getTemplateSrv();
+const DEFAULT_DOC =
+`key: minimal-sample-key
+name: Minimal sample widget
+category: Examples
+template: |
+  <p><br></p>
+  <p>Write your template {{greeting}}</p>
+  <p><br></p>
+parameters:
+  - name: greeting
+    value: Hello world!
+author: Your name <email@site.com>
+version: 1.0.0`;
 
 /**
  * @class
  * @member {any[]} presetdata
  * */
 export default {
-	/** @type {any[]} */
-	presetdata: [],
-	/**
-	 * @param {number} id
-	 * @returns {{
-	 * 	json: HTMLInputElement | null
-	 * }}
-	 */
-	fetchcontrols: function(id) {
-		/** @type {*} */
-		const json = document.getElementById(`id_s_tiny_widgethub_def_${id}`);
-		return {
-			json
-		};
-	},
-	/**
-	 * @param {number} id
-	 * @param {number} presetindex
-	 * @param {any[]} [presetdata]
-	 * @returns
-	 */
-	populateform: function(id, presetindex, presetdata) {
-		// Get all our html controls
-		const controls = this.fetchcontrols(id);
-		if (!controls.json) {
-			return;
-		}
+    /**
+     * @param {number} id
+     * @returns {{
+     *     $ymlArea: JQuery<HTMLTextAreaElement>,
+     *     $jsonArea: JQuery<HTMLTextAreaElement>,
+     *     $partialInput: JQuery<HTMLInputElement>,
+     * }}
+     */
+    getAreas: function(id) {
+        /** @type {*} */
+        const $ymlArea = jQuery(`#id_s_tiny_widgethub_defyml_${id}`);
+        /** @type {*} */
+        const $jsonArea = jQuery(`#id_s_tiny_widgethub_def_${id}`);
+        /** @type {*} */
+        const $partialInput = jQuery(`#id_s_tiny_widgethub_partials_${id}`);
+        return {
+            $ymlArea, $jsonArea, $partialInput
+        };
+    },
+    /**
+     * @param {number} id
+     * @param {*} codeProEditor
+     * @returns
+     */
+    updateYaml: function(id, codeProEditor) {
+        const {$jsonArea} = this.getAreas(id);
+        const json = (($jsonArea.val() ?? '') + '').trim();
+        if (!json) {
+            if (id) {
+                codeProEditor.setValue('');
+            } else {
+                codeProEditor.setValue(DEFAULT_DOC);
+            }
+            return;
+        }
+        try {
+            const obj = JSON.parse(json);
+            const yml = dump(obj, {});
+            codeProEditor.setValue(yml);
+        } catch (ex) {
+            console.error(ex);
+            $jsonArea.val('');
+            codeProEditor.setValue('');
+        }
+    },
+    /**
+     * @param {string} yml
+     * @param {{id: number, keys: string[]}} opts
+     * @param {Record<string, *>} partials
+     * @returns {Promise<{msg: string, json?: string, html?: string}>}
+     */
+    validate: async function(yml, opts, partials) {
+        /**
+         * @type {{
+         *     msg: string,
+         *     html: string,
+         *     json: string | undefined
+         * }}
+         * */
+        const validation = {msg: '', html: '', json: undefined};
+        try {
+            // Check if the code is a valid Yaml
+            /** @type {import('./options').RawWidget} */
+            let jsonObj;
+            try {
+                jsonObj = load(yml, null) ?? {};
+            } catch (ex) {
+                validation.msg = "Yaml syntax error:: " + ex;
+                return validation;
+            }
+            validation.json = JSON.stringify(jsonObj, null, 0);
 
-		// What a rip off there was no selection!!!
-		if (!presetindex && !presetdata) {
-			return;
-		}
-		if (presetindex == 0 && presetdata) {
-			// This is good, we have something from dopopulate
-		} else {
-			// This is a normal selection
-			presetdata = this.presetdata;
-		}
-		const snpt = presetdata[presetindex];
+            // Check if the structure is correct
+            if (!jsonObj?.key) {
+                validation.msg = "Yaml file must have 'key' property. ";
+            } else if (jsonObj.key === "partials") {
+                return validation;
+            } else if (jsonObj.key !== 'partials') {
+                if (!jsonObj.name || !(jsonObj.template || jsonObj.filter)) {
+                    validation.msg += "Widgets must have 'name' and 'template or filter' properties. ";
+                } else if (jsonObj.template && jsonObj.filter) {
+                    validation.msg += "Cannot have template and filter simultaneously. ";
+                } else if (!jsonObj.author || !jsonObj.version) {
+                    validation.msg += "Widgets must have 'author' and 'version' properties. ";
+                }
+            }
+            // Check for duplicated keys
+            if (opts.id === 0 && jsonObj?.key) {
+                const keys = opts.keys || [];
+                if (keys.includes(jsonObj.key)) {
+                    validation.msg += `Key ${jsonObj.key} is already in use. Please rename it. `;
+                }
+            }
+            // Handle partials in parameters
+            applyPartials(jsonObj, partials);
+            // Try to parse the template with the correct renderer
+            const translations = jsonObj?.I18n ?? {};
+            /** @type {Object.<string, any>} */
+            const ctx = {};
+            (jsonObj.parameters ?? []).forEach(param => {
+                ctx[param.name] = param.value;
+            });
+            const engine = jsonObj?.engine;
+            const html = await templateSrv.render(jsonObj?.template || '', ctx, translations, engine);
+            validation.html = html;
+        } catch (ex) {
+            validation.msg = "Renderer error:: " + ex;
+        }
+        return validation;
+    },
 
-		// Try to see JSON is valid
-		try {
-			JSON.parse(snpt.json);
-			controls.json.value = snpt.json;
-		} catch (ex) {
-			console.error(ex);
-			controls.json.value = '';
-		}
-	},
-	/**
-	 * @param {number} id
-	 * @param {*} codeProEditor
-	 * @returns
-	 */
-	updateYaml: function(id, codeProEditor) {
-		const controls = this.fetchcontrols(id);
-		if (!controls.json?.value?.trim()) {
-			codeProEditor.setValue('');
-			return;
-		}
-		try {
-			const obj = JSON.parse(controls.json.value);
-			const yml = dump(obj, {});
-			codeProEditor.setValue(yml);
-		} catch (ex) {
-			console.error(ex);
-			controls.json.value = '';
-			codeProEditor.setValue('');
-		}
-	},
-	/**
-	 * @param {number} id
-	 * @param {*} templatedata
-	 */
-	dopopulate: function(id, templatedata) {
-		console.info("dopopulate", id, templatedata);
-		this.populateform(id, 0, new Array(templatedata));
-	},
-	/**
-	 * @param {string} yml
-	 * @param {{id: number, keys: string[], partials: any}} opts
-	 * @returns
-	 */
-	validate: async function(yml, opts) {
-		/**
-		 * @type {{
-		 * 	msg: string,
-		 *  html: string,
-		 *  json: string | undefined
-		 * }}
-		 * */
-		const validation = {msg: '', html: '', json: undefined};
-		try {
-			// The code is a valid Yaml
-			/** @type {import('./util').Widget | undefined} */
-			let jsonObj;
-			try {
-				jsonObj = load(yml, null) ?? {};
-			} catch (ex) {
-				validation.msg = "Yaml syntax error:: " + ex;
-			}
-			validation.json = JSON.stringify(jsonObj, null, 0);
-			// The structure is correct
-			if (!jsonObj?.key) {
-				validation.msg = "Yaml file must contain a 'key' property. ";
-			} else if (jsonObj.key === "partials") {
-				return validation;
-			} else if (jsonObj.key !== 'partials' && (!jsonObj.name || !jsonObj.template)) {
-				validation.msg += "Widgets must have 'name' and 'template' properties. ";
-			}
-			// Check for duplicated keys
-			if (opts.id === 0 && jsonObj?.key) {
-				const keys = opts.keys || [];
-				if (keys.includes(jsonObj.key)) {
-					validation.msg += `Key ${jsonObj.key} is already in use. Please rename it. `;
-				}
-			}
-			// Handle partials in parameters
-			const partials = opts.partials;
-			const paramsCopy = (jsonObj?.parameters || []).map(param => {
-				let pc = {...param};
-				if (pc.partial && partials[pc.partial]) {
-					pc = Object.assign(pc, partials[pc.partial]);
-				}
-				return pc;
-			});
-			// Try to parse the template with mustache renderer
-			const translations = jsonObj?.I18n || {};
-			/** @type {Object.<string, any>} */
-			const ctx = {};
-			paramsCopy.forEach(param => {
-				ctx[param.name] = param.value;
-			});
-			const engine = jsonObj?.engine;
-			const htmlRendered = await templateRenderer(jsonObj?.template || '', ctx, translations, engine);
-			validation.html = htmlRendered;
-		} catch (ex) {
-			validation.msg = "Renderer error:: " + ex;
-		}
-		return validation;
-	},
+    /**
+     * Load all widgets
+     * @param {{id: number, keys: string[]}} opts
+     * @returns
+     */
+    init: async function(opts) {
+        const i18n = await getStrings([
+            {key: 'preview', component: 'tiny_widgethub'},
+            {key: 'delete', component: 'tiny_widgethub'},
+            {key: 'savechanges', component: 'tiny_widgethub'}
+        ]);
 
-	/**
-	 * Load all widgets
-	 * @param {{id: number, keys: string[], partials: any}} opts
-	 * @returns
-	 */
-	init: async function(opts) {
-		console.info("Init AMD called with opts ", JSON.stringify(opts));
-		const i18n = await getStrings([
-			{key: 'preview', component: 'tiny_widgethub'},
-			{key: 'delete', component: 'tiny_widgethub'}
-		]);
+        const {$ymlArea, $jsonArea, $partialInput} = this.getAreas(opts.id);
+        $ymlArea.css({
+            "min-height": "200px",
+            "border": "1px solid gray"
+        });
+        // Partials are passed through a hidden input element
+        const partials = JSON.parse($partialInput.val() || '{}');
 
-		// Hide the control that handles JSON and it is actually saved
-		const $controlMain = jQuery('#id_s_tiny_widgethub_def_' + opts.id);
-		$controlMain.css("display", "none");
-		const $target = $controlMain.parent();
+        // Hide the control that handles JSON and it is actually saved
+        $jsonArea.css("display", "none");
+        const $target = $jsonArea.parent();
+        const $form = $jsonArea.closest("form");
+        // Hide any submit button if found
+        $form.find('button[type="submit"], input[type="submit"]').hide();
+        // Add submit buttons and manually trigger form submit.
+        const $formButtons = jQuery(`<div class="row"><div class="form-buttons offset-sm-3 col-sm-3">
+            <button type="button" class="btn btn-primary form-submit">${i18n[2]}</button></div></div>`);
+        $form.append($formButtons);
+        const $saveBtn = $formButtons.find("button");
 
-		// Display the secondary editor for Yaml syntax
-		const $controlSecondary = jQuery(`<div id="tiny_widgethub_yc_${opts.id}" class="tiny_widgethub-ymlcontrol"></div>`);
-		$target.append($controlSecondary);
+        // Create a preview panel
+        const $previewPanel = jQuery(`<div id="tiny_widgethub_pp_${opts.id}" class="tiny_widgethub-previewpanel d-none"></div>`);
+        $target.append($previewPanel);
 
-		const $previewPanel = jQuery(`<div id="tiny_widgethub_pp_${opts.id}" class="tiny_widgethub-previewpanel d-none"></div>`);
-		$target.append($previewPanel);
+        const $previewBtn = jQuery(`<button type="button" class="btn btn-secondary m-1">
+            <i class="fas fa fa-magnifying-glass"></i> ${i18n[0]}</button>`);
+        $previewBtn.on('click', async() => {
+            const yml = ymleditor.getValue();
+            const validation = await this.validate(yml, opts, partials);
+            if (validation.msg) {
+                alert(validation.msg);
+            } else if (validation.html) {
+                $previewPanel.removeClass('d-none');
+                $jsonArea.trigger('focusin');
+                $jsonArea.val(validation.json ?? '');
+                $jsonArea.trigger('change');
+                $previewPanel.html(validation.html);
+            }
+        });
+        $target.append($previewBtn);
 
-		const $previewBtn = jQuery(`<button type="button" class="btn btn-secondary m-1">${i18n[0]}</button>`);
-		$previewBtn.on('click', async() => {
-			const yml = codeProEditor.getValue();
-			const validation = await this.validate(yml, opts);
-			if (validation.msg) {
-				alert(validation.msg);
-			} else {
-				$previewPanel.removeClass('d-none');
-				$controlMain.val(validation.json ?? '');
-				$previewPanel.html(validation.html);
-			}
-		});
-		$target.append($previewBtn);
+        if (opts.id > 0) {
+            // Only show delete button on saved widgets (id=0 is reserved for new ones)
+            const $deleteBtn = jQuery(`<button type="button" class="btn btn-danger m-1">
+                <i class="fas fa fa-trash"></i> ${i18n[1]}</button>`);
+            $deleteBtn.on('click', async() => {
+                // Ask confirmation
+                const answer = confirm('Do you want to delete this widget?');
+                if (!answer) {
+                    return;
+                }
+                // Clear all the controls
+                $jsonArea.trigger('focusin');
+                $jsonArea.val('');
+                $jsonArea.trigger('change');
+                $ymlArea.val('');
+                $previewPanel.html('');
+                // Send form by skipping validation
+                $form.trigger('submit');
+            });
+            $target.append($deleteBtn);
+        }
 
-		if (opts.id > 0) {
-			const $deleteBtn = jQuery(`<button type="button" class="btn btn-danger m-1">${i18n[1]}</button>`);
-			$deleteBtn.on('click', async() => {
-				// Clear all the controls
-				$controlMain.val('');
-				$controlSecondary.html('');
-				$previewPanel.html('');
-				// Send form by skipping validation
-				$controlMain.closest("form").trigger('submit', {skipValidation: true});
-			});
-			$target.append($deleteBtn);
-		}
+        const ymleditor = new YmlEditor($ymlArea[0]);
 
-		const codeProEditor = new CodeProEditor($controlSecondary[0]);
+        $saveBtn.on("click",
+            async() => {
+            // Must update the content from the Yaml control
+            const yml = ymleditor.getValue();
+            // First validate the definition of the widget
+            const validation = await this.validate(yml, opts, partials);
+            if (validation.msg) {
+                alert(validation.msg);
+            } else {
+                // Ensure that there is a change in the form value to force
+                // the set_updatedcallback to be called
+                $jsonArea.trigger('focusin');
+                $jsonArea.val((validation.json ?? '') + ' ');
+                $jsonArea.trigger('change');
+                // Submit form
+                $form.trigger('submit');
+            }
+        });
 
-		const self = this;
-
-		// Handle the select box change event
-		jQuery("select[name='tiny_widgethub/hub']").on('change', function() {
-			/** @type {any} */
-			const choosen = jQuery(this).val();
-			console.info(choosen);
-			if (!choosen) {
-				return;
-			}
-			self.populateform(opts.id, choosen);
-			self.updateYaml(opts.id, codeProEditor);
-		});
-
-		$controlMain.closest("form").on("submit",
-			/** @param {*} ev */
-			async(ev) => {
-			// Must update the content from the Yaml control
-			const yml = codeProEditor.getValue();
-			// First validate the definition of the widget
-			if (!ev.skipValidation) {
-				const validation = await this.validate(yml, opts);
-				if (validation.msg) {
-					alert(validation.msg);
-					ev.preventDefault();
-				} else {
-					$controlMain.val(validation.json ?? '');
-				}
-				return validation.msg === '';
-			}
-			return true;
-		});
-
-		this.updateYaml(opts.id, codeProEditor);
-	}
+        this.updateYaml(opts.id, ymleditor);
+    }
 };

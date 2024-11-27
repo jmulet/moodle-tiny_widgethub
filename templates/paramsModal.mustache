@@ -26,17 +26,18 @@
     * none
 
     Context variables required for this template:
+    * name: The widget being configured.
+    * filter: Is this widget a filter?
     * selectMode: The mode of the modal.
     * idTabpane: The id of the tabpane.
-    * widgetname: The name of the widget.
     * instructions: The instructions of the widget.
     * controls: The form controls of the widget.
     
     Example context (json):
     {
-        "selectMode": false,
+        "name": "Dialog title",
+        "filter": false,
         "idTabpane": "idTabpane",
-        "widgetname": "widget name",
         "instructions": "Instructions",
         "controls": [
             "<label>Label</label><input type=\"text\">"
@@ -47,26 +48,22 @@
 {{< core/modal }}
     {{$title}}
         {{name}}
-        <span style="position:absolute;right:40px;font-size:80%;color:#5960b8;padding:5px;font-weight:bold;" 
-        class="ib-blink{{^selectMode}} tiny_widgethub-hidden{{/selectMode}}">
-            <i class="fa fas fa-object-group"></i> {{#str}} selectmode, tiny_widgethub {{/str}}
-        </span>
     {{/title}}
     {{$body}}
     <div class="tabbable" style="table-layout: fixed; width:99%;">
-        <ul class="nav nav-tabs">
-            <li class="active"><a href="#{{idTabpane}}_0" data-toggle="tab"><span>&nbsp; {{#str}} edit, tiny_widgethub {{/str}}</span></a></li>
-            {{^filter}}<li><a href="#{{idTabpane}}_1" data-toggle="tab"><span>&nbsp; {{#str}} preview, tiny_widgethub {{/str}}</span></a></li>{{/filter}}
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item"><a href="#{{idTabpane}}_0" class="nav-link active" role="tab" data-toggle="tab"><span>&nbsp; {{#str}} edit, tiny_widgethub {{/str}}</span></a></li>
+            {{^filter}}<li class="nav-item"><a href="#{{idTabpane}}_1" class="nav-link" role="tab" data-toggle="tab"><span>&nbsp; {{#str}} preview, tiny_widgethub {{/str}}</span></a></li>{{/filter}}
         </ul>
         <div class="tab-content">
             <div class="tab-pane active" id="{{idTabpane}}_0">
                 {{#instructions}}
                 <div style="background: whitesmoke; position:relative; padding: 15px;">
-                    <div class="tiny_widgethub-instructionstext" style="max-height:120px; overflow-y: auto;">{{{instructions}}}</div>
+                    <div class="tiny_widgethub-instructionstext" style="max-height:120px; overflow: hidden auto;">{{{instructions}}}</div>
                 </div>
                 {{/instructions}}
                 <hr style="margin:15px;">
-                <div style="max-height:350px;overflow-y:auto;border-bottom:1px solid lightgray;">
+                <div style="max-height:350px;overflow:hidden auto;border-bottom:1px solid lightgray;">
                 <form>
                 {{#controls}}
                     {{{.}}}

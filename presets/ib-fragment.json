@@ -1,0 +1,64 @@
+{
+    "key": "fragment-text",
+    "name": "Fragment de text",
+    "instructions": "Utilitzeu aquest snippet per introduir un fragment de text d'algun llibre. \nSi voleu reduir l'amplada podeu establir una amplada màxima, p.e. 400 px.\n",
+    "template": "<p><br></p> <!-- begin fragment text --> <div class=\"iedib-fragment {{#notranslate}}notranslate{{/notranslate}}\" data-lang=\"{{_lang}}\" {{#if}}[amplada_max>0]style=\"max-width: {{amplada_max}}px;\"{{/if}}> <h4>{{#I18n}}msg{{/I18n}}:</h4> <div class=\"iedib-iq\"> <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n</p> </div> </div> <!-- end fragment text --> <p><br></p>",
+    "insertquery": ".iedib-fragment>div.iedib-iq",
+    "selectors": "div.iedib-fragment",
+    "unwrap": "div.iedib-iq > *",
+    "parameters": [
+        {
+            "name": "_lang",
+            "value": "ca",
+            "title": "Idioma",
+            "options": [
+                {
+                    "v": "ca",
+                    "l": "Català"
+                },
+                {
+                    "v": "es",
+                    "l": "Castellà"
+                },
+                {
+                    "v": "en",
+                    "l": "English"
+                },
+                {
+                    "v": "fr",
+                    "l": "Francès"
+                },
+                {
+                    "v": "de",
+                    "l": "Alemany"
+                }
+            ]
+        },
+        {
+            "name": "amplada_max",
+            "value": 0,
+            "title": "Amplada màxima (px)",
+            "min": 0,
+            "tip": "Per exemple 500. Si no voleu limitar l'amplada, deixeu-la a 0.",
+            "bind": "styleRegex('max-width:(.*)px', null, 'number')"
+        },
+        {
+            "name": "notranslate",
+            "value": false,
+            "title": "Evita ésser traduït per Google",
+            "bind": "hasClass('notranslate')"
+        }
+    ],
+    "I18n": {
+        "msg": {
+            "ca": "FRAGMENT DE TEXT",
+            "es": "FRAGMENTO DE TEXTO",
+            "en": "TEXT SNIPPET",
+            "fr": "FRAGMENT DE TEXTE",
+            "de": "TEXTFRAGMENT"
+        }
+    },
+    "stars": 2,
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2023.01.07"
+}

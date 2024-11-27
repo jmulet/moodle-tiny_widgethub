@@ -2,12 +2,12 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 export default [
     {
-        input: 'cm6pro.mjs',
+        input: './codemirror6/ymleditor.mjs',
         output: {
             sourcemap: false,
-            file: '../../amd/src/cm6pro-lazy.js',
+            file: '../amd/src/libs/ymleditor-lazy.js',
             format: 'esm',
-            name: 'cm6pro',
+            name: 'ymleditor',
             plugins: []
         },
         plugins: [nodeResolve()]

@@ -1,0 +1,32 @@
+{
+    "key": "capcalera-examen",
+    "name": "Capçalera examen",
+    "instructions": "Capçalera per crear un examen model a l'aula virtual Moodle\n",
+    "template": "<!-- inici capçalera examen -->\n<div class=\"table-responsive iedib-capsalera-examen\">\n<table class=\"table\" style=\"width:96%;margin:auto;border:2px solid black;border-collapse: collapse;border-spacing: 0;margin:0px\">\n<tbody>\n<tr style=\"\">\n<td style=\"text-align: center; width: 20%; border: 1px solid black;\"> <img\nsrc=\"https://iedib.net/wordpress/wp-content/uploads/2018/12/iedib-logo.png\" alt=\"Logo IEDIB\" width=\"110\" height=\"73\"\nrole=\"presentation\" class=\"img-responsive atto_image_button_middle\"></td>\n<td style=\"width:60%;border:1px solid black;text-align:center;\" colspan=\"3\">\n<p><b>MODEL D'EXAMEN {{nom_materia}}</b></p>\n<p>{{curs}} - {{codi_materia}} </p>\n</td>\n<td style=\"width:20%;border:1px solid black;vertical-align: top;padding:0\">\n<table style=\"width: 100%;border-collapse: collapse;border-spacing: 0;margin:0px\">\n<tbody><tr><td style=\"width:100%; border:1px solid black; background-color:rgb(204,204,204);\"><b>DATA I\nHORA<b></b></b></td></tr>\n<tr><td style=\"text-align: center;\">------------------</td></tr>\n</tbody></table>\n</td> \n</tr><tr style=\"\">\n<td style=\"width:30%;border:1px solid black;background-color:rgb(204,204,204);\">\n<p><b>NOM I COGNOMS:</b></p>\n</td>\n<td style=\"text-align: center; width: 50%; border: 1px solid black;\"\ncolspan=\"3\">---------------------------------------------------------------</td>\n<td style=\"width:20%;border:1px solid black;background-color:rgb(204,204,204);\">\n<p><b>NOTA:</b></p>\n</td>\n</tr><tr style=\"\">\n<td style=\"width:30%;border:1px solid black;background-color:rgb(204,204,204);\">\n<p><b>DNI:</b></p>\n</td>\n<td style=\"text-align: center; width: 20%; border: 1px solid black;\">-------------------------</td>\n<td style=\"width:20%;border:1px solid black; background-color:rgb(204,204,204);\">\n<p><b>AVALUACIÓ:</b></p>\n</td>\n<td style=\"text-align: center; border: 1px solid black;\">{{avaluacio}}</td>\n<td style=\"width:20%;border:1px solid black;\" rowspan=\"2\">\n</td></tr><tr style=\"\">\n<td style=\"width:30%;border:1px solid black; background-color:rgb(204,204,204);\">\n<p><b>Lloc d'examen:</b></p>\n</td>\n<td style=\"text-align: center; width: 20%; border: 1px solid black;\">--------------------------</td>\n<td style=\"width:20%;border:1px solid black; background-color:rgb(204,204,204);\">\n<p><b>GRUP*:</b></p>\n</td>\n<td style=\"text-align: center; border: 1px solid black;\">-----</td>\n<td style=\"width:20%;border:1px solid black;display: none\">\n</td>\n</tr></tbody>\n</table></div>\n<span style=\"font-size: 75%;\"> *grup: A-arts / C-ciències / E-arts escèniques / P-arts plàstiques / G-general / H-humanitats/ X-xarxa</span><br> \n<br>\n<div style=\"width:96%;margin:auto;padding:5px;border:1px solid black;\">\n  <p> <b>INSTRUCCIONS:</b></p> \n  <ul>\n    <li>...</li>\n    <li>...</li>\n  </ul>\n</div>\n<!-- fi capçalera examen -->\n<p><br></p>\n",
+    "parameters": [
+        {
+            "name": "curs",
+            "value": "SEGON BATXILLERAT",
+            "title": "Curs"
+        },
+        {
+            "name": "codi_materia",
+            "value": "BAT_MAT2",
+            "title": "Codi matèria"
+        },
+        {
+            "name": "avaluacio",
+            "value": "1a",
+            "title": "Avaluació"
+        },
+        {
+            "name": "nom_materia",
+            "value": "MATEMÀTIQUES II",
+            "title": "Nom de la matèria"
+        }
+    ],
+    "scope": "page-mod-page-mod",
+    "stars": 1,
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2023.01.07"
+}

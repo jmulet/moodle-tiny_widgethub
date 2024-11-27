@@ -1,0 +1,103 @@
+{
+    "key": "taula-predefinida",
+    "name": "Taula predefinida",
+    "instructions": "Crea una taula predefinida amb n files i m columnes. Cal que reviseu la visualització en dispositius mòbils.\n",
+    "template": "<p><br></p> \n<!--ini taula predef-->\n<table class=\"iedib-table\"\nstyle=\"table-layout:{{amplades}};border-collapse: collapse; border-spacing: 0px;width:{{ampladaTPC}}%\">\n{{#capsaleres}}<thead><tr>{{#each}}[j=columnes]<th style=\"border: {{gruix}}px solid {{vorera}};background:\n{{fonsCapsalera}};\">Títol{{j}}</th>{{/each}}</tr></thead>{{/capsaleres}}\n<tbody>{{#each}}[files]<tr>{{#each}}[columnes]\n<td style=\"border: {{gruix}}px solid {{vorera}};\"> </td>{{/each}}</tr>{{/each}}</tbody></table><p\nstyle=\"margin-top:5px;text-align: center;\"><span class=\"iedib-caption-counter\">Taula</span>: <span class=\"iedib-caption-title\">Descripció\nde la taula.</span></p>\n<!--fi taula predef-->\n<p><br></p>\n",
+    "selectors": "table.iedib-table",
+    "parameters": [
+        {
+            "name": "files",
+            "value": 3,
+            "title": "N. files",
+            "min": 1
+        },
+        {
+            "name": "columnes",
+            "value": 3,
+            "title": "N. columnes",
+            "min": 1
+        },
+        {
+            "name": "capsaleres",
+            "value": true,
+            "title": "Inclou capçaleres"
+        },
+        {
+            "name": "ampladaTPC",
+            "value": 96,
+            "title": "Amplada en %",
+            "min": 10
+        },
+        {
+            "name": "amplades",
+            "value": "fixed",
+            "title": "Tipus de columna",
+            "tip": "Si l'amplada és fixa o s'ajusta al contingut",
+            "options": [
+                {
+                    "v": "fixed",
+                    "l": "Fixada"
+                },
+                {
+                    "v": "initial",
+                    "l": "Ajusta"
+                }
+            ]
+        },
+        {
+            "name": "gruix",
+            "value": 1,
+            "title": "Gruix de la vora",
+            "min": 0
+        },
+        {
+            "name": "vorera",
+            "value": "black",
+            "title": "Color de la vora",
+            "options": [
+                {
+                    "v": "cadetblue",
+                    "l": "Blau"
+                },
+                {
+                    "v": "black",
+                    "l": "Negre"
+                },
+                {
+                    "v": "gray",
+                    "l": "Gris"
+                },
+                {
+                    "v": "white",
+                    "l": "Blanc"
+                }
+            ]
+        },
+        {
+            "name": "fonsCapsalera",
+            "value": "aliceblue",
+            "title": "Color del fons capçalera",
+            "options": [
+                {
+                    "v": "aliceblue",
+                    "l": "Blau"
+                },
+                {
+                    "v": "lightyellow",
+                    "l": "Groc"
+                },
+                {
+                    "v": "lightgray",
+                    "l": "Gris"
+                },
+                {
+                    "v": "white",
+                    "l": "Blanc"
+                }
+            ]
+        }
+    ],
+    "stars": 1,
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2023.01.07"
+}

@@ -1,0 +1,79 @@
+key: capsa-generica
+name: Capsa multi-propòsit
+category: capses
+instructions: > 
+  <b>Alerta</b>: Serveix per informar d'una errada o situació greu a tenir en compte. <br>
+  <b>Ampliació</b>: Marcau que el material és d'ampliació per als alumnes.<br>
+  <b>Consell</b>: Donau un consell als alumnes.<br>
+  <b>Important</b>: Remarcar que és un contingut rellevant que cal estudiar.<br>
+  <b>Introducció</b>: Serveix per introduir un lliurament o una secció d'ell. 
+  Triau una mida i idioma per a la capsa.
+template: |
+  <p><br></p><!--begin: Capsa {{severity}} {{mida}} -->
+  <div class="iedib-capsa iedib-capsa-{{mida}} iedib-{{severity}}-border" data-lang="{{_lang}}">
+    <div class="iedib-lateral iedib-{{severity}}">
+      <p class="iedib-titolLateral">{{#I18n}}msg_{{severity}}{{/I18n}}<span class="iedib-{{severity}}-logo"></span></p>
+    </div>
+    <div class="iedib-central">
+      <p>__LOREM__</p>
+    </div>
+  </div>
+  <!--end: Capsa {{severity}} {{mida}}--> <p><br></p>  
+insertquery: .iedib-central
+selectors: .iedib-capsa.iedib-alerta-border,.iedib-capsa.iedib-ampliacio-border,.iedib-capsa.iedib-consell-border,.iedib-capsa.iedib-important-border,.iedib-capsa.iedib-introduccio-border
+unwrap: div.iedib-central > *
+autocomplete: severity
+parameters: 
+  - name: severity
+    value: alerta
+    title: Propòsit de la capsa
+    options: 
+      - {v: alerta, l: Alerta}
+      - {v: ampliacio, l: Ampliació}
+      - {v: consell, l: Consell}
+      - {v: important, l: Important}
+      - {v: introduccio, l: Introducció} 
+  - name: mida
+    value: gran
+    title: Mida de la capsa
+    options: 
+      - {v: gran, l: Gran}
+      - {v: mitjana, l: Mitjana}
+      - {v: petita, l: Petita} 
+  - __LANG__
+I18n:
+  msg_alerta:
+    ca: ALERTA
+    es: ALERTA
+    en: WATCH OUT
+    fr: ATTENTION
+    de: ACHTUNG
+  msg_ampliacio:
+    ca: AMPLIACIÓ
+    es: AMPLIACIÓN
+    en: EXTENSION
+    fr: EXTENSION
+    de: ERWEITERUNG
+  msg_consell:
+    ca: CONSELL
+    es: CONSEJO
+    en: ADVICE
+    fr: CONSEIL
+    de: TIPP
+  msg_important:
+    ca: IMPORTANT
+    es: IMPORTANTE
+    en: IMPORTANT
+    fr: IMPORTANT
+    de: WICHTIG
+  msg_introduccio:
+    ca: INTRODUCCIÓ
+    es: INTRODUCIÓN
+    en: INTRODUCTION
+    fr: INTRODUCTION
+    de: EINFÜHRUNG
+stars: 2
+contextmenu:
+  - actions: printable
+author: Josep Mulet Pol <pep.mulet@gmail.com>
+version: 2023.01.07

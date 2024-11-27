@@ -1,0 +1,38 @@
+name: Poema dues columnes
+category: obsolet
+key: poema2cols
+instructions: > 
+  Poema en dues columnes, la primera d'amplada fixada pel paràmetre ampladaPx
+template: |
+  <table class="iedib-table iedib-poema2cols" style="table-layout:fixed;border-collapse:
+  collapse; border-spacing: 0px;width:96%">
+  <!--Poema2cols-->
+  <tbody><tr><td class="iedib-formulacio" style="border: 2px solid
+  cadetblue;width:{{ampladaPx}}px;padding:10px;white-space: nowrap;"><p>
+  <b>Definición del amor</b></p><p>Es hielo abrasador, es fuego helado,<br>es herida que duele y no se siente,<br>es un
+  soñado bien, un mal presente,
+  <br>es un breve descanso muy cansado.</p><p><br>Es un descuido que nos da cuidado,<br>un cobarde con nombre de
+  valiente,<br>un andar solitario entre la gente,
+  <br>un amar solamente ser amado.</p><p><br>Es una libertad encarcelada,<br>que dura hasta el postrero
+  paroxismo;<br>enfermedad que crece si es curada.</p><p>
+  <br>Éste es el niño Amor, éste es su abismo.<br>¿Mirad cuál amistad tendrá con nada<br>el que en todo es contrario de
+  sí mismo!</p>
+  </td><td style="border: 2px solid cadetblue;text-align:center">
+  <br>
+  <img src="https://iedib.net/wordpress/wp-content/uploads/2018/12/sample-img.png" alt="Imatge per defecte" width="380"
+  class="img-responsive" height="335">
+  </td></tr></tbody>
+  <!--end Poema2cols-->
+  </table>
+selectors: div.iedib-poema2cols
+parameters: 
+  - name: ampladaPx
+    value: 300
+    title: Amplada en px de la columna esquerra
+    min: 0
+    bind: styleRegex('width:(.*)px', 'td.iedib-formulacio')
+for: '7,14'
+scope: ^page-mod-book-edit$
+stars: 0
+author: Josep Mulet Pol <pep.mulet@gmail.com>
+version: 2023.01.07

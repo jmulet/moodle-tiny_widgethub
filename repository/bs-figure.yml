@@ -1,0 +1,12 @@
+key: bs-figure
+name: Figure
+category: bootstrap
+instructions: > 
+  Documentation and examples for displaying related images and text with the figure component in Bootstrap.
+template: |
+  <figure class="figure">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Moodle-logo.svg/2880px-Moodle-logo.svg.png" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure.">
+    <figcaption class="figure-caption">Figure: A caption for the above image.</figcaption>
+  </figure>
+author: Josep Mulet <pep.mulet@gmail.com>
+version: 1.0.0

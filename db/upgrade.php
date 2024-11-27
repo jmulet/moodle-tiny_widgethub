@@ -22,16 +22,13 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Upgrade the plugin.
+ * @param string $oldversion
+ * @return bool
  */
 function xmldb_tiny_widgethub_upgrade($oldversion) {
-	global $CFG;
-	if($oldversion < 2024072101) {
-		// Rebuild indexes
-    }
+    $presets = \tiny_widgethub\plugininfo::fetch_presets();
+    \tiny_widgethub\plugininfo::save_update_presets($presets);
     return true;
 }
-

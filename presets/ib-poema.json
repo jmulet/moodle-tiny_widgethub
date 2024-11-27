@@ -1,0 +1,22 @@
+{
+    "name": "Poema dues columnes",
+    "category": "obsolet",
+    "key": "poema2cols",
+    "instructions": "Poema en dues columnes, la primera d'amplada fixada pel paràmetre ampladaPx\n",
+    "template": "<table class=\"iedib-table iedib-poema2cols\" style=\"table-layout:fixed;border-collapse:\ncollapse; border-spacing: 0px;width:96%\">\n<!--Poema2cols-->\n<tbody><tr><td class=\"iedib-formulacio\" style=\"border: 2px solid\ncadetblue;width:{{ampladaPx}}px;padding:10px;white-space: nowrap;\"><p>\n<b>Definición del amor</b></p><p>Es hielo abrasador, es fuego helado,<br>es herida que duele y no se siente,<br>es un\nsoñado bien, un mal presente,\n<br>es un breve descanso muy cansado.</p><p><br>Es un descuido que nos da cuidado,<br>un cobarde con nombre de\nvaliente,<br>un andar solitario entre la gente,\n<br>un amar solamente ser amado.</p><p><br>Es una libertad encarcelada,<br>que dura hasta el postrero\nparoxismo;<br>enfermedad que crece si es curada.</p><p>\n<br>Éste es el niño Amor, éste es su abismo.<br>¿Mirad cuál amistad tendrá con nada<br>el que en todo es contrario de\nsí mismo!</p>\n</td><td style=\"border: 2px solid cadetblue;text-align:center\">\n<br>\n<img src=\"https://iedib.net/wordpress/wp-content/uploads/2018/12/sample-img.png\" alt=\"Imatge per defecte\" width=\"380\"\nclass=\"img-responsive\" height=\"335\">\n</td></tr></tbody>\n<!--end Poema2cols-->\n</table>\n",
+    "selectors": "div.iedib-poema2cols",
+    "parameters": [
+        {
+            "name": "ampladaPx",
+            "value": 300,
+            "title": "Amplada en px de la columna esquerra",
+            "min": 0,
+            "bind": "styleRegex('width:(.*)px', 'td.iedib-formulacio')"
+        }
+    ],
+    "for": "7,14",
+    "scope": "^page-mod-book-edit$",
+    "stars": 0,
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2023.01.07"
+}

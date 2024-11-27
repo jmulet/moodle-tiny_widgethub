@@ -1,0 +1,40 @@
+key: fragment-text
+name: Fragment de text
+instructions: |
+  Utilitzeu aquest snippet per introduir un fragment de text d'algun llibre. 
+  Si voleu reduir l'amplada podeu establir una amplada màxima, p.e. 400 px.
+template: >-
+  <p><br></p> <!-- begin fragment text -->
+  <div class="iedib-fragment {{#notranslate}}notranslate{{/notranslate}}" data-lang="{{_lang}}" {{#if}}[amplada_max>0]style="max-width: {{amplada_max}}px;"{{/if}}>
+  <h4>{{#I18n}}msg{{/I18n}}:</h4>
+  <div class="iedib-iq">
+  <p>__LOREM__</p>
+  </div>
+  </div>
+  <!-- end fragment text -->
+  <p><br></p>
+insertquery: .iedib-fragment>div.iedib-iq
+selectors: div.iedib-fragment
+unwrap: div.iedib-iq > *
+parameters: 
+  - __LANG__
+  - name: amplada_max
+    value: 0
+    title: Amplada màxima (px)
+    min: 0
+    tip: Per exemple 500. Si no voleu limitar l'amplada, deixeu-la a 0.
+    bind: styleRegex('max-width:(.*)px', null, 'number')
+  - name: notranslate
+    value: false
+    title: Evita ésser traduït per Google
+    bind: hasClass('notranslate')
+I18n: 
+  msg:
+    ca: FRAGMENT DE TEXT
+    es: FRAGMENTO DE TEXTO
+    en: TEXT SNIPPET
+    fr: FRAGMENT DE TEXTE
+    de: TEXTFRAGMENT
+stars: 2
+author: Josep Mulet Pol <pep.mulet@gmail.com>
+version: 2023.01.07

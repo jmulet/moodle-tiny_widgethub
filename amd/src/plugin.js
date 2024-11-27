@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -22,7 +23,7 @@
  */
 
 /**
- * @typedef {any} TinyMCE
+ * @typedef {*} TinyMCE
  **/
 
 import {getTinyMCE} from 'editor_tiny/loader';
@@ -32,11 +33,15 @@ import Common from './common';
 import {register as registerOptions} from './options';
 import {getSetup as getCommandSetup} from './commands';
 import * as Configuration from './configuration';
-import {initializer} from './initializer';
 
+const documentationUrl = 'https://github.com/jmulet/moodle_tiny-widgethub';
 const {component, pluginName} = Common;
 
-// Setup the Plugin.
+// Import extensions to the plugin
+import './extension/dependencies';
+import './extension/contextmenus';
+
+// Setup the plugin.
 // eslint-disable-next-line no-async-promise-executor
 export default new Promise(async(resolve) => {
     const [
@@ -45,21 +50,24 @@ export default new Promise(async(resolve) => {
         setupCommands,
     ] = await Promise.all([
         getTinyMCE(),
-        getPluginMetadata(component, pluginName),
+        getPluginMetadata(component, pluginName, documentationUrl),
         getCommandSetup(),
     ]);
 
+    tinyMCE.overrideDefaults({
+        ...tinyMCE.defaultOptions,
+        remove_trailing_brs: false, // TODO: Remove this in the future. Simply for compatibility with atto
+        allow_script_urls: true,    // Allow href="javascript:void(0)" used in popover
+    });
+
     tinyMCE.PluginManager.add(pluginName,
         /** @param {TinyMCE} editor */
-            (editor) => {
+        (editor) => {
             // Register options.
             registerOptions(editor);
 
             // Setup commands.
             setupCommands(editor);
-
-            // Custom initialization
-            initializer(editor);
 
             return pluginMetadata;
         });

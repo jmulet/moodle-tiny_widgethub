@@ -1,0 +1,39 @@
+{
+    "key": "desplegable2",
+    "name": "Desplegable",
+    "category": "bootstrap",
+    "instructions": "Crea un grup de desplegables. El nombre de desplegables es defineix en camp 'nombre'. Assegureu-vos que el títol de\ncada desplegable sigui clicable. Recordeu a col·lapsar els desplegables abans de desar. No modifiqueu l'identificador\ngenerat aleatòriament ja que ha d'ésser diferent per a cada desplegable que creeu en la pàgina.\n",
+    "template": "<p><br></p>  <!--ini desplegable--> <div id=\"{{ID}}\" class=\"accordion iedib-accordion\"> {{#each}}[nombre]<div class=\"accordion-group\"> <div class=\"accordion-heading\"><a class=\"accordion-toggle\" href=\"#collapse_{{ID}}_{{i}}\" data-toggle=\"collapse\" {{#independents}}data-parent=\"#{{ID}}\"{{/independents}}><span class=\"icon icon-plus-sign\"></span> <span>&nbsp;</span><span>Desplegable{{i}}&nbsp;</span></a></div> <div id=\"collapse_{{ID}}_{{i}}\" class=\"accordion-body collapse\" {{^independents}}data-parent=\"#{{ID}}\"{{/independents}}> <div class=\"accordion-inner\"> <p>Més informació sobre l'apartat {{i}}...</p> </div> </div> </div>{{/each}} </div> <!--fi desplegable--> <p><br></p>\n",
+    "selectors": "div.accordion.iedib-accordion",
+    "parameters": [
+        {
+            "name": "nombre",
+            "value": 3,
+            "title": "Nombre de desplegables",
+            "type": "numeric",
+            "min": 1
+        },
+        {
+            "name": "independents",
+            "value": true,
+            "title": "Desplegables independents",
+            "tip": "Si la casella està marcada, es pot desplegar més d'un quadre alhora. Si està desmarcada, quan es desplega un quadre, es tanquen tots els altres."
+        },
+        {
+            "name": "ID",
+            "value": "$RND",
+            "title": "Identificador autogenerat",
+            "type": "textfield",
+            "hidden": true
+        }
+    ],
+    "stars": 1,
+    "contextmenu": [
+        {
+            "predicate": "div.accordion-group",
+            "actions": "moveup movedown insertafter | remove"
+        }
+    ],
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2021.03.31"
+}

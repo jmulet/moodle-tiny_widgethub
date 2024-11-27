@@ -1,0 +1,11 @@
+{
+    "key": "filtre-notranslate",
+    "name": "Notranslate LaTeX",
+    "category": "filtres",
+    "instructions": "Aquest filtre encapsula les fòrmules LaTeX amb la classe notranslate per evitar que Google les tradueixi.",
+    "filter": "var inlineRegex2 = /\\\\\\(((?:.|\\n)+?)\\\\\\)/mgi; var displayRegex2 = /\\\\\\[((?:.|\\n)+?)\\\\\\]/mgi; var divDisplaynotranslateRegex = /<\\s*div\\s+class\\s*=\\s*\\\"\\s*notranslate\\s*\\\"\\s*>(\\s*\\\\\\[((?:.|\\n)+?)\\\\\\]\\s*)<\\/\\s*div\\s*>/mgi; var spanInlinenotranslateRegex = /<\\s*span\\s+class\\s*=\\s*\\\"\\s*notranslate\\s*\\\"\\s*>(\\s*\\\\\\(((?:.|\\n)+?)\\\\\\)\\s*)<\\/\\s*span\\s*>/mgi; var verifiedRegex = /<!--filtre notranslate aplicat (.*?)-->/mgi;\nvar randomkey = function() {\n      return 'k'+Math.random().toString(32).substring(2);\n}; var formulesOk = 0; var formulesPendents = 0;  var mapaFormulas = {}; var code = text.replace(divDisplaynotranslateRegex, function ($0, $1, $2, $3) {\n     var key = randomkey() + formulesOk;\n     mapaFormulas[key] = $0;\n     formulesOk++;\n     return \" [[[\"+key+\"]]] \";\n}); code = code.replace(spanInlinenotranslateRegex, function ($0, $1, $2, $3) {\n     var key = randomkey() + formulesOk;\n     mapaFormulas[key] = $0;\n     formulesOk++;\n     return \" [[[\"+key+\"]]] \";\n});  code = code.replace(inlineRegex2, function ($0, $1, $2, $3) {\n     formulesPendents++;\n     return \"<span class=\\\"notranslate\\\"> \\\\(\" + $1 + \"\\\\)</span>\";\n}); code = code.replace(displayRegex2, function ($0, $1, $2, $3) {\n     formulesPendents++;\n     return \" <div class=\\\"notranslate\\\"> \\\\[\" + $1 + \"\\\\] </div>\";\n});   var claus = Object.keys(mapaFormulas); for(var i=0; i<claus.length; i++) {\n     var key = claus[i];\n     code = code.replace(\"[[[\"+key+\"]]]\", mapaFormulas[key]);\n} var total = formulesPendents + formulesOk; var msg_stats = \"S'han detectat \" + total + \" fòrmules i s'han corregit \"+formulesPendents;  if(formulesPendents===0){\n    code=null;\n} return [code, msg_stats];\n",
+    "for": "31,794,5806",
+    "stars": 1,
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2022.09.28"
+}

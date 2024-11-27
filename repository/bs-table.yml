@@ -1,0 +1,69 @@
+key: bs-table
+name: Bootstrap table
+category: bootstrap
+instructions: >
+ Create a table with n rows and m columns
+template: |
+  <p><br></p> 
+  {{#responsive}}<div class="table-responsive">{{/responsive}}
+  <table class="table{{#stripes}} table-striped{{/stripes}}{{#borders}} table-bordered{{/borders}}{{#hover}} table-hover{{/hover}} whb-bstable">
+  {{#desc}}
+  <caption class="caption-top">Table: {{desc}}</caption>
+  {{/desc}}
+  {{#headers}}
+    <thead>
+      <tr>{{#each}}[j=ncols]<th role="col">Title{{j}}</th>{{/each}}</tr>
+    </thead>
+  {{/headers}}
+  <tbody class="table-group-divider">
+    {{#each}}[i=nrows]<tr>{{#each}}[j=ncols]<td>Cell{{i}}{{j}}</td>{{/each}}</tr>{{/each}}
+  </tbody>
+  {{#footer}}
+    <tfoot class="table-group-divider">
+      <tr>{{#each}}[j=columnes]<th>Foot{{j}}</th>{{/each}}</tr>
+    </tfoot>
+  {{/footer}}
+  </table> 
+  {{#responsive}}</div>{{/responsive}}
+  <p><br></p>
+selectors: table.whb-bstable
+stripes: {type: "class", name: "table-striped", default: 1}
+hover: {type: "class", name: "table-hover", default: 0}
+borders: {type: "class", name: "table-bordered", default: 0} 
+parameters:
+  - name: nrows
+    title: Number of rows
+    value: 3
+    min: 1 
+  - name: ncols
+    title: Number of columns
+    value: 4
+    min: 1 
+  - name: headers
+    title: Include headers
+    value: true
+  - name: footer
+    title: Include footer
+    value: false
+  - name: desc
+    title: A description for the table
+    type: textfield
+    value: ''
+  - name: stripes
+    title: Show stripes
+    tip: Odd rows will be rendered with gray background
+    value: false
+    bind: hasClass('table-striped')
+  - name: hover
+    title: Highlight row on mouse over
+    value: false
+    bind: hasClass('table-hover')
+  - name: borders
+    title: Show borders
+    value: false
+    bind: hasClass('table-bordered')
+  - name: responsive
+    title: Responsive behaviour
+    value: false
+author: Josep Mulet <pep.mulet@gmail.com>
+version: 1.0.0

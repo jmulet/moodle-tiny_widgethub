@@ -1,0 +1,44 @@
+{
+    "key": "youtube",
+    "name": "YouTube",
+    "category": "video",
+    "instructions": "S'incrusta un vídeo de YouTube a la pàgina de forma responsiva.  Introduïu la ID del vídeo de youtube i opcionalment un títol.  Podeu escapçar una part del vídeo amb els paràmetres inici i fi donats en segons.\n",
+    "template": "<p><br></p>\n<!--ini youtube-->\n<div class=\"iedib-video-container\" {{#if}}[ampladaMax>100]style=\"max-width:{{ampladaMax}}px\"{{/if}}>\n  <div class=\"iedib-videoWrapper\">\n    <iframe src=\"https://www.youtube.com/embed/{{youtubeId}}?enablejsapi=1&rel=0&modestbranding=1&showinfo=0&iv_load_policy=3&start={{iniciSegons}}{{#fiSegons}}&end={{fiSegons}}{{/fiSegons}}\" frameborder=\"0\" allow=\"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen=\"\"></iframe>\n  </div>\n    <div class=\"iedib-caption\">\n   <span class=\"iedib-caption-counter\">Vídeo</span><span class=\"iedib-caption-title\">: {{titol}}</span></div>\n</div>\n<!--end youtube-->\n<p><br></p>\n",
+    "parameters": [
+        {
+            "name": "youtubeId",
+            "value": "JikG2CPycAw",
+            "title": "URL o Id del vídeo",
+            "tip": "Podeu aferrar la URL completa o l'ID del vídeo de YouTube",
+            "transform": "ytId"
+        },
+        {
+            "name": "ampladaMax",
+            "value": 500,
+            "title": "Amplada màxima en px",
+            "min": 100
+        },
+        {
+            "name": "titol",
+            "value": "Títol",
+            "title": "Títol descriptiu"
+        },
+        {
+            "name": "iniciSegons",
+            "value": 0,
+            "title": "Comença la reproducció al segon",
+            "min": 0
+        },
+        {
+            "name": "fiSegons",
+            "value": 0,
+            "title": "Acaba la reproducció al segon",
+            "min": 0,
+            "tip": "Manteniu a 0 si voleu que arribi al final del vídeo"
+        }
+    ],
+    "scope": "^page-mod-(book|page|assign|quizz)-",
+    "stars": 3,
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2023.01.07"
+}

@@ -1,0 +1,21 @@
+{
+    "key": "two-cols",
+    "name": "Dues Columnes",
+    "category": "bootstrap",
+    "instructions": "Formateu continguts en dues columnes responsives (s'adapten a la mida dels dispositius).\n",
+    "template": "{{#var}}amplada_col2=12-amplada_col1{{/var}}\n<p><br></p>\n<!--ini dues columnes-->\n<div class=\"row-fluid iedib-tabpane\">\n<div class=\"span{{amplada_col1}}\">\n<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n</p>\n</div>\n<div class=\"span{{amplada_col2}}\">\n<p><br></p>\n<img src=\"https://www.actualidadliteratura.com/wp-content/uploads/2019/06/tablilla-en-latin.jpg\" alt=\"Demo\" style=\"width:90%;max-width:300px;\" role=\"presentation\" class=\"img-fluid align-middle\"/>\n<p><br></p>\n</div>\n</div>\n<!--fi dues columnes-->\n <p><br></p>\n",
+    "selectors": "div.row-fluid.iedib-tabpane",
+    "parameters": [
+        {
+            "name": "amplada_col1",
+            "value": 6,
+            "title": "Amplada primera columna",
+            "tip": "Amplada de la primera columna. Un número de 1 a 11. S'obté igual amplades amb el valor 6.",
+            "min": 1,
+            "max": 11
+        }
+    ],
+    "stars": 2,
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2023.01.07"
+}

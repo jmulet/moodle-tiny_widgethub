@@ -1,0 +1,16 @@
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "description": "Check and transforms repository yaml widget definitions into json format",
+  "main": "presets_tiny.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Josep Mulet Pol",
+  "license": "ISC",
+  "dependencies": {
+    "crypto": "^1.0.1",
+    "js-yaml": "^4.1.0",
+    "mustache": "^4.2.0"
+  }
+}

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -23,7 +24,6 @@
 
 import {getPluginOptionName} from 'editor_tiny/options';
 import Common from './common';
-import {WidgetWrapper} from './util';
 const pluginName = Common.pluginName;
 
 const showPlugin = getPluginOptionName(pluginName, 'showplugin');
@@ -33,8 +33,7 @@ const widgetList = getPluginOptionName(pluginName, 'widgetlist');
 
 const shareStyles = getPluginOptionName(pluginName, 'sharestyles');
 const additionalCss = getPluginOptionName(pluginName, 'additionalcss');
-const addValidElements = getPluginOptionName(pluginName, 'addvalidelements');
-const addCustomElements = getPluginOptionName(pluginName, 'addcustomelements');
+const globalConfig = getPluginOptionName(pluginName, 'cfg');
 
 /**
  * @param {import('./plugin').TinyMCE} editor
@@ -72,18 +71,11 @@ export const register = (editor) => {
         "default": "",
     });
 
-    registerOption(addValidElements, {
-        processor: 'string',
-        "default": "",
+    registerOption(globalConfig, {
+        processor: 'object',
+        "default": {},
     });
-
-    registerOption(addCustomElements, {
-        processor: 'string',
-        "default": "",
-    });
-
 };
-
 
 /**
  * @param {import('./plugin').TinyMCE} editor
@@ -93,61 +85,440 @@ export const isPluginVisible = (editor) => editor.options.get(showPlugin);
 
 /**
  * @param {import('./plugin').TinyMCE} editor
- * @returns {number} - an integer with the id of the current user
- */
-export const getUserId = (editor) => parseInt(editor.options.get(userId));
-
-/**
- * @param {import('./plugin').TinyMCE} editor
- * @returns {number} - an integer with the id of the current course
- */
-export const getCourseId = (editor) => parseInt(editor.options.get(courseId));
-
-/**
- * @param {import('./plugin').TinyMCE} editor
  * @returns {string} - additional css that must be included in a <style> tag in editor's iframe
  */
-export const getAdditionalCss = (editor) => editor.options.get(additionalCss);
+export const getAdditionalCss = (editor) => {
+    return editor.options.get(additionalCss);
+};
 
 /**
  * @param {import('./plugin').TinyMCE} editor
- * @returns {string}
+ * @param {string} key
+ * @param {string} defaultValue
+ * @returns {string} - An object with the key/value properties
  */
-export const getAddValidElements = (editor) => editor.options.get(addValidElements);
+export const getGlobalConfig = (editor, key, defaultValue) => {
+    const dict = editor.options.get(globalConfig) ?? {};
+    return dict[key] ?? defaultValue;
+};
+
+/**
+ * Wrapper version of the snippet definitions shared among all editors in page
+ * @type {Record<string, Widget> | undefined}
+ * */
+let _widgetDict;
 
 /**
  * @param {import('./plugin').TinyMCE} editor
- * @returns {string}
- */
-export const getAddCustomElements = (editor) => editor.options.get(addCustomElements);
-
-/** @type {Object.<string, WidgetWrapper> | null} */
-let widgetDict = null;
-
-/**
- * @param {import('./plugin').TinyMCE} editor
- * @returns {Object.<string,WidgetWrapper>} - a dictionary of "usable" widgets for the current userId
+ * @returns {Record<string, Widget>} - The available list of widgets
  */
 export const getWidgetDict = (editor) => {
-    if (!widgetDict) {
-        widgetDict = {};
-        // The widgetList is of type object[]
-        // partials is a special widget that is used to define common parameters shared by other widgets
-        /** @type {import('./util').Widget[]} */
-        let widgets = editor.options.get(widgetList);
-        let partials = widgets.filter(e => e.key === 'partials')[0];
-        if (partials) {
-            widgets = widgets.filter(e => e.key !== 'partials');
+    if (_widgetDict) {
+        return _widgetDict;
+    }
+    /** @type {RawWidget[]} */
+    let rawWidgets = editor.options.get(widgetList) ?? [];
+    _widgetDict = {};
+    // Partials is a special widget that is used to define common parameters shared by other widgets
+    /** @type {RawWidget | undefined} */
+    let partials = rawWidgets.filter(e => e.key === 'partials')[0];
+    if (partials) {
+        rawWidgets = rawWidgets.filter(e => e.key !== 'partials');
+    }
+    // Create a wrapper for the widget to handle operations
+    const wrappedWidgets = rawWidgets
+        .map(w => new Widget(w, partials || {}));
+
+    // Remove those buttons that aren't usable for the current user
+    const id = editor.options.get(userId);
+    wrappedWidgets.filter(w => w.isFor(id)).forEach(w => {
+        if (_widgetDict) {
+            _widgetDict[w.key] = w;
         }
-        // Create a wrapper for the widget to handle operations
-        const wrappedWidgets = widgets.map((snpt)=> new WidgetWrapper(snpt, partials || {}));
-        // Remove those buttons that aren't usable for the current user
-        const userId = getUserId(editor);
-        wrappedWidgets.filter(w => w.isFor(userId)).forEach(w => {
-            if (widgetDict) {
-                widgetDict[w.key] = w;
-            }
+    });
+    return _widgetDict;
+};
+
+export class EditorOptions {
+    /**
+     * @param {import('./plugin').TinyMCE} editor
+     */
+    constructor(editor) {
+        this.editor = editor;
+    }
+
+    /**
+     * @returns {number} - an integer with the id of the current user
+     */
+    get userId() {
+        return parseInt(this.editor.options.get(userId));
+    }
+
+    /**
+     * @returns {number} - an integer with the id of the current course
+     */
+    get courseId() {
+        return parseInt(this.editor.options.get(courseId));
+    }
+
+    /**
+     * @returns {Object.<string, Widget>} - a dictionary of "usable" widgets for the current userId
+     */
+    get widgetDict() {
+       return getWidgetDict(this.editor);
+    }
+}
+
+/**
+ * @typedef {object} Shared
+ * @property {string} currentScope
+ */
+export const Shared = {
+    // In which type of activity the editor is being used
+    currentScope: document.querySelector('body')?.id ?? '',
+};
+
+/**
+ * Add missing properties in the param definition
+ * that can be derived from existing data.
+ * @param {Param} param
+ */
+export function fixMissingParamProperties(param) {
+    if (!param.type) {
+        if (param.options) {
+            param.type = 'select';
+        } else if (typeof param.value === "boolean") {
+            // Infer type from value
+            param.type = 'checkbox';
+        } else if (typeof param.value === "number") {
+            param.type = 'numeric';
+        } else if (typeof param.value === "string") {
+            param.type = param.options ? 'select' : 'textfield';
+        }
+    }
+    if (!param.value) {
+        switch (param.type) {
+            case ('checkbox'):
+                param.value = false; break;
+            case ('numeric'):
+                param.value = 0; break;
+            case ('select'):
+                param.value = param.options?.[0];
+                if (typeof (param.value) === 'object') {
+                    param.value = param.value.v;
+                }
+                break;
+            case ('color'):
+                param.value = '#ffffff'; break;
+            default:
+                param.value = '';
+        }
+    }
+}
+
+/**
+ * @param {*} obj - The object to expand
+ * @param {Record<string, *>} partials - The dictionary with partials
+ * @returns {*} The modified object
+ */
+export function expandPartial(obj, partials) {
+    if ((obj ?? null) === null) {
+        return obj;
+    }
+    let partialKey;
+    if (typeof obj === 'string' && obj.startsWith('__') && obj.endsWith('__')) {
+        partialKey = obj;
+        obj = {};
+    } else if (typeof obj === 'object' && obj.partial) {
+        partialKey = obj.partial;
+        delete obj.partial;
+    }
+    if (partialKey) {
+        partialKey = partialKey.replace(/__/g, '');
+        if (!partials[partialKey]) {
+            console.error(`Cannot find partial for ${partialKey}`);
+        } else {
+            // Override with passed properties.
+            obj = {...partials[partialKey], ...obj};
+        }
+    }
+    return obj;
+}
+
+/**
+ * Partials are variables that start with @ which
+ * can be expanded in different parts of the widget
+ * definition.
+ * @param {RawWidget} widget
+ * @param {Record<string, *>} partials
+ * @returns {void} The same widget with partials expanded
+ */
+export function applyPartials(widget, partials) {
+    // Expand partials in template.
+    const regex = /__([\w\d]+)__/g;
+    if (widget.template) {
+        widget.template = widget.template.replace(regex, (s0, s1) => {
+            return partials[s1] ?? s0;
         });
     }
-    return widgetDict;
-};
+
+    // Expand partials in parameters.
+    const parameters = widget.parameters;
+    if (parameters) {
+        parameters.forEach((/** @type {*} */ param, i) => {
+            param = expandPartial(param, partials);
+            parameters[i] = param;
+            // Treat inner partials
+            let prop = expandPartial(param.bind, partials);
+            if (prop) {
+                param.bind = prop;
+            }
+            prop = expandPartial(param.transform, partials);
+            if (prop) {
+                param.transform = prop;
+            }
+            // Do some fixes on parameters.
+            fixMissingParamProperties(param);
+        });
+    }
+}
+
+/**
+ * @typedef {Object} ParamOption
+ * @property {string} l
+ * @property {string} v
+ * @property {{to: string, content: string}} [a]
+ */
+/**
+ * @typedef {Object} Param
+ * @property {string=} partial
+ * @property {string} name
+ * @property {string} title
+ * @property {'textfield' | 'numeric' | 'checkbox' | 'select' | 'textarea' | 'image' | 'color'} [type]
+ * @property {(ParamOption | string)[]} [options]
+ * @property {any} value
+ * @property {string=} tip
+ * @property {string=} tooltip
+ * @property {number=} min
+ * @property {number=} max
+ * @property {string=} transform
+ * @property {string | {get: string, set: string} } [bind]
+ * @property {string=} when
+ * @property {boolean} [hidden]
+ * @property {boolean} [editable]
+ * @property {string} [for]
+ */
+/**
+ * @typedef {Object} Action
+ * @property {string} predicate
+ * @property {string} actions
+ */
+/**
+ * @typedef {Object} RawWidget
+ * @property {number} id
+ * @property {string} key
+ * @property {string} name
+ * @property {string} category
+ * @property {string} [scope] - Regex for idenfying allowed body ids
+ * @property {string} [instructions]
+ * @property {'mustache' | 'ejs'} [engine]
+ * @property {string} [template]
+ * @property {string} [filter]
+ * @property {Param[]} [parameters]
+ * @property {Object.<string, Object<string, string>>} [I18n]
+ * @property {string | string[]} [selectors]
+ * @property {string} [insertquery]
+ * @property {string} [unwrap]
+ * @property {string} [for]
+ * @property {string} [autocomplete]
+ * @property {string} version
+ * @property {string} author
+ * @property {string[]} [requires]
+ * @property {boolean} [hidden]
+ * @property {number} [stars]
+ * @property {Action[]} [contextmenu]
+ * @property {Action[]} [contexttoolbar]
+ */
+/**
+ * @class
+ * @classdesc Wrapper for Widget definition
+ */
+export class Widget {
+    #widget;
+    #instructionsParsed = false;
+    /** @type {string | undefined} */
+    _preview;
+
+    /**
+     * @param {RawWidget} widget
+     * @param {Object.<string, any>=} partials
+     */
+    constructor(widget, partials) {
+        partials = partials ?? {};
+        applyPartials(widget, partials);
+        this.#widget = widget;
+    }
+    /**
+     * @returns {number}
+     */
+     get id() {
+        return this.#widget.id;
+    }
+    /**
+     * @returns {string}
+     */
+    get name() {
+        return this.#widget.name;
+    }
+    /**
+     * @returns {string}
+     */
+    get key() {
+        return this.#widget.key;
+    }
+    /**
+     * @returns {Record<string, Record<string, string>>}
+     */
+    get I18n() {
+        return this.#widget.I18n || {};
+    }
+    /**
+     * @returns {string}
+     */
+    get template() {
+        return this.#widget.template ?? this.#widget.filter ?? '';
+    }
+    /**
+     * @returns {string}
+     */
+    get category() {
+        return this.#widget.category ?? "MISC";
+    }
+    /**
+     * @returns {string=}
+     */
+    get insertquery() {
+        return this.#widget.insertquery;
+    }
+    /**
+     * @returns {string | string[] =}
+     */
+    get selectors() {
+        return this.#widget.selectors;
+    }
+    /**
+     * @returns {string=}
+     */
+    get unwrap() {
+        return this.#widget.unwrap;
+    }
+    /**
+     * @returns {string}
+     */
+    get version() {
+        return this.#widget.version || "1.0.0";
+    }
+    /**
+     * @returns {string}
+     */
+    get instructions() {
+        if (this.#widget.instructions && !this.#instructionsParsed) {
+            this.#widget.instructions = decodeURIComponent(this.#widget.instructions);
+            this.#instructionsParsed = true;
+        }
+        return this.#widget.instructions ?? '';
+    }
+    /**
+     * @returns {Param[]}
+     */
+    get parameters() {
+        return this.#widget.parameters ?? [];
+    }
+    /**
+     * @returns {Object.<string, any>}
+     */
+    get defaults() {
+        /** @type {Object.<string, any> } */
+        const obj = {};
+        (this.#widget.parameters ?? []).forEach((param) => {
+            obj[param.name] = param.value;
+        });
+        return obj;
+    }
+    /**
+     * @param {number} userId
+     * @returns {boolean}
+     */
+    isFor(userId) {
+        if (this.#widget.hidden === true) {
+            return false;
+        }
+        let grantStr = (this.#widget.for || '').trim();
+        if (grantStr === '' || grantStr === '*') {
+            return true;
+        }
+        let allowMode = true;
+        if (grantStr.startsWith('-')) {
+            allowMode = false;
+        }
+        grantStr = grantStr.replace(/[+\- ]/g, '');
+        const grantList = grantStr.split(",");
+        const isAllowed = (allowMode && grantList.indexOf(userId + "") >= 0) ||
+                         (!allowMode && grantList.indexOf(userId + "") < 0);
+        if (!isAllowed) {
+            console.warn(`Widget ${this.#widget.key} not allowed to user ${userId}: ${grantList}`);
+        }
+        return isAllowed;
+    }
+
+    /**
+     * @returns {boolean}
+     */
+    isFilter() {
+        return this.#widget.template === undefined && this.#widget.filter !== undefined;
+    }
+
+    /**
+     * @param {string=} scope
+     * @returns {boolean}
+     */
+    isUsableInScope(scope) {
+        scope = scope ?? Shared.currentScope ?? '';
+        const widgetScopes = this.#widget.scope;
+        if (!scope || !widgetScopes || widgetScopes === "*") {
+            return true;
+        }
+        const regex = new RegExp(widgetScopes);
+        return (regex.exec(scope) ?? null) !== null;
+    }
+    /**
+     * @returns {boolean}
+     */
+    hasBindings() {
+        return (this.#widget.parameters ?? []).some(param => param.bind !== undefined);
+    }
+    /**
+     * Recovers the property value named name of the original definition
+     * @param {string} name
+     * @returns {*}
+     */
+    prop(name) {
+        // @ts-ignore
+        return this.#widget[name];
+    }
+}
+
+
+const editorOptionsInstances = new Map();
+/**
+ * @param {import('./plugin').TinyMCE} editor
+ * @returns {EditorOptions}
+ */
+export function getEditorOptions(editor) {
+    let instance = editorOptionsInstances.get(editor);
+    if (!instance) {
+        instance = new EditorOptions(editor);
+        editorOptionsInstances.set(editor, instance);
+    }
+    return instance;
+}
