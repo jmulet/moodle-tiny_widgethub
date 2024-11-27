@@ -1,6 +1,5 @@
-// @ts-nocheck
+/** @ts-ignore */
 /* eslint-disable */
-
 /**
 The data structure for documents. @nonabstract
 */
@@ -19260,7 +19259,8 @@ const treeHighlighter = /*@__PURE__*/Prec.high(/*@__PURE__*/ViewPlugin.fromClass
 /**
 A default highlight style (works well with light themes).
 */
-const defaultHighlightStyle = /*@__PURE__*/HighlightStyle.define([
+const defaultHighlightStyleDefs = HighlightStyle.define;
+const defaultHighlightStyle = /*@__PURE__*/defaultHighlightStyleDefs([
     { tag: tags.meta,
         color: "#404740" },
     { tag: tags.link,
@@ -26770,6 +26770,12 @@ const BIND_OPTIONS = [
     {label: "set: function(e, value){} ", type: 'variable', info: 'How to set the variable value to jQuery<HTMLElement> e'},
 ];
 
+/**
+ * @param {*} node
+ * @param {*} context
+ * @param {string[]} keys
+ * @returns
+ */
 function getKeysUpNode(node, context, keys) {
     if (!node.buffer && node.type?.name === 'Key') {
         keys.push(context.state.sliceDoc(node.from, node.to));
