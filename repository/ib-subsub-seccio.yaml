@@ -1,19 +1,19 @@
 key: subsub-seccio
-name: Secció de pàgina
+name: Page Section
 instructions: > 
-  Creau una secció dins d'una pàgina o un llibre moodle.
-  El títol ha d'acabar sense punt final.
+  Create a section within a page or a Moodle book.
+  The title should not end with a period.
 template: | 
   <p><br></p>
-  <h4 class="iedib-subsub"><span class="iedib-iq">{{titol}}</span></h4>
+  <h4 class="wh-subsub"><span class="wh-iq">{{title}}</span></h4>
   <p><br></p>
-selectors: h4.iedib-subsub
-insertquery: .iedib-iq
-unwrap: .iedib-iq
+selectors: h4.wh-subsub
+insertquery: .wh-iq
+unwrap: .wh-iq
 parameters: 
-  - name: titol
-    value: Títol de la secció
-    title: Títol de la secció
+  - name: title
+    value: Section Title
+    title: Section Title
     when: "SELECT_MODE!=='selection'"
 stars: 3
 author: Josep Mulet Pol <pep.mulet@gmail.com>

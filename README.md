@@ -1,40 +1,80 @@
 # WidgetHub
 
-Create, share and use fully customizable widget components in the tiny editor.
+Design, use and customize widget components seamlessly within the Tiny Editor.
 
-# Spec of the Yaml file
+## Features
 
-Optional keywords are marked with []
+Users can:
 
-- **key**: string - A unique identifier for the widget
-- **name**: string - The name that appears in the button to select it
-- **category**: string - The category in which the widget will appear
-- **[instructions]**: string - A details explanation of the purpose and use of the widget.
-- **[selectors]**: string | string [] - In case that the widget uses bindings (see below), it is mandatory to define the css selector that identifies the root of your widget.
-- **[engine]**: 'mustache' | 'ejs' - Defaults to mustache. Defines which template engine must be used to render the template.
-- **template**: string - HTML markup that will be interpolated and renderered in the Tiny editor.
-- **[unwrap]**: string - A query selector of the elements within the selectors element that must be extracted. Use '*' if all elements must be extracted. As you can see requires that the selectors keyword is defined.
-- **[parameters]** - Are compulsory if the template uses variables. It consists of a list of objects that may contain the following properties
-  - **name**: string - Must match the name used in the template
-  - **title**: string - A human readable name of the widget
-  - **[tooltip]**: string - Provide further information about the parameter
-  - **value**: unknown - The default value that must have
-  - **[type]**: 'textfield' | 'textarea' | 'numeric' | 'select' | 'checkbox' | 'color'  - In most cases it can be inferered from the default value and other parameters.
-  - **options**: string[] | {l: string, v: string}[] - A list of options for the checkbox type.
-  - **[min]**: number - The min value allowed in a numeric control
-  - **[max]**: number - The max value allowed in a numeric control
-  - **[bind]**: string | {get: string, set: string} - 
-- **[contextmenu]**
-  - **predicate**: css query identifying under which element the right click must display the context menu with the passed actions.
-  - **actions**: 'movebefore' | 'moveafter' | 'insert' | 'remove' | '|'
-- **[contexttoolbar]**: boolean - whether to display a context toolbar instead for a contextmenu.
-- **author**: string - Use this format: Your Name <your@email.com>
-- **version**: string - Version in format major.minor.revision
+1. Choose a widget.
+2. Customize its appearance.
+3. Insert it into the Tiny editor.
+
+Later, at any time, the component can be reconfigured using Tiny context menus.
+
+
+Administrators can customize existing widget definitions, create new ones, and delete unwanted widgets. Simply type
+`widget` at the search field in the administrator area.
+
+Feel free to share your widgets either by email `pep.mulet(at)gmail.com` or creating a pull request.
+
+
+
+## YAML File Specification
+
+Optional keywords are marked with **[ ]**.
+
+| **Key**               | **Type**                              | **Description**                                                                                           |
+|-----------------------|---------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| **`key`**             | `string`                             | A unique identifier for the widget.                                                                      |
+| **`name`**            | `string`                             | The name displayed on the button for selecting the widget.                                                |
+| **`category`**        | `string`                             | The category in which the widget appears.                                                                |
+| **`[instructions]`**  | `string`                             | (Optional) Detailed explanation of the widget’s purpose and usage.                                       |
+| **`[selectors]`**     | `string` | `string[]`                  | (Optional) Required if the widget uses bindings. Defines the CSS selector that identifies the widget root.|
+| **`[engine]`**        | `'mustache'` | `'ejs'`                 | (Optional) Defaults to `mustache`. Specifies the template engine used to render the template.             |
+| **`template`**        | `string`                             | HTML markup interpolated and rendered in the Tiny Editor.                                                 |
+| **`[unwrap]`**        | `string`                             | (Optional) A query selector for elements to extract from the `selectors` element. Use `'*'` for all.      |
+| **`[parameters]`**    | `Parameter[]`                        | (Optional) Defines variables used in the template. It is required if the template uses placeholders.     |
+| **`[contextmenu]`**   | `ContextMenu`                        | (Optional) Configures a context menu                                                                   |
+| **`[contexttoolbar]`**| `boolean`                            | (Optional) Whether to display a context toolbar instead of a context menu.                               |
+| **`author`**          | `string`                             | Author in the format: `Your Name <your@email.com>`.                                                      |
+| **`version`**         | `string`                             | Widget version in `major.minor.revision` format.                                                         |
+
+---
+
+The type ContextMenu is defined by
+
+| **Key**               | **Type**                              | **Description**                                                                                           |
+|-----------------------|---------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| **`predicate`**     | `string`                             | CSS query for elements triggering the context menu.                                                        |
+| **`actions`**       | `array`                              | Actions such as  `moveup`, `movedown`, `moveleft`, `moveright`, `clone`, `delete`                          |
+
+---  
+
+The `selectors` field is mandatory if the widget includes parameters with bindings. This field establishes a relationship between the HTML markup and the corresponding widget. For example, `selectors: a[data-toggle="popover"]` targets all anchor tags with the `data-toggle="popover"` attribute. If an array of selectors is specified, the subsequent conditions are evaluated against the children of the element matched by the first selector. For instance, `selectors: ['a[data-toggle="popover"]', 'i.fas']` matches anchor tags that contain an `i` element with the `fas` class.
+
+
+The type `Parameter` consists of these fields
+
+| **Key**               | **Type**                              | **Description**                                                                                           |
+|------------------------|---------------------------------------|----------------------------------------------------------------------------------------------------------|
+| **`name`**           | `string`                              | The name of the parameter used in the template {{name}} or <%= name %>. If the name starts with `_` then it is saved in localStorage and restablished on future usage.                          |
+| **`title`**           | `string`                             | A human-readable name for the parameter.                                                                 |
+| **`[tooltip]`**       | `string`                             | (Optional) Additional information about the parameter.                                                   |
+| **`value`**           | `any`                                | Default value for the parameter.                                                                         |
+| **`[type]`**          | `'textfield' or 'textarea' or 'numeric' or 'select' or 'checkbox' or 'color'` | (Optional) Input type inferred from `value` or other parameters.                                         |
+| **`options`**         | `string[]` or `{l: string, v: string}[]` | Options for `select` or `checkbox` types.                                                                |
+| **`[min]`**           | `number`                             | (Optional) Minimum value for numeric controls.                                                           |
+| **`[max]`**           | `number`                             | (Optional) Maximum value for numeric controls.                                                           |
+| **`[bind]`**          | `string` | `{get: string, set: string}` | (Optional) Binding configuration for parameter values.                                                   |
+
+---
+
 
 
 # Creating widgets
 
-The following sections will walk through the process of creating new widgets by using the yaml API.
+The following sections will walk through the process of creating new widgets by using the yaml syntax.
 We shall start with a basic example and, progressively, we will continue showing more advanced cases.
 
 ## Example 1. A basic example
@@ -173,7 +213,7 @@ version: 1.1.0
 
 ### Example 4. Using loops in the template
 
-Since mustache is a logic free template system, some features are difficult to achieve. To overcome this limitation, we can use [`ejs`](https://ejs.co/) as an alternative template system. As you will see, it provides more flexibility.
+Since mustache is a logic free template system, some features are difficult to achieve. To overcome this limitation, you can use [`ejs`](https://ejs.co/) as an alternative template system. As you will see, it provides more flexibility. 
 
 Let's assume that we want to create a table of `n` rows and `m` columns. That's the way we do it
 
@@ -251,6 +291,14 @@ parameters:
 author: Your name <your.email@domain.com>
 version: 1.1.0 
 ````
+
+Nevertheless, the WidgetHub plugin adds some custom blocks to Mustache template rendering engine in order to implement basic loops.
+
+TODO check API [k=b] or [k,a,b]
+`````
+{{#each}}[k,1,4]{{k}}{{/each}}
+`````
+will print 1234.
 
 ### Example 5. Widgets that require id's
 

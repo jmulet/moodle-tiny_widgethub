@@ -1,26 +1,24 @@
-key: imatge-fons
-name: Text sobre fons d'imatge
-category: imatge
+key: image-background
+name: Text onto image background
+category: image
 instructions: >
-  Permet crear una capçalera amb una imatge que ocupa el fons d'un contenidor.
-  Aquest snippet pot servir per posar el títol del lliurament en el grid.
-  <span class="iedib-ret iedib-ret-consell">Trobareu més patrons gratuïts en aquest <a href="https://www.svgbackgrounds.com/set/free-svg-backgrounds-and-patterns/" target="_blank">enllaç</a>. Es recomana baixar el format SVG.</span>
+  It allows you to create a header with an image that fills the background of a container.
 template: |
   <p><br></p> 
-  <!--ini imatgefons-->
-  <div class="iedib-background-img" style="background-image: url('{{url}}'); padding:10px; min-height:40px; background-repeat: no-repeat; -webkit-background-size: cover; background-size: cover; background-position: 50% 50%;">
-  <p>Quina probabilitat tinc de guanyar els jocs d'atzar?</p>
-  <p><em>Probabilitat i Estadística</em></p>
+  <!--ini imagebackground-->
+  <div class="wh-background-img" style="background-image: url('{{url}}'); padding:10px; min-height:40px; background-repeat: no-repeat; -webkit-background-size: cover; background-size: cover; background-position: 50% 50%;">
+  <p>What is the probability of winning at gambling games?</p>
+  <p><em>Probability and Statistics</em></p>
   </div>
-  <!--fi imatgefons-->
+  <!--fi imagebackground-->
   <p><br></p>
-selectors: div.iedib-background-img
-parameters: 
+selectors: div.wh-background-img
+parameters:
   - name: url
     value: https://iedib.net/assets/img/subtle-prism.svg
-    title: URL de la imatge
+    title: Image URL
     type: image
-    tip: També podeu pujar una imatge al vostre curs i enllaçar-la aquí.
+    tip: You can also upload an image to your course and link it here.
     bind: | 
       styleRegex("background-image:url\\(['\"]?([^'\")]*)['\"]?\\)")
 stars: 2

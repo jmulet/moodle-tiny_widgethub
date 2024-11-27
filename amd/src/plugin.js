@@ -37,10 +37,6 @@ import * as Configuration from './configuration';
 const documentationUrl = 'https://github.com/jmulet/moodle_tiny-widgethub';
 const {component, pluginName} = Common;
 
-// Import extensions to the plugin
-import './extension/dependencies';
-import './extension/contextmenus';
-
 // Setup the plugin.
 // eslint-disable-next-line no-async-promise-executor
 export default new Promise(async(resolve) => {

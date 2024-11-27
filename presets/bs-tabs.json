@@ -1,0 +1,53 @@
+{
+    "key": "bs-tabs",
+    "name": "Tabs menu",
+    "category": "bootstrap",
+    "instructions": "Create a tab menu. You can define the number of tabs (<b>at least 2</b>).  It is important that you write a random ID that is different for each menu created on the page.\n",
+    "engine": "ejs",
+    "template": "<p><br></p>\n<div class=\"whb-tabmenu\">\n<ul class=\"nav nav-tabs\" role=\"tablist\">\n<% for(var i=1; i<=tabs; i++) { %>\n<li class=\"nav-item\">\n  <a class=\"nav-link<%= i==1 ? ' active' : '' %>\" href=\"#<%=ID%>_<%=i%>\" data-toggle=\"tab\" role=\"tab\"><span>&nbsp;</span><span>Tab<%=i%></span></a>\n</li> \n<% } %>\n</ul>\n<div class=\"tab-content\">\n<% for(var i=1; i<=tabs; i++) { %>\n<div class=\"tab-pane<%= effect ? ' ' + effect : '' %><%= i==1 ? ' show active' : '' %>\" id=\"<%=ID%>_<%=i%>\" role=\"tabpanel\">\n<p><%=i%> Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n</p>\n</div>\n<% } %>\n</div>\n</div> \n<p><br></p>\n",
+    "selectors": "div.whb-tabmenu",
+    "unwrap": "div.tab-content > div.tab-pane > *",
+    "parameters": [
+        {
+            "name": "tabs",
+            "value": 2,
+            "title": "Number of tabs",
+            "min": 1,
+            "max": 6,
+            "tip": "An excessive number of tabs can cause visualization problems on mobile devices."
+        },
+        {
+            "name": "effect",
+            "title": "Transition effect",
+            "value": "",
+            "options": [
+                {
+                    "l": "None",
+                    "v": ""
+                },
+                {
+                    "l": "Fade",
+                    "v": "fade"
+                }
+            ],
+            "bind": {
+                "get": "(e) => e.find('div.tab-pane').hasClass('fade') ? 'fade':''",
+                "set": "(e, v) => {\n  if(v) {\n    e.find('div.tab-pane').addClass('fade');\n  } else {\n    e.find('div.tab-pane').removeClass('fade');\n  }\n}\n"
+            }
+        },
+        {
+            "name": "ID",
+            "title": "id",
+            "value": "$RND",
+            "hidden": true
+        }
+    ],
+    "contextmenu": [
+        {
+            "predicate": "li.nav-item",
+            "actions": "moveleft moveright insertafter | remove"
+        }
+    ],
+    "author": "Josep Mulet <pep.mulet@gmail.com>",
+    "version": "1.0.0"
+}

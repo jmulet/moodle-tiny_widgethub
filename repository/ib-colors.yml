@@ -1,18 +1,18 @@
 key: ib-colors
-name: Colors de font i fons
-category: misc
+name: Foreground and background colors
+category: styles
 template: >
   &nbsp;<span style="color:{{_front}};background-color:{{_back}};" class="wh-sty-colors">Sample text</span>&nbsp;
 selectors: span.wh-sty-colors
 insertquery: span.wh-sty-colors
 parameters:
   - name: _front
-    title: Color de font
+    title: Foreground color
     bind: styleRegex('color')
     type: color
     value: '#0000ff'
   - name: _back
-    title: Color de fons
+    title: Background color
     bind: styleRegex('background-color')
     type: color
     value: '#ffffff00'

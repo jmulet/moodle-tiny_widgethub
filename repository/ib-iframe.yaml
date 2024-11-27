@@ -1,13 +1,13 @@
 key: iframe
-name: Inserir IFrame/HTML
+name: Insert iFrame/HTML
 instructions: > 
-  Aquest snippet permet inserir el codi HTML d'un IFrame en un punt determinat del document.
+  This snippet allows you to insert the HTML code for an iFrame at a specific point in the document.
 template: '{{{codi}}}'
 selectors: iframe
 parameters:
   - name: codi
     value: ''
-    title: Codi HTML
+    title: HTML Code
     type: textarea
 stars: 2
 scope: ^page-mod-(book|page|assign|quiz)-

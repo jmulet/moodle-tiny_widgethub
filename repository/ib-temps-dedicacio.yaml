@@ -1,36 +1,35 @@
 key: dedication-time
-name: Temps de dedicació
+name: Dedication Time
 instructions: >
-  Aquest snippet serveix per recomanar un temps de dedicació mínim a un recurs. 
-  Emprau preferentment múltiples de 15 per als minuts. 
+  This snippet is used to recommend a minimum dedication time for a resource. 
+  Preferably use multiples of 15 for the minutes.
 template: >-
-  <div class="iedib-rwrap"> <!--ini: temps-dedicació-->
-  <div role="snptd_dedicacio" class="iedib-time" data-toggle="tooltip" data-placement="bottom" title="{{titol}}">
+  <div class="iedib-rwrap"> <!--ini: dedication-time-->
+  <div role="snptd_dedication" class="iedib-time" data-toggle="tooltip" data-placement="bottom" title="{{title}}">
     <i class="fad fa-stopwatch" aria-hidden="true"></i>
     <span>
       {{#hours}} {{hours}} h {{/hours}}
       {{#minutes}} {{minutes}} min {{/minutes}}
     </span>
-  </div> <!--end: temps-dedicació-->
+  </div> <!--end: dedication-time-->
   </div> 
   <p><br></p>
 parameters:
   - name: hours
     value: 2
-    title: Hores
+    title: Hours
     min: 0
   - name: minutes
     value: 15
-    title: Minuts
+    title: Minutes
     min: 0
     max: 59
-    tip: Preferentment, arrodoniu a múltiples de 10 minuts
-  - name: titol
-    value: Temps de dedicació mínim recomanat per a aquesta pàgina.
-    title: Descripció
-    tip: Aquest missatge apareix com un tooltip
+    tip: Preferably round to multiples of 10 minutes
+  - name: title
+    value: Minimum recommended dedication time for this page.
+    title: Description
+    tip: This message will appear as a tooltip
     type: textarea
-for: "4,31"
 stars: 2
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 2022.06.11

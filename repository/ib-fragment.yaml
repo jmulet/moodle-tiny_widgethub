@@ -1,8 +1,8 @@
 key: fragment-text
-name: Fragment de text
+name: Text Fragment
 instructions: |
-  Utilitzeu aquest snippet per introduir un fragment de text d'algun llibre. 
-  Si voleu reduir l'amplada podeu establir una amplada màxima, p.e. 400 px.
+  Use this component to insert a text excerpt from a book. 
+  If you want to reduce the width, you can set a maximum width, e.g., 400px.
 template: >-
   <p><br></p> <!-- begin fragment text -->
   <div class="iedib-fragment {{#notranslate}}notranslate{{/notranslate}}" data-lang="{{_lang}}" {{#if}}[amplada_max>0]style="max-width: {{amplada_max}}px;"{{/if}}>
@@ -16,19 +16,27 @@ template: >-
 insertquery: .iedib-fragment>div.iedib-iq
 selectors: div.iedib-fragment
 unwrap: div.iedib-iq > *
-parameters: 
-  - __LANG__
+parameters:
+  - name: _lang
+    title: Language
+    value: en
+    options:
+      - {l: English, v: en}
+      - {l: Catalan, v: ca}
+      - {l: Spanish, v: es}
+      - {l: French, v: fr}
+      - {l: German, v: de}
   - name: amplada_max
     value: 0
-    title: Amplada màxima (px)
+    title: Maximum Width (px)
     min: 0
-    tip: Per exemple 500. Si no voleu limitar l'amplada, deixeu-la a 0.
+    tip: For example, 500. If you don't want to limit the width, leave it as 0.
     bind: styleRegex('max-width:(.*)px', null, 'number')
   - name: notranslate
     value: false
-    title: Evita ésser traduït per Google
+    title: Prevent translation by Google
     bind: hasClass('notranslate')
-I18n: 
+I18n:
   msg:
     ca: FRAGMENT DE TEXT
     es: FRAGMENTO DE TEXTO

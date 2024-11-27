@@ -20,16 +20,13 @@ template: |
   </tbody>
   {{#footer}}
     <tfoot class="table-group-divider">
-      <tr>{{#each}}[j=columnes]<th>Foot{{j}}</th>{{/each}}</tr>
+      <tr>{{#each}}[j=ncols]<th>Foot{{j}}</th>{{/each}}</tr>
     </tfoot>
   {{/footer}}
   </table> 
   {{#responsive}}</div>{{/responsive}}
   <p><br></p>
 selectors: table.whb-bstable
-stripes: {type: "class", name: "table-striped", default: 1}
-hover: {type: "class", name: "table-hover", default: 0}
-borders: {type: "class", name: "table-bordered", default: 0} 
 parameters:
   - name: nrows
     title: Number of rows

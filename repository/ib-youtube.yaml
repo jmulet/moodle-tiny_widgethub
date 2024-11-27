@@ -2,43 +2,43 @@ key: youtube
 name: YouTube
 category: video
 instructions: >
-  S'incrusta un vídeo de YouTube a la pàgina de forma responsiva. 
-  Introduïu la ID del vídeo de youtube i opcionalment un títol. 
-  Podeu escapçar una part del vídeo amb els paràmetres inici i fi donats en segons.
+  Embed a YouTube video responsively on the page. 
+  Enter the YouTube video ID and optionally a title. 
+  You can trim a part of the video with the start and end parameters given in seconds.
 template: |
   <p><br></p>
   <!--ini youtube-->
-  <div class="iedib-video-container" {{#if}}[ampladaMax>100]style="max-width:{{ampladaMax}}px"{{/if}}>
-    <div class="iedib-videoWrapper">
+  <div class="wh-video-container" {{#if ampladaMax}}style="max-width:{{ampladaMax}}px"{{/if}}>
+    <div class="wh-videoWrapper">
       <iframe src="https://www.youtube.com/embed/{{youtubeId}}?enablejsapi=1&rel=0&modestbranding=1&showinfo=0&iv_load_policy=3&start={{iniciSegons}}{{#fiSegons}}&end={{fiSegons}}{{/fiSegons}}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
     </div>
-      <div class="iedib-caption">
-     <span class="iedib-caption-counter">Vídeo</span><span class="iedib-caption-title">: {{titol}}</span></div>
+      <div class="wh-caption">
+     <span class="wh-caption-counter">Video</span><span class="wh-caption-title">: {{titol}}</span></div>
   </div>
   <!--end youtube-->
   <p><br></p>
 parameters:
   - name: youtubeId
     value: JikG2CPycAw
-    title: URL o Id del vídeo
-    tip: Podeu aferrar la URL completa o l'ID del vídeo de YouTube
+    title: URL or Video ID
+    tip: You can paste the full URL or just the YouTube video ID
     transform: ytId
   - name: ampladaMax
     value: 500
-    title: Amplada màxima en px
+    title: Maximum Width in px
     min: 100
   - name: titol
-    value: Títol
-    title: Títol descriptiu
+    value: Title
+    title: Descriptive Title
   - name: iniciSegons
     value: 0
-    title: Comença la reproducció al segon
+    title: Start Playback at Second
     min: 0
   - name: fiSegons
     value: 0
-    title: Acaba la reproducció al segon
+    title: End Playback at Second
     min: 0
-    tip: Manteniu a 0 si voleu que arribi al final del vídeo
+    tip: Keep this at 0 if you want the video to play until the end
 scope: ^page-mod-(book|page|assign|quizz)-
 stars: 3
 author: Josep Mulet Pol <pep.mulet@gmail.com>
