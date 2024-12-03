@@ -278,14 +278,14 @@ export function applyWidgetFilterFactory(editor, coreStr) {
                     editor.notificationManager.open({
                         text: translations[1],
                         type: 'info',
-                        timeout: 4000
+                        timeout: 5000
                     });
                 }
             } else if (!silent) {
                 editor.notificationManager.open({
                     text: translations[1],
                     type: 'info',
-                    timeout: 4000
+                    timeout: 5000
                 });
             }
         };

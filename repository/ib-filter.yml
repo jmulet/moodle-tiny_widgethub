@@ -1,50 +1,22 @@
 key: ib-filter
-name: Sample filter
+name: Sample filter -  It adds bold style to all h3
 category: filters
-instructions: This is a sample filter.
+instructions: This is a sample filter. It adds bold style to all h3
 filter: >
-    var inlineRegex2 = /\\\(((?:.|\n)+?)\\\)/mgi;
-    var displayRegex2 = /\\\[((?:.|\n)+?)\\\]/mgi;
-    var divDisplaynotranslateRegex = /<\s*div\s+class\s*=\s*\"\s*notranslate\s*\"\s*>(\s*\\\[((?:.|\n)+?)\\\]\s*)<\/\s*div\s*>/mgi;
-    var spanInlinenotranslateRegex = /<\s*span\s+class\s*=\s*\"\s*notranslate\s*\"\s*>(\s*\\\(((?:.|\n)+?)\\\)\s*)<\/\s*span\s*>/mgi;
-    var verifiedRegex = /<!--filtre notranslate aplicat (.*?)-->/mgi;
-
-    var randomkey = function() {
-          return 'k'+Math.random().toString(32).substring(2);
-    };
-    var formulesOk = 0;
-    var formulesPendents = 0; 
-    var mapaFormulas = {};
-    var code = text.replace(divDisplaynotranslateRegex, function ($0, $1, $2, $3) {
-         var key = randomkey() + formulesOk;
-         mapaFormulas[key] = $0;
-         formulesOk++;
-         return " [[["+key+"]]] ";
+    // Global variables available: text (initial HTML), editor (Tiny HTML editor object)
+    var dom = editor.dom;
+    var count = 0;
+    dom.select('h3').forEach(h3 => {
+          const elementStyle = h3.style;
+          if(!elementStyle || !elementStyle.getPropertyValue("font-weight")) {
+               elementStyle.setPropertyValue("font-weight", 800);
+               count++;
+          }
     });
-    code = code.replace(spanInlinenotranslateRegex, function ($0, $1, $2, $3) {
-         var key = randomkey() + formulesOk;
-         mapaFormulas[key] = $0;
-         formulesOk++;
-         return " [[["+key+"]]] ";
-    }); 
-    code = code.replace(inlineRegex2, function ($0, $1, $2, $3) {
-         formulesPendents++;
-         return "<span class=\"notranslate\"> \\(" + $1 + "\\)</span>";
-    });
-    code = code.replace(displayRegex2, function ($0, $1, $2, $3) {
-         formulesPendents++;
-         return " <div class=\"notranslate\"> \\[" + $1 + "\\] </div>";
-    });  
-    var claus = Object.keys(mapaFormulas);
-    for(var i=0; i<claus.length; i++) {
-         var key = claus[i];
-         code = code.replace("[[["+key+"]]]", mapaFormulas[key]);
-    }
-    var total = formulesPendents + formulesOk;
-    var msg_stats = "S'han detectat " + total + " fòrmules i s'han corregit "+formulesPendents; 
-    if(formulesPendents===0){
-        code=null;
-    }
-    return [code, msg_stats];
+    var msg = count > 0 ? count + ' headers have been styled': 'No changes applied'; 
+    // It must return an array
+    // [0] string (updated HTML code) or boolean (if changes are applied)
+    // [1] string (a message for the user)
+    return [count > 0, msg];
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 2024.12.01

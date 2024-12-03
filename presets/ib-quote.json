@@ -1,0 +1,25 @@
+{
+    "key": "ib-quote",
+    "name": "Quote",
+    "instructions": "Use this snippet to quote a famous (short) phrase by an author.\n",
+    "template": "<p><br></p>  <div class=\"wh-quote {{#notranslate}}notranslate{{/notranslate}}\"> <!--begin: famous quote--> <div class=\"wh-iq\"> <p>You don't really understand something unless you can explain it to your grandmother.</p> </div> <cite>{{author}}</cite> <!--end: famous quote--> </div> <p><br></p>\n",
+    "insertquery": "div.wh-iq",
+    "selectors": "div.wh-quote",
+    "unwrap": "*",
+    "parameters": [
+        {
+            "name": "author",
+            "value": "Albert Einstein",
+            "title": "Author of the quote"
+        },
+        {
+            "name": "notranslate",
+            "value": true,
+            "title": "Prevent translation by Google",
+            "bind": "hasClass('notranslate')"
+        }
+    ],
+    "stars": 1,
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2024.01.07"
+}

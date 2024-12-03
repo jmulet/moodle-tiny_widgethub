@@ -1,0 +1,9 @@
+{
+    "key": "ib-filter",
+    "name": "Sample filter -  It adds bold style to all h3",
+    "category": "filters",
+    "instructions": "This is a sample filter. It adds bold style to all h3",
+    "filter": "// Global variables available: text (initial HTML), editor (Tiny HTML editor object) var dom = editor.dom; var count = 0; dom.select('h3').forEach(h3 => {\n      const elementStyle = h3.style;\n      if(!elementStyle || !elementStyle.getPropertyValue(\"font-weight\")) {\n           elementStyle.setPropertyValue(\"font-weight\", 800);\n           count++;\n      }\n}); var msg = count > 0 ? count + ' headers have been styled': 'No changes applied';  // It must return an array // [0] string (updated HTML code) or boolean (if changes are applied) // [1] string (a message for the user) return [count > 0, msg];\n",
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2024.12.01"
+}

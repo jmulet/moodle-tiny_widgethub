@@ -10,18 +10,18 @@ Users can:
 2. Customize its appearance.
 3. Insert it into the Tiny editor.
 
-<img src="./img/widgethub_usage.gif" style="margin:auto;max-width:400px">
-
 Later, at any time, the component can be reconfigured using context menus provided by the Tiny editor.
 
-<img src="./img/widgethub_admin_settings.gif" style="margin:auto;max-width:400px">
+<img src="./img/widgethub_usage.gif" style="margin:auto;max-width:400px">
 
 Administrators can customize existing widget definitions, create new ones, and remove unwanted widgets. Simply type
 `widget` at the search field in the administrator area.
 
+<img src="./img/widgethub_admin_settings.gif" style="margin:auto;max-width:400px">
+
 Feel free to share your widgets either by email `pep.mulet(at)gmail.com` or creating a pull request.
 
-The capability 'tiny/codepro:viewplugin' allows to set the plugin visibility for any role.
+The capability 'tiny/widgethub:viewplugin' allows to set the plugin visibility for any role. Bear in mind that, by default, the role student is prevented from using the plugin.
 
 ## Learn more
 

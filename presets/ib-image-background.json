@@ -1,0 +1,21 @@
+{
+    "key": "image-background",
+    "name": "Text onto image background",
+    "category": "image",
+    "instructions": "It allows you to create a header with an image that fills the background of a container.\n",
+    "template": "<p><br></p> \n<!--ini imagebackground-->\n<div class=\"wh-background-img\" style=\"background-image: url('{{url}}'); padding:10px; min-height:40px; background-repeat: no-repeat; -webkit-background-size: cover; background-size: cover; background-position: 50% 50%;\">\n<p>What is the probability of winning at gambling games?</p>\n<p><em>Probability and Statistics</em></p>\n</div>\n<!--fi imagebackground-->\n<p><br></p>\n",
+    "selectors": "div.wh-background-img",
+    "parameters": [
+        {
+            "name": "url",
+            "value": "https://iedib.net/assets/img/subtle-prism.svg",
+            "title": "Image URL",
+            "type": "image",
+            "tip": "You can also upload an image to your course and link it here.",
+            "bind": "styleRegex(\"background-image:url\\\\(['\\\"]?([^'\\\")]*)['\\\"]?\\\\)\")\n"
+        }
+    ],
+    "stars": 2,
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2022.06.24"
+}

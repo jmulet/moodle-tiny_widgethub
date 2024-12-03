@@ -1,0 +1,40 @@
+{
+    "key": "vimeo",
+    "name": "Vimeo",
+    "category": "video",
+    "instructions": "<b>Attention</b>: It is recommended to use the institutional YouTube channel!<br> Embed a Vimeo video responsively into the page. Enter the Vimeo video ID and a title. You can specify the start time of the video in seconds.\n",
+    "template": "<p><br></p> \n<!--ini vimeo-->\n<div class=\"wh-video-container\" {{#if}}[maxWidth>100]style=\"max-width:{{maxWidth}}px\"{{/if}}>\n  <div class=\"wh-videoWrapper\">\n    <iframe src=\"https://player.vimeo.com/video/{{vimeoId}}{{#startSecond}}#t={{startSecond}}s{{/startSecond}}\" frameborder=\"0\" webkitallowfullscreen=\"\" mozallowfullscreen=\"\" allowfullscreen=\"\"></iframe>\n  </div>\n    <div class=\"wh-caption\">\n   <span class=\"wh-caption-counter\">Video</span><span class=\"wh-caption-title\">: {{title}}</span></div>\n  </div> \n<!--end vimeo-->\n<p><br></p>\n",
+    "parameters": [
+        {
+            "name": "vimeoId",
+            "value": "284914662",
+            "title": "Vimeo Video URL or ID",
+            "tip": "You can enter the full URL or just the numeric video ID.",
+            "type": "textfield",
+            "transform": "vimeoId"
+        },
+        {
+            "name": "title",
+            "value": "Enter a title",
+            "title": "Descriptive Title",
+            "type": "textfield"
+        },
+        {
+            "name": "maxWidth",
+            "value": 500,
+            "title": "Maximum Width in px",
+            "min": 100
+        },
+        {
+            "name": "startSecond",
+            "value": 0,
+            "title": "Start Playback at Second",
+            "tip": "Set to 0 to start from the beginning of the video.",
+            "min": 0
+        }
+    ],
+    "stars": 1,
+    "scope": "^page-mod-(book|page|assign|quizz)-",
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2023.01.07"
+}
