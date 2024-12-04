@@ -3,6 +3,22 @@
 The following sections will walk through the process of creating new widgets by using the yaml syntax.
 We shall start with a basic example and, progressively, we will continue showing more advanced cases.
 
+## Dealing with styles
+
+As a general rule, avoid using inline styles. Instead, replace them with CSS classes for better maintainability and consistency. While defining new classes can sometimes feel cumbersome, leveraging the existing utility classes provided by Bootstrap is an effective strategy. However, there will inevitably be situations where creating custom classes is necessary. But where should you place these new classes?
+
+Keep in mind that the Tiny editor runs within an iframe, meaning the CSS on the Moodle page does not directly affect the editor's styles. To customize the editor's appearance, follow these steps:
+
+Add your custom CSS to the "Additional Raw CSS" section of your theme settings.
+
+Navigate to the WidgetHub administration page, where you have two options for applying the styles:
+
+**Option 1**:
+Enable the Share styles checkbox. This will make all styles from Moodle automatically available in the editor.
+
+**Option 2**:
+Copy your custom CSS into the provided textarea. These styles will be injected directly into the editor's iframe. If your styles are extensive, consider linking to an external file. URLs written within comments (e.g., /** https://domain.org/location/to/your/file.css **/) will be converted into a ```<link>``` tags automatically.
+
 ## Example 1. A basic example
 
 The basic contents of a yaml file defining a widget are 

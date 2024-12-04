@@ -1,6 +1,11 @@
 # WidgetHub
 
-Design, use and customize widget components seamlessly within the Tiny Editor.
+- Design, use and customize widget components seamlessly within the Tiny Editor.
+- Use Bootstrap components easily.
+
+<div style="background: #ffccdd; color: darkred;padding: 5px; border: 1px solid darkred; border-radius: 5px; font-size: 0.8rem;">
+IMPORTANT: This plugin needs a Moodle theme based on Boost since some widgets rely on Bootstrap.
+</div>
 
 ## Features
 
