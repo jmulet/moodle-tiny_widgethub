@@ -368,7 +368,7 @@ class plugininfo extends plugin implements
             if ($id == null) {
                 // Create a new entry.
                 $id = self::update_seq($conf);
-            } else if(property_exists($conf, 'def_' . $id)) {
+            } else if(isset($conf->{'def_' . $id})) {
                 // Load the old definition.
                 $old = json_decode($conf->{'def_' . $id});
                 if (isset($old)) {
@@ -378,6 +378,9 @@ class plugininfo extends plugin implements
                         $mustupdate = false;
                     }
                 }
+            } else {
+                var_dump("Error");
+                var_dump($id, $preset['key'], $widgetindex);
             }
             if ($mustupdate) {
                 // Save the definition.
