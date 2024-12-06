@@ -3,8 +3,8 @@
     "name": "Image overlay",
     "category": "bootstrap",
     "instructions": "Turn an image into a card background and overlay your card's text. \n",
-    "template": "<p><br></p>\n<div class=\"card wh-img-overlay bg-dark text-white\">\n  <img class=\"card-img\" src=\"{{img}}\" alt=\"Card image\">\n  <div class=\"card-img-overlay\">\n    <h5 class=\"card-title\">Card title</h5>\n    <p class=\"card-text\">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>\n    <p class=\"card-text\">Last updated 3 mins ago</p>\n  </div>\n</div>\n<p><br></p>\n",
-    "selectors": "div.card.wh-img-overlay",
+    "template": "<p><br></p>\n<div class=\"card twh-img-overlay bg-dark text-white\">\n  <img class=\"card-img\" src=\"{{img}}\" alt=\"Card image\">\n  <div class=\"card-img-overlay\">\n    <h5 class=\"card-title\">Card title</h5>\n    <p class=\"card-text\">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>\n    <p class=\"card-text\">Last updated 3 mins ago</p>\n  </div>\n</div>\n<p><br></p>\n",
+    "selectors": "div.card.twh-img-overlay",
     "parameters": [
         {
             "name": "img",

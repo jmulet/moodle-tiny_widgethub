@@ -368,7 +368,7 @@ class plugininfo extends plugin implements
             if ($id == null) {
                 // Create a new entry.
                 $id = self::update_seq($conf);
-            } else {
+            } else if(property_exists($conf, 'def_' . $id)) {
                 // Load the old definition.
                 $old = json_decode($conf->{'def_' . $id});
                 if (isset($old)) {

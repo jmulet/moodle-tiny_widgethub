@@ -2,10 +2,10 @@
     "key": "subsub-seccio",
     "name": "Page Section",
     "instructions": "Create a section within a page or a Moodle book. The title should not end with a period.\n",
-    "template": "<p><br></p>\n<h4 class=\"wh-subsub\"><span class=\"wh-iq\">{{title}}</span></h4>\n<p><br></p>\n",
-    "selectors": "h4.wh-subsub",
-    "insertquery": ".wh-iq",
-    "unwrap": ".wh-iq",
+    "template": "<p><br></p>\n<h4 class=\"twh-subsub\"><span class=\"twh-iq\">{{title}}</span></h4>\n<p><br></p>\n",
+    "selectors": "h4.twh-subsub",
+    "insertquery": ".twh-iq",
+    "unwrap": ".twh-iq",
     "parameters": [
         {
             "name": "title",

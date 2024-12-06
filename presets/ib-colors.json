@@ -2,9 +2,9 @@
     "key": "ib-colors",
     "name": "Foreground and background colors",
     "category": "styles",
-    "template": "&nbsp;<span style=\"color:{{_front}};background-color:{{_back}};\" class=\"wh-sty-colors\">Sample text</span>&nbsp;\n",
-    "selectors": "span.wh-sty-colors",
-    "insertquery": "span.wh-sty-colors",
+    "template": "&nbsp;<span style=\"color:{{_front}};background-color:{{_back}};\" class=\"twh-sty-colors\">Sample text</span>&nbsp;\n",
+    "selectors": "span.twh-sty-colors",
+    "insertquery": "span.twh-sty-colors",
     "parameters": [
         {
             "name": "_front",
