@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable max-len */
 // This file is part of Moodle - http://moodle.org/
 //
@@ -20,6 +19,7 @@ import jQuery from "jquery";
 import {getDomSrv} from './service/domSrv';
 import {getWidgetPropertiesCtrl} from './controller/widgetPropertiesCtrl';
 import {getMenuItemProviders, getListeners} from './extension';
+// eslint-disable-next-line camelcase
 import {get_strings} from 'core/str';
 
 /**
@@ -383,7 +383,7 @@ export async function initContextActions(editor) {
     });
 
     // Let extensions to register additional menuItem and nestedMenuItem
-    /** @type {import('./extension/contextmenus').UserDefinedItem[]} */
+    /** @type {import('./extension').UserDefinedItem[]} */
     const widgetsWithExtensions = getMenuItemProviders().flatMap(provider => provider(ctx));
     widgetsWithExtensions.forEach(menuItem => {
         if (menuItem.subMenuItems) {

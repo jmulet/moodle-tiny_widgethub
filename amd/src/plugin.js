@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -52,8 +51,8 @@ export default new Promise(async(resolve) => {
 
     tinyMCE.overrideDefaults({
         ...tinyMCE.defaultOptions,
-        remove_trailing_brs: false, // TODO: Remove this in the future. Simply for compatibility with atto
-        allow_script_urls: true,    // Allow href="javascript:void(0)" used in popover
+        // eslint-disable-next-line camelcase
+        allow_script_urls: true, // Allow href="javascript:void(0)" used in popovers
     });
 
     tinyMCE.PluginManager.add(pluginName,

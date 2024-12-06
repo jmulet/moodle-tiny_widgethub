@@ -6,13 +6,13 @@ instructions: >
 template: |
   <p><br></p> 
   <!--ini imagebackground-->
-  <div class="wh-background-img" style="background-image: url('{{url}}'); padding:10px; min-height:40px; background-repeat: no-repeat; -webkit-background-size: cover; background-size: cover; background-position: 50% 50%;">
+  <div class="twh-background-img" style="background-image: url('{{url}}'); padding:10px; min-height:40px; background-repeat: no-repeat; -webkit-background-size: cover; background-size: cover; background-position: 50% 50%;">
   <p>What is the probability of winning at gambling games?</p>
   <p><em>Probability and Statistics</em></p>
   </div>
   <!--fi imagebackground-->
   <p><br></p>
-selectors: div.wh-background-img
+selectors: div.twh-background-img
 parameters:
   - name: url
     value: https://iedib.net/assets/img/subtle-prism.svg

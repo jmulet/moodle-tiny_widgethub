@@ -4,17 +4,17 @@ instructions: |
   Use this snippet to quote a famous (short) phrase by an author.
 template: >
   <p><br></p> 
-  <div class="wh-quote {{#notranslate}}notranslate{{/notranslate}}">
+  <div class="twh-quote {{#notranslate}}notranslate{{/notranslate}}">
   <!--begin: famous quote-->
-  <div class="wh-iq">
+  <div class="twh-iq">
   <p>You don't really understand something unless you can explain it to your grandmother.</p>
   </div>
   <cite>{{author}}</cite>
   <!--end: famous quote-->
   </div>
   <p><br></p>
-insertquery: div.wh-iq
-selectors: div.wh-quote
+insertquery: div.twh-iq
+selectors: div.twh-quote
 unwrap: "*"
 parameters: 
   - name: author

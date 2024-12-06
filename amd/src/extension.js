@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -21,13 +22,19 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/** @typedef {(ctx: import('./contextInit').ItemMenuContext) => import('./extension/contextmenus').UserDefinedItem[]} Provider */
-/** @typedef {'onInit' | 'contentSet' | 'widgetInserted' | 'widgetRemoved' | 'ctxAction'} EventName */
+/**
+ * @typedef {{type: string, text: string, icon?: string, onAction: (api?: *) => void}} MenuItem
+ * @typedef {{name: string, title: string, condition?: string | RegExp | (() => boolean), icon?: string, onAction?: ()=> void, subMenuItems?: () => (string | MenuItem[])}} UserDefinedItem
+ * @typedef {(ctx: import('./contextInit').ItemMenuContext) => UserDefinedItem[]} Provider
+ * @typedef {'onInit' | 'contentSet' | 'widgetInserted' | 'widgetRemoved' | 'ctxAction'} EventName
+ **/
+
 /** @type {Map<string, ((editor: import('./plugin').TinyMCE, ...args: any[]) => void)[]>}> */
 const _listeners = new Map();
 
 /** @type {Provider[]} */
 const _menuItemProviders = [];
+
 /**
  * @param {EventName} eventName
  * @param {(editor: import('./plugin').TinyMCE, ...args: any[]) => void} listener
@@ -55,6 +62,7 @@ export function getListeners(eventName) {
 export function registerMenuItemProvider(provider) {
     _menuItemProviders.push(provider);
 }
+
 /**
  * @returns {Provider[]}
  */

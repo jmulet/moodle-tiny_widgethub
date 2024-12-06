@@ -130,7 +130,6 @@ export class WidgetPropertiesCtrl {
             Object.keys(bindingsDOM).forEach(key => {
                 bindingsDOM[key].setValue(updatedValues[key]);
             });
-            this.editor.setDirty(true);
         });
 
         // Help circles require popover

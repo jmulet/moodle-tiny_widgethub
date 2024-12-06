@@ -1,0 +1,31 @@
+{
+    "key": "video-gdrive",
+    "name": "Video-GDrive",
+    "category": "video",
+    "instructions": "Attention: It is recommended to use the institutional YouTube channel!<br>Embed a video that the user has previously shared from their Google Drive. Enter the iframe share code and optionally a title. <b>See tutorial:</b> <a href=\"https://iedib.net/avirtual/mod/page/view.php?id=33050\" target=\"_blank\">How to share a video from GDrive?</a>\n",
+    "template": "<p><br></p> \n<!--ini gdrive-->\n<div class=\"twh-video-container twh-video-gdrive\" {{#if}}[maxWidth>100]style=\"max-width:{{maxWidth}}px\"{{/if}}>\n  <div class=\"twh-videoWrapper\">\n  {{{iframe_code}}}  \n  </div>\n    <div class=\"twh-caption\">\n   <span class=\"twh-caption-counter\">Video</span><span class=\"twh-caption-title\">: {{title}}</span></div>\n  </div> \n<!--end gdrive-->\n<p><br></p>\n",
+    "parameters": [
+        {
+            "name": "title",
+            "value": "Title",
+            "title": "Title"
+        },
+        {
+            "name": "iframe_code",
+            "value": "<iframe src=\"https://drive.google.com/file/d/1qlHPB60Kln1Wu_HyCDb3-sQOSsstjWCV/preview\" width=\"640\" height=\"480\" fullscreen=\"1\"></iframe>",
+            "title": "Iframe code",
+            "tip": "Paste the iframe code you obtained from sharing on Drive. See the user guide.",
+            "type": "textarea"
+        },
+        {
+            "name": "maxWidth",
+            "value": 500,
+            "title": "Maximum width in px",
+            "min": 100
+        }
+    ],
+    "stars": 1,
+    "scope": "^page-mod-(book|page|assign|quizz)-",
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2023.01.07"
+}

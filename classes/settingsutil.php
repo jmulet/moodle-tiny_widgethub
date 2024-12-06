@@ -46,7 +46,7 @@ class settingsutil {
             'tiny_widgethub/additionalcss',
             'tiny_widgethub_additionalcss',
             get_string('additionalcss', 'tiny_widgethub'),
-            '/** https://iedib.net/assets/sd/all.css */',
+            '',
             PARAM_RAW
         );
         // Define additional settings in key=value syntax per line.
@@ -54,8 +54,7 @@ class settingsutil {
             'tiny_widgethub/cfg',
             'tiny_widgethub_cfg',
             get_string('cfg', 'tiny_widgethub'),
-            "imgBaseUrl=https://ibsuite.es/iedib/snippets\ndisable.plugin.pages=\n".
-            "enable.contextmenu.level=1\nenable.ibquizz.userlist=",
+            "enable.contextmenu.level=1\ndisable.plugin.pages=",
             PARAM_RAW
         );
         return $items;

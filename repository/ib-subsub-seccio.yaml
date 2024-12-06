@@ -5,11 +5,11 @@ instructions: >
   The title should not end with a period.
 template: | 
   <p><br></p>
-  <h4 class="wh-subsub"><span class="wh-iq">{{title}}</span></h4>
+  <h4 class="twh-subsub"><span class="twh-iq">{{title}}</span></h4>
   <p><br></p>
-selectors: h4.wh-subsub
-insertquery: .wh-iq
-unwrap: .wh-iq
+selectors: h4.twh-subsub
+insertquery: .twh-iq
+unwrap: .twh-iq
 parameters: 
   - name: title
     value: Section Title

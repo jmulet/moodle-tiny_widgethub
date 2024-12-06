@@ -71,7 +71,7 @@
            <div class="tiny_widgethub-top input-group">
                 <input type="text" name="widgethub_search_textfield" class="form-control" placeholder="{{#str}} wsearch, tiny_widgethub {{/str}}" style="width:80%" value="{{searchText}}">
                 <button id="widget-clearfilter-btn{{rid}}" class="ml-1 btn btn-sm btn-secondary" title="{{#str}} rmfilter, tiny_widgethub {{/str}}">
-                    <i class="fa fas fa-times"></i>
+                    <i class="twh-icon twh-xmark"></i>
                 </button>
                 <div class="tiny_widgethub-recent p-2">
                     {{#recent}}
@@ -108,15 +108,15 @@
                                     {{#selectable}} data-selectable="true"{{/selectable}}>
                                 {{#isfilter}}
                                   <button class="col-2 btn {{#filterset}}btn-primary{{/filterset}} {{^filterset}}btn-outline-primary{{/filterset}}" data-auto="{{filterset}}" title="Automatic">
-                                    <i class="fas fa fa-flag-checkered"></i>
+                                    <i class="twh-icon twh-flag"></i>
                                   </button>
                                 {{/isfilter}}
                                 <button title="{{widgettitle}}" data-category="{{category}}" 
                                     class="{{#isfilter}}col-8{{/isfilter}} {{^isfilter}}col-10{{/isfilter}} btn btn-outline-primary tiny_widgethub-btn" data-insert="false"> 
-                                        <span>{{#disabled}}<i class="fa fas fa-ban"></i>{{/disabled}} {{widgetname}}</span>
+                                        <span>{{#disabled}}<i class="twh-icon twh-ban"></i>{{/disabled}} {{widgetname}}</span>
                                 </button>
                                 <button class="col-2 btn btn-outline-primary" data-insert="true" title="{{#str}} directinsert, tiny_widgethub {{/str}}">
-                                    <i class="fa-solid fa-arrow-turn-down"></i>
+                                    <i class="twh-icon twh-arrow-down"></i>
                                 </button>
 
                                 </div>
