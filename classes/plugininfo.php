@@ -365,18 +365,18 @@ class plugininfo extends plugin implements
             $id = search_by_key($widgetindex, $preset['key']);
             $mustupdate = true;
 
+            var_dump($preset['key'], $id, 'Index', $widgetindex);
+
             if ($id == null) {
                 // Create a new entry.
                 $id = self::update_seq($conf);
-            } else if(isset($conf->{'def_' . $id})) {
+            } else if (isset($conf->{'def_' . $id})) {
                 // Load the old definition.
                 $old = json_decode($conf->{'def_' . $id});
-                if (isset($old)) {
-                    // Condition to override existing definition.
-                    // Author has changed or (TODO) version is less than previous.
-                    if (isset($preset['author']) && $old->author != $preset['author']) {
-                        $mustupdate = false;
-                    }
+                // Condition to override existing definition.
+                // Author has changed or (TODO) version is less than previous.
+                if (isset($old) && isset($preset['author']) && $old->author != $preset['author']) {
+                    $mustupdate = false;
                 }
             } else {
                 var_dump("Error");
