@@ -35,16 +35,16 @@ parameters:
     title: Closable
     value: false
     bind:
-      - get: (e) => e.find("button.btn-close.close").length > 0
-      - set: |
-          (e, v) => {
+      get: (e) => e.find("button.btn-close.close").length > 0
+      set: |
+        (e, v) => {
             if (v && !e.find("button.btn-close.close")[0]) {
               var btn = '<button type="button" class="btn-close close" data-dismiss="alert" data-bs-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
               e.prepend(btn);
             } else {
               e.find("button.btn-close.close").remove();
             }
-          }
+        }
 autocomplete: severity
 author: Josep Mulet <pep.mulet@gmail.com>
 version: 1.1.0

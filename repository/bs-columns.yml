@@ -6,7 +6,7 @@ instructions: >
 engine: ejs
 template: |
   <p><br></p>
-  <div class="container">
+  <div class="container-fluid">
     <div class="row">
       <div class="col-sm-<%=w1%>">
         <p>__LOREM__</p>
@@ -17,7 +17,9 @@ template: |
     </div>
   </div>
   <p><br></p>
-selectors: div.container
+selectors: 
+  - div.container-fluid
+  - div.row
 unwrap: div.row div > *
 parameters:
   - name: w1
@@ -49,16 +51,8 @@ parameters:
         (e, v) => {
             var col1 = e.find('div.row > div').first();
             var col2 = col1.next();
-            var regex = new RegExp(/col-sm-(\d+)/g);
-            var cb = function(i, cn) { 
-              return cn.split(/\s+/).filter(function(c) {
-                return regex.test(c);
-              }).join(' ');
-            };
-            col1.removeClass(cb);
-            col2.removeClass(cb);
-            col1.addClass('col-sm-' + v);
-            col2.addClass('col-sm-' + (12-v));
+            col1.removeClass().addClass('col-sm-' + v);;
+            col2.removeClass().addClass('col-sm-' + (12-v));
         }
 author: Josep Mulet <pep.mulet@gmail.com>
 version: 1.1.0

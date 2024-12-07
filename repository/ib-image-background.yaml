@@ -15,7 +15,7 @@ template: |
 selectors: div.twh-background-img
 parameters:
   - name: url
-    value: https://iedib.net/assets/img/subtle-prism.svg
+    value: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Aurora_borealis_over_Eielson_Air_Force_Base%2C_Alaska.jpg/1920px-Aurora_borealis_over_Eielson_Air_Force_Base%2C_Alaska.jpg
     title: Image URL
     type: image
     tip: You can also upload an image to your course and link it here.

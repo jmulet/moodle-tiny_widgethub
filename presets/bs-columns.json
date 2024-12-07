@@ -4,8 +4,11 @@
     "category": "bootstrap",
     "instructions": "Adds a responsive two columns layout\n",
     "engine": "ejs",
-    "template": "<p><br></p>\n<div class=\"container\">\n  <div class=\"row\">\n    <div class=\"col-sm-<%=w1%>\">\n      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n</p>\n    </div>\n    <div class=\"col-sm-<%=12-w1%>\">\n      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n</p>\n    </div>\n  </div>\n</div>\n<p><br></p>\n",
-    "selectors": "div.container",
+    "template": "<p><br></p>\n<div class=\"container-fluid\">\n  <div class=\"row\">\n    <div class=\"col-sm-<%=w1%>\">\n      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n</p>\n    </div>\n    <div class=\"col-sm-<%=12-w1%>\">\n      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n</p>\n    </div>\n  </div>\n</div>\n<p><br></p>\n",
+    "selectors": [
+        "div.container-fluid",
+        "div.row"
+    ],
     "unwrap": "div.row div > *",
     "parameters": [
         {
@@ -61,7 +64,7 @@
             ],
             "bind": {
                 "get": "(e) => {\n    var className = e.find('div.row > div').first().attr('class');\n    console.log(className);\n    var match = new RegExp(/col-sm-(\\d+)/).exec(className) || [];\n    console.log(match);\n    return parseInt(match[1] || '6');\n}\n",
-                "set": "(e, v) => {\n    var col1 = e.find('div.row > div').first();\n    var col2 = col1.next();\n    var regex = new RegExp(/col-sm-(\\d+)/g);\n    var cb = function(i, cn) { \n      return cn.split(/\\s+/).filter(function(c) {\n        return regex.test(c);\n      }).join(' ');\n    };\n    col1.removeClass(cb);\n    col2.removeClass(cb);\n    col1.addClass('col-sm-' + v);\n    col2.addClass('col-sm-' + (12-v));\n}\n"
+                "set": "(e, v) => {\n    var col1 = e.find('div.row > div').first();\n    var col2 = col1.next();\n    col1.removeClass().addClass('col-sm-' + v);;\n    col2.removeClass().addClass('col-sm-' + (12-v));\n}\n"
             }
         }
     ],

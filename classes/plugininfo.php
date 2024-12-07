@@ -373,7 +373,7 @@ class plugininfo extends plugin implements
                 $old = json_decode($conf->{'def_' . $id});
                 // Condition to override existing definition.
                 // Author has changed or version is less than previous.
-                if (isset($old) && (isset($preset['author']) && $old->author != $preset['author']) 
+                if (isset($old) && (isset($preset['author']) && $old->author != $preset['author'])
                     || (isset($preset['version']) && strcmp($old->version, $preset['version']) >= 0)) {
                     $mustupdate = false;
                 }

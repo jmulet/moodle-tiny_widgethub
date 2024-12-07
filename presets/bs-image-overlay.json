@@ -10,7 +10,7 @@
             "name": "img",
             "title": "Background image",
             "type": "image",
-            "value": "https://upload.wikimedia.org/wikipedia/commons/9/9a/Aurora_australis_20050911.jpg",
+            "value": "https://media.traveler.es/photos/613778947ad90bc43bae0779/16:9/w_2240,c_limit/101691.jpg",
             "bind": "attr('src', 'img.card-img')"
         }
     ],

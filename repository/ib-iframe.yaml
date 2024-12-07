@@ -2,11 +2,11 @@ key: ib-iframe
 name: Insert iFrame/HTML
 instructions: > 
   This snippet allows you to insert the HTML code for an iFrame at a specific point in the document.
-template: '{{{codi}}}'
+template: '{{{code}}}'
 selectors: iframe
 parameters:
-  - name: codi
-    value: ''
+  - name: code
+    value: '<b>Sample</b>'
     title: HTML Code
     type: textarea
 stars: 2
