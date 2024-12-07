@@ -30,8 +30,8 @@ The capability 'tiny/widgethub:viewplugin' allows to set the plugin visibility f
 
 ## Learn more
 
-- [Examples: Learn how to customize and create widgets.]('docs/examples.md')
-- [Yaml API reference.]('docs/api.md')
+- [Examples: Learn how to customize and create widgets.](docs/examples.md)
+- [Yaml API reference.](docs/api.md)
 
 ## Generate AMD modules
 
