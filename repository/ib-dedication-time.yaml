@@ -1,11 +1,11 @@
-key: dedication-time
+key: ib-dedication-time
 name: Dedication Time
 instructions: >
   This snippet is used to recommend a minimum dedication time for a resource. 
   Preferably use multiples of 15 for the minutes.
 template: >-
-  <div class="iedib-rwrap"> <!--ini: dedication-time-->
-  <div role="snptd_dedication" class="iedib-time" data-toggle="tooltip" data-placement="bottom" title="{{title}}">
+  <div class="twh-rwrap"> <!--ini: dedication-time-->
+  <div class="twh-time" data-toggle="tooltip" data-placement="bottom" title="{{title}}">
     <i class="fad fa-stopwatch" aria-hidden="true"></i>
     <span>
       {{#hours}} {{hours}} h {{/hours}}
@@ -32,4 +32,4 @@ parameters:
     type: textarea
 stars: 2
 author: Josep Mulet Pol <pep.mulet@gmail.com>
-version: 2022.06.11
+version: 1.1.0

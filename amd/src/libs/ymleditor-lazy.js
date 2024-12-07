@@ -19259,8 +19259,8 @@ const treeHighlighter = /*@__PURE__*/Prec.high(/*@__PURE__*/ViewPlugin.fromClass
 /**
 A default highlight style (works well with light themes).
 */
-const defaultHighlightStyleDefs = HighlightStyle.define;
-const defaultHighlightStyle = /*@__PURE__*/defaultHighlightStyleDefs([
+const HighlightStyleDefs = HighlightStyle.define;
+const defaultHighlightStyle = /*@__PURE__*/HighlightStyleDefs([
     { tag: tags.meta,
         color: "#404740" },
     { tag: tags.link,
@@ -20962,6 +20962,13 @@ const defaultKeymap = /*@__PURE__*/[
     { key: "Alt-A", run: toggleBlockComment },
     { key: "Ctrl-m", mac: "Shift-Alt-m", run: toggleTabFocusMode },
 ].concat(standardKeymap);
+/**
+A binding that binds Tab to [`indentMore`](https://codemirror.net/6/docs/ref/#commands.indentMore) and
+Shift-Tab to [`indentLess`](https://codemirror.net/6/docs/ref/#commands.indentLess).
+Please see the [Tab example](../../examples/tab/) before using
+this.
+*/
+const indentWithTab = { key: "Tab", run: indentMore, shift: indentLess };
 
 function crelt() {
   var elt = arguments[0];
@@ -26817,17 +26824,14 @@ function getOptionsFor(flatTree) {
 }
 
 function myCompletions(/** @type {*} */ context) {
-    console.log("context", context);
     const tree = ensureSyntaxTree(context.state, context.state.doc.length, 1000);
     if (!tree) {
         return null;
     }
     const nodeBefore = tree.resolveInner(context.pos, 0);
-    console.log("nodeBefore", nodeBefore);
     /** @type {string[]} */
     const flatTree = [];
     getKeysUpNode(nodeBefore, context, flatTree);
-    console.log("KEYS", flatTree);
 
     let before = context.matchBefore(/\w+/);
     // If completion wasn't explicitly started and there
@@ -26862,6 +26866,7 @@ class YmlEditor {
         this._editorView = new EditorView({
             extensions: [
                 basicSetup,
+                keymap.of([indentWithTab]),
                 yaml(),
                 autocompletion({override: [myCompletions]}),
             ],

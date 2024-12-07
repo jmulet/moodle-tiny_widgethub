@@ -128,7 +128,7 @@ describe("WidgetPickerCtrl", () => {
         // Check that the elem has been updated accordingly
         expect(elem.attr('title')).toBe('The title here');
         expect(elem.hasClass('somecls')).toBe(true);
-        expect(mockEditor.setDirty).toHaveBeenCalledWith(true);
+        expect(mockEditor.setDirty).not.toHaveBeenCalled();
     });
 
     it("Must show the dialog for the current context and cancel changes", async() => {

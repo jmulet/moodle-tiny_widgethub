@@ -1,5 +1,5 @@
 {
-    "key": "vimeo",
+    "key": "ib-vimeo",
     "name": "Vimeo",
     "category": "video",
     "instructions": "<b>Attention</b>: It is recommended to use the institutional YouTube channel!<br> Embed a Vimeo video responsively into the page. Enter the Vimeo video ID and a title. You can specify the start time of the video in seconds.\n",
@@ -7,7 +7,7 @@
     "parameters": [
         {
             "name": "vimeoId",
-            "value": "284914662",
+            "value": "823111497",
             "title": "Vimeo Video URL or ID",
             "tip": "You can enter the full URL or just the numeric video ID.",
             "type": "textfield",
@@ -36,5 +36,5 @@
     "stars": 1,
     "scope": "^page-mod-(book|page|assign|quizz)-",
     "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
-    "version": "2023.01.07"
+    "version": "1.1.0"
 }

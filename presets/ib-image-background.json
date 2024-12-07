@@ -1,5 +1,5 @@
 {
-    "key": "image-background",
+    "key": "ib-image-background",
     "name": "Text onto image background",
     "category": "image",
     "instructions": "It allows you to create a header with an image that fills the background of a container.\n",
@@ -17,5 +17,5 @@
     ],
     "stars": 2,
     "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
-    "version": "2022.06.24"
+    "version": "1.1.0"
 }

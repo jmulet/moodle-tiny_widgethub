@@ -26,9 +26,18 @@
         {
             "name": "closable",
             "title": "Closable",
-            "value": false
+            "value": false,
+            "bind": [
+                {
+                    "get": "(e) => e.find(\"button.btn-close.close\").length > 0"
+                },
+                {
+                    "set": "(e, v) => {\n  if (v && !e.find(\"button.btn-close.close\")[0]) {\n    var btn = '<button type=\"button\" class=\"btn-close close\" data-dismiss=\"alert\" data-bs-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>';\n    e.prepend(btn);\n  } else {\n    e.find(\"button.btn-close.close\").remove();\n  }\n}\n"
+                }
+            ]
         }
     ],
+    "autocomplete": "severity",
     "author": "Josep Mulet <pep.mulet@gmail.com>",
-    "version": "1.0.0"
+    "version": "1.1.0"
 }
