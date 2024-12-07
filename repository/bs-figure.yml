@@ -9,4 +9,4 @@ template: |
     <figcaption class="figure-caption">Figure: A caption for the above image.</figcaption>
   </figure>
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 1.0.0
+version: 1.1.0

@@ -158,7 +158,7 @@ describe('utils module tests', () => {
         expect(editor.notificationManager.open).toHaveBeenCalledWith({
             text: "nochanges",
             type: 'info',
-            timeout: 4000
+            timeout: 5000
         });
         expect(res).toBe(true);
         expect(editor.setContent).not.toHaveBeenCalled();

@@ -362,12 +362,11 @@ export class FormCtrl {
       const doUpdateVisibilities = () => {
          updatableComponents.forEach(cc => {
             // Evaluate condition
-            const condicio = cc.condition;
-            const novesVariables = this.extractFormParameters(widget, $formElem, false);
+            const newVariables = this.extractFormParameters(widget, $formElem, false);
             // Add to the new variables the internal variables
-            novesVariables.SELECT_MODE = selectMode;
+            newVariables.SELECT_MODE = selectMode;
             // Eval JS condition for new variables
-            const showme = evalInContext(novesVariables, condicio);
+            const showme = evalInContext(newVariables, cc.condition);
             let theComponent = cc.component;
             if (theComponent) {
                theComponent = theComponent.closest('.form-group');

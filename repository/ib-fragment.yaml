@@ -1,21 +1,21 @@
-key: fragment-text
+key: ib-textfragment
 name: Text Fragment
 instructions: |
   Use this component to insert a text excerpt from a book. 
   If you want to reduce the width, you can set a maximum width, e.g., 400px.
 template: >-
   <p><br></p> <!-- begin fragment text -->
-  <div class="iedib-fragment {{#notranslate}}notranslate{{/notranslate}}" data-lang="{{_lang}}" {{#if}}[maxWidth>0]style="max-width: {{maxWidth}}px;"{{/if}}>
+  <div class="twh-fragment {{#notranslate}}notranslate{{/notranslate}}" data-lang="{{_lang}}" {{#if}}[maxWidth>0]style="max-width: {{maxWidth}}px;"{{/if}}>
   <h4>{{#I18n}}msg{{/I18n}}:</h4>
-  <div class="iedib-iq">
+  <div class="twh-iq">
   <p>__LOREM__</p>
   </div>
   </div>
   <!-- end fragment text -->
   <p><br></p>
-insertquery: .iedib-fragment>div.iedib-iq
-selectors: div.iedib-fragment
-unwrap: div.iedib-iq > *
+insertquery: .twh-fragment>div.twh-iq
+selectors: div.twh-fragment
+unwrap: div.twh-iq > *
 parameters:
   - name: _lang
     title: Language
@@ -43,6 +43,5 @@ I18n:
     en: TEXT SNIPPET
     fr: FRAGMENT DE TEXTE
     de: TEXTFRAGMENT
-stars: 2
 author: Josep Mulet Pol <pep.mulet@gmail.com>
-version: 2023.01.07
+version: 1.1.0

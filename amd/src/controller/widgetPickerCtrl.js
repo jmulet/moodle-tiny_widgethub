@@ -163,9 +163,9 @@ export class WidgetPickerCtrl {
 
         // Add select mode identifier to the header
         const blinkElem = document.createElement("SPAN");
-        blinkElem.classList.add("ib-blink", "d-none");
+        blinkElem.classList.add("tiny_widgethub-blink", "d-none");
         const selectModeStr = await get_string('selectmode', 'tiny_widgethub');
-        blinkElem.innerHTML = `<i class="fa fas fa-object-group"></i> ${selectModeStr}</span>`;
+        blinkElem.innerHTML = `<i class="twh-icon twh-object-group"></i> ${selectModeStr}</span>`;
         this.modal.header[0]?.append(blinkElem);
 
         try {
@@ -243,9 +243,9 @@ export class WidgetPickerCtrl {
 
         const selectMode = this.isSelectMode();
         if (selectMode) {
-            this.modal.header.find("span.ib-blink").removeClass("d-none");
+            this.modal.header.find("span.tiny_widgethub-blink").removeClass("d-none");
         } else {
-            this.modal.header.find("span.ib-blink").addClass("d-none");
+            this.modal.header.find("span.tiny_widgethub-blink").addClass("d-none");
         }
 
         this.modal.show();

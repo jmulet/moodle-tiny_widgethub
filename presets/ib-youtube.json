@@ -1,13 +1,13 @@
 {
-    "key": "youtube",
+    "key": "ib-youtube",
     "name": "YouTube",
     "category": "video",
     "instructions": "Embed a YouTube video responsively on the page.  Enter the YouTube video ID and optionally a title.  You can trim a part of the video with the start and end parameters given in seconds.\n",
-    "template": "<p><br></p>\n<!--ini youtube-->\n<div class=\"twh-video-container\" {{#maxWidth}}style=\"max-width:{{maxWidth}}px\"{{/if}}>\n  <div class=\"twh-videoWrapper\">\n    <iframe src=\"https://www.youtube.com/embed/{{youtubeId}}?enablejsapi=1&rel=0&modestbranding=1&showinfo=0&iv_load_policy=3&start={{startSeconds}}{{#endSeconds}}&end={{endSeconds}}{{/endSeconds}}\" frameborder=\"0\" allow=\"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen=\"\"></iframe>\n  </div>\n    <div class=\"twh-caption\">\n   <span class=\"twh-caption-counter\">Video</span><span class=\"twh-caption-title\">: {{title}}</span></div>\n</div>\n<!--end youtube-->\n<p><br></p>\n",
+    "template": "<p><br></p>\n<!--ini youtube-->\n<div class=\"twh-video-container\" {{#maxWidth}}style=\"max-width:{{maxWidth}}px\"{{/maxWidth}}>\n  <div class=\"twh-videoWrapper\">\n    <iframe src=\"https://www.youtube.com/embed/{{youtubeId}}?enablejsapi=1&rel=0&modestbranding=1&showinfo=0&iv_load_policy=3&start={{startSeconds}}{{#endSeconds}}&end={{endSeconds}}{{/endSeconds}}\" frameborder=\"0\" allow=\"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen=\"\"></iframe>\n  </div>\n    <div class=\"twh-caption\">\n   <span class=\"twh-caption-counter\">Video</span><span class=\"twh-caption-title\">: {{title}}</span></div>\n</div>\n<!--end youtube-->\n<p><br></p>\n",
     "parameters": [
         {
             "name": "youtubeId",
-            "value": "JikG2CPycAw",
+            "value": "ypR0y7GVMAQ",
             "title": "URL or Video ID",
             "tip": "You can paste the full URL or just the YouTube video ID",
             "transform": "ytId"
@@ -40,5 +40,5 @@
     "scope": "^page-mod-(book|page|assign|quizz)-",
     "stars": 3,
     "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
-    "version": "2023.01.07"
+    "version": "1.1.0"
 }

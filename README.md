@@ -30,8 +30,8 @@ The capability 'tiny/widgethub:viewplugin' allows to set the plugin visibility f
 
 ## Learn more
 
-- [Examples: Learn how to customize and create widgets.]('./docs/examples.md')
-- [Yaml API reference.]('./docs/api.md')
+- [Examples: Learn how to customize and create widgets.]('docs/examples.md')
+- [Yaml API reference.]('docs/api.md')
 
 ## Generate AMD modules
 
@@ -48,7 +48,7 @@ Please refer to the documentation in libs/codemirror.
 
 ## Thanks
 
-This plugin was originally inspired by the plugin [Snippet](https://moodle.org/plugins/tiny_snippet) by Justin Hunt.
+This plugin was originally inspired by the plugin [Snippet](https://moodle.org/plugins/atto_snippet) by Justin Hunt.
 
 A version for the editor Atto of this plugin has been used in the institution [https://iedib.net/](IEDIB) since five years ago.
 The modified version for Tiny, with the extensions and widgets used at IEDIB, is available at the branch `master_iedib` of 

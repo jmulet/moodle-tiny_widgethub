@@ -1,4 +1,4 @@
-key: subsub-seccio
+key: ib-section
 name: Page Section
 instructions: > 
   Create a section within a page or a Moodle book.
@@ -12,9 +12,8 @@ insertquery: .twh-iq
 unwrap: .twh-iq
 parameters: 
   - name: title
-    value: Section Title
-    title: Section Title
-    when: "SELECT_MODE!=='selection'"
-stars: 3
+    value: Section title
+    title: Section title
+    when: "!SELECT_MODE"
 author: Josep Mulet Pol <pep.mulet@gmail.com>
-version: 2024.11.02
+version: 1.1.0

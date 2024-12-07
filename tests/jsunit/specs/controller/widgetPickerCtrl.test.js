@@ -272,7 +272,7 @@ describe("WidgetPickerCtrl", () => {
             <div class="tiny_widgethub-categorycontainer">
             </div>
             </div>`);
-        const $modalHeader = jQuery(`<div><span class="ib-blink"></span></div>`);
+        const $modalHeader = jQuery(`<div><span class="tiny_widgethub-blink"></span></div>`);
         const modalShow = jest.fn();
         mockModalSrv.create = jest.fn().mockImplementation(() => {
             return Promise.resolve({
@@ -288,7 +288,7 @@ describe("WidgetPickerCtrl", () => {
     });
 
     it('Must handle action', async () => {
-        const header = jQuery('<div><span class="ib-blink"></span></div>');
+        const header = jQuery('<div><span class="tiny_widgethub-blink"></span></div>');
         // Assuming modal is not created
         const spyCreateModal =
             jest.spyOn(widgetPickCtrl, 'createModal').mockImplementation(() => {
@@ -306,7 +306,7 @@ describe("WidgetPickerCtrl", () => {
         await widgetPickCtrl.handleAction();
         expect(spyCreateModal).toHaveBeenCalledTimes(1);
         expect(widgetPickCtrl.modal.show).toHaveBeenCalled();
-        expect(header.find('.ib-blink').hasClass('d-none')).toBe(true);
+        expect(header.find('.tiny_widgethub-blink').hasClass('d-none')).toBe(true);
 
         // Now that modal is created 
         // Set selection mode
@@ -315,7 +315,7 @@ describe("WidgetPickerCtrl", () => {
         spyCreateModal.mockReset();
         expect(spyCreateModal).toHaveBeenCalledTimes(0);
         expect(widgetPickCtrl.modal.show).toHaveBeenCalled();
-        expect(header.find('.ib-blink').hasClass('d-none')).toBe(false);
+        expect(header.find('.tiny_widgethub-blink').hasClass('d-none')).toBe(false);
     });
 
     test("handlePickModalClick", async () => {

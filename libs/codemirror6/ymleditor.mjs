@@ -1,5 +1,4 @@
 /* eslint-disable max-len */
-/* eslint-disable no-console */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -25,6 +24,8 @@
 
 import {EditorView, basicSetup} from "codemirror";
 import {autocompletion} from "@codemirror/autocomplete";
+import {keymap} from "@codemirror/view";
+import {indentWithTab} from "@codemirror/commands";
 import {ensureSyntaxTree} from "@codemirror/language";
 import {yaml} from "@codemirror/lang-yaml";
 
@@ -127,17 +128,14 @@ function getOptionsFor(flatTree) {
 }
 
 function myCompletions(/** @type {*} */ context) {
-    console.log("context", context);
     const tree = ensureSyntaxTree(context.state, context.state.doc.length, 1000);
     if (!tree) {
         return null;
     }
     const nodeBefore = tree.resolveInner(context.pos, 0);
-    console.log("nodeBefore", nodeBefore);
     /** @type {string[]} */
     const flatTree = [];
     getKeysUpNode(nodeBefore, context, flatTree);
-    console.log("KEYS", flatTree);
 
     let before = context.matchBefore(/\w+/);
     // If completion wasn't explicitly started and there
@@ -172,6 +170,7 @@ export default class YmlEditor {
         this._editorView = new EditorView({
             extensions: [
                 basicSetup,
+                keymap.of([indentWithTab]),
                 yaml(),
                 autocompletion({override: [myCompletions]}),
             ],

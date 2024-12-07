@@ -17,4 +17,4 @@ parameters:
     type: color
     value: '#ffffff00'
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 1.0.0
+version: 1.1.0
