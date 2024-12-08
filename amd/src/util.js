@@ -771,7 +771,7 @@ const bindingFactory = function($e) {
                     let newValue;
                     if (styValue) {
                         // Case val <= 0 && styName contains width or height
-                        if ((styName.includes("width") || styName.includes("height")) && (parseFloat(val + '') < 0)) {
+                        if ((styName.includes("width") || styName.includes("height")) && (parseFloat(val + '') <= 0)) {
                             newValue = '';
                         } else {
                             const oldValue = elem.prop('style').getPropertyValue(styName) ?? '';
