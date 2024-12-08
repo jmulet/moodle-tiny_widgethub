@@ -290,7 +290,7 @@ describe('utils module tests', () => {
         ["classRegex('locked-([0-9]*)-some(.*)')", `<span class="etc"></span>`, ''],
         ["classRegex('locked-([0-9]*)-some(.*)')", `<span class="locked--some etc"></span>`, ''],
         ["classRegex('locked-([0-9]*)-some(.*)')", `<span class="locked-123-somes etc"></span>`, '123'],
-
+ 
         ["hasAttr('data-locked')", `<span data-locked></span>`, true],
         ["hasAttr('data-locked')", `<span data-locked="false"></span>`, true],
         ["hasAttr('data-locked')", `<span data-open="false"></span>`, false],
@@ -309,7 +309,7 @@ describe('utils module tests', () => {
         ["attrRegex('role=channel(.*)')", `<span role="channel"></span>`, ''],
         ["attrRegex('role=locked-([0-9]*)-abc')", `<span role="locked--abc"></span>`, ''],
         ["attrRegex('role=locked-([0-9]*)-abc')", `<span role="locked-123-abc"></span>`, '123'],
-
+        
         ["hasStyle('width')", `<span style="width: 100px;"></span>`, true],
         ["hasStyle('height')", `<span style="width: 100px;"></span>`, false],
         ["hasStyle('color:red')", `<span style="color: red;"></span>`, true],
@@ -337,6 +337,16 @@ describe('utils module tests', () => {
             bindDef = bindDef.substring(0, bindDef.length - 1) + ", 'span')";
         }
         binding = U.createBinding(bindDef, $e);
+        expect(binding).not.toBeNull();
+        expect(binding?.getValue()).toBe(result);
+    });
+
+    test('Testing class regex', () => {
+        let [bindDef, elemDef, result] = ["classRegex('alert-(.*)')", `<div class="m-2 alert alert-secondary fade show" role="alert"><div class="alert-content"><p>Lorem ipsum.</p></div></div>`, 'secondary'];
+        let $e = jQuery(elemDef);
+        expect($e.length).toBe(1);
+        // Binding on the same element
+        let binding = U.createBinding(bindDef, $e);
         expect(binding).not.toBeNull();
         expect(binding?.getValue()).toBe(result);
     });

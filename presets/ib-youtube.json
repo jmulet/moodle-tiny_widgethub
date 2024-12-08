@@ -20,8 +20,9 @@
         },
         {
             "name": "title",
-            "value": "Title",
-            "title": "Descriptive Title"
+            "value": "Write a title",
+            "title": "Descriptive Title",
+            "type": "textfield"
         },
         {
             "name": "startSeconds",
@@ -38,7 +39,6 @@
         }
     ],
     "scope": "^page-mod-(book|page|assign|quizz)-",
-    "stars": 3,
     "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
     "version": "1.1.0"
 }

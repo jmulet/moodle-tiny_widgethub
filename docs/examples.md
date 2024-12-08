@@ -3,6 +3,25 @@
 The following sections will walk through the process of creating new widgets by using the yaml syntax.
 We shall start with a basic example and, progressively, we will continue showing more advanced cases.
 
+## Administration options
+
+To access the plugin's administration options, type `widget` in the search field of the administration area. Then, scroll down until you see the widget table:
+
+<img src="../img/widget_table.png" alt="Widget Table" width="350" style="margin:auto; max-width:400px;">
+
+- **To create a new widget**: Click the **plus (+)** button.  
+- **To edit an existing widget**: Click the **edit** button to view and customize its definition.
+
+When you open the editor, a new page with a YAML editor will appear. Use Ctrl+Space to access autocompletion hints for easier editing.
+
+To preview the widget's appearance and check for potential errors, click the Preview button. Once you're satisfied with the result, save your changes by clicking the Save button.
+
+If you're editing an existing widget, you'll also see a Delete button, which allows you to remove the widget entirely. Alternatively, if you want to temporarily hide the widget without deleting it, set the property `hidden: true` in the YAML setting.
+
+<img src="../img/yaml_editor.png" alt="Yaml editor" 
+width="350" style="margin:auto; max-width:400px;">
+
+
 ## Dealing with styles
 
 As a general rule, avoid using inline styles. Instead, replace them with CSS classes for better maintainability and consistency. While defining new classes can sometimes feel cumbersome, leveraging the existing utility classes provided by Bootstrap is an effective strategy. However, there will inevitably be situations where creating custom classes is necessary. But where should you place these new classes?
@@ -51,29 +70,29 @@ version: 1.0.0
 
 To use it, you have to register this widget into your Moodle instance. Go to administration settings and search 'widget'. The search result will be under the URL /admin/category.php?category=tiny_widgethub
 
-Click on the link <img src="../img/create_new_widget.png" style="height:25px; vertical-align: bottom;">
+Click on the link <img src="../img/create_new_widget.png" height="25" style="height:25px; vertical-align: bottom;">
 
 
 
 Paste the yaml code above into the Yaml Editor 
 
- <img src="../img/widget_new_form.png" style="max-width:400px; vertical-align: bottom;">
+ <img src="../img/widget_new_form.png" width="350" style="max-width:400px; margin:auto;">
 
 and press the button Save changes. You will see the brand new widget registered.
 
-<img src="../img/list_widgets.png" style="max-width:400px; vertical-align: bottom;">
+<img src="../img/list_widgets.png" width="350" style="max-width:400px; margin:auto;">
 
 Now open a Moodle activity that uses the tiny editor and click on the WidgetHub button. You should see a dialog with a section named "TUTORIALS" and a widget button within. Click on the (Tutorial 1) button.
 
-<img src="../img/category_buttons_modal.png" style="max-width:300px; vertical-align: bottom;">
+<img src="../img/category_buttons_modal.png"  width="300" style="max-width:300px; margin:auto;">
 
 Since the widget contains parameters, a second modal dialog appears with a form to modify the template parameters.
 
-<img src="../img/parameters_modal.png" style="max-width:300px; vertical-align: bottom;">
+<img src="../img/parameters_modal.png" width="300" style="max-width:300px; margin:auto;">
 
 Click on the "Accept" button and you the result will appear in the Tiny editor
 
-<img src="../img/tiny_result1.png" style="max-width:300px; vertical-align: bottom;">
+<img src="../img/tiny_result1.png" width="300" style="max-width:300px; margin:auto;">
 
 ### Example 2. Conditionals in templates
 

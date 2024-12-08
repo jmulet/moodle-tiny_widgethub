@@ -3,9 +3,8 @@
 - Design, use and customize widget components seamlessly within the Tiny Editor.
 - Use Bootstrap components easily.
 
-<div style="background: #ffccdd; color: darkred;padding: 5px; border: 1px solid darkred; border-radius: 5px; font-size: 0.8rem;">
-IMPORTANT: This plugin needs a Moodle theme based on Boost since some widgets rely on Bootstrap.
-</div>
+> [!IMPORTANT]
+> This plugin needs a Moodle theme based on Boost since some widgets rely on Bootstrap.
 
 ## Features
 
@@ -17,23 +16,43 @@ Users can:
 
 Later, at any time, the component can be reconfigured using context menus provided by the Tiny editor.
 
-<img src="./img/widgethub_usage.gif" style="margin:auto;max-width:400px">
+<img src="./img/widgethub_usage.gif" width="400" style="margin:auto;max-width:400px">
 
-Administrators can customize existing widget definitions, create new ones, and remove unwanted widgets. Simply type
-`widget` at the search field in the administrator area.
-
-<img src="./img/widgethub_admin_settings.gif" style="margin:auto;max-width:400px">
-
-Feel free to share your widgets either by email `pep.mulet(at)gmail.com` or creating a pull request.
-
-The capability 'tiny/widgethub:viewplugin' allows to set the plugin visibility for any role. Bear in mind that, by default, the role student is prevented from using the plugin.
 
 ## Learn more
 
-- [Examples: Learn how to customize and create widgets.]('docs/examples.md')
-- [Yaml API reference.]('docs/api.md')
+- [Examples: Learn how to customize and create widgets.](docs/examples.md)
+- [Yaml API reference.](docs/api.md)
 
-## Generate AMD modules
+## Configuration
+
+Administrators can manage widget definitions by customizing existing ones, creating new ones, or removing unwanted widgets. To access these options, simply type `widget` in the search field of the administrator area.
+
+The options available are:
+
+<img src="./img/settings.png" width="400" style="margin:auto;max-width:400px">
+
+- **share_css**: When this checkbox is selected, all styles from the Moodle site will automatically be available within the editor's iFrame. Additional styles can be added via the administration page of your theme.
+
+
+- **additionalcss**: If you prefer to keep the styles in the editor isolated from Moodle styles, add the desired styles in this textarea to make them available in the editor. URLs within comment blocks will automatically be translated into a CSS `link` tag in the editor iFrame.
+
+
+- **cfg**: This allows additional configuration using the syntax `property=value`, with one configuration per line:  
+  
+  - *disable.plugin.pages*: A comma-separated list of body IDs for which the plugin will not be loaded.  
+
+  - *enable.contextmenu.level*: Enable (`1`) or disable (`0`) context menus used by the plugin.
+
+Feel free to share your widgets either by email `pep.mulet(at)gmail.com` or creating a pull request.
+
+The capability 'tiny/widgethub:viewplugin' allows to set the plugin visibility for any role. Keep in mind that, by default, the role student is prevented from using the plugin.
+
+ 
+ 
+## How to build
+
+### Generate AMD modules
 
 In order to generate the compiled code in `/amd/build` from sources in `/amd/src`, you need to execute the command
 
@@ -41,7 +60,7 @@ In order to generate the compiled code in `/amd/build` from sources in `/amd/src
 npx grunt amd
 ```
 
-## Generate codemirror dependency with extra toppings
+### Generate yalm editor dependency
 
 Please refer to the documentation in libs/codemirror.
 

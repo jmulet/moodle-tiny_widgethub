@@ -7,7 +7,7 @@ template: |
   <p><br></p> 
   <!--ini imagebackground-->
   <div class="twh-background-img" style="background-image: url('{{url}}'); padding:10px; min-height:40px; background-repeat: no-repeat; -webkit-background-size: cover; background-size: cover; background-position: 50% 50%;">
-  <p>What is the probability of winning at gambling games?</p>
+  <h3><b>What is the probability of winning at gambling games?</b></h3>
   <p><em>Probability and Statistics</em></p>
   </div>
   <!--fi imagebackground-->
@@ -15,12 +15,11 @@ template: |
 selectors: div.twh-background-img
 parameters:
   - name: url
-    value: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Aurora_borealis_over_Eielson_Air_Force_Base%2C_Alaska.jpg/1920px-Aurora_borealis_over_Eielson_Air_Force_Base%2C_Alaska.jpg
+    value: https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Snow_Scene_at_Shipka_Pass_1.JPG/1024px-Snow_Scene_at_Shipka_Pass_1.JPG
     title: Image URL
     type: image
     tip: You can also upload an image to your course and link it here.
     bind: | 
       styleRegex("background-image:url\\(['\"]?([^'\")]*)['\"]?\\)")
-stars: 2
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 1.1.0

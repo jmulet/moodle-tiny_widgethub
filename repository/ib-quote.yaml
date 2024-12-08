@@ -24,6 +24,5 @@ parameters:
     value: true
     title: Prevent translation by Google
     bind: hasClass('notranslate')
-stars: 1
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 1.1.0
