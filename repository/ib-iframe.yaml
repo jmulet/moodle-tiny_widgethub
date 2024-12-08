@@ -9,7 +9,6 @@ parameters:
     value: '<b>Sample</b>'
     title: HTML Code
     type: textarea
-stars: 2
 scope: ^page-mod-(book|page|assign|quiz)-
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 1.1.0

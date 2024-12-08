@@ -532,10 +532,13 @@ const bindingFactory = function($e) {
             return {
                 getValue: () => {
                     let ret = '';
-                    const clazz = elem.attr('class') ?? '';
-                    const match = new RegExp(classExpr).exec(clazz);
-                    if (match?.[1] && typeof (match[1]) === "string") {
-                        ret = match[1];
+                    const classes = (elem.attr('class') ?? '').split(' ');
+                    for (const clazz of classes) {
+                        const match = new RegExp(classExpr).exec(clazz);
+                        if (match?.[1] && typeof (match[1]) === "string") {
+                            ret = match[1];
+                            break;
+                        }
                     }
                     return performCasting(ret, castTo);
                 },

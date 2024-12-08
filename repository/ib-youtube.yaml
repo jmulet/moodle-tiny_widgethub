@@ -28,8 +28,9 @@ parameters:
     title: Maximum Width in px
     min: 100
   - name: title
-    value: Title
+    value: Write a title
     title: Descriptive Title
+    type: textfield
   - name: startSeconds
     value: 0
     title: Start Playback at Second
@@ -40,6 +41,5 @@ parameters:
     min: 0
     tip: Keep this at 0 if you want the video to play until the end
 scope: ^page-mod-(book|page|assign|quizz)-
-stars: 3
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 1.1.0

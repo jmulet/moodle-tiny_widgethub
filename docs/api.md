@@ -71,8 +71,7 @@ The type `Parameter` consists of these fields
 - **vimeoId**: Extracts the vimeo id from an URL.
 - **serveGDrive**: It converts the share link of a Google Drive file into an URL that can be download.
 - **removeHTML**: Returns only the text content.
-- **escapeHTML**: It replaces the symbols &, <, >, ", and ' by the corresponding HTML entities.
-- **encodeHTML**: Similar to `escapeHTML` but for all HTML entities.
-- **escapeQuotes**: Replaces all " instances by '.
+- **encodeHTML**: It replaces the symbols &, <, >, etc. by the corresponding HTML entities.
+- **escapeQuotes**: Replaces all " instances into '.
 
 Transform functions can be combined into a pipe, e.g. `trim | toUpperCase`, first trims the spaces and then converts the string to upper case.

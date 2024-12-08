@@ -17,8 +17,9 @@ template: |
   <p><br></p>
 parameters: 
   - name: title
-    value: Title
-    title: Title
+    value: Write a title
+    title: Descriptive Title
+    type: textfield
   - name: iframe_code
     value: <iframe src="https://drive.google.com/file/d/1C-xFq_cPF9kr1Xq9XINixAkU46AHAVUE/preview" width="640" height="480" allow="autoplay" fullscreen="1"></iframe>
     title: Iframe code
@@ -28,7 +29,6 @@ parameters:
     value: 500
     title: Maximum width in px
     min: 100
-stars: 1
 scope: ^page-mod-(book|page|assign|quizz)-
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 1.1.0
