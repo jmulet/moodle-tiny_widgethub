@@ -1,6 +1,6 @@
 // jest.config.js
 module.exports = {  
-    silent: false,
+    silent: true,
     transformIgnorePatterns: ['node_modules/(?!(sucrase)/)'],
     transform: {
       '^.+\\.(js|jsx|ts|tsx|mjs)$': ['babel-jest',

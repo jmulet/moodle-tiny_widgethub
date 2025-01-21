@@ -26,12 +26,12 @@ import {getButtonImage} from 'editor_tiny/utils';
 import * as coreStr from 'core/str';
 import Common from './common';
 import * as cfg from 'core/config';
-import {initContextActions} from './contextInit';
+import {initContextActions} from './contextinit';
 import {getAdditionalCss, getGlobalConfig, getWidgetDict, isPluginVisible, Shared, getEditorOptions} from './options';
 import jQuery from "jquery";
-import {getWidgetPickCtrl} from './controller/widgetPickerCtrl';
+import {getWidgetPickCtrl} from './controller/widgetpicker_ctrl';
 import {getListeners} from './extension';
-import {getUserStorage} from './service/userStorageSrv';
+import {getUserStorage} from './service/userstorage_service';
 import {applyWidgetFilterFactory, findVariableByName, searchComp} from './util';
 
 export const getSetup = async() => {

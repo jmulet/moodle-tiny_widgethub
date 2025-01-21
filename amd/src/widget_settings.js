@@ -26,7 +26,7 @@ import jQuery from 'jquery';
 import YmlEditor from './libs/ymleditor-lazy';
 import {load, dump} from './libs/js_yaml-lazy';
 import {get_strings as getStrings} from 'core/str';
-import {getTemplateSrv} from './service/templateSrv';
+import {getTemplateSrv} from './service/template_service';
 import {applyPartials} from './options';
 
 const templateSrv = getTemplateSrv();
