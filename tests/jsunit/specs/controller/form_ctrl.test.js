@@ -86,8 +86,8 @@ describe("FormCtrl", () => {
             isFilter: () => false
         }
         const ctx = formCtrl.createContext(widget);
-        expect(ctx.idTabpane).toBeTruthy();
-        expect(ctx.selectMode).toBe(true);
+        expect(ctx.idtabpane).toBeTruthy();
+        expect(ctx.selectmode).toBe(true);
         expect(ctx.name).toBe(widget.name);
         expect(ctx.instructions).toBeUndefined();
         expect(ctx.filter).toBe(false);

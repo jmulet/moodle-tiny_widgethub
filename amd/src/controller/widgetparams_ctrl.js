@@ -73,10 +73,10 @@ export class WidgetParamsCtrl {
          this.modal = null;
       });
       this.modal = modal;
-      modal.body.find(`a[href="#${data.idTabpane}_1"`).on("click", async() => {
+      modal.body.find(`a[href="#${data.idtabpane}_1"`).on("click", async() => {
          // Handle preview;
          const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, modal.body.find("form"), true);
-         await this.updatePreview(data.idTabpane, ctxFromDialogue);
+         await this.updatePreview(data.idtabpane, ctxFromDialogue);
       });
       this.formCtrl.attachPickers(modal.body);
       modal.footer.show();
@@ -96,8 +96,8 @@ export class WidgetParamsCtrl {
       });
 
       // Change input fields visibilities upon conditions
-      const selectMode = this.editor.selection.getContent().trim() != '';
-      this.formCtrl.applyFieldWatchers(modal.body, this.widget.defaults, this.widget, selectMode);
+      const selectmode = this.editor.selection.getContent().trim() != '';
+      this.formCtrl.applyFieldWatchers(modal.body, this.widget.defaults, this.widget, selectmode);
 
       // Help circles require popover
       try {
@@ -166,13 +166,13 @@ export class WidgetParamsCtrl {
    }
 
    /**
-    * @param {string} idTabpane
+    * @param {string} idtabpane
     * @param {Object.<string, any>} ctxFromDialogue
     * @returns
     */
-   async updatePreview(idTabpane, ctxFromDialogue) {
+   async updatePreview(idtabpane, ctxFromDialogue) {
       const interpoledCode = await this.generateInterpolatedCode(ctxFromDialogue);
-      const $previewPanel = this.modal?.body?.find(`#${idTabpane}_1`);
+      const $previewPanel = this.modal?.body?.find(`#${idtabpane}_1`);
       if ($previewPanel) {
          $previewPanel.html(interpoledCode);
       }

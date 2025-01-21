@@ -84,21 +84,21 @@ export class WidgetPickerCtrl {
      * Shows or hides buttons according to the search text condition
      * When text == '', all non-hidden buttons should be displayed
      * @param {JQuery<HTMLElement>} bodyForm
-     * @param {string} searchText
+     * @param {string} searchtext
      * @returns {number}
      */
-    setWidgetButtonsVisibility(bodyForm, searchText) {
+    setWidgetButtonsVisibility(bodyForm, searchtext) {
         let numshown = 0;
-        const selectMode = this.isSelectMode();
+        const selectmode = this.isSelectMode();
         /** @type {JQuery<HTMLDivElement>} */
         const allbtns = bodyForm.find(".btn-group");
         allbtns.each((i, el) => {
             // Is supported in select mode?
-            let visible = !selectMode || (selectMode && el.dataset.selectable === "true");
+            let visible = !selectmode || (selectmode && el.dataset.selectable === "true");
             const el2 = el.querySelector('button');
             // Does fullfill the search criteria?
-            visible &&= el2 !== null && (searchText.trim() === '' || searchComp(el2.textContent ?? '', searchText) ||
-                searchComp(el2.title ?? '', searchText));
+            visible &&= el2 !== null && (searchtext.trim() === '' || searchComp(el2.textContent ?? '', searchtext) ||
+                searchComp(el2.title ?? '', searchtext));
             setVisibility(el, visible);
             if (visible) {
                 numshown++;
@@ -111,11 +111,11 @@ export class WidgetPickerCtrl {
      * Callback on keyup event
      */
     onSearchKeyup() {
-        const searchText = this.modal.body.find("input").val() ?? '';
-        this.storage.setToSession('searchtext', searchText, true);
+        const searchtext = this.modal.body.find("input").val() ?? '';
+        this.storage.setToSession('searchtext', searchtext, true);
 
-        // Are we in selectMode, does the widget support it? insertquery
-        const numshown = this.setWidgetButtonsVisibility(this.modal.body, searchText);
+        // Are we in selectmode, does the widget support it? insertquery
+        const numshown = this.setWidgetButtonsVisibility(this.modal.body, searchtext);
         // If no button visible, show emptyList message
         setVisibility(this.modal.body.find(".tiny_widgethub-emptylist")[0], numshown == 0);
 
@@ -153,10 +153,10 @@ export class WidgetPickerCtrl {
 
     async createModal() {
         /** @type {string} */
-        const searchText = this.storage.getFromSession("searchtext", "");
+        const searchtext = this.storage.getFromSession("searchtext", "");
         const data = {
             ...this.getPickTemplateContext(),
-            searchText
+            searchtext
         };
 
         this.modal = await this.modalSrv.create('picker', data);
@@ -189,7 +189,7 @@ export class WidgetPickerCtrl {
         // Event listeners.
         // Click on clear text
         const widgetSearchElem = this.modal.body.find("input");
-        widgetSearchElem.val(searchText);
+        widgetSearchElem.val(searchtext);
         const debouncedKeyup = debounce(this.onSearchKeyup.bind(this), 800);
         widgetSearchElem.on('keyup', debouncedKeyup);
 
@@ -241,8 +241,8 @@ export class WidgetPickerCtrl {
         // Call filter function to make sure the list is updated.
         this.onSearchKeyup();
 
-        const selectMode = this.isSelectMode();
-        if (selectMode) {
+        const selectmode = this.isSelectMode();
+        if (selectmode) {
             this.modal.header.find("span.tiny_widgethub-blink").removeClass("d-none");
         } else {
             this.modal.header.find("span.tiny_widgethub-blink").addClass("d-none");
@@ -299,7 +299,7 @@ export class WidgetPickerCtrl {
      * @property {Button[]} buttons
      */
     /**
-     *  @typedef {{rid: string, selectMode: boolean, elementid: string, categories: Category[], recent: *[]}} TemplateContext
+     *  @typedef {{rid: string, selectmode: boolean, elementid: string, categories: Category[], recent: *[]}} TemplateContext
      */
     /**
      * Get the template context for the dialogue.
@@ -393,7 +393,7 @@ export class WidgetPickerCtrl {
 
         return {
             rid: genID(),
-            selectMode: this.isSelectMode(),
+            selectmode: this.isSelectMode(),
             elementid: this.editor.id,
             categories: categoriesList,
             recent: recentList

@@ -134,8 +134,8 @@ export class FormCtrl {
       const controls = widget.parameters.map(param => this.createControlHTML(this.editor.id, param, obtainCurrentValue(param)));
 
       const ctx = {
-         idTabpane: genID(),
-         selectMode: this.editor.selection.getContent().trim().length > 0,
+         idtabpane: genID(),
+         selectmode: this.editor.selection.getContent().trim().length > 0,
          name: widget.name,
          instructions: widget.instructions,
          filter: widget.isFilter(),
@@ -313,9 +313,9 @@ export class FormCtrl {
     * @param {JQuery<HTMLElement>} $formElem
     * @param {Object.<string, any>} defaultsData
     * @param {import('../options').Widget} widget
-    * @param {boolean} selectMode
+    * @param {boolean} selectmode
     */
-   applyFieldWatchers($formElem, defaultsData, widget, selectMode) {
+   applyFieldWatchers($formElem, defaultsData, widget, selectmode) {
       /** @type {string[]} */
       const watchedvars = []; // All these variable names must be watched
       /**
@@ -364,7 +364,7 @@ export class FormCtrl {
             // Evaluate condition
             const newVariables = this.extractFormParameters(widget, $formElem, false);
             // Add to the new variables the internal variables
-            newVariables.SELECT_MODE = selectMode;
+            newVariables.SELECT_MODE = selectmode;
             // Eval JS condition for new variables
             const showme = evalInContext(newVariables, cc.condition);
             let theComponent = cc.component;

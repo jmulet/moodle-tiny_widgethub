@@ -198,7 +198,7 @@ describe("WidgetPickerCtrl", () => {
 
         const ctx = widgetPickCtrl.getPickTemplateContext();
 
-        expect(ctx.selectMode).toBe(false);
+        expect(ctx.selectmode).toBe(false);
         expect(ctx.rid).toMatch(/^[a-zA-Z]\w*$/);
         expect(ctx.rid).toBe("a12345");
         expect(ctx.elementid).toBe(mockEditor.id);
