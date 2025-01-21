@@ -30,7 +30,7 @@ const rawSnpt = {
         { "name": "LANG", "value": "CA", "title": "Idioma", "type": "select", "options": [{ "v": "ca", "l": "Català" }, { "v": "es", "l": "Castellà" }, { "v": "en", "l": "English" }, { "v": "fr", "l": "Francès" }, { "v": "de", "l": "Alemany" }] }]
 };
 
-const { DomSrv } = require('../src/service/domSrv');
+const { DomSrv } = require('../src/service/dom_service');
 const srv = require('../src/contextInit');
 
 describe('ContextInit', () => {

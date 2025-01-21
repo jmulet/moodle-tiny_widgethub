@@ -16,8 +16,8 @@
 
 import {getWidgetDict} from './options';
 import jQuery from "jquery";
-import {getDomSrv} from './service/domSrv';
-import {getWidgetPropertiesCtrl} from './controller/widgetPropertiesCtrl';
+import {getDomSrv} from './service/dom_service';
+import {getWidgetPropertiesCtrl} from './controller/widgetproperties_ctrl';
 import {getMenuItemProviders, getListeners} from './extension';
 // eslint-disable-next-line camelcase
 import {get_strings} from 'core/str';
@@ -111,7 +111,7 @@ const matchesCondition = function(condition, key) {
 
 /**
  * @param {import('./plugin').TinyMCE} editor
- * @param {import('./service/domSrv').DomSrv} domSrv
+ * @param {import('./service/dom_service').DomSrv} domSrv
  */
 const predefinedActionsFactory = function(editor, domSrv) {
     /** @type {Record<string, Function>} */
