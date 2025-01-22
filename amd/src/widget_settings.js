@@ -139,7 +139,7 @@ export default {
                     validation.msg += await get_string('errproprequired', 'tiny_widgethub', "'author' & 'version'") + ' ';
                 }
             }
-            // Check for duplicated keys
+            // Check for duplicated keys (TODO: also check for key renaming when id > 0)
             if (opts.id === 0 && jsonObj?.key) {
                 const keys = opts.keys || [];
                 if (keys.includes(jsonObj.key)) {
@@ -221,7 +221,7 @@ export default {
 
         if (opts.id > 0) {
             // Only show delete button on saved widgets (id=0 is reserved for new ones)
-            const $deleteBtn = jQuery(`<button type="button" class="btn btn-danger m-1">
+            const $deleteBtn = jQuery(`<button type="button" class="btn btn-outline-danger m-1">
                 <i class="fas fa fa-trash"></i> ${deleteStr}</button>`);
             $deleteBtn.on('click', async() => {
                 // Ask confirmation

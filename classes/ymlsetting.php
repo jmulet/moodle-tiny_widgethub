@@ -16,7 +16,11 @@
 
 /**
  * Tiny WidgetHub plugin.
- *
+ * 
+ * Provides a custom settings class `ymlsetting` for managing widget configurations
+ * in the Tiny WidgetHub plugin. This includes defining widgets, handling configuration
+ * updates, and rendering HTML for the settings UI.
+ * 
  * @package     tiny_widgethub
  * @copyright   2024 Josep Mulet <pep.mulet@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -28,57 +32,42 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/adminlib.php');
 
 /**
- * Summary of tiny_widgethub\starts_with.
- * @param string $string
- * @param string $substring
- * @return bool
- */
-function starts_with(string $string, string $substring): bool {
-    // Get the length of the substring.
-    $len = strlen($substring);
-
-    // Just return true when substring is an empty string.
-    if ($len == 0) {
-        return true;
-    }
-
-    // Return true or false based on the substring result.
-    return substr($string, 0, $len) === $substring;
-}
-
-/**
- * Summary of hubpicker.
+ * Custom setting for managing YAML-based widget configurations in Tiny WidgetHub.
  */
 class ymlsetting extends \admin_setting {
     /**
-     * Summary of windex
+     * Index of the widget being configured.
      * @var int
      */
     public $windex;
     /**
-     * Summary of presetdata
+     * Data for widget presets, if any.
      * @var object
      */
     public $presetdata;
     /**
-     * Summary of visiblename
+     * Display name of the setting.
      * @var string
      */
     public $visiblename;
     /**
-     * Summary of information
+     * Additional information about the setting.
      * @var string
      */
     public $information;
 
     /**
-     * Not a setting, just text.
-     * @param string $name unique ascii name.
-     * @param string $visiblename heading.
-     * @param string $information text in box.
-     * @param int $windex
-     * @param array $usedkeys
-     * @param object $partials
+    * Constructor for the ymlsetting class.
+     *
+     * Initializes the setting with parameters including widget index, keys,
+     * partial configurations, and parent settings.
+     *
+     * @param string $name Unique ASCII name for the setting.
+     * @param string $visiblename Display name shown in the settings UI.
+     * @param string $information Descriptive text displayed in the settings page.
+     * @param int $windex Index of the widget being configured.
+     * @param array $usedkeys Keys already used in other settings.
+     * @param object $partials Partially defined configurations.
      */
     public function __construct($name, $visiblename, $information, $windex, $usedkeys, $partials) {
         $this->nosave = true;
@@ -92,6 +81,7 @@ class ymlsetting extends \admin_setting {
 
     /**
      * Returns current value of this setting.
+     * 
      * @return mixed array or string depending on instance; NULL means no default, user must supply.
      */
     public function get_setting() {
@@ -100,6 +90,7 @@ class ymlsetting extends \admin_setting {
 
     /**
      * Returns default setting if exists.
+     * 
      * @return mixed array or string depending on instance; NULL means no default, user must supply
      */
     public function get_defaultsetting() {
@@ -107,8 +98,9 @@ class ymlsetting extends \admin_setting {
     }
 
     /**
-     * How the setting is stored.
-     * @param mixed $data
+     * Handles saving of the widget configuration data.
+     * 
+     * @param mixed $data The data to be written to the setting.
      * @return string Returns an empty string or error message.
      */
     public function write_setting($data) {
@@ -135,10 +127,11 @@ class ymlsetting extends \admin_setting {
     }
 
     /**
-     * Returns an HTML string
-     * @param mixed $data
-     * @param string $query
-     * @return string Returns an HTML string
+     * Outputs the HTML representation of the setting.
+     * 
+     * @param mixed $data Data to be displayed in the HTML output.
+     * @param string $query Search query for filtering settings (if applicable).
+     * @return string The HTML representation of the setting.
      */
     public function output_html($data, $query = '') {
         global $PAGE;
