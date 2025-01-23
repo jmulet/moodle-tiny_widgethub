@@ -16,7 +16,7 @@
 
 /**
  * Tiny WidgetHub plugin.
- * 
+ *
  * Contains utility methods for managing settings pages in the Tiny WidgetHub plugin.
  *
  * This class provides methods to dynamically create configuration settings
@@ -94,7 +94,6 @@ class settingsutil {
         return $pages;
     }
 
-    
     /**
      * Generates a single admin setting page for a specific widget.
      *

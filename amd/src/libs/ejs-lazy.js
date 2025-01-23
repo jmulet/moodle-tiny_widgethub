@@ -48,8 +48,8 @@ const utils = {};
     const regExpChars = /[|\\{}()[\]^$+*?.]/g;
     const hasOwnProperty = Object.prototype.hasOwnProperty;
     const hasOwn = function(obj, key) {
- return hasOwnProperty.apply(obj, [key]);
-};
+        return hasOwnProperty.apply(obj, [key]);
+    };
 
     /**
      * Escape characters reserved in regular expressions.

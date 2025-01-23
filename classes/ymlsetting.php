@@ -16,11 +16,11 @@
 
 /**
  * Tiny WidgetHub plugin.
- * 
+ *
  * Provides a custom settings class `ymlsetting` for managing widget configurations
  * in the Tiny WidgetHub plugin. This includes defining widgets, handling configuration
  * updates, and rendering HTML for the settings UI.
- * 
+ *
  * @package     tiny_widgethub
  * @copyright   2024 Josep Mulet <pep.mulet@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -57,7 +57,7 @@ class ymlsetting extends \admin_setting {
     public $information;
 
     /**
-    * Constructor for the ymlsetting class.
+     * Constructor for the ymlsetting class.
      *
      * Initializes the setting with parameters including widget index, keys,
      * partial configurations, and parent settings.
@@ -81,7 +81,7 @@ class ymlsetting extends \admin_setting {
 
     /**
      * Returns current value of this setting.
-     * 
+     *
      * @return mixed array or string depending on instance; NULL means no default, user must supply.
      */
     public function get_setting() {
@@ -90,7 +90,7 @@ class ymlsetting extends \admin_setting {
 
     /**
      * Returns default setting if exists.
-     * 
+     *
      * @return mixed array or string depending on instance; NULL means no default, user must supply
      */
     public function get_defaultsetting() {
@@ -99,7 +99,7 @@ class ymlsetting extends \admin_setting {
 
     /**
      * Handles saving of the widget configuration data.
-     * 
+     *
      * @param mixed $data The data to be written to the setting.
      * @return string Returns an empty string or error message.
      */
@@ -128,7 +128,7 @@ class ymlsetting extends \admin_setting {
 
     /**
      * Outputs the HTML representation of the setting.
-     * 
+     *
      * @param mixed $data Data to be displayed in the HTML output.
      * @param string $query Search query for filtering settings (if applicable).
      * @return string The HTML representation of the setting.
