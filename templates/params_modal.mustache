@@ -51,11 +51,11 @@
     {{$body}}
     <div class="tabbable" style="table-layout: fixed; width:99%;">
         <ul class="nav nav-tabs" role="tablist">
-            <li class="nav-item"><a href="#{{idTabpane}}_0" class="nav-link active" role="tab" data-toggle="tab"><span>&nbsp; {{#str}} edit, tiny_widgethub {{/str}}</span></a></li>
-            {{^filter}}<li class="nav-item"><a href="#{{idTabpane}}_1" class="nav-link" role="tab" data-toggle="tab"><span>&nbsp; {{#str}} preview, tiny_widgethub {{/str}}</span></a></li>{{/filter}}
+            <li class="nav-item"><a href="#{{idtabpane}}_0" class="nav-link active" role="tab" data-toggle="tab"><span>&nbsp; {{#str}} edit, tiny_widgethub {{/str}}</span></a></li>
+            {{^filter}}<li class="nav-item"><a href="#{{idtabpane}}_1" class="nav-link" role="tab" data-toggle="tab"><span>&nbsp; {{#str}} preview, tiny_widgethub {{/str}}</span></a></li>{{/filter}}
         </ul>
         <div class="tab-content">
-            <div class="tab-pane active" id="{{idTabpane}}_0">
+            <div class="tab-pane active" id="{{idtabpane}}_0">
                 {{#instructions}}
                 <div style="background: whitesmoke; position:relative; padding: 15px;">
                     <div class="tiny_widgethub-instructionstext" style="max-height:120px; overflow: hidden auto;">{{{instructions}}}</div>
@@ -71,14 +71,18 @@
                 </div>
             </div>
             {{^filter}}
-            <div class="tab-pane" id="{{idTabpane}}_1" style="min-height:200px;max-height:450px;overflow:auto">
+            <div class="tab-pane px-3" id="{{idtabpane}}_1" style="min-height:200px;max-height:450px;overflow:auto">
             </div>
             {{/filter}}
         </div>
     </div>
     {{/body}}
     {{$footer}}
-        <button class="btn btn-secondary"><i class="twh-icon twh-arrow-left"></i></button>
+        <button class="btn btn-secondary">
+            <span class="twh-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
+            </span>
+        </button>
         <button class="btn btn-primary">{{#str}} accept, tiny_widgethub {{/str}}</button>
     {{/footer}}
 {{/ core/modal }}
