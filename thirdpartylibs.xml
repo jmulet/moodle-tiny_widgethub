@@ -1,10 +1,35 @@
 <?xml version="1.0"?>
 <libraries>
     <library>
-        <location>libs/codemirror6/</location>
+        <location>amd/src/libs/ejs-lazy.js</location>
+        <name>ejs</name>
+        <version>3.1.10</version>
+        <license>Apache</license>
+        <licenseversion>2.0</licenseversion>
+        <repository>https://github.com/mde/ejs</repository>
+    </library>
+    <library>
+        <location>amd/src/libs/js_yaml-lazy.js</location>
+        <name>js_yaml</name>
+        <version>4.1.0</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/nodeca/js-yaml</repository>
+    </library>
+    <library>
+        <location>amd/src/libs/ymleditor-lazy.js</location>
         <name>codemirror</name>
         <version>6.0.1</version>
         <license>MIT</license>
         <licenseversion></licenseversion>
+        <repository>https://github.com/codemirror/basic-setup</repository>
+    </library>
+    <library>
+        <location>amd/src/libs/ymleditor-lazy.js</location>
+        <name>codemirror/lang-yaml</name>
+        <version>6.1.2</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/codemirror/lang-yaml</repository>
     </library>
 </libraries>

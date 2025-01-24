@@ -9,7 +9,7 @@
     "serve": "npx http-server ./playground -o index.html"
   },
   "keywords": [],
-  "author": "",
+  "author": "Josep Mulet Pol",
   "license": "GNU",
   "dependencies": {
     "@codemirror/lang-yaml": "^6.1.1",
@@ -19,6 +19,7 @@
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.1.0",
+    "@rollup/plugin-replace": "^6.0.2",
     "rollup": "^2.68.1"
   }
 }

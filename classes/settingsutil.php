@@ -17,6 +17,12 @@
 /**
  * Tiny WidgetHub plugin.
  *
+ * Contains utility methods for managing settings pages in the Tiny WidgetHub plugin.
+ *
+ * This class provides methods to dynamically create configuration settings
+ * and admin setting pages for the plugin. These settings include CSS options,
+ * editor configurations, and individual widget-specific settings.
+ *
  * @package     tiny_widgethub
  * @copyright   2024 Josep Mulet <pep.mulet@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -29,8 +35,13 @@ namespace tiny_widgethub;
  */
 class settingsutil {
     /**
-     * Summary of create_spage_items
-     * @return array
+     * Creates the base configuration items for the Tiny WidgetHub plugin.
+     *
+     * This method defines the core settings, such as whether to share page CSS
+     * in the editor's iframe, additional CSS definitions, and configuration
+     * settings in a key=value syntax.
+     *
+     * @return array An array of admin setting objects for the plugin.
      */
     public static function create_spage_items() {
         $items = [];
@@ -61,11 +72,15 @@ class settingsutil {
     }
 
     /**
-     * Creates setting pages for every widget.
-     * @param array $widgetlist
-     * @param array $usedkeys
-     * @param object $partials
-     * @return \admin_settingpage[]
+     * Creates admin setting pages for each widget in the provided list.
+     *
+     * Generates a new settings page for every widget in the `widgetlist` array.
+     * Additionally, creates a special page for a new widget template (ID = 0).
+     *
+     * @param array $widgetlist A list of widget objects to create settings pages for.
+     * @param array $usedkeys A list of keys already in use to avoid conflicts.
+     * @param object $partials Partials data used for additional settings.
+     * @return \admin_settingpage[] An array of admin setting pages.
      */
     public static function create_widget_setting_pages($widgetlist, $usedkeys, $partials) {
         $pages = [];
@@ -80,11 +95,15 @@ class settingsutil {
     }
 
     /**
-     * Returns a setting page for a given widget
-     * @param object $widget
-     * @param array $usedkeys
-     * @param object $partials
-     * @return \admin_settingpage
+     * Generates a single admin setting page for a specific widget.
+     *
+     * Creates a detailed settings page for the given widget, including configuration
+     * options and metadata. If the widget is a partial, the page title reflects this.
+     *
+     * @param object $widget The widget object for which to create the settings page.
+     * @param array $usedkeys A list of keys already in use to avoid duplication.
+     * @param object $partials Partials data used for specific widget configurations.
+     * @return \admin_settingpage The created admin setting page object.
      */
     private static function create_page_for_widget($widget, $usedkeys, $partials) {
         $windx = $widget->id;
