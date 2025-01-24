@@ -1,0 +1,5 @@
+== 1.2.1 ==
+Issue #10: Third-Party Library Documentation Required in thirdpartylibs.xml
+Issue #9: Adhere to Moodle Naming Conventions and Coding Style
+Issue #7: Hard-coded language string
+Issue #6: Adhere to Moodle Naming Conventions and Coding Style

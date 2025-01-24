@@ -3,7 +3,7 @@
     "name": "Text onto image background",
     "category": "image",
     "instructions": "It allows you to create a header with an image that fills the background of a container.\n",
-    "template": "<p><br></p> \n<!--ini imagebackground-->\n<div class=\"twh-background-img\" style=\"background-image: url('{{url}}'); padding:10px; min-height:40px; background-repeat: no-repeat; -webkit-background-size: cover; background-size: cover; background-position: 50% 50%;\">\n<h3><b>What is the probability of winning at gambling games?</b></h3>\n<p><em>Probability and Statistics</em></p>\n</div>\n<!--fi imagebackground-->\n<p><br></p>\n",
+    "template": "<p><br></p> \n<div class=\"twh-background-img\" style=\"background-image: url('{{url}}'); padding:10px; min-height:40px; background-repeat: no-repeat; -webkit-background-size: cover; background-size: cover; background-position: 50% 50%;\">\n<h3><b>What is the probability of winning at gambling games?</b></h3>\n<p><em>Probability and Statistics</em></p>\n</div>\n<p><br></p>\n",
     "selectors": "div.twh-background-img",
     "parameters": [
         {
