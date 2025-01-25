@@ -126,7 +126,7 @@ describe('widget_settings', () => {
         expect($jsonArea.val().indexOf("Hello world!")>=0).toBeTruthy();
 
         // Delete button must not be in page
-        expect(document.querySelector('button.btn-danger')).toBeNull();
+        expect(document.querySelector('button.btn-outline-danger')).toBeNull();
         // Expect save button to submit new widget
         /** @type {HTMLButtonElement | null} */
         const saveBtn = document.querySelector('button.form-submit');
@@ -156,7 +156,7 @@ describe('widget_settings', () => {
 
         await settingsModule.init({id, keys: usedKeys});
         // Delete button must be in page
-        expect(document.querySelector('button.btn-danger')).toBeTruthy();
+        expect(document.querySelector('button.btn-outline-danger')).toBeTruthy();
 
         expect(spyGetAreas).toHaveBeenCalledWith(id);
         // Editor setter has been called
@@ -215,7 +215,7 @@ describe('widget_settings', () => {
         await settingsModule.init({id, keys: usedKeys});
         // Delete button must be in page
         /** @type {HTMLButtonElement | null} */
-        const deleteBtn = document.querySelector('button.btn-danger');
+        const deleteBtn = document.querySelector('button.btn-outline-danger');
         expect(deleteBtn).toBeTruthy();
         mockConfirm.mockClear();
         // Do not accept
