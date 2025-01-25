@@ -5,12 +5,10 @@ instructions: |
 template: >
   <p><br></p> 
   <div class="twh-quote {{#notranslate}}notranslate{{/notranslate}}">
-  <!--begin: famous quote-->
   <div class="twh-iq">
   <p>You don't really understand something unless you can explain it to your grandmother.</p>
   </div>
   <cite>{{author}}</cite>
-  <!--end: famous quote-->
   </div>
   <p><br></p>
 insertquery: div.twh-iq

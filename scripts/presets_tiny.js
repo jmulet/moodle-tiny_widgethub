@@ -1,25 +1,26 @@
-/* eslint-disable no-undef */
 /* eslint-disable no-loop-func */
 /* eslint-disable no-console */
-/*
- * This is an utility script for the WidgetHub plugin
- * It converts widgets from ../repository in yaml format
- * into ../presets in .json format.
- * All json files in presets will be automatically imported
- * when the plugin is installed or updated.
+/**
+ * Utility Script for the WidgetHub Plugin
  *
- * Please, execute me with nodejs.
+ * This script processes widgets located in the `../repository` directory (in YAML format)
+ * and converts them into JSON format in the `../presets` directory.
  *
- * @autor Josep Mulet Pol <pep.mulet@gmail.com>
+ * The JSON files in the `presets` directory will be automatically imported
+ * when the WidgetHub plugin is installed or updated.
  *
- **/
+ * Usage:
+ * - This script must be executed using NodeJS
+ *
+ * Author: Josep Mulet Pol <pep.mulet@gmail.com>
+ */
 
-const { applyPartials } = require("./util");
+const {applyPartials} = require("./util");
 
 const fs = require("fs");
 const path = require("path");
 const yaml = require("js-yaml");
-const crypto = require("crypto");
+const crypt = require("crypto");
 
 /**
  * @param {string} str
@@ -108,7 +109,7 @@ function testJsonFields(wdg) {
  * @param {*} wdg
  * @returns
  */
-function testJsonFields_contents(wdg) {
+function testJsonFieldsContents(wdg) {
     let nerrs = 0;
     if (wdg.key.toLowerCase() != wdg.key || wdg.key.trim() != wdg.key) {
         nerrs++;
@@ -191,7 +192,7 @@ function checkMustache(parsed) {
                     // End of block
                     return;
                 }
-                // var defines a new variable
+                // Var defines a new variable
                 // Ignore special blocks
                 if (['#if', '#var', '#eval', '#each', '#I18n', 'i', 'j'].indexOf(match) > -1) {
                     return;
@@ -230,7 +231,7 @@ function findErrors(parsed) {
         }
     });
 
-    if (checkTemplate(parsed) || testJsonFields_contents(parsed)) {
+    if (checkTemplate(parsed) || testJsonFieldsContents(parsed)) {
         console.error("Errors detected. Fix the issues and run the script again.");
         process.exit(1);
     }
@@ -349,7 +350,7 @@ Object.entries(widgets).forEach(([f, parsed]) => {
     const preoutput = JSON.stringify(parsed, null, 4);
 
     // Compute hash with generated date field.
-    let hashNow = crypto.createHash('sha256').update(preoutput).digest('base64');
+    let hashNow = crypt.createHash('sha256').update(preoutput).digest('base64');
 
     if (filterMode === '!' || hashes[parsed.key] != hashNow) {
         hashes[parsed.key] = hashNow;

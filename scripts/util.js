@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * @param {*} obj - The object to expand
  * @param {Record<string, *>} partials - The dictionary with partials
@@ -31,7 +32,7 @@ function expandPartial(obj, partials) {
  * Partials are variables that start with @ which
  * can be expanded in different parts of the widget
  * definition.
- * @param {RawWidget} widget
+ * @param {{template: string, parameters: *[]}} widget
  * @param {Record<string, *>} partials
  * @returns {void} The same widget with partials expanded
  */

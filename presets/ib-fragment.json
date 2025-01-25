@@ -2,7 +2,7 @@
     "key": "ib-textfragment",
     "name": "Text Fragment",
     "instructions": "Use this component to insert a text excerpt from a book. \nIf you want to reduce the width, you can set a maximum width, e.g., 400px.\n",
-    "template": "<p><br></p> <!-- begin fragment text --> <div class=\"twh-fragment {{#notranslate}}notranslate{{/notranslate}}\" data-lang=\"{{_lang}}\" {{#if}}[maxWidth>0]style=\"max-width: {{maxWidth}}px;\"{{/if}}> <h4>{{#I18n}}msg{{/I18n}}:</h4> <div class=\"twh-iq\"> <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n</p> </div> </div> <!-- end fragment text --> <p><br></p>",
+    "template": "<p><br></p> <div class=\"twh-fragment {{#notranslate}}notranslate{{/notranslate}}\" data-lang=\"{{_lang}}\" {{#if}}[maxWidth>0]style=\"max-width: {{maxWidth}}px;\"{{/if}}> <h4>{{#I18n}}msg{{/I18n}}:</h4> <div class=\"twh-iq\"> <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n</p> </div> </div> <p><br></p>",
     "insertquery": ".twh-fragment>div.twh-iq",
     "selectors": "div.twh-fragment",
     "unwrap": "div.twh-iq > *",

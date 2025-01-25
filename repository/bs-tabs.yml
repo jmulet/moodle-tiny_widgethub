@@ -2,8 +2,7 @@ key: bs-tabs
 name: Tabs menu
 category: bootstrap
 instructions: >
-  Create a tab menu. You can define the number of tabs (<b>at least 2</b>). 
-  It is important that you write a random ID that is different for each menu created on the page.
+  Create a tab menu. You can define the number of tabs (<b>at least 2</b>).
 engine: ejs
 template: |
   <p><br></p>
@@ -49,10 +48,7 @@ parameters:
             e.find('div.tab-pane').removeClass('fade');
           }
         }
-  - name: ID
-    title: id
-    value: $RND
-    hidden: true
+  - partial: ID
 contextmenu:
   - predicate: li.nav-item
     actions: moveleft moveright insertafter | remove

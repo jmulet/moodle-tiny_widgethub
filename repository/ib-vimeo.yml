@@ -6,16 +6,14 @@ instructions: >
   Embed a Vimeo video responsively into the page. Enter the Vimeo video ID and a title.
   You can specify the start time of the video in seconds.
 template: |
-  <p><br></p> 
-  <!--ini vimeo-->
+  <p><br></p>
   <div class="twh-video-container" {{#if}}[maxWidth>100]style="max-width:{{maxWidth}}px"{{/if}}>
     <div class="twh-videoWrapper">
       <iframe src="https://player.vimeo.com/video/{{vimeoId}}{{#startSecond}}#t={{startSecond}}s{{/startSecond}}" frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>
     </div>
       <div class="twh-caption">
      <span class="twh-caption-counter">Video</span><span class="twh-caption-title">: {{title}}</span></div>
-    </div> 
-  <!--end vimeo-->
+    </div>
   <p><br></p>
 parameters:
   - name: vimeoId

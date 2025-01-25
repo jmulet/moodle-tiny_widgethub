@@ -3,7 +3,7 @@
     "name": "Vimeo",
     "category": "video",
     "instructions": "<b>Attention</b>: It is recommended to use the institutional YouTube channel!<br> Embed a Vimeo video responsively into the page. Enter the Vimeo video ID and a title. You can specify the start time of the video in seconds.\n",
-    "template": "<p><br></p> \n<!--ini vimeo-->\n<div class=\"twh-video-container\" {{#if}}[maxWidth>100]style=\"max-width:{{maxWidth}}px\"{{/if}}>\n  <div class=\"twh-videoWrapper\">\n    <iframe src=\"https://player.vimeo.com/video/{{vimeoId}}{{#startSecond}}#t={{startSecond}}s{{/startSecond}}\" frameborder=\"0\" webkitallowfullscreen=\"\" mozallowfullscreen=\"\" allowfullscreen=\"\"></iframe>\n  </div>\n    <div class=\"twh-caption\">\n   <span class=\"twh-caption-counter\">Video</span><span class=\"twh-caption-title\">: {{title}}</span></div>\n  </div> \n<!--end vimeo-->\n<p><br></p>\n",
+    "template": "<p><br></p>\n<div class=\"twh-video-container\" {{#if}}[maxWidth>100]style=\"max-width:{{maxWidth}}px\"{{/if}}>\n  <div class=\"twh-videoWrapper\">\n    <iframe src=\"https://player.vimeo.com/video/{{vimeoId}}{{#startSecond}}#t={{startSecond}}s{{/startSecond}}\" frameborder=\"0\" webkitallowfullscreen=\"\" mozallowfullscreen=\"\" allowfullscreen=\"\"></iframe>\n  </div>\n    <div class=\"twh-caption\">\n   <span class=\"twh-caption-counter\">Video</span><span class=\"twh-caption-title\">: {{title}}</span></div>\n  </div>\n<p><br></p>\n",
     "parameters": [
         {
             "name": "vimeoId",
