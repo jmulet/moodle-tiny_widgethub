@@ -31,7 +31,7 @@ const rawSnpt = {
 };
 
 const { DomSrv } = require('../src/service/dom_service');
-const srv = require('../src/contextInit');
+const srv = require('../src/contextinit');
 
 describe('ContextInit', () => {
     beforeAll(() => {

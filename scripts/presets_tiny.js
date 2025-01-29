@@ -306,6 +306,9 @@ let usedKeys = [];
 /** @type {Record<string, *>} */
 const widgets = {};
 
+/** @type {Record<string, *>} */
+const widgetsExpanded = {};
+
 doFiles.forEach((f) => {
     const ymlfile = fs.readFileSync(path.join(sourceDirectory, f), "utf-8");
     /** @type {*} */
@@ -314,6 +317,7 @@ doFiles.forEach((f) => {
         parsed = yaml.load(ymlfile);
         if (parsed) {
             widgets[f] = parsed;
+            widgetsExpanded[f] = JSON.parse(JSON.stringify(parsed)); // Deep copy.
         } else {
             console.error(`Error: cannot parse file ${f}`);
             process.exit(1);
@@ -327,7 +331,7 @@ doFiles.forEach((f) => {
 // Search for an special file with key named partials
 const partials = Object.values(widgets).filter((/** @type {*} */ w) => w.key === "partials")[0];
 if (partials) {
-    Object.values(widgets)
+    Object.values(widgetsExpanded)
         .filter((w) => w.key !== "partials" && !isFilter(w))
         .forEach((w) => {
             applyPartials(w, partials);
@@ -336,13 +340,14 @@ if (partials) {
 
 
 Object.entries(widgets).forEach(([f, parsed]) => {
+    const parsedExpanded = widgetsExpanded[f];
     console.log(`\n> File ${f}`);
     console.log('  ------------------------');
     if (parsed.template?.indexOf('<script') >= 0) {
         console.error("Template cannot contain any script tag.");
     }
     // Check for errors.
-    findErrors(parsed);
+    findErrors(parsedExpanded);
     usedKeys.push(parsed.key);
 
     const output = JSON.stringify(parsed, null, 4);
