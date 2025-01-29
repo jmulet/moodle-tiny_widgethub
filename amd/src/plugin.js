@@ -33,7 +33,7 @@ import {register as registerOptions} from './options';
 import {getSetup as getCommandSetup} from './commands';
 import * as Configuration from './configuration';
 
-const documentationUrl = 'https://github.com/jmulet/moodle_tiny-widgethub';
+const documentationUrl = 'https://github.com/jmulet/moodle-tiny_widgethub';
 const {component, pluginName} = Common;
 
 // Setup the plugin.
