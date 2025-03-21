@@ -65,7 +65,7 @@ class ymlsetting extends \admin_setting {
      * @var string
      */
     public $partials;
-    
+
     /**
      * Constructor for the ymlsetting class.
      *
