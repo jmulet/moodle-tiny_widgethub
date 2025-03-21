@@ -55,7 +55,17 @@ class ymlsetting extends \admin_setting {
      * @var string
      */
     public $information;
-
+    /**
+     * Pass to JS a list of widget keys in use.
+     * @var string
+     */
+    public $usedkeys;
+    /**
+     * Pass to JS an object of shared properties.
+     * @var string
+     */
+    public $partials;
+    
     /**
      * Constructor for the ymlsetting class.
      *
