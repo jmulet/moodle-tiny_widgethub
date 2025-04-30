@@ -488,8 +488,7 @@ export class Widget {
         if (!scope || !widgetScopes || widgetScopes === "*") {
             return true;
         }
-        const regex = new RegExp(widgetScopes);
-        return (regex.exec(scope) ?? null) !== null;
+        return new RegExp(widgetScopes).test(scope);
     }
     /**
      * @returns {boolean}

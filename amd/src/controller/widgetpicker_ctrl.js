@@ -91,14 +91,14 @@ export class WidgetPickerCtrl {
         let numshown = 0;
         const selectmode = this.isSelectMode();
         /** @type {JQuery<HTMLDivElement>} */
-        const allbtns = bodyForm.find(".btn-group");
+        const allbtns = bodyForm.find(".tiny_widgethub-btn-group");
         allbtns.each((i, el) => {
             // Is supported in select mode?
             let visible = !selectmode || (selectmode && el.dataset.selectable === "true");
             const el2 = el.querySelector('button');
             // Does fullfill the search criteria?
             visible &&= el2 !== null && (searchtext.trim() === '' || searchComp(el2.textContent ?? '', searchtext) ||
-                searchComp(el2.title ?? '', searchtext));
+                searchComp(el2.dataset.title ?? '', searchtext));
             setVisibility(el, visible);
             if (visible) {
                 numshown++;
@@ -123,7 +123,7 @@ export class WidgetPickerCtrl {
         /** @type {JQuery<HTMLElement>} */
         const allcatgs = this.modal.body.find(".tiny_widgethub-category");
         allcatgs.each((_, el) => {
-            const count = el.querySelectorAll(".btn-group:not(.d-none)").length;
+            const count = el.querySelectorAll(".tiny_widgethub-btn-group:not(.d-none)").length;
             setVisibility(el, count > 0);
         });
     }
@@ -133,7 +133,7 @@ export class WidgetPickerCtrl {
      */
     async onMouseEnterButton(evt) {
         const widgetTable = this.editorOptions.widgetDict;
-        const key = evt.target?.closest('.btn-group')?.dataset?.key ?? '';
+        const key = evt.target?.closest('.tiny_widgethub-btn-group')?.dataset?.key ?? '';
         const widget = widgetTable[key];
         if (!widget || widget.isFilter()) {
             // Filters do not offer preview
@@ -179,14 +179,14 @@ export class WidgetPickerCtrl {
         }
 
         // Confiure preview panel events
-        const mouseEnterDebounced = debounce(this.onMouseEnterButton.bind(this), 1000);
-
-        const onMouseOut = () => {
-            mouseEnterDebounced.clear();
-            this.modal.body.find("div.tiny_widgethub-preview")
-                .html('')
-                .css("display", "none");
-        };
+        /**
+         * @type {any}
+         */
+        let timerEnter = null;
+        /**
+         * @type {any}
+         */
+        let timerOut = null;
 
         // Event listeners.
         // Click on clear text
@@ -205,16 +205,50 @@ export class WidgetPickerCtrl {
         this.modal.body.find('div.tiny_widgethub-categorycontainer, div.tiny_widgethub-recent').on('click',
             /** @param {Event} event */
             (event) => {
-                mouseEnterDebounced.clear();
+                if (timerEnter) {
+                    clearTimeout(timerEnter);
+                    timerEnter = null;
+                }
                 this.modal.body.find("div.tiny_widgethub-preview")
                     .css("display", "none");
                 this.handlePickModalClick(event);
             });
 
+
+        const funEnter = (/** @type {any} */ evt) => {
+            console.log("enter", evt);
+            clearTimeout(timerOut);
+            timerOut = null;
+            timerEnter = setTimeout(() => {
+                this.onMouseEnterButton(evt);
+            }, 500);
+        };
+
+        const funOut = (/** @type {any} */ evt) => {
+            console.log("exit", evt);
+            const movedFrom = evt.target;
+            const movedTo = evt.relatedTarget;
+            if (movedFrom.classList.contains("tiny_widgethub-btn") && movedTo.classList.contains("tiny_widgethub-btn")) {
+                const key1 = movedFrom?.parentElement?.dataset?.key;
+                const key2 = movedTo?.parentElement?.dataset?.key;
+                if (key1 != null && key1 == key2) {
+                    console.log("Still in the same row");
+                    return;
+                }
+            }
+            clearTimeout(timerEnter);
+            timerEnter = null;
+            timerOut = setTimeout(() => {
+                this.modal.body.find("div.tiny_widgethub-preview")
+                .html('')
+                .css("display", "none");
+            }, 500);
+        };
+
         // Preview panel
-        this.modal.body.find(".btn-group")
-            .on("mouseenter", mouseEnterDebounced)
-            .on("mouseout", onMouseOut.bind(this));
+        this.modal.body.find(".tiny_widgethub-btn-group")
+            .on("mouseenter", funEnter)
+            .on("mouseout", funOut);
 
         // Store current scroll
         const scrollPane = this.modal.body.find('.tiny_widgethub-categorycontainer');
@@ -427,12 +461,12 @@ export class WidgetPickerCtrl {
             return;
         }
         /** @type {HTMLElement | undefined} */
-        const button = target.closest('button.btn');
+        const button = target.closest('button.tiny_widgethub-btn');
         // Check if it is a toggle button to autoset a filter
         if (button?.dataset?.auto) {
             const isSet = button.dataset.auto !== "true";
             button.dataset.auto = isSet + '';
-            toggleClass(button, 'btn-primary', 'btn-outline-primary');
+            toggleClass(button, 'tiny_widgethub-btn-primary', 'tiny_widgethub-btn-outline-primary');
             const key = widget.key;
             // Persist option
             const autoFilters = new Set(this.storage.getFromLocal('startup.filters', '').split(''));

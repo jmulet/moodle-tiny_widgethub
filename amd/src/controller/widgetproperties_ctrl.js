@@ -116,10 +116,10 @@ export class WidgetPropertiesCtrl {
         this.formCtrl.applyFieldWatchers(this.modal.body, paramValues, widget, false);
 
         // Bind accept action to modal
-        this.modal.footer.find("button.btn-secondary").on("click", () => {
+        this.modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", () => {
             this.modal?.destroy();
         });
-        this.modal.footer.find("button.btn-primary").on("click", () => {
+        this.modal.footer.find("button.tiny_widgethub-btn-primary").on("click", () => {
             const form = this.modal?.body?.find("form");
             let updatedValues = paramValues;
             if (form) {
