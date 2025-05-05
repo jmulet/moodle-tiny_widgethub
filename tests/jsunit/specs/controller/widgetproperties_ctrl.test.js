@@ -124,7 +124,7 @@ describe("WidgetPickerCtrl", () => {
         });
 
         // Accept the form
-        widgetPropertiesCtrl.modal?.footer.find("button.btn-primary").trigger('click');
+        widgetPropertiesCtrl.modal?.footer.find("button.tiny_widgethub-btn-primary").trigger('click');
         // Check that the elem has been updated accordingly
         expect(elem.attr('title')).toBe('The title here');
         expect(elem.hasClass('somecls')).toBe(true);

@@ -80,14 +80,14 @@ export class WidgetParamsCtrl {
       });
       this.formCtrl.attachPickers(modal.body);
       modal.footer.show();
-      modal.footer.find("button.btn-secondary").on("click", async() => {
+      modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", async() => {
          // Go back to main menú
          modal.destroy();
          if (this.parentCtrl) {
             await this.parentCtrl.handleAction();
          }
       });
-      modal.footer.find("button.btn-primary").on("click", async() => {
+      modal.footer.find("button.tiny_widgethub-btn-primary").on("click", async() => {
          // Go back to main menú
          const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, modal.body.find("form"), true);
          modal.hide();

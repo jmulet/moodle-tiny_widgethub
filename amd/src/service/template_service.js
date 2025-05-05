@@ -91,7 +91,7 @@ export class TemplateSrv {
             return ejsResolved.render(template, ctx);
         } catch (ex) {
             console.error(ex);
-            return "";
+            return "<p>Error: rendering EJS template.</p>";
         }
     }
 

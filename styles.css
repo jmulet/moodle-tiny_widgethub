@@ -11,13 +11,11 @@
 }
 
 .tiny_widgethub-preview {
-    display: none;
     position: absolute;
     bottom: -10px;
     left: 0;
     width: 100%;
-    height: 30%;
-    max-height: 150px;
+    height: 150px;
     border: 1px solid gray;
     border-radius: 4px;
     box-shadow: 3px 3px gray;
@@ -216,7 +214,7 @@ h4.tiny_widgethub-headertext {
 
 .tiny_widgethub-blink {
     position: absolute;
-    right: 100px;
+    right: 80px;
     top: 20px;
     animation: tiny_widgethub-blinker 1s infinite;
 }
@@ -235,26 +233,124 @@ h4.tiny_widgethub-headertext {
     }
 }
 
+
+/** Custom bootstrap buttons **/
+.tiny_widgethub-btn {
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    display: inline-block;
+    font-weight: 400;
+    color: #1d2125;
+    text-align: center;
+    vertical-align: middle;
+    user-select: none;
+    background-color: transparent;
+    border: 1px solid transparent;
+    padding: .375rem .75rem;
+    font-size: .9375rem;
+    line-height: 1.5;
+    border-radius: .5rem;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.tiny_widgethub-btn:hover {
+    color: #1d2125;
+    text-decoration: none;
+}
+
+.tiny_widgethub-btn-group {
+    position: relative;
+    display: inline-flex;
+    vertical-align: middle;
+    flex-wrap: wrap;
+    margin-right: -15px;
+    margin-left: -15px;
+}
+
+.tiny_widgethub-btn-group > .tiny_widgethub-btn:not(:last-child) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.tiny_widgethub-btn-group > .tiny_widgethub-btn:not(:first-child) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.tiny_widgethub-btn:not(:disabled):not(.disabled) {
+    cursor: pointer;
+}
+
+.tiny_widgethub-btn-group > .tiny_widgethub-btn {
+    position: relative;
+    flex: 1 1 auto;
+}
+
+.tiny_widgethub-btn-primary {
+    color: #fff;
+    background-color: #0f6cbf;
+    border-color: #0f6cbf;
+}
+.tiny_widgethub-btn-primary:hover {
+    color: #fff;
+    background-color: #0c589c;
+    border-color: #0b5190;
+}
+
+.tiny_widgethub-btn-outline-primary {
+    color: #0f6cbf;
+    border-color: #0f6cbf;
+}
+
+.tiny_widgethub-btn-outline-primary:hover {
+    color: #fff;
+    background-color: #0f6cbf;
+}
+
+.tiny_widgethub-btn-sm,
+.tiny_widgethub-btn-group-sm > .tiny_widgethub-btn {
+    padding: .25rem .5rem;
+    font-size: .8203125rem;
+    line-height: 1.5;
+    border-radius: .2rem;
+}
+
+.tiny_widgethub-btn-secondary {
+    color: #1d2125;
+    background-color: #ced4da;
+    border-color: #ced4da;
+}
+
+.tiny_widgethub-btn-secondary:hover {
+    color: #1d2125;
+    background-color: #b8c1ca;
+    border-color: #b1bbc4;
+}
+
 /********************************* Icons definitions */
 /** Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.**/
 .twh-icon {
     background-repeat: no-repeat;
     background-position: center;
-    height: 14px;
-    width: 14px;
+    height: 12px;
+    width: 12px;
     vertical-align: top;
     display: inline-block;
+    pointer-events: none;
 }
-.btn-primary .twh-icon path {
+.twh-icon svg {
+    pointer-events: none;
+}
+.tiny_widgethub-btn-primary .twh-icon path {
     fill: #fff;
 }
-.btn-secondary .twh-icon path {
+.tiny_widgethub-btn-secondary .twh-icon path {
     fill: #474747;
 }
-.btn-outline-primary .twh-icon path {
+.tiny_widgethub-btn-outline-primary .twh-icon path {
     fill: #0f6cbf;
 }
-.btn-outline-primary:hover .twh-icon path {
+.tiny_widgethub-btn-outline-primary:hover .twh-icon path {
     fill: #fff;
 }
 

@@ -134,16 +134,16 @@ describe("WidgetPickerCtrl", () => {
             <input>
             <div class="tiny_widgethub-emptylist"></div>
             <div class="tiny_widgethub-category">
-                <div class="btn-group" data-selectable="true" data-key="k1">
-                    <button title="Boxes">Example box</button>
+                <div class="tiny_widgethub-btn-group" data-selectable="true" data-key="k1">
+                    <button data-title="Boxes">Example box</button>
                 </div>
-                <div class="btn-group" data-selectable="true" data-key="k2">
-                    <button title="Boxes">Important box</button>
+                <div class="tiny_widgethub-btn-group" data-selectable="true" data-key="k2">
+                    <button data-title="Boxes">Important box</button>
                 </div>
             </div>
             <div class="tiny_widgethub-category">
-                <div class="btn-group" data-key="k3">
-                    <button title="Videos">Insert YouTube</button>
+                <div class="tiny_widgethub-btn-group" data-key="k3">
+                    <button data-title="Videos">Insert YouTube</button>
                 </div>
             </div>
         </div>
@@ -246,7 +246,7 @@ describe("WidgetPickerCtrl", () => {
 
     it("onMouseEnterButton decides how to render preview", async () => {
         const btnGroup = document.createElement("div");
-        btnGroup.classList.add("btn-group");
+        btnGroup.classList.add("tiny_widgethub-btn-group");
         btnGroup.dataset.key = "k1";
         btnGroup.innerHTML = '<button><i class="fa"></i></button>';
 
@@ -335,7 +335,7 @@ describe("WidgetPickerCtrl", () => {
         const modal = widgetPickCtrl.modal;
         expect(modal).toBeTruthy();
         expect(modal.body.find('.tiny_widgethub-category')).toHaveLength(2);
-        expect(modal.body.find('.btn-group')).toHaveLength(2);
+        expect(modal.body.find('.tiny_widgethub-btn-group')).toHaveLength(2);
         // It must contain one recently used widget
         expect(widgetPickCtrl.isSelectMode()).toBe(false);
         expect(modal.body.find('a[data-insert="recent"]')).toHaveLength(1);
@@ -343,7 +343,7 @@ describe("WidgetPickerCtrl", () => {
         // Trigger click on first button
         // Not usable in scope
         widget1.isUsableInScope = () => false;
-        modal.body.find('.btn-group button').first().trigger('click');
+        modal.body.find('.tiny_widgethub-btn-group button').first().trigger('click');
         await wait(500);
         expect(modal.hide).not.toHaveBeenCalled();
         expect(modal.destroy).not.toHaveBeenCalled();
@@ -353,7 +353,7 @@ describe("WidgetPickerCtrl", () => {
         // It is usable in scope
         widget1.isUsableInScope = () => true;
         mockEditor.windowManager.confirm.mockReset();
-        modal.body.find('.btn-group button').first().trigger('click');
+        modal.body.find('.tiny_widgethub-btn-group button').first().trigger('click');
         expect(modal.hide).toHaveBeenCalled();
         expect(modal.destroy).not.toHaveBeenCalled();
         expect(mockEditor.windowManager.confirm).not.toHaveBeenCalled();
