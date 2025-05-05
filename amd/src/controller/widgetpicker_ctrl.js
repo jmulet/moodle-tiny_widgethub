@@ -203,7 +203,7 @@ export class WidgetPickerCtrl {
         });
         // Click on any widget button (bubbles)
         this.modal.body.find('div.tiny_widgethub-categorycontainer, div.tiny_widgethub-recent').on('click',
-            /** @param {Event} event */
+            /** @param {JQuery.ClickEvent} event */
             (event) => {
                 if (timerEnter) {
                     clearTimeout(timerEnter);
@@ -216,7 +216,6 @@ export class WidgetPickerCtrl {
 
 
         const funEnter = (/** @type {any} */ evt) => {
-            console.log("enter", evt);
             clearTimeout(timerOut);
             timerOut = null;
             timerEnter = setTimeout(() => {
@@ -225,14 +224,13 @@ export class WidgetPickerCtrl {
         };
 
         const funOut = (/** @type {any} */ evt) => {
-            console.log("exit", evt);
             const movedFrom = evt.target;
             const movedTo = evt.relatedTarget;
             if (movedFrom.classList.contains("tiny_widgethub-btn") && movedTo.classList.contains("tiny_widgethub-btn")) {
                 const key1 = movedFrom?.parentElement?.dataset?.key;
                 const key2 = movedTo?.parentElement?.dataset?.key;
                 if (key1 != null && key1 == key2) {
-                    console.log("Still in the same row");
+                    // Still on the same row
                     return;
                 }
             }
@@ -246,7 +244,7 @@ export class WidgetPickerCtrl {
         };
 
         // Preview panel
-        this.modal.body.find(".tiny_widgethub-btn-group")
+        this.modal.body.find(".tiny_widgethub-btn-group > button")
             .on("mouseenter", funEnter)
             .on("mouseout", funOut);
 
@@ -439,7 +437,7 @@ export class WidgetPickerCtrl {
     /**
      * Handle a click within the Modal.
      *
-     * @param {Event} event The click event
+     * @param {JQuery.ClickEvent} event The click event
      */
     async handlePickModalClick(event) {
         /** @type {any} */
