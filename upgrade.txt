@@ -3,3 +3,7 @@ Issue #10: Third-Party Library Documentation Required in thirdpartylibs.xml
 Issue #9: Adhere to Moodle Naming Conventions and Coding Style
 Issue #7: Hard-coded language string
 Issue #6: Adhere to Moodle Naming Conventions and Coding Style
+
+== 1.2.2 ==
+Issue #15: Fix error message: Deprecated: Creation of dynamic property tiny_widgethub\ymlsetting::$partials
+Issue #18: Improve stability of the widget mini-preview. Make UI styles less dependent on custom themes
