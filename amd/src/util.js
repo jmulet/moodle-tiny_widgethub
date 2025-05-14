@@ -577,7 +577,11 @@ const bindingFactory = function($e) {
             }
             return {
                 getValue: () => {
-                    return performCasting(elem.attr(attrName), castTo);
+                    let attrValue = elem.attr(attrName);
+                    if (attrName.indexOf('-bs-') > 0) {
+                        attrValue = attrValue ?? elem.attr(attrName.replace('-bs-', '-'));
+                    }
+                    return performCasting(attrValue, castTo);
                 },
                 // @ts-ignore
                 setValue: (val) => {
@@ -586,6 +590,10 @@ const bindingFactory = function($e) {
                     }
                     const attrVal = val + '';
                     elem.attr(attrName, attrVal);
+                    if (attrName.indexOf('-bs-') > 0) {
+                        // Save as old bs
+                        elem.attr(attrName.replace('-bs-', '-'), attrVal);
+                    }
                     if (attrName === 'href' || attrName === 'src') {
                         elem.attr('data-mce-' + attrName, attrVal);
                     }

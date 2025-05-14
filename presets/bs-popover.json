@@ -3,7 +3,7 @@
     "name": "Popover",
     "category": "bootstrap",
     "instructions": "Add a popover annotation to a word/s. It is activated when the mouse is clicked.\n",
-    "template": "<a href=\"javascript:void(0)\" data-toggle=\"popover\" data-trigger=\"click\" \ndata-original-title=\"{{title}}\" data-content=\"{{{anotation}}}\" data-html=\"true\" data-container=\"body\"\ndata-placement=\"{{placement}}\"><span class=\"whb-inspoint\">{{word}}</span></a>\n",
+    "template": "<a href=\"javascript:void(0)\" data-toggle=\"popover\" data-bs-toggle=\"popover\" data-trigger=\"click\" data-bs-trigger=\"click\" \ndata-original-title=\"{{title}}\" data-content=\"{{{anotation}}}\" data-bs-content=\"{{{anotation}}}\" data-html=\"true\" data-bs-html=\"true\" data-container=\"body\" data-bs-container=\"body\"\ndata-placement=\"{{placement}}\" data-bs-placement=\"{{placement}}\"><span class=\"whb-inspoint\">{{word}}</span></a>\n",
     "selectors": "a[data-toggle=\"popover\"]:not([href^=\"#speak_\"])",
     "unwrap": ".whb-inspoint",
     "insertquery": ".whb-inspoint",
@@ -27,7 +27,7 @@
                 "left",
                 "right"
             ],
-            "bind": "attr('data-placement')"
+            "bind": "attr('data-bs-placement')"
         },
         {
             "name": "title",
@@ -44,9 +44,9 @@
             "type": "textarea",
             "transform": "escapeQuotes",
             "tip": "You can write basic HTML content",
-            "bind": "attr('data-content')"
+            "bind": "attr('data-bs-content')"
         }
     ],
     "author": "Josep Mulet <pep.mulet@gmail.com>",
-    "version": "1.1.0"
+    "version": "1.2.0"
 }

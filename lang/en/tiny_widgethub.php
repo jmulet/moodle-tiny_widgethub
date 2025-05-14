@@ -68,6 +68,7 @@ $string['sharecss'] = 'Share the site CSS within the editor\'s iframe';
 $string['unwrap'] = 'Unwrap';
 $string['viewplugin'] = 'View widgethub plugin';
 $string['widget'] = 'Widget';
+$string['widgethub:use'] = 'View plugin';
 $string['widgethub:viewplugin'] = 'View plugin';
 $string['widgets'] = 'Widgets';
 $string['wsearch'] = 'Search widgets ...';

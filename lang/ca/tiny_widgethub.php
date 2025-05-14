@@ -68,6 +68,7 @@ $string['sharecss'] = 'Compartir el CSS del lloc dins de l\'iframe de l\'editor'
 $string['unwrap'] = 'Desempaquetar';
 $string['viewplugin'] = 'Connector WidgetHub visible';
 $string['widget'] = 'Widget';
+$string['widgethub:use'] = 'Veure connector';
 $string['widgethub:viewplugin'] = 'Veure connector';
 $string['widgets'] = 'Widgets';
 $string['wsearch'] = 'Cercar widgets ...';
