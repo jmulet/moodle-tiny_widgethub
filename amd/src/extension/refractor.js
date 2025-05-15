@@ -66,12 +66,12 @@ function bs5Refractor(editor) {
  * @param {import("../plugin").TinyMCE} editor
  */
 async function refractoring(editor) {
-    const refractoringActive = getGlobalConfig(editor, 'oninit.refractor.bs5', '1');
-    if (refractoringActive !== '1') {
-        return;
+    const refractoringActive = getGlobalConfig(editor, 'oninit.refractor.bs5', '0');
+    let changes = false;
+    if (refractoringActive === '1') {
+        changes = bs5Refractor(editor);
     }
-    const changes2 = bs5Refractor(editor);
-    if (changes2) {
+    if (changes) {
         const saverequired = await coreStr.get_string('saverequired', Common.component);
         editor.notificationManager.open({
             text: saverequired,
