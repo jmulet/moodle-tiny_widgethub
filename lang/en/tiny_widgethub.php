@@ -62,6 +62,7 @@ $string['recents'] = 'Recent';
 $string['remove'] = 'Remove';
 $string['rmfilter'] = 'Clear search filter';
 $string['savechanges'] = 'Save changes';
+$string['saverequired'] = "Some widgets have been optimized. Please save changes.";
 $string['selectmode'] = 'Selection mode';
 $string['settings'] = 'WidgetHub component';
 $string['sharecss'] = 'Share the site CSS within the editor\'s iframe';

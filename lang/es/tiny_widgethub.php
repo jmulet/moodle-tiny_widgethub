@@ -62,6 +62,7 @@ $string['recents'] = 'Recientes';
 $string['remove'] = 'Eliminar';
 $string['rmfilter'] = 'Borrar el filtro de búsqueda';
 $string['savechanges'] = 'Guardar los cambios';
+$string['saverequired'] = "Algunos widgets se han optimizado. Debe guardar cambios al salir.";
 $string['selectmode'] = 'Modo de selección';
 $string['settings'] = 'Componente de WidgetHub';
 $string['sharecss'] = 'Compartir el CSS del sitio dentro del iframe del editor';

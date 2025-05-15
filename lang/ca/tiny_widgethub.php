@@ -62,6 +62,7 @@ $string['recents'] = 'Recents';
 $string['remove'] = 'Eliminar';
 $string['rmfilter'] = 'Esborrar el filtre de cerca';
 $string['savechanges'] = 'Desar els canvis';
+$string['saverequired'] = "S'han optimitzat alguns widgets. Cal que deseu en sortir.";
 $string['selectmode'] = 'Mode de selecció';
 $string['settings'] = 'Component de WidgetHub';
 $string['sharecss'] = 'Compartir el CSS del lloc dins de l\'iframe de l\'editor';
