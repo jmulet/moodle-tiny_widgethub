@@ -72,6 +72,11 @@ export class DomSrv {
                         const newId = 'd' + Math.random().toString(32).substring(2);
                         const clonedRef = rootRef.clone().prop("id", newId);
                         $e.prop(dataX, "#" + newId);
+                        if (dataX === 'data-bs-target') {
+                            $e.prop('data-target', "#" + newId);
+                        } else if (dataX === 'data-target') {
+                            $e.prop('data-bs-target', "#" + newId);
+                        }
                         clonedRef.insertAfter(rootRef).removeClass("active show");
                     }
                 }
