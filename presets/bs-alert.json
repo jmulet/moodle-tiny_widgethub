@@ -2,7 +2,7 @@
     "key": "bs-alert",
     "name": "Alert container",
     "category": "bootstrap",
-    "template": "<p></p>\n<div class=\"m-2 alert alert-{{severity}}{{#closable}} alert-dismissible{{/closable}} fade show\" role=\"alert\">\n  {{#closable}}\n   <button type=\"button\" class=\"btn-close close\" data-dismiss=\"alert\" data-bs-dismiss=\"alert\" aria-label=\"Close\">\n     <span aria-hidden=\"true\">&times;</span>\n   </button>\n  {{/closable}}\n  <div class=\"alert-content\">\n    <p>Lorem ipsum.</p>\n  </div>\n</div>\n<p></p>\n",
+    "template": "<p></p>\n<div class=\"m-2 alert alert-{{severity}}{{#closable}} alert-dismissible{{/closable}} fade show\" role=\"alert\">\n  {{#closable}}\n   <button type=\"button\" class=\"close\" data-dismiss=\"alert\" data-bs-dismiss=\"alert\" aria-label=\"Close\">\n     <span aria-hidden=\"true\">&times;</span>\n   </button>\n  {{/closable}}\n  <div class=\"alert-content\">\n    <p>Lorem ipsum.</p>\n  </div>\n</div>\n<p></p>\n",
     "selectors": "div[role=\"alert\"].alert",
     "insertquery": "div[role=\"alert\"].alert .alert-content",
     "unwrap": "*",
@@ -28,12 +28,12 @@
             "title": "Closable",
             "value": false,
             "bind": {
-                "get": "(e) => e.find(\"button.btn-close.close\").length > 0",
-                "set": "(e, v) => {\n    if (v && !e.find(\"button.btn-close.close\")[0]) {\n      var btn = '<button type=\"button\" class=\"btn-close close\" data-dismiss=\"alert\" data-bs-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>';\n      e.prepend(btn);\n      e.addClass('alert-dismissible');\n    } else {\n      e.removeClass('alert-dismissible');\n      e.find(\"button.btn-close.close\").remove();\n    }\n}\n"
+                "get": "(e) => e.find(\"button.close\").length > 0",
+                "set": "(e, v) => {\n    if (v && !e.find(\"button.close\")[0]) {\n      var btn = '<button type=\"button\" class=\"close\" data-dismiss=\"alert\" data-bs-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>';\n      e.prepend(btn);\n      e.addClass('alert-dismissible');\n    } else {\n      e.removeClass('alert-dismissible');\n      e.find(\"button.close\").remove();\n    }\n}\n"
             }
         }
     ],
     "autocomplete": "severity",
     "author": "Josep Mulet <pep.mulet@gmail.com>",
-    "version": "1.2.0"
+    "version": "1.3.1"
 }
