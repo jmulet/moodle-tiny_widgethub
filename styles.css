@@ -131,6 +131,7 @@ div.tiny_widgethub-growl {
     position: relative;
     max-height: 450px;
     overflow: hidden auto;
+    overscroll-behavior-y: contain;
 }
 
 .tiny_widgethub-category {

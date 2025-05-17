@@ -29,7 +29,7 @@
             "value": false,
             "bind": {
                 "get": "(e) => e.find(\"button.close\").length > 0",
-                "set": "(e, v) => {\n    if (v && !e.find(\"button.close\")[0]) {\n      var btn = '<button type=\"button\" class=\"close\" data-dismiss=\"alert\" data-bs-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>';\n      e.prepend(btn);\n      e.addClass('alert-dismissible');\n    } else {\n      e.removeClass('alert-dismissible');\n      e.find(\"button.close\").remove();\n    }\n}\n"
+                "set": "(e, v) => {\n    if (v && !e.find(\"button.close\")[0]) {\n      var btn = '<button type=\"button\" class=\"close\" data-dismiss=\"alert\" data-bs-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>';\n      e.prepend(btn);\n      e.addClass('alert-dismissible');\n    } else if (!v) {\n      e.removeClass('alert-dismissible');\n      e.find(\"button.close\").remove();\n    }\n}\n"
             }
         }
     ],

@@ -224,19 +224,17 @@ function initializer(editor) {
 
             // Activate popover and tooltips
             scriptBS.onload = () => {
-                const scriptInitBS = editor.dom.create("script");
-                scriptInitBS.innerHTML = `
-                $(document).ready(function() {
-                    $('body').tooltip({
-                        selector: '[data-toggle="tooltip"]',
-                        trigger: 'hover'
-                    });
-                    $('body').popover({
-                        selector: '[data-toggle="popover"]',
-                        trigger: 'hover'
-                    });
-                });`;
-                head.appendChild(scriptInitBS);
+                //if (bsVersion.startsWith('4')) {
+                    const scriptInitBS = editor.dom.create("script");
+                    scriptInitBS.innerHTML = `
+                    $(document).ready(function() {
+                        $('body').popover({
+                            selector: '[data-toggle="popover"]',
+                            trigger: 'hover'
+                        });
+                    });`;
+                    head.appendChild(scriptInitBS);
+                //}
             };
             // Run all subscribers
             getListeners('onInit').forEach(listener => listener(editor));

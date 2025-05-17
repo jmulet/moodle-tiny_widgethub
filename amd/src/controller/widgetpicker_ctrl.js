@@ -23,9 +23,10 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+// eslint-disable-next-line camelcase
 import {get_string} from 'core/str';
 import {getWidgetParamsFactory} from '../controller/widgetparams_ctrl';
-import {getEditorOptions} from '../options';
+import {getEditorOptions, getGlobalConfig} from '../options';
 import {getModalSrv} from '../service/modal_service';
 import {getTemplateSrv} from '../service/template_service';
 import {getUserStorage} from '../service/userstorage_service';
@@ -318,6 +319,7 @@ export class WidgetPickerCtrl {
      * @property {number} widgetindex
      * @property {string} widgetkey
      * @property {string} widgetname
+     * @property {string} widgetorder
      * @property {string} widgettitle
      * @property {string} iconname
      * @property {boolean} disabled
@@ -328,6 +330,7 @@ export class WidgetPickerCtrl {
     /**
      * @typedef {Object} Category
      * @property {string} name
+     * @property {string} order
      * @property {boolean} hidden
      * @property {string} color
      * @property {Button[]} buttons
@@ -341,6 +344,17 @@ export class WidgetPickerCtrl {
      * @returns {TemplateContext} data
      */
     getPickTemplateContext() {
+        /** @type {Record<string, string>} */
+        const categoryOrderMap = {};
+        getGlobalConfig(this.editor, 'category.order', '')
+            .split(',')
+            .forEach(item => {
+                const itemOrder = item.split(':');
+                if (itemOrder.length === 2) {
+                    categoryOrderMap[itemOrder[0].trim().toLocaleUpperCase()] = itemOrder[1].trim();
+                }
+            });
+
         const snptDict = this.editorOptions.widgetDict;
         const allButtons = Object.values(snptDict);
         // Parse filters that are autoset by the user.
@@ -362,6 +376,7 @@ export class WidgetPickerCtrl {
                 }
                 found = {
                     name: catName,
+                    order: categoryOrderMap[catName] ?? catName,
                     hidden: false,
                     color: color + ', ' + sat,
                     buttons: []
@@ -374,6 +389,7 @@ export class WidgetPickerCtrl {
                 widgetindex: btn.id,
                 widgetkey: btn.key,
                 widgetname: btn.name,
+                widgetorder: btn.prop('order') ?? btn.name ?? btn.key ?? '',
                 widgettitle: btn.name + " " + catName,
                 iconname: "fa fas fa-eye",
                 disabled: !btn.isUsableInScope(),
@@ -383,17 +399,10 @@ export class WidgetPickerCtrl {
             });
         });
         const categoriesList = Object.values(categories);
-        categoriesList.sort((a, b) => {
-            if (a.name < b.name) {
-                return -1;
-            }
-            if (a.name > b.name) {
-                return 1;
-            }
-            return 0;
-        });
+        categoriesList.sort((a, b) => (a.order + '').localeCompare((b.order + '')));
         categoriesList.forEach(cat => {
-            cat.buttons.sort();
+            // Sort buttons by the order, not by the name
+            cat.buttons.sort((a, b) => (a.widgetorder + '').localeCompare((b.widgetorder + '')));
             cat.hidden = cat.buttons.filter(btn => !btn.hidden).length == 0;
         });
 

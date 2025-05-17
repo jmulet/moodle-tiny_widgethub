@@ -17,7 +17,7 @@ template: |
         </h5>
       </div>
       <div id="coll_<%= id %>_<%= i %>" class="collapse<%= i==1 ? ' show' : '' %>" aria-labelledby="head_<%= id %>_<%= i %>"
-       <%- indp ? '' : ' data-parent="#acc_'+id + '" data-bs-parent="#acc_'+id+'"' %>>
+       <%- indp ? '' : ' data-parent="#acc_' + id + '" data-bs-parent="#acc_' + id + '"' %>>
         <div class="card-body">
           <p>Lorem ipsum section <%= i %></p>
         </div>

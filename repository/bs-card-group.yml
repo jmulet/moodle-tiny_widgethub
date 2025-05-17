@@ -6,19 +6,23 @@ instructions: >
 engine: ejs
 template: |
   <p><br></p>
-  <div class="card-deck">
-  <% for(var i=1; i<=n; i++) { %>
-  <div class="card">
-    <img class="card-img-top" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Moodle-logo.svg/2880px-Moodle-logo.svg.png" alt="Card image cap">
-    <div class="card-body">
-      <h5 class="card-title">Card title</h5>
-      <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+  <div class="container">
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+    <% for(var i=1; i<=n; i++) { %>
+    <div class="col">
+    <div class="card h-100">
+      <img class="card-img-top" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Moodle-logo.svg/2880px-Moodle-logo.svg.png" alt="Card image cap">
+      <div class="card-body">
+        <h5 class="card-title">Card title</h5>
+        <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+      </div>
+      <div class="card-footer">
+        <small class="text-muted">Last updated 3 mins ago</small>
+      </div>
     </div>
-    <div class="card-footer">
-      <small class="text-muted">Last updated 3 mins ago</small>
     </div>
-  </div>
-  <% } %>
+    <% } %>
+    </div>
   </div>
   <p><br></p>
 parameters:
