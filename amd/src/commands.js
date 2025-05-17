@@ -224,17 +224,15 @@ function initializer(editor) {
 
             // Activate popover and tooltips
             scriptBS.onload = () => {
-                //if (bsVersion.startsWith('4')) {
-                    const scriptInitBS = editor.dom.create("script");
-                    scriptInitBS.innerHTML = `
+                const scriptInitBS = editor.dom.create("script");
+                scriptInitBS.innerHTML = `
                     $(document).ready(function() {
                         $('body').popover({
                             selector: '[data-toggle="popover"]',
                             trigger: 'hover'
                         });
                     });`;
-                    head.appendChild(scriptInitBS);
-                //}
+                head.appendChild(scriptInitBS);
             };
             // Run all subscribers
             getListeners('onInit').forEach(listener => listener(editor));

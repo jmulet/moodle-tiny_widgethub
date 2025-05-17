@@ -12,6 +12,8 @@ Issue #18: Improve stability of the widget mini-preview. Make UI styles less dep
 Adapt the plugin for the Moodle version 5.0:
  - Widget repository: add data-bs- attributes to BS5 components.
  - Include the possibility to refractor non data-bs- widgets in page to support BS5
+ - Adapt card-group and jumbotron widgets to support BS5
+ - onInit refractor to BS5 data-bs- properties
 Issue #21: Feature request (minor): sorting and ordering of widgets (and categories) both in backend, reflected in frontend dialog
  - Management page: widgets are sorted by its name
  - Frontend dialog: custom sorting of categories and buttons via order attribute

@@ -6,6 +6,7 @@ Optional keywords are marked with **[ ]**.
 |-----------------------|---------------------------------------|-----------------------------------------------------------------------------------------------------------|
 | **`key`**             | `string`                             | A unique identifier for the widget.                                                                      |
 | **`name`**            | `string`                             | The name displayed on the button for selecting the widget.                                                |
+| **`[order]`**           | `string`                              | (Optional) If present, the name used to sort the widget alphabetically otherwise the `name` property is used      |
 | **`category`**        | `string`                             | The category in which the widget appears.                                                                |
 | **`[instructions]`**  | `string`                             | (Optional) Detailed explanation of the widget’s purpose and usage.                                       |
 | **`[selectors]`**     | `string` or `string[]` |  (Optional) Required if the widget uses bindings. Defines the CSS selector that identifies the widget root. If an array is used, the remaining selectors apply to the descendants of the root element. |
