@@ -98,7 +98,7 @@ export class WidgetPickerCtrl {
             let visible = !selectmode || (selectmode && el.dataset.selectable === "true");
             const el2 = el.querySelector('button');
             // Does fullfill the search criteria?
-            visible &&= el2 !== null && (searchtext.trim() === '' || searchComp(el2.textContent ?? '', searchtext) ||
+            visible = visible && (el2 !== null) && (searchtext.trim() === '' || searchComp(el2.textContent ?? '', searchtext) ||
                 searchComp(el2.dataset.title ?? '', searchtext));
             setVisibility(el, visible);
             if (visible) {
