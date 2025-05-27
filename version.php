@@ -28,4 +28,4 @@ $plugin->component = 'tiny_widgethub';
 $plugin->release = '1.3.0';
 $plugin->requires = 2022112800;
 $plugin->maturity = MATURITY_STABLE;
-$plugin->version = 2025051701;
+$plugin->version = 2025052701;
