@@ -33,6 +33,9 @@ import {register as registerOptions} from './options';
 import {getSetup as getCommandSetup} from './commands';
 import * as Configuration from './configuration';
 
+// Register extensions
+import './extension/refractor';
+
 const documentationUrl = 'https://github.com/jmulet/moodle-tiny_widgethub';
 const {component, pluginName} = Common;
 

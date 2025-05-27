@@ -51,18 +51,18 @@
     {{$body}}
     <div class="tabbable" style="table-layout: fixed; width:99%;">
         <ul class="nav nav-tabs" role="tablist">
-            <li class="nav-item"><a href="#{{idtabpane}}_0" class="nav-link active" role="tab" data-toggle="tab"><span>&nbsp; {{#str}} edit, tiny_widgethub {{/str}}</span></a></li>
-            {{^filter}}<li class="nav-item"><a href="#{{idtabpane}}_1" class="nav-link" role="tab" data-toggle="tab"><span>&nbsp; {{#str}} preview, tiny_widgethub {{/str}}</span></a></li>{{/filter}}
+            <li class="nav-item"><a href="#{{idtabpane}}_0" class="nav-link active" role="tab" data-toggle="tab" data-bs-toggle="tab"><span>&nbsp; {{#str}} edit, tiny_widgethub {{/str}}</span></a></li>
+            {{^filter}}<li class="nav-item"><a href="#{{idtabpane}}_1" class="nav-link" role="tab" data-toggle="tab" data-bs-toggle="tab"><span>&nbsp; {{#str}} preview, tiny_widgethub {{/str}}</span></a></li>{{/filter}}
         </ul>
         <div class="tab-content">
             <div class="tab-pane active" id="{{idtabpane}}_0">
                 {{#instructions}}
                 <div style="background: whitesmoke; position:relative; padding: 15px;">
-                    <div class="tiny_widgethub-instructionstext" style="max-height:120px; overflow: hidden auto;">{{{instructions}}}</div>
+                    <div class="tiny_widgethub-instructionstext" style="max-height:120px; overflow: hidden auto;overscroll-behavior-y: contain;">{{{instructions}}}</div>
                 </div>
                 {{/instructions}}
                 <hr style="margin:15px;">
-                <div style="max-height:350px;overflow:hidden auto;border-bottom:1px solid lightgray;">
+                <div style="max-height:350px;overflow:hidden auto;overscroll-behavior-y: contain;border-bottom:1px solid lightgray;">
                 <form>
                 {{#controls}}
                     {{{.}}}

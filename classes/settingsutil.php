@@ -65,7 +65,7 @@ class settingsutil {
             'tiny_widgethub/cfg',
             'tiny_widgethub_cfg',
             get_string('cfg', 'tiny_widgethub'),
-            "enable.contextmenu.level=1\ndisable.plugin.pages=",
+            "enable.contextmenu.level=1\ncategory.order=misc:z1\noninit.refractor.bs5=0",
             PARAM_RAW
         );
         return $items;

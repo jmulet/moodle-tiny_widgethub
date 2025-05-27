@@ -224,19 +224,18 @@ function initializer(editor) {
 
             // Activate popover and tooltips
             scriptBS.onload = () => {
-                const scriptInitBS = editor.dom.create("script");
-                scriptInitBS.innerHTML = `
-                $(document).ready(function() {
-                    $('body').tooltip({
-                        selector: '[data-toggle="tooltip"]',
-                        trigger: 'hover'
-                    });
-                    $('body').popover({
-                        selector: '[data-toggle="popover"]',
-                        trigger: 'hover'
-                    });
-                });`;
-                head.appendChild(scriptInitBS);
+                if (!editor.dom.get('init_bs_comp')) {
+                    const scriptInitBS = editor.dom.create("script");
+                    scriptInitBS.id = 'init_bs_comp';
+                    scriptInitBS.innerHTML = `
+                    $(document).ready(function() {
+                        $('body').popover({
+                            selector: '[data-toggle="popover"]',
+                            trigger: 'hover'
+                        });
+                    });`;
+                    head.appendChild(scriptInitBS);
+                }
             };
             // Run all subscribers
             getListeners('onInit').forEach(listener => listener(editor));

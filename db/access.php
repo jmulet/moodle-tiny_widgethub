@@ -36,4 +36,11 @@ $capabilities = [
             'manager' => CAP_ALLOW,
         ],
     ],
+    'tiny/widgethub:use' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => [
+            'user' => CAP_ALLOW,
+        ],
+    ],
 ];

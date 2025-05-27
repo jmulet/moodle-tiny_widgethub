@@ -577,7 +577,11 @@ const bindingFactory = function($e) {
             }
             return {
                 getValue: () => {
-                    return performCasting(elem.attr(attrName), castTo);
+                    let attrValue = elem.attr(attrName);
+                    if (attrName.indexOf('-bs-') > 0) {
+                        attrValue = attrValue ?? elem.attr(attrName.replace('-bs-', '-'));
+                    }
+                    return performCasting(attrValue, castTo);
                 },
                 // @ts-ignore
                 setValue: (val) => {
@@ -586,8 +590,55 @@ const bindingFactory = function($e) {
                     }
                     const attrVal = val + '';
                     elem.attr(attrName, attrVal);
+                    if (attrName.indexOf('-bs-') > 0) {
+                        // Save as old bs
+                        elem.attr(attrName.replace('-bs-', '-'), attrVal);
+                    }
                     if (attrName === 'href' || attrName === 'src') {
                         elem.attr('data-mce-' + attrName, attrVal);
+                    }
+                }
+            };
+        },
+        /**
+         * Adapted to take into account both data- and data-bs- for Boostrap 4 & 5 compatibility.
+         * @param {string} attrName - Name without data- nor data-bs-
+         * @param {string=} query
+         * @param {string=} castTo
+         * @param {number=} version - 4 or 5 depending the version of BS currently using
+         * @returns {Binding}
+         */
+        attrBS: (attrName, query, castTo, version) => {
+            let elem = $e;
+            if (query) {
+                elem = $e.find(query);
+            }
+            return {
+                getValue: () => {
+                    // If version=4 it has preference BS4 over BS5, it will not remove BS4 prefix
+                    let p1 = '';
+                    let p2 = 'bs-';
+                    if (version === 5) {
+                        p1 = p2;
+                        p2 = '';
+                    }
+                    let value = elem.attr('data-' + p1 + attrName);
+                    if (value === undefined) {
+                        value = elem.attr('data-' + p2 + attrName);
+                    }
+                    return performCasting(value || '', castTo);
+                },
+                // @ts-ignore
+                setValue: (val) => {
+                    if (typeof val === "boolean") {
+                        val = val ? 1 : 0;
+                    }
+                    const attrVal = val + '';
+                    elem.attr('data-bs-' + attrName, attrVal);
+                    if (version === 5) {
+                        elem.removeAttr('data-' + attrName);
+                    } else {
+                        elem.attr('data-' + attrName, attrVal);
                     }
                 }
             };
@@ -629,6 +680,58 @@ const bindingFactory = function($e) {
                         if (attrName === 'href' || attrName === 'src') {
                             elem.removeAttr('data-mce-' + attrName);
                         }
+                    }
+                }
+            };
+        },
+        /**
+         * Variant to check for compatibility between Bootstrap 4 and 5.
+         * @param {string} attr - attr name without data- nor data-bs-
+         * @param {string=} query
+         * @param {boolean=} neg
+         * @param {number=} version - 4 or 5
+         * @returns {Binding}
+         */
+        hasAttrBS: (attr, query, neg, version) => {
+            let elem = $e;
+            if (query) {
+                elem = $e.find(query);
+            }
+            const parts = attr.split("=");
+            const attrName = parts[0].trim();
+            let attrValue = '';
+            if (parts.length > 1) {
+                attrValue = parts[1].trim();
+            }
+            const getValuePrefix = (/** @type{string} **/ prefix) => {
+                let found = elem.attr(prefix + attrName) != null;
+                if (attrValue) {
+                    found = found && elem.attr(prefix + attrName) === attrValue;
+                }
+                return xor(neg, found);
+            };
+            return {
+                getValue: () => {
+                    let p1 = 'data-';
+                    let p2 = 'data-bs-';
+                    if (version === 5) {
+                        p2 = p1;
+                        p1 = 'data-bs-';
+                    }
+                    return getValuePrefix(p1) || getValuePrefix(p2);
+                },
+                // @ts-ignore
+                setValue: (bool) => {
+                    if (xor(neg, bool)) {
+                        elem.attr('data-bs-' + attrName, attrValue || '');
+                        if (version === 5) {
+                            elem.removeAttr('data-' + attrName);
+                        } else {
+                            elem.attr('data-' + attrName, attrValue || '');
+                        }
+                    } else {
+                        elem.removeAttr('data-' + attrName);
+                        elem.removeAttr('data-bs-' + attrName);
                     }
                 }
             };

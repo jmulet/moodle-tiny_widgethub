@@ -4,9 +4,10 @@ category: bootstrap
 instructions: >
   Add a popover annotation to a word/s. It is activated when the mouse is clicked.
 template: |
-  <a href="javascript:void(0)" data-toggle="popover" data-trigger="click" 
-  data-original-title="{{title}}" data-content="{{{anotation}}}" data-html="true" data-container="body"
-  data-placement="{{placement}}"><span class="whb-inspoint">{{word}}</span></a>
+  <a href="javascript:void(0)" data-toggle="popover" data-bs-toggle="popover" data-trigger="click" data-bs-trigger="click" 
+  data-original-title="{{title}}" data-bs-original-title="{{title}}" data-content="{{{anotation}}}" data-bs-content="{{{anotation}}}" 
+  data-html="true" data-bs-html="true" data-container="body" data-bs-container="body"
+  data-placement="{{placement}}" data-bs-placement="{{placement}}"><span class="whb-inspoint">{{word}}</span></a>
 selectors: a[data-toggle="popover"]:not([href^="#speak_"])
 unwrap: .whb-inspoint
 insertquery: .whb-inspoint
@@ -26,19 +27,19 @@ parameters:
       - bottom
       - left
       - right
-    bind: attr('data-placement')
+    bind: attrBS('placement')
   - name: title
     value: ""
     title: Title of popover
     transform: trim
     tip: This parameter is optional. If you add it, the title will appear above the balloon
-    bind: attr('data-original-title')
+    bind: attrBS('original-title')
   - name: anotation
     value: It's <b>awesome</b> 
     title: Content of popover
     type: textarea 
     transform: escapeQuotes
     tip: You can write basic HTML content
-    bind: attr('data-content')
+    bind: attrBS('content')
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 1.1.0
+version: 1.3.0

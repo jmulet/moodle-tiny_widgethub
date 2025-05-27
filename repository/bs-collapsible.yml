@@ -17,7 +17,7 @@ template: |
         </h5>
       </div>
       <div id="coll_<%= id %>_<%= i %>" class="collapse<%= i==1 ? ' show' : '' %>" aria-labelledby="head_<%= id %>_<%= i %>"
-       <%- indp ? '' : ' data-parent="#acc_'+id + '" data-bs-parent="#acc_'+id+'"' %>>
+       <%- indp ? '' : ' data-parent="#acc_' + id + '" data-bs-parent="#acc_' + id + '"' %>>
         <div class="card-body">
           <p>Lorem ipsum section <%= i %></p>
         </div>
@@ -58,4 +58,4 @@ contextmenu:
   - predicate: .card
     actions: moveup movedown insertafter | remove
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 1.1.0
+version: 1.2.0

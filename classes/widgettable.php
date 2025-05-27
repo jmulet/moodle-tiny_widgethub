@@ -170,6 +170,10 @@ class widgettable extends \admin_setting {
             );
             $ret[] = $cfg;
         }
+        // Sort the array by the 'name' property.
+        usort($ret, function ($a, $b) {
+            return strcmp($a->name, $b->name);
+        });
         return $ret;
     }
 }

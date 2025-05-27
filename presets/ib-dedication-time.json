@@ -2,7 +2,7 @@
     "key": "ib-dedication-time",
     "name": "Dedication Time",
     "instructions": "This snippet is used to recommend a minimum dedication time for a resource.  Preferably use multiples of 15 for the minutes.\n",
-    "template": "<div class=\"twh-rwrap\"> <div class=\"twh-time\" data-toggle=\"tooltip\" data-placement=\"bottom\" data-bs-toggle=\"tooltip\" data-bs-placement=\"bottom\" title=\"{{title}}\">\n  <i class=\"fad fa-stopwatch\" aria-hidden=\"true\"></i>\n  <span>\n    {{#hours}} {{hours}} h {{/hours}}\n    {{#minutes}} {{minutes}} min {{/minutes}}\n  </span>\n</div> </div>  <p><br></p>",
+    "template": "<div class=\"twh-rwrap\"> <div class=\"twh-time\" data-toggle=\"tooltip\" data-bs-toggle=\"tooltip\" data-placement=\"bottom\" data-bs-placement=\"bottom\" title=\"{{title}}\">\n  <i class=\"fad fa-stopwatch\" aria-hidden=\"true\"></i>\n  <span>\n    {{#hours}} {{hours}} h {{/hours}}\n    {{#minutes}} {{minutes}} min {{/minutes}}\n  </span>\n</div> </div>  <p><br></p>",
     "parameters": [
         {
             "name": "hours",
@@ -27,5 +27,5 @@
         }
     ],
     "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
-    "version": "1.1.0"
+    "version": "1.2.0"
 }
