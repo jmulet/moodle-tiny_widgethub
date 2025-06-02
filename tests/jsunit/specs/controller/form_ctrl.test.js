@@ -52,7 +52,7 @@ describe("FormCtrl", () => {
             _id += 1;
             return (_id) + "";
         };
-        mockEditor = require('../editor.mock')(12345, 0, "text selected");
+        mockEditor = require('../editor.mock')(12345, {id: 0, username: 'joe', roles: ['student'] }, "text selected");
         formCtrl = new FormCtrl(mockEditor, mockUserStorage, mockTemplateSrv, mockFileSrv, jQuery);
     })
 

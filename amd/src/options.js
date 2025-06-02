@@ -27,7 +27,7 @@ import Common from './common';
 const pluginName = Common.pluginName;
 
 const showPlugin = getPluginOptionName(pluginName, 'showplugin');
-const userId = getPluginOptionName(pluginName, 'userid');
+const userOpt = getPluginOptionName(pluginName, 'user');
 const courseId = getPluginOptionName(pluginName, 'courseid');
 const widgetList = getPluginOptionName(pluginName, 'widgetlist');
 
@@ -46,9 +46,13 @@ export const register = (editor) => {
         "default": true,
     });
 
-    registerOption(userId, {
-        processor: 'string',
-        "default": "-1",
+    registerOption(userOpt, {
+        processor: 'object',
+        "default": {
+            id: 0,
+            username: '',
+            roles: []
+        },
     });
 
     registerOption(courseId, {
@@ -130,8 +134,8 @@ export const getWidgetDict = (editor) => {
         .map(w => new Widget(w, partials || {}));
 
     // Remove those buttons that aren't usable for the current user
-    const id = editor.options.get(userId);
-    wrappedWidgets.filter(w => w.isFor(id)).forEach(w => {
+    const userInfo = editor.options.get(userOpt);
+    wrappedWidgets.filter(w => w.isFor(userInfo)).forEach(w => {
         if (_widgetDict) {
             _widgetDict[w.key] = w;
         }
@@ -148,10 +152,10 @@ export class EditorOptions {
     }
 
     /**
-     * @returns {number} - an integer with the id of the current user
+     * @returns {{id: number, username: string, roles: string[]}} - an integer with the id of the current user
      */
-    get userId() {
-        return parseInt(this.editor.options.get(userId));
+    get userInfo() {
+        return this.editor.options.get(userOpt);
     }
 
     /**
@@ -330,6 +334,10 @@ export function applyPartials(widget, partials) {
  * @property {string} [insertquery]
  * @property {string} [unwrap]
  * @property {string} [for]
+ * @property {string} [forids] - Equivalent to [for]
+ * @property {string} [forusernames]
+ * @property {string} [forroles]
+ * @property {string} [formatch] - AND or OR, Defaults to AND (The rules must be satified if present)
  * @property {string} [autocomplete]
  * @property {string} version
  * @property {string} author
@@ -344,7 +352,7 @@ export function applyPartials(widget, partials) {
  * @classdesc Wrapper for Widget definition
  */
 export class Widget {
-    #widget;
+    _widget;
     #instructionsParsed = false;
     /** @type {string | undefined} */
     _preview;
@@ -356,83 +364,83 @@ export class Widget {
     constructor(widget, partials) {
         partials = partials ?? {};
         applyPartials(widget, partials);
-        this.#widget = widget;
+        this._widget = widget;
     }
     /**
      * @returns {number}
      */
      get id() {
-        return this.#widget.id;
+        return this._widget.id;
     }
     /**
      * @returns {string}
      */
     get name() {
-        return this.#widget.name;
+        return this._widget.name;
     }
     /**
      * @returns {string}
      */
     get key() {
-        return this.#widget.key;
+        return this._widget.key;
     }
     /**
      * @returns {Record<string, Record<string, string>>}
      */
     get I18n() {
-        return this.#widget.I18n || {};
+        return this._widget.I18n || {};
     }
     /**
      * @returns {string}
      */
     get template() {
-        return this.#widget.template ?? this.#widget.filter ?? '';
+        return this._widget.template ?? this._widget.filter ?? '';
     }
     /**
      * @returns {string}
      */
     get category() {
-        return this.#widget.category ?? "MISC";
+        return this._widget.category ?? "MISC";
     }
     /**
      * @returns {string=}
      */
     get insertquery() {
-        return this.#widget.insertquery;
+        return this._widget.insertquery;
     }
     /**
      * @returns {string | string[] =}
      */
     get selectors() {
-        return this.#widget.selectors;
+        return this._widget.selectors;
     }
     /**
      * @returns {string=}
      */
     get unwrap() {
-        return this.#widget.unwrap;
+        return this._widget.unwrap;
     }
     /**
      * @returns {string}
      */
     get version() {
-        return this.#widget.version || "1.0.0";
+        return this._widget.version || "1.0.0";
     }
     /**
      * @returns {string}
      */
     get instructions() {
-        if (this.#widget.instructions && !this.#instructionsParsed) {
-            this.#widget.instructions = decodeURIComponent(this.#widget.instructions);
+        if (this._widget.instructions && !this.#instructionsParsed) {
+            this._widget.instructions = decodeURIComponent(this._widget.instructions);
             this.#instructionsParsed = true;
         }
-        return this.#widget.instructions ?? '';
+        return this._widget.instructions ?? '';
     }
     /**
      * @returns {Param[]}
      */
     get parameters() {
-        return this.#widget.parameters ?? [];
+        return this._widget.parameters ?? [];
     }
     /**
      * @returns {Object.<string, any>}
@@ -440,34 +448,67 @@ export class Widget {
     get defaults() {
         /** @type {Object.<string, any> } */
         const obj = {};
-        (this.#widget.parameters ?? []).forEach((param) => {
+        (this._widget.parameters ?? []).forEach((param) => {
             obj[param.name] = param.value;
         });
         return obj;
     }
     /**
-     * @param {number} userId
+     * @param {{id: number, username: string, roles: string[]}} userInfo
      * @returns {boolean}
      */
-    isFor(userId) {
-        if (this.#widget.hidden === true) {
+    isFor(userInfo) {
+        if (this._widget.hidden === true) {
             return false;
         }
-        let grantStr = (this.#widget.for || '').trim();
-        if (grantStr === '' || grantStr === '*') {
+
+        const checkList = (/** @type {any} **/ value, /** @type {string} */ ruleStr) => {
+            if (!ruleStr || ruleStr.trim() === '') {
+                return null; // Null means "no rule set".
+            } else if (ruleStr.trim() === '*') {
+                return true;
+            }
+
+            let allowMode = ruleStr.trim().startsWith('+') || !ruleStr.trim().startsWith('-');
+            const list = ruleStr.replace(/[+\-\s]/g, '').split(',');
+            return allowMode ? list.includes(String(value)) : !list.includes(String(value));
+        };
+
+        const idRule = this._widget.for || this._widget.forids || '';
+        const usernameRule = this._widget.forusernames || '';
+        const roleRule = this._widget.forroles || '';
+
+        const results = [];
+
+        const idResult = checkList(userInfo.id, idRule);
+        if (idResult !== null) {
+            results.push(idResult);
+        }
+
+        const usernameResult = checkList(userInfo.username, usernameRule);
+        if (usernameResult !== null) {
+            results.push(usernameResult);
+        }
+
+        const roleResult = roleRule.trim() === '' ?
+            null : userInfo.roles.some(role => checkList(role?.toLowerCase(), roleRule?.toLowerCase()));
+        if (roleResult !== null) {
+            results.push(roleResult);
+        }
+
+        const matchMode = (this._widget.formatch || 'AND').toUpperCase();
+
+        // No rules at all? Allow by default
+        if (results.length === 0) {
             return true;
         }
-        let allowMode = true;
-        if (grantStr.startsWith('-')) {
-            allowMode = false;
-        }
-        grantStr = grantStr.replace(/[+\- ]/g, '');
-        const grantList = grantStr.split(",");
-        const isAllowed = (allowMode && grantList.indexOf(userId + "") >= 0) ||
-                         (!allowMode && grantList.indexOf(userId + "") < 0);
+
+        const isAllowed = matchMode === 'OR' ? results.some(Boolean) : results.every(Boolean);
+
         if (!isAllowed) {
-            console.warn(`Widget ${this.#widget.key} not allowed to user ${userId}: ${grantList}`);
+            console.warn(`Widget ${this._widget.key} not allowed for user ${userInfo.id}`);
         }
+
         return isAllowed;
     }
 
@@ -475,7 +516,7 @@ export class Widget {
      * @returns {boolean}
      */
     isFilter() {
-        return this.#widget.template === undefined && this.#widget.filter !== undefined;
+        return this._widget.template === undefined && this._widget.filter !== undefined;
     }
 
     /**
@@ -484,7 +525,7 @@ export class Widget {
      */
     isUsableInScope(scope) {
         scope = scope ?? Shared.currentScope ?? '';
-        const widgetScopes = this.#widget.scope;
+        const widgetScopes = this._widget.scope;
         if (!scope || !widgetScopes || widgetScopes === "*") {
             return true;
         }
@@ -494,7 +535,7 @@ export class Widget {
      * @returns {boolean}
      */
     hasBindings() {
-        return (this.#widget.parameters ?? []).some(param => param.bind !== undefined);
+        return (this._widget.parameters ?? []).some(param => param.bind !== undefined);
     }
     /**
      * Recovers the property value named name of the original definition
@@ -503,7 +544,7 @@ export class Widget {
      */
     prop(name) {
         // @ts-ignore
-        return this.#widget[name];
+        return this._widget[name];
     }
 }
 
