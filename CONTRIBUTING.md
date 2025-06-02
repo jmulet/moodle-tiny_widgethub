@@ -5,6 +5,23 @@ Thank you for your interest in contributing to the **moodle-tiny_widgethub** plu
 
 Please review this guide carefully before submitting pull requests or issues.
 
+## 🧩 Contributing to Widgets
+
+To contribute widgets:
+
+Each contributor will host their own widgets in a public repository. This gives you full control over your widgets, including how and when you update them.
+
+Your repository will include an index.yml file listing the widgets you want to share with the community, each pointing to the downloadable URL of its corresponding widget.yml definition. The contributor will simply inform me of the URL of their index.yml file. Below is an example of the content of such a file.
+```
+- name: Bootstrap alert boxes
+  url: https://raw.githubusercontent.com/jmulet/moodle-tiny_widgethub/main/repository/bs-alert.yml
+- name: Bootstrap badges
+  url: https://raw.githubusercontent.com/jmulet/moodle-tiny_widgethub/main/repository/bs-badge.yml
+```
+** Make sure that all URL provide access to downloadable raw files.**
+
+This setup is more dynamic than incorporating widgets directly into the main repository, as it avoids the need to create a new release every time a widget is added or updated.
+
 ---
 
 ## 🔧 Branch Strategy
@@ -39,32 +56,7 @@ Follow Moodle's general [coding style guidelines](https://moodledev.io/general/d
 
 ---
 
-## 🧩 Contributing Widgets
 
-To contribute widgets:
-
-1. **Create a directory** under `repository/` named exactly after your GitHub username. For example:
-   ```
-   repository/username/
-   ```
-
-2. **Add your widget definitions** in YAML format inside your directory.  To avoid key collisions, it is strongly recommended to prefix all widget keys with your username, e.g., `username_widgetkey1`.
-
-3. **Validate your YAML**: Make sure each widget file is syntactically correct and valid. Invalid YAML will be directly rejected. It should also comply with the syntax of the Widget definition API.
-
-4. **Include custom styles** (if applicable): If your widgets use any CSS classes that are **not standard Bootstrap**, include **all custom styles in a single file** named `styles.css` in the same directory.
-
-   Directory example:
-   ```
-   repository/username/
-   ├── widget1.yml
-   ├── widget2.yml
-   └── styles.css   # only if needed
-   ```
-
-5. **Do not edit other users' directories or widgets** unless you're fixing a bug with permission.
-
----
 
 ## ✅ Pull Requests
 
