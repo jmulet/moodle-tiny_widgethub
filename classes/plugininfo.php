@@ -127,7 +127,7 @@ class plugininfo extends plugin implements
         if ($showplugin) {
             // Obtain the configuration options for the plugin from the config table.
             $roles = get_user_roles($context, $USER->id);
-            // Extract role shortnames
+            // Extract role shortnames.
             $userroles = array_map(function($role) {
                 return $role->shortname;
             }, $roles);

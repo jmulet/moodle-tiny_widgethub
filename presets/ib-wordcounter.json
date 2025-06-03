@@ -1,0 +1,16 @@
+{
+    "key": "ib-wordcounter",
+    "name": "Show the number of words",
+    "category": "misc",
+    "instructions": "This is an example widget that shows how to integrate javascript.\n",
+    "template": "<p><br></p>\n<div data-widget=\"ib-wordcounter\">\n    <p>__LOREM__</p>\n</div>\n<p><br></p>\n",
+    "selectors": [
+        "data-widget=\"ib-wordcounter\""
+    ],
+    "insertquery": [
+        "data-widget=\"ib-wordcounter\""
+    ],
+    "requires": "https://raw.githubusercontent.com/jmulet/moodle-tiny_widgethub/develop/repository/ib-counter.js",
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "1.0.0"
+}

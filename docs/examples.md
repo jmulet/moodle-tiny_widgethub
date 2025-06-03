@@ -21,6 +21,14 @@ If you're editing an existing widget, you'll also see a Delete button, which all
 <img src="../img/yaml_editor.png" alt="Yaml editor" 
 width="350" style="margin:auto; max-width:400px;">
 
+## Best practices
+
+- Prepend the `key` of your widget with your username to avoid potential naming collisions with other widgets. For example, `key: jdahle1_boxes` is preferable to `key: boxes`.
+
+- When specifying a selector for your widget, be as specific as possible to avoid unintentionally matching unrelated elements. For example, it's better to define your template as `<div class="container" data-widget="jdahle1_boxes">...</div>` and use the selector option `selectors: div[data-widget="jdahle1_boxes"]`. This is much more robust than simply using `selectors: div.container`, as many other elements unrelated to your widget may also use that class.
+
+- Never use `script` or `style` tags in the widget’s template. Please refer to the sections **Dealing with styles** and **Dealing with JavaScript** for proper handling.
+
 
 ## Dealing with styles
 
@@ -37,6 +45,22 @@ Enable the Share styles checkbox. This will make all styles from Moodle automati
 
 **Option 2**:
 Copy your custom CSS into the provided textarea. These styles will be injected directly into the editor's iframe. If your styles are extensive, consider linking to an external file. URLs written within comments (e.g., /** https://domain.org/location/to/your/file.css **/) will be converted into a ```<link>``` tags automatically.
+
+
+
+## Dealing with JavaScript
+
+Widgets that require custom JavaScript present several challenges. 
+
+The first is that TinyMCE may strip out `<script>` tags if it’s not properly configured. Another issue is that it’s unsafe to embed scripts directly within the widget’s template.
+
+To address this, you can define a `requires` property in your widget definition. This ensures the script is included in a special area at the bottom of the page.
+
+With this approach, the script is loaded only once at the end of the page, even if multiple instances of the widget are present. However, this solution alone may not be sufficient in certain cases such as when printing a book. In that scenario, all content is rendered on a single page, which can cause the script to execute multiple times.
+
+To handle this, the JavaScript file should be designed defensively. You can find an example of such a strategy in this [file](https://raw.githubusercontent.com/jmulet/moodle-tiny_widgethub/develop/repository/ib-counter.js). A full example of widget using JavaScript can be found [here](https://raw.githubusercontent.com/jmulet/moodle-tiny_widgethub/develop/repository/ib-counter.yml).
+
+
 
 ## Example 1. A basic example
 

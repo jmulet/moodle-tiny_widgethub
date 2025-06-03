@@ -54,7 +54,7 @@ The type `Parameter` consists of these fields
 | **`[tooltip]`**       | `string`                             | (Optional) Additional information about the parameter.                                                   |
 | **`[tip]`**       | `string`                             | (Optional) Simply a shortcut for `tooltip`                                               |
 **`[partial]`**       | `string`                             | (Optional) A string with double trailing and leading undercore. This variable must be defined into the `partials` widget.        |
-| **`value`**           | `any`                                | Default value for the parameter.                                                                         |
+| **`value`**           | `any`                                | Default value for the parameter. If he type is 'select', then the value must match one of the options.                                                                        |
 | **`[type]`**          | `'textfield' or 'textarea' or 'numeric' or 'select' or 'checkbox' or 'color'` | (Optional) Input type inferred from `value` or other parameters.                                         |
 | **`options`**         | `string[]` or `{l: string, v: string}[]` | Options for `select` type.                                                                |
 | **`[min]`**           | `number`                             | (Optional) Minimum value for numeric controls only.                                                           |
