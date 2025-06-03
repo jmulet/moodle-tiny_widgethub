@@ -98,7 +98,7 @@ describe('Options', () => {
         // And expect
         const registerOption = fakeEditor.options.register;
         expect(registerOption).toHaveBeenNthCalledWith(1, "showplugin", expect.any(Object));
-        expect(registerOption).toHaveBeenNthCalledWith(2, "userid", expect.any(Object));
+        expect(registerOption).toHaveBeenNthCalledWith(2, "user", expect.any(Object));
         expect(registerOption).toHaveBeenNthCalledWith(3, "courseid", expect.any(Object));
         expect(registerOption).toHaveBeenNthCalledWith(4, "widgetlist", expect.any(Object));
         expect(registerOption).toHaveBeenNthCalledWith(5, "sharestyles", expect.any(Object));
@@ -112,8 +112,12 @@ describe('Options', () => {
                 get: jest.fn().mockImplementation((param) => {
                     if(param === "widgetlist") {
                         return [rawSnpt, rawSnpt2, rawSnpt3];
-                    } else if(param === "userid") {
-                        return 5
+                    } else if(param === "user") {
+                        return {
+                            id: 5,
+                            username: 'joe',
+                            roles: ['student']
+                        }
                     }
                 })
             }
@@ -157,35 +161,83 @@ describe('Options', () => {
 
     test('is available for any user', () => {
         const snpt = new Widget({ ...rawSnpt });
-        expect(snpt.isFor(42)).toBe(true);
-        expect(snpt.isFor(11)).toBe(true);
-        expect(snpt.isFor(0)).toBe(true);
+        expect(snpt.isFor({id: 42, username: 'joe', roles: ['student'] })).toBe(true);
+        expect(snpt.isFor({id: 11, username: 'joe', roles: ['student'] })).toBe(true);
+        expect(snpt.isFor({id: 0, username: 'joe', roles: ['student'] })).toBe(true);
     });
 
     test('not available in scope because hidden', () => {
         let snpt = new Widget({ ...rawSnpt2, hidden: false });
-        expect(snpt.isFor(55)).toBe(true);
+        expect(snpt.isFor({id: 55, username: 'joe', roles: ['student'] })).toBe(true);
         snpt = new Widget({ ...rawSnpt2, hidden: true });
-        expect(snpt.isFor(55)).toBe(false);
+        expect(snpt.isFor({id: 55, username: 'joe', roles: ['student'] })).toBe(false);
     });
 
     test('not available in scope because not in list', () => {
         const snpt = new Widget({ ...rawSnpt3 });
-        expect(snpt.isFor(52)).toBe(false);
-        expect(snpt.isFor(7)).toBe(false);
-        expect(snpt.isFor(2)).toBe(false);
-        expect(snpt.isFor(1)).toBe(false); // because admin
-        expect(snpt.isFor(3)).toBe(false);  
+        expect(snpt.isFor({id: 52, username: 'joe', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({id: 7, username: 'joe', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({id: 2, username: 'joe', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({id: 1, username: 'joe', roles: ['student'] })).toBe(false); // because admin
+        expect(snpt.isFor({id: 3, username: 'joe', roles: ['student'] })).toBe(false);  
     });
 
     test('available in scope because it is in list', () => {
-        const snpt = new Widget({ ...rawSnpt3 });
-        expect(snpt.isFor(5)).toBe(true);
-        expect(snpt.isFor(42)).toBe(false);
-        expect(snpt.isFor(555)).toBe(false);
-        expect(snpt.isFor(0)).toBe(false); // admin
-        expect(snpt.isFor(1)).toBe(false); // admin
-        expect(snpt.isFor(2)).toBe(false);
+        const snpt = new Widget({ ...rawSnpt3, for: undefined, forids: '5' });
+        expect(snpt.isFor({id: 5, username: 'joe5', roles: ['student'] })).toBe(true);
+        expect(snpt.isFor({id: 42, username: 'joe42', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({id: 555, username: 'joe555', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({id: 0, username: 'joe0', roles: ['student'] })).toBe(false); // admin
+        expect(snpt.isFor({id: 1, username: 'joe1', roles: ['student'] })).toBe(false); // admin
+        expect(snpt.isFor({id: 2, username: 'joe2', roles: ['student'] })).toBe(false);
+    });
+
+    test('available because username is in list', () => {
+        const snpt = new Widget({ ...rawSnpt3, for: undefined, forusernames: 'joe,miles' });
+        expect(snpt.isFor({id: 5, username: 'joe', roles: ['student'] })).toBe(true);
+        expect(snpt.isFor({id: 42, username: 'miles', roles: ['student'] })).toBe(true);
+        expect(snpt.isFor({id: 555, username: 'joe555', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({id: 0, username: 'joe0', roles: ['student'] })).toBe(false); // admin
+        expect(snpt.isFor({id: 1, username: 'joe1', roles: ['student'] })).toBe(false); // admin
+        expect(snpt.isFor({id: 2, username: 'joe2', roles: ['student'] })).toBe(false);
+    });
+
+    test('available because roles is in list', () => {
+        const snpt = new Widget({ ...rawSnpt3, for: undefined, forroles: 'teacher,administrator' });
+        expect(snpt.isFor({id: 5, username: 'joe', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({id: 42, username: 'miles', roles: ['teacher', 'student'] })).toBe(true);
+        expect(snpt.isFor({id: 555, username: 'joe555', roles: ['teacher'] })).toBe(true);
+        expect(snpt.isFor({id: 0, username: 'joe0', roles: ['administrator'] })).toBe(true);  
+        expect(snpt.isFor({id: 1, username: 'joe1', roles: ['administrator', 'student', 'teacher'] })).toBe(true); 
+        expect(snpt.isFor({id: 2, username: 'joe2', roles: ['student'] })).toBe(false);
+    });
+
+    test('available because usernames & roles is in list. AND match', () => {
+        let snpt = new Widget({ ...rawSnpt3, for: undefined, forroles: 'teacher', forusernames: 'miles,karen' });
+        expect(snpt.isFor({id: 5, username: 'miles', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({id: 42, username: 'miles', roles: ['teacher', 'student'] })).toBe(true);
+        expect(snpt.isFor({id: 555, username: 'miles', roles: ['teacher'] })).toBe(true);
+        expect(snpt.isFor({id: 0, username: 'joe0', roles: ['teacher'] })).toBe(false);  
+        expect(snpt.isFor({id: 1, username: 'joe1', roles: ['administrator', 'student', 'teacher'] })).toBe(false); 
+        expect(snpt.isFor({id: 2, username: 'joe2', roles: ['student'] })).toBe(false);
+
+        snpt = new Widget({ ...rawSnpt3, for: undefined, forids: '2,1,3', forroles: 'teacher', forusernames: 'miles,karen' });
+        expect(snpt.isFor({id: 42, username: 'miles', roles: ['teacher', 'student'] })).toBe(false);
+        expect(snpt.isFor({id: 3, username: 'miles', roles: ['teacher', 'student'] })).toBe(true);
+    });
+
+    test('available because usernames & roles is in list. OR match', () => {
+        let snpt = new Widget({ ...rawSnpt3, for: undefined, formatch: 'OR', forroles: 'teacher', forusernames: 'miles,karen' });
+        expect(snpt.isFor({id: 5, username: 'miles', roles: ['student'] })).toBe(true);
+        expect(snpt.isFor({id: 42, username: 'miles', roles: ['teacher', 'student'] })).toBe(true);
+        expect(snpt.isFor({id: 555, username: 'miles', roles: ['teacher'] })).toBe(true);
+        expect(snpt.isFor({id: 0, username: 'joe0', roles: ['teacher'] })).toBe(true);  
+        expect(snpt.isFor({id: 1, username: 'karen', roles: ['administrator', 'student'] })).toBe(true); 
+        expect(snpt.isFor({id: 2, username: 'joe2', roles: ['student'] })).toBe(false);
+
+        snpt = new Widget({ ...rawSnpt3, for: undefined, forids: '2,1,3', formatch: 'OR', forroles: 'teacher', forusernames: 'miles,karen' });
+        expect(snpt.isFor({id: 2, username: 'joe2', roles: ['student'] })).toBe(true);
+        expect(snpt.isFor({id: 7, username: 'joe2', roles: ['student'] })).toBe(false);
     });
 
     test('Should expand the template with partials', () => {

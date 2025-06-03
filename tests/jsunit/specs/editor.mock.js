@@ -1,4 +1,4 @@
-module.exports = function(editorId=1, userId=1, selection="") {
+module.exports = function(editorId=1, userInfo={id:1, username: 'joe', roles: ['student']}, selection="") {
     return {
         id: editorId, 
         selection: {
@@ -6,7 +6,7 @@ module.exports = function(editorId=1, userId=1, selection="") {
             setContent: jest.fn()
         },
         options: {
-            get: jest.fn().mockImplementation(() => userId),
+            get: jest.fn().mockImplementation(() => userInfo),
             register: jest.fn()
         },
         windowManager: {

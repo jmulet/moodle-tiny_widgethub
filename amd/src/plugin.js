@@ -35,6 +35,7 @@ import * as Configuration from './configuration';
 
 // Register extensions
 import './extension/refractor';
+import './extension/dependencies';
 
 const documentationUrl = 'https://github.com/jmulet/moodle-tiny_widgethub';
 const {component, pluginName} = Common;

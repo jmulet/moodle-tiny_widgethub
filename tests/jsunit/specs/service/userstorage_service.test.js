@@ -6,7 +6,11 @@ const { UserStorageSrv } = require("../../src/service/userstorage_service");
 
 /** @type {*} */
 const mockEditorOptions = {
-    userId: 1,
+    userInfo: {
+        id: 1,
+        username: 'joe',
+        roles: ['student']
+    },
     courseId: 50
 };
 

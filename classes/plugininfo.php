@@ -114,9 +114,6 @@ class plugininfo extends plugin implements
 
         global $USER, $COURSE;
 
-        // Obtain the configuration options for the plugin from the config table.
-        $conf = get_config('tiny_widgethub');
-
         // Decide if to enable the plugin.
         $showplugin = true;
         if (!has_capability('tiny/widgethub:viewplugin', $context)) {
@@ -128,10 +125,22 @@ class plugininfo extends plugin implements
         ];
 
         if ($showplugin) {
+            // Obtain the configuration options for the plugin from the config table.
+            $roles = get_user_roles($context, $USER->id);
+            // Extract role shortnames.
+            $userroles = array_map(function($role) {
+                return $role->shortname;
+            }, $roles);
+
+            $conf = get_config('tiny_widgethub');
             $widgetindex = self::get_widget_index($conf);
             $widgetlist = self::get_widget_list($conf, $widgetindex);
 
-            $params['userid'] = $USER->id;
+            $params['user'] = [
+                'id' => $USER->id,
+                'username' => $USER->username,
+                'roles' => array_values($userroles),
+            ];
             $params['courseid'] = $COURSE->id;
             $params['widgetlist'] = $widgetlist;
             // Configuration.

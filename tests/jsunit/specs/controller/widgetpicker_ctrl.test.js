@@ -55,7 +55,7 @@ const widget1 = {
         { name: "p5", value: "#000000", type: "color" },
         { name: "p6", value: "", type: "select", options: ["a", "b", "c"] },
     ],
-    prop: (key) => undefined,
+    prop: (/** @type {any} */ key) => undefined,
     isUsableInScope: () => true,
     isFilter: () => false
 };

@@ -40,7 +40,7 @@ describe('ContextInit', () => {
 
     it('creates', () => {
         const editor = {
-            id: 1,
+            id: 'editor1',
             ui: {
                 registry: {
                     addIcon: jest.fn(),
@@ -54,7 +54,14 @@ describe('ContextInit', () => {
                 }
             },
             options: {
-                get: () => {
+                get: (/** @type {string} */ key) => {
+                    if (key === 'user') {
+                        return  {
+                            id: 1,
+                            username: 'joe',
+                            roles: ['teacher']
+                        };
+                    }
                     return [rawSnpt];
                 }
             }

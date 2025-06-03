@@ -17,3 +17,9 @@ Adapt the plugin for the Moodle version 5.0:
 Issue #21: Feature request (minor): sorting and ordering of widgets (and categories) both in backend, reflected in frontend dialog
  - Management page: widgets are sorted by its name
  - Frontend dialog: custom sorting of categories and buttons via order attribute
+
+== 1.3.1 ==
+Added CONTRIBUTING.md, clarifying how to contribute to new widgets.
+Issue #27: Possibility to add External JS Dependencies
+Issue #25: Enhancing Widget Visibility Control with Role-Based Permissions
+Improved documentation includes an example of widget requiring javascript.
