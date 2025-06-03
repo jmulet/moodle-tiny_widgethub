@@ -66,18 +66,23 @@ function bs5Refractor(editor) {
  * @param {import("../plugin").TinyMCE} editor
  */
 async function refractoring(editor) {
-    const refractoringActive = getGlobalConfig(editor, 'oninit.refractor.bs5', '0');
-    let changes = false;
-    if (refractoringActive === '1') {
-        changes = bs5Refractor(editor);
-    }
-    if (changes) {
-        const saverequired = await coreStr.get_string('saverequired', Common.component);
-        editor.notificationManager.open({
-            text: saverequired,
-            type: 'warning',
-            timeout: 4000
-        });
+    try {
+        const refractoringActive = getGlobalConfig(editor, 'oninit.refractor.bs5', '0');
+        let changes = false;
+        if (refractoringActive === '1') {
+            changes = bs5Refractor(editor);
+        }
+        if (changes) {
+            const saverequired = await coreStr.get_string('saverequired', Common.component);
+            editor.notificationManager.open({
+                text: saverequired,
+                type: 'warning',
+                timeout: 4000
+            });
+        }
+    } catch (ex) {
+        // eslint-disable-next-line no-console
+        console.error("Error while applying bs5 refractor:", ex);
     }
 }
 

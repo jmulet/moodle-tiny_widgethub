@@ -139,7 +139,7 @@ class plugininfo extends plugin implements
             $params['user'] = [
                 'id' => $USER->id,
                 'username' => $USER->username,
-                'roles' => $userroles,
+                'roles' => array_values($userroles),
             ];
             $params['courseid'] = $COURSE->id;
             $params['widgetlist'] = $widgetlist;

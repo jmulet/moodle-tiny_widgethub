@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -33,10 +34,11 @@ const JSAREACLASSNAME = 'tiny_widgethub-jsarea';
  * @returns {number}
  */
 export function addRequires(editor, requireList) {
+    let dependenciesUpdated = 0;
+    try {
     const jsareaSelector = `div.${JSAREACLASSNAME}`;
     const affectedWidgets = Object.values(getWidgetDict(editor)).filter(w => w.selectors && w.prop('requires'));
 
-    let dependenciesUpdated = 0;
     const tiny = editor.getBody();
     let jsArea = tiny.querySelector(jsareaSelector);
 
@@ -78,6 +80,9 @@ export function addRequires(editor, requireList) {
             dependenciesUpdated++;
         });
     }
+    } catch (ex) {
+        console.error("A problem occurred adding dependencies:", ex);
+    }
     return dependenciesUpdated;
 }
 
@@ -91,20 +96,25 @@ function anyMatchesSelectors(tiny, selectors) {
     if (typeof (selectors) === 'string') {
         selectors = [selectors];
     }
-    const anyFound = [...tiny.querySelectorAll(selectors[0] ?? '')].some(e => {
-        if (selectors.length === 1) {
-            return true;
-        }
-        // Matches all other conditions
-        let match = true;
-        for (let i = 1; i < selectors.length; i++) {
-            match = match && e.querySelector(selectors[i]) !== null;
-            if (!match) {
-                break;
+    let anyFound = false;
+    try {
+        anyFound = [...tiny.querySelectorAll(selectors[0] ?? '')].some(e => {
+            if (selectors.length === 1) {
+                return true;
             }
-        }
-        return match;
-    });
+            // Matches all other conditions
+            let match = true;
+            for (let i = 1; i < selectors.length; i++) {
+                match = match && e.querySelector(selectors[i]) !== null;
+                if (!match) {
+                    break;
+                }
+            }
+            return match;
+        });
+    } catch (ex) {
+        console.error("Error in anyMatchesSelectors:", ex);
+    }
     return anyFound;
 }
 
@@ -115,6 +125,8 @@ function anyMatchesSelectors(tiny, selectors) {
  * @returns {number}
  */
 export function cleanUnusedRequires(editor, affectedWidgets) {
+    let changes = 0;
+    try {
     const tiny = editor.getBody();
     const jsArea = tiny.querySelector(`div.${JSAREACLASSNAME}`);
     if (!jsArea) {
@@ -127,11 +139,11 @@ export function cleanUnusedRequires(editor, affectedWidgets) {
     // All scripts in jsArea
     /** @type {NodeListOf<HTMLScriptElement>} */
     const allScripts = jsArea.querySelectorAll("script");
-    let changes = 0;
     allScripts.forEach((scriptElem) => {
         const src = (scriptElem.src || '')?.trim();
 
         // Match the widget with this src
+        // @ts-ignore
         const widgetFound = affectedWidgets.filter(w => w.prop('requires')?.trim() === src)[0];
         if (!widgetFound) {
             scriptElem.remove();
@@ -150,6 +162,9 @@ export function cleanUnusedRequires(editor, affectedWidgets) {
         jsArea.remove();
         changes++;
     }
+    } catch (ex) {
+        console.error("Error while removing unused dependencies:", ex);
+    }
     return changes;
 }
 /**
@@ -158,6 +173,7 @@ export function cleanUnusedRequires(editor, affectedWidgets) {
  * @param {Record<string, any>} ctxFromDialogue
  */
 function widgetInserted(editor, widget, ctxFromDialogue) {
+    try {
       // Determine if should add any requires
       const requireList = [];
       // Treat the case of requires being an object (keys are the conditions to be met)
@@ -182,6 +198,9 @@ function widgetInserted(editor, widget, ctxFromDialogue) {
       if (changes > 0) {
         editor.setDirty(true);
       }
+    } catch (ex) {
+        console.error("An error occurre when treating dependencies of inserted widget:", ex);
+    }
 }
 
 subscribe('contentSet', addRequires);
