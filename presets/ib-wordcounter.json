@@ -10,7 +10,7 @@
     "insertquery": [
         "data-widget=\"ib-wordcounter\""
     ],
-    "requires": "https://raw.githubusercontent.com/jmulet/moodle-tiny_widgethub/develop/repository/ib-counter.js",
+    "requires": "https://raw.githubusercontent.com/jmulet/moodle-tiny_widgethub/refs/heads/develop/repository/ib-wordcounter.js",
     "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
     "version": "1.0.0"
 }

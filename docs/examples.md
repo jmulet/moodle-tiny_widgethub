@@ -58,7 +58,7 @@ To address this, you can define a `requires` property in your widget definition.
 
 With this approach, the script is loaded only once at the end of the page, even if multiple instances of the widget are present. However, this solution alone may not be sufficient in certain cases such as when printing a book. In that scenario, all content is rendered on a single page, which can cause the script to execute multiple times.
 
-To handle this, the JavaScript file should be designed defensively. You can find an example of such a strategy in this [file](https://raw.githubusercontent.com/jmulet/moodle-tiny_widgethub/develop/repository/ib-counter.js). A full example of widget using JavaScript can be found [here](https://raw.githubusercontent.com/jmulet/moodle-tiny_widgethub/develop/repository/ib-counter.yml).
+To handle this, the JavaScript file should be designed defensively. You can find an example of such a strategy in this [file](https://raw.githubusercontent.com/jmulet/moodle-tiny_widgethub/refs/heads/develop/repository/ib-wordcounter.js). A full example of widget using JavaScript can be found [here](https://raw.githubusercontent.com/jmulet/moodle-tiny_widgethub/refs/heads/develop/repository/ib-wordcounter.yml).
 
 
 
