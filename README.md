@@ -55,8 +55,6 @@ The options available are:
 
   - *oninit.refractor.bs5=0* - Enable (`1`) or disable (`0`) automatic refractoring of Bootstrap 5 `data-bs-xxx` attributes when the editor opens (default: 0).
 
-Feel free to share your widgets either by email `pep.mulet(at)gmail.com` or creating a pull request.
-
 The capability 'tiny/widgethub:viewplugin' allows to set the plugin visibility for any role. Keep in mind that, by default, the role student is prevented from using the plugin.
 
  

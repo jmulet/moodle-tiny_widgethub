@@ -27,7 +27,7 @@ import Common from './common';
 const pluginName = Common.pluginName;
 
 const showPlugin = getPluginOptionName(pluginName, 'showplugin');
-const userOpt = getPluginOptionName(pluginName, 'user');
+const userInfoOpt = getPluginOptionName(pluginName, 'user');
 const courseId = getPluginOptionName(pluginName, 'courseid');
 const widgetList = getPluginOptionName(pluginName, 'widgetlist');
 
@@ -46,7 +46,7 @@ export const register = (editor) => {
         "default": true,
     });
 
-    registerOption(userOpt, {
+    registerOption(userInfoOpt, {
         processor: 'object',
         "default": {
             id: 0,
@@ -134,7 +134,7 @@ export const getWidgetDict = (editor) => {
         .map(w => new Widget(w, partials || {}));
 
     // Remove those buttons that aren't usable for the current user
-    const userInfo = editor.options.get(userOpt);
+    const userInfo = editor.options.get(userInfoOpt);
     wrappedWidgets.filter(w => w.isFor(userInfo)).forEach(w => {
         if (_widgetDict) {
             _widgetDict[w.key] = w;
@@ -155,7 +155,7 @@ export class EditorOptions {
      * @returns {{id: number, username: string, roles: string[]}} - an integer with the id of the current user
      */
     get userInfo() {
-        return this.editor.options.get(userOpt);
+        return this.editor.options.get(userInfoOpt);
     }
 
     /**

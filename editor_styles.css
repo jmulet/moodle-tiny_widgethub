@@ -16,3 +16,25 @@ a[data-toggle="popover"], a[data-bs-toggle="popover"] {
     color: #0f6cbf!important;
     cursor: pointer!important;
 }
+.tiny_widgethub-jsarea {
+    position: relative;
+    margin: auto;
+    display: block!important;
+    padding: 10px;
+    width: 98%;
+    min-height: 50px;
+    border: 1px solid rgb(50, 0, 0);
+    border-radius: 5px;
+    background: #eeeeee;
+}  
+.tiny_widgethub-jsarea::before {
+    content: "Area for widgets with JS. Do not modify or delete it. Always keep it at the end of the page.";
+    color: rgb(50, 0, 0);
+}  
+.tiny_widgethub-jsarea > script {
+    display: block;
+    position: relative;
+} 
+.tiny_widgethub-jsarea > script::after {
+    content: attr(src);
+}
