@@ -21,9 +21,10 @@
  * @copyright   2025 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+import {getGlobalConfig} from "../options";
 import {subscribe} from "../extension";
 import {getWidgetDict} from "../options";
-import {evalInContext} from "../util";
+import {evalInContext, addBaseToUrl} from "../util";
 
 const JSAREACLASSNAME = 'tiny_widgethub-jsarea';
 /**
@@ -34,6 +35,7 @@ const JSAREACLASSNAME = 'tiny_widgethub-jsarea';
  * @returns {number}
  */
 export function addRequires(editor, requireList) {
+    const jsBaseUrl = getGlobalConfig(editor, 'jsBaseUrl', '');
     let dependenciesUpdated = 0;
     try {
     const jsareaSelector = `div.${JSAREACLASSNAME}`;
@@ -56,6 +58,7 @@ export function addRequires(editor, requireList) {
     cleanUnusedRequires(editor, affectedWidgets);
     jsArea = tiny.querySelector(jsareaSelector);
 
+    // Check the existence of script area
     if (!jsArea && requireList.length > 0) {
         const spacer = editor.dom.create('p', {}, '<br>');
         jsArea = editor.dom.create('div', {"class": JSAREACLASSNAME});
@@ -63,19 +66,21 @@ export function addRequires(editor, requireList) {
         tiny.append(jsArea);
     }
 
-    // Check the existence of script area
-    const scriptsToInsert = requireList.filter((requireScript) => {
-        if (!requireScript.endsWith(".js")) {
+    // Check which scripts must be created
+    const scriptsToInsert = requireList.filter((scriptUrl) => {
+        if (!scriptUrl.endsWith(".js")) {
             return false;
         }
-        return jsArea?.querySelector(`script[src="${requireScript}"]`) === null;
+        const realSrc = addBaseToUrl(jsBaseUrl, scriptUrl);
+        return jsArea?.querySelector(`script[src="${realSrc}"]`) === null;
     });
 
     if (jsArea && scriptsToInsert.length > 0) {
         // Insert the scripts in the area
         scriptsToInsert.forEach(scriptUrl => {
+            const realSrc = addBaseToUrl(jsBaseUrl, scriptUrl);
             const scriptNode = editor.dom.create("script",
-                {src: scriptUrl, type: "mce-no/type", "data-mce-src": scriptUrl});
+                {src: realSrc, type: "mce-no/type", "data-mce-src": realSrc});
             jsArea.append(scriptNode);
             dependenciesUpdated++;
         });
@@ -136,6 +141,7 @@ export function cleanUnusedRequires(editor, affectedWidgets) {
     if (!affectedWidgets) {
         affectedWidgets = Object.values(getWidgetDict(editor)).filter(w => w.selectors && w.prop('requires'));
     }
+    const jsBaseUrl = getGlobalConfig(editor, 'jsBaseUrl', '');
     // All scripts in jsArea
     /** @type {NodeListOf<HTMLScriptElement>} */
     const allScripts = jsArea.querySelectorAll("script");
@@ -144,7 +150,10 @@ export function cleanUnusedRequires(editor, affectedWidgets) {
 
         // Match the widget with this src
         // @ts-ignore
-        const widgetFound = affectedWidgets.filter(w => w.prop('requires')?.trim() === src)[0];
+        const widgetFound = affectedWidgets.filter(w => {
+            const realSrc = addBaseToUrl(jsBaseUrl, w.prop('requires')?.trim() || '');
+            return realSrc === src;
+        })[0];
         if (!widgetFound) {
             scriptElem.remove();
             changes++;
