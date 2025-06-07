@@ -237,16 +237,18 @@ export default {
                 const errStr1 = await get_string('errparamtype', component);
                 const errStr2 = await get_string('errparamvalue', component);
                 jsonObj.parameters
-                    .filter(p => p.type === 'select' || p.options)
+                    .filter(p => p.type === 'select' || p.type === 'autocomplete' || p.options)
                     .forEach(p => {
                         if (!p.options || !Array.isArray(p.options)) {
                             validation.msg += replacePlaceholders(errStr1, p.name + '.options', 'Array');
                             return;
                         }
-                        const options = p.options.map(o => typeof (o) === 'string' ? o : o.v);
-                        if (!p.value || options.indexOf(p.value) < 0) {
-                            validation.msg += replacePlaceholders(errStr2, p.name + '.value', 'in options');
-                            return;
+                        if (p.type === 'select') {
+                            const options = p.options.map(o => typeof (o) === 'string' ? o : o.v);
+                            if (!p.value || options.indexOf(p.value) < 0) {
+                                validation.msg += replacePlaceholders(errStr2, p.name + '.value', 'in options');
+                                return;
+                            }
                         }
                     });
             }

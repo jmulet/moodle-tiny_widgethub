@@ -207,6 +207,7 @@ export function fixMissingParamProperties(param) {
             case ('numeric'):
                 param.value = 0; break;
             case ('select'):
+            case ('autocomplete'):
                 param.value = param.options?.[0];
                 if (typeof (param.value) === 'object') {
                     param.value = param.value.v;
@@ -298,7 +299,7 @@ export function applyPartials(widget, partials) {
  * @property {string=} partial
  * @property {string} name
  * @property {string} title
- * @property {'textfield' | 'numeric' | 'checkbox' | 'select' | 'textarea' | 'image' | 'color'} [type]
+ * @property {'textfield' | 'numeric' | 'checkbox' | 'select' | 'autocomplete' | 'textarea' | 'image' | 'color'} [type]
  * @property {(ParamOption | string)[]} [options]
  * @property {any} value
  * @property {string=} tip
