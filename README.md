@@ -47,13 +47,19 @@ The options available are:
 
 - **cfg**: This allows additional configuration using the syntax `property=value`, with one configuration per line:  
   
-  - *disable.plugin.pages*: A comma-separated list of body IDs for which the plugin will not be loaded.  
+  - *disable.plugin.pages*: A **comma-separated** list of body IDs for which the plugin will not be loaded.  
+
+  - *disable.plugin.pages.regex*: A **regular expression** that matches those body IDs for which the plugin will not be loaded.  
 
   - *enable.contextmenu.level*: Enable (`1`) or disable (`0`) context menus used by the plugin.
 
   - *category.order=misc:a1,deprecated:z1*: Overrides the default alphabetical category ordering. Provide a comma-separated string using the format `categoryName:sortingName`. The `sortingName` is used to determine the sort order among the listed categories. Categories not included in this list will maintain their default alphabetical order.
 
   - *oninit.refractor.bs5=0* - Enable (`1`) or disable (`0`) automatic refractoring of Bootstrap 5 `data-bs-xxx` attributes when the editor opens (default: 0).
+
+  - *jsBaseUrl* - If specified, this **base URL** will be prepended to the `requires` property in the widget definition — *unless* `requires` already starts with `http`, in which case the base URL will be ignored.
+
+This feature is useful for dynamically changing the location of the JavaScript assets required by the widgets.
 
 The capability 'tiny/widgethub:viewplugin' allows to set the plugin visibility for any role. Keep in mind that, by default, the role student is prevented from using the plugin.
 

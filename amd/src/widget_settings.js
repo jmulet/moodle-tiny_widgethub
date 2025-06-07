@@ -29,10 +29,12 @@ import {load, dump} from './libs/js_yaml-lazy';
 import {get_strings as getStrings, get_string} from 'core/str';
 import {getTemplateSrv} from './service/template_service';
 import {applyPartials} from './options';
+import common from './common';
 
+const {component} = common;
 const templateSrv = getTemplateSrv();
 const DEFAULT_DOC =
-`key: minimal-sample-key
+    `key: username_sample-key
 name: Minimal sample widget
 category: Examples
 template: |
@@ -44,6 +46,62 @@ parameters:
     value: Hello world!
 author: Your name <email@site.com>
 version: 1.0.0`;
+
+/**
+ * Checks whether HTML tags are balanced, ignoring EJS blocks like <% %>.
+ * @param {string} input The HTML+EJS string.
+ * @returns {string[]} Stack of tags not closing.
+ */
+function unbalancedHTMLWithEJS(input) {
+    // Remove EJS tags.
+    const withoutEJS = input.replace(/<%[\s\S]*?%>/g, '');
+
+    // HTML self-closing tags.
+    const selfClosing = new Set([
+        'area', 'base', 'br', 'col', 'embed', 'hr', 'img',
+        'input', 'link', 'meta', 'source', 'track', 'wbr'
+    ]);
+
+    const tagRegex = /<\/?([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>/g;
+    const stack = [];
+    let match;
+
+    while ((match = tagRegex.exec(withoutEJS)) !== null) {
+        const fullTag = match[0];
+        const tagName = match[1].toLowerCase();
+        const isClosing = fullTag.startsWith('</');
+
+        // Skip self-closing
+        if (selfClosing.has(tagName) || fullTag.endsWith('/>')) {
+            continue;
+        }
+
+        if (!isClosing) {
+            stack.push(tagName);
+        } else {
+            if (stack.length === 0 || stack.pop() !== tagName) {
+                if (stack.length === 0) {
+                    stack.push(tagName);
+                }
+                return stack;
+            }
+        }
+    }
+    return stack;
+}
+
+/**
+ * Replaces placeholders "@i" from 1 to n in the str
+ * @param {string} str
+ * @param  {...string} comodins
+ * @returns {string}
+ */
+function replacePlaceholders(str, ...comodins) {
+    return str.replace(/@(\d+)/g, (match, index) => {
+        const i = parseInt(index, 10);
+        return comodins[i - 1] !== undefined ? comodins[i - 1] : match;
+    });
+}
 
 /**
  * @class
@@ -60,11 +118,11 @@ export default {
      */
     getAreas: function(id) {
         /** @type {*} */
-        const $ymlArea = jQuery(`#id_s_tiny_widgethub_defyml_${id}`);
+        const $ymlArea = jQuery(`#id_s_${component}_defyml_${id}`);
         /** @type {*} */
-        const $jsonArea = jQuery(`#id_s_tiny_widgethub_def_${id}`);
+        const $jsonArea = jQuery(`#id_s_${component}_def_${id}`);
         /** @type {*} */
-        const $partialInput = jQuery(`#id_s_tiny_widgethub_partials_${id}`);
+        const $partialInput = jQuery(`#id_s_${component}_partials_${id}`);
         return {
             $ymlArea, $jsonArea, $partialInput
         };
@@ -118,48 +176,82 @@ export default {
             try {
                 jsonObj = load(yml, null) ?? {};
             } catch (ex) {
-                validation.msg = await get_string('erryaml', 'tiny_widgethub') + ':: ' + ex;
+                validation.msg = await get_string('erryaml', component) + ':: ' + ex;
                 return validation;
             }
             validation.json = JSON.stringify(jsonObj, null, 0);
 
             // Check if the structure is correct
             if (!jsonObj?.key) {
-                validation.msg = await get_string('errproprequired', 'tiny_widgethub', "'key'") + ' ';
+                validation.msg = await get_string('errproprequired', component, "'key'") + ' ';
             } else if (jsonObj.key === 'partials') {
+                // Do not apply validation on partials file
                 return validation;
             } else if (jsonObj.key !== 'partials') {
                 if (!jsonObj.name) {
-                    validation.msg += await get_string('errproprequired', 'tiny_widgethub', "'name'") + ' ';
+                    validation.msg += await get_string('errproprequired', component, "'name'") + ' ';
                 } else if (!(jsonObj.template || jsonObj.filter)) {
-                    validation.msg += await get_string('errproprequired', 'tiny_widgethub', "'template' | 'filter'") + ' ';
+                    validation.msg += await get_string('errproprequired', component, "'template' | 'filter'") + ' ';
                 } else if (jsonObj.template && jsonObj.filter) {
-                    validation.msg += await get_string('errpropincompatible', 'tiny_widgethub', "'template' & 'filter'") + ' ';
+                    validation.msg += await get_string('errpropincompatible', component, "'template' & 'filter'") + ' ';
                 } else if (!jsonObj.author || !jsonObj.version) {
-                    validation.msg += await get_string('errproprequired', 'tiny_widgethub', "'author' & 'version'") + ' ';
+                    validation.msg += await get_string('errproprequired', component, "'author' & 'version'") + ' ';
                 }
             }
             // Check for duplicated keys (TODO: also check for key renaming when id > 0)
             if (opts.id === 0 && jsonObj?.key) {
                 const keys = opts.keys || [];
                 if (keys.includes(jsonObj.key)) {
-                    validation.msg += await get_string('errkeyinuse', 'tiny_widgethub', jsonObj.key) + ' ';
+                    validation.msg += await get_string('errkeyinuse', component, jsonObj.key) + ' ';
                 }
             }
-            // Handle partials in parameters
+            // Handle partials in parameters.
             applyPartials(jsonObj, partials);
-            // Try to parse the template with the correct renderer
-            const translations = jsonObj?.I18n ?? {};
-            /** @type {Object.<string, any>} */
-            const ctx = {};
-            (jsonObj.parameters ?? []).forEach(param => {
-                ctx[param.name] = param.value;
-            });
-            const engine = jsonObj?.engine;
-            const html = await templateSrv.render(jsonObj?.template || '', ctx, translations, engine);
-            validation.html = html;
+            // Tests on template.
+            if (jsonObj.template) {
+                // Check if open and close tags are balanced.
+                const stack = unbalancedHTMLWithEJS(jsonObj.template);
+                if (stack.length > 0) {
+                    validation.msg += await get_string('errunbalancedhtml', component) + ': ' + stack;
+                    return validation;
+                }
+                // Try to parse the template with the correct renderer.
+                const translations = jsonObj?.I18n ?? {};
+                /** @type {Object.<string, any>} */
+                const ctx = {};
+                (jsonObj.parameters ?? []).forEach(param => {
+                    ctx[param.name] = param.value;
+                });
+                const engine = jsonObj?.engine;
+                try {
+                    const html = await templateSrv.render(jsonObj?.template || '', ctx, translations, engine);
+                    validation.html = html;
+                } catch (ex0) {
+                    validation.msg = await get_string('errpreview', component) + ':: ' + ex0;
+                }
+            }
+
+            // Check parameters
+            if (jsonObj.parameters) {
+                // Select types
+                const errStr1 = await get_string('errparamtype', component);
+                const errStr2 = await get_string('errparamvalue', component);
+                jsonObj.parameters
+                    .filter(p => p.type === 'select' || p.options)
+                    .forEach(p => {
+                        if (!p.options || !Array.isArray(p.options)) {
+                            validation.msg += replacePlaceholders(errStr1, p.name + '.options', 'Array');
+                            return;
+                        }
+                        const options = p.options.map(o => typeof (o) === 'string' ? o : o.v);
+                        if (!p.value || options.indexOf(p.value) < 0) {
+                            validation.msg += replacePlaceholders(errStr2, p.name + '.value', 'in options');
+                            return;
+                        }
+                    });
+            }
         } catch (ex) {
-            validation.msg = await get_string('errpreview', 'tiny_widgethub') + ':: ' + ex;
+            validation.msg = await get_string('errunexpected', component) + ':: ' + ex;
         }
         return validation;
     },
@@ -170,19 +262,19 @@ export default {
      * @returns
      */
     init: async function(opts) {
+        const {$ymlArea, $jsonArea, $partialInput} = this.getAreas(opts.id);
+        $ymlArea.css({
+            "border": "1px solid gray"
+        });
+        $ymlArea.addClass(component + '-loader');
         const i18n = await getStrings([
-            {key: 'confirmdelete', component: 'tiny_widgethub'},
-            {key: 'delete', component: 'tiny_widgethub'},
-            {key: 'preview', component: 'tiny_widgethub'},
-            {key: 'savechanges', component: 'tiny_widgethub'}
+            {key: 'confirmdelete', component: component},
+            {key: 'delete', component: component},
+            {key: 'preview', component: component},
+            {key: 'savechanges', component: component}
         ]);
         const [confirmdeleteStr, deleteStr, previewStr, savechangesStr] = i18n;
 
-        const {$ymlArea, $jsonArea, $partialInput} = this.getAreas(opts.id);
-        $ymlArea.css({
-            "min-height": "200px",
-            "border": "1px solid gray"
-        });
         // Partials are passed through a hidden input element
         const partials = JSON.parse($partialInput.val() || '{}');
 
@@ -199,7 +291,7 @@ export default {
         const $saveBtn = $formButtons.find("button");
 
         // Create a preview panel
-        const $previewPanel = jQuery(`<div id="tiny_widgethub_pp_${opts.id}" class="tiny_widgethub-previewpanel d-none"></div>`);
+        const $previewPanel = jQuery(`<div id="${component}_pp_${opts.id}" class="${component}-previewpanel d-none"></div>`);
         $target.append($previewPanel);
 
         const $previewBtn = jQuery(`<button type="button" class="btn btn-secondary m-1">
@@ -245,23 +337,24 @@ export default {
 
         $saveBtn.on("click",
             async() => {
-            // Must update the content from the Yaml control
-            const yml = ymleditor.getValue();
-            // First validate the definition of the widget
-            const validation = await this.validate(yml, opts, partials);
-            if (validation.msg) {
-                alert(validation.msg);
-            } else {
-                // Ensure that there is a change in the form value to force
-                // the set_updatedcallback to be called
-                $jsonArea.trigger('focusin');
-                $jsonArea.val((validation.json ?? '') + ' ');
-                $jsonArea.trigger('change');
-                // Submit form
-                $form.trigger('submit');
-            }
-        });
+                // Must update the content from the Yaml control
+                const yml = ymleditor.getValue();
+                // First validate the definition of the widget
+                const validation = await this.validate(yml, opts, partials);
+                if (validation.msg) {
+                    alert(validation.msg);
+                } else {
+                    // Ensure that there is a change in the form value to force
+                    // the set_updatedcallback to be called
+                    $jsonArea.trigger('focusin');
+                    $jsonArea.val((validation.json ?? '') + ' ');
+                    $jsonArea.trigger('change');
+                    // Submit form
+                    $form.trigger('submit');
+                }
+            });
 
         this.updateYaml(opts.id, ymleditor);
+        $ymlArea.removeClass(component + '-loader');
     }
 };
