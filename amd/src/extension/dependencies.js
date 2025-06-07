@@ -147,6 +147,11 @@ export function cleanUnusedRequires(editor, affectedWidgets) {
     const allScripts = jsArea.querySelectorAll("script");
     allScripts.forEach((scriptElem) => {
         const src = (scriptElem.src || '')?.trim();
+        if (!src) {
+            scriptElem.remove();
+            changes++;
+            return;
+        }
 
         // Match the widget with this src
         // @ts-ignore

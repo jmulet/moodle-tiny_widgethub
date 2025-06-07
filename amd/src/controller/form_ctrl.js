@@ -79,7 +79,7 @@ export const Templates = {
    <div class="col-sm-7"><input type="text" list="{{elementid}}_aclist" id="{{elementid}}_actmpl" class="form-control" name="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
    <datalist id="{{elementid}}_aclist">
    {{#options}}
-   <option value="{{optionValue}}"/>{{optionLabel}}</option>
+   <option value="{{optionValue}}"/>
    {{/options}}
    </datalist>
    </div>

@@ -185,10 +185,12 @@ class plugininfo extends plugin implements
     }
 
     /**
-     * The entry id has changed, update the index
+     * The entry id has changed, update the index.
      * @param int $id
+     * @return int - The id if a new widget is created and 0 otherwise.
      */
     public static function update_widget_index($id) {
+        $newid = 0;
         $conf = get_config('tiny_widgethub');
         $widgetindex = self::get_widget_index($conf);
         $widget = null;
@@ -207,6 +209,7 @@ class plugininfo extends plugin implements
             $tmpwidget = json_decode($conf->def_0);
             if (!empty($tmpwidget)) {
                 $id = self::update_seq($conf);
+                $newid = $id;
                 // Add the widget to the index.
                 $widgetindex[strval($id)] = [
                     'key' => $tmpwidget->key,
@@ -224,6 +227,7 @@ class plugininfo extends plugin implements
             ];
         }
         set_config('index', json_encode($widgetindex), 'tiny_widgethub');
+        return $newid;
     }
 
     /**
