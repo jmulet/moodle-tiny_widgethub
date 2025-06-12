@@ -76,7 +76,7 @@ export const Templates = {
    </div>`,
 
    AUTOCOMPLETETEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
-   <div class="col-sm-7"><input type="text" list="{{elementid}}_aclist" id="{{elementid}}_actmpl" class="form-control" name="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
+   <div class="col-sm-7"><input type="text" list="{{elementid}}_aclist" id="{{elementid}}_actmpl" class="form-control" name="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}" autocomplete="off"/>
    <datalist id="{{elementid}}_aclist">
    {{#options}}
    <option value="{{optionValue}}"/>
