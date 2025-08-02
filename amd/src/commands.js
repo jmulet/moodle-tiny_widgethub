@@ -48,12 +48,30 @@ export const getSetup = async() => {
             // No capabilities required.
             return;
         }
+
         // Check if there is a config option to disable the plugin for the current page.
-        /** @type {string[]} */
-        const disableOnPages = getGlobalConfig(editor, "disable.plugin.pages", "").split(",");
-        if (disableOnPages.includes(Shared.currentScope)) {
-            console.warn('WidgetHub plugin is disabled on this page.');
+        const page = Shared.currentScope;
+        const disableList = getGlobalConfig(editor, "disable.plugin.pages", "")
+            .split(",")
+            .map(p => p.trim())
+            .filter(Boolean);
+
+        if (disableList.includes(page)) {
+            console.warn("WidgetHub plugin is disabled on this page.");
             return;
+        }
+
+        const regexPattern = getGlobalConfig(editor, "disable.plugin.pages.regex", "");
+        if (regexPattern) {
+            try {
+                const regex = new RegExp(regexPattern);
+                if (regex.test(page)) {
+                    console.warn("WidgetHub plugin is disabled on this page.");
+                    return;
+                }
+            } catch (/** @type {any} */ ex) {
+                console.error("Please check disable.plugin.pages.regex: Invalid regular expression:", ex.message);
+            }
         }
 
         // Register the Icon.

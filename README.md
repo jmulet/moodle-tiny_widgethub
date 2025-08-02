@@ -6,6 +6,18 @@
 > [!IMPORTANT]
 > This plugin needs a Moodle theme based on Boost since some widgets rely on Bootstrap.
 
+<div class="alert alert-info d-flex align-items-center" role="alert" style="gap: 0.5rem;">
+  <span style="background-color: #ffcc00; color: #000; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 0.85rem;">
+    NEW
+  </span>
+  <div>
+    <a href="https://chatgpt.com/g/g-68512f2f3ce4819182441c429f5b8673-widgethub-yml-builder"
+       target="_blank" rel="noopener noreferrer" style="text-decoration: none; font-weight: 500; color: inherit;">
+      Introducing <strong>WidgetHub GTP</strong> — your new assistant for building and inserting widgets effortlessly!
+    </a>
+  </div>
+</div>
+
 ## Features
 
 Users can:
@@ -23,6 +35,7 @@ Later, at any time, the component can be reconfigured using context menus provid
 
 - [Examples: Learn how to customize and create widgets.](docs/examples.md)
 - [Yaml API reference.](docs/api.md)
+- [Known issues and workarounds.](docs/issues.md)
 
 ## Migration from Moodle 4x to Moodle 5.0
 
@@ -47,13 +60,19 @@ The options available are:
 
 - **cfg**: This allows additional configuration using the syntax `property=value`, with one configuration per line:  
   
-  - *disable.plugin.pages*: A comma-separated list of body IDs for which the plugin will not be loaded.  
+  - *disable.plugin.pages*: A **comma-separated** list of body IDs for which the plugin will not be loaded.  
+
+  - *disable.plugin.pages.regex*: A **regular expression** that matches those body IDs for which the plugin will not be loaded.  
 
   - *enable.contextmenu.level*: Enable (`1`) or disable (`0`) context menus used by the plugin.
 
   - *category.order=misc:a1,deprecated:z1*: Overrides the default alphabetical category ordering. Provide a comma-separated string using the format `categoryName:sortingName`. The `sortingName` is used to determine the sort order among the listed categories. Categories not included in this list will maintain their default alphabetical order.
 
   - *oninit.refractor.bs5=0* - Enable (`1`) or disable (`0`) automatic refractoring of Bootstrap 5 `data-bs-xxx` attributes when the editor opens (default: 0).
+
+  - *jsBaseUrl* - If specified, this **base URL** will be prepended to the `requires` property in the widget definition — *unless* `requires` already starts with `http`, in which case the base URL will be ignored.
+
+This feature is useful for dynamically changing the location of the JavaScript assets required by the widgets.
 
 The capability 'tiny/widgethub:viewplugin' allows to set the plugin visibility for any role. Keep in mind that, by default, the role student is prevented from using the plugin.
 

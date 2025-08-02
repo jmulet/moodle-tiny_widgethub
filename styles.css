@@ -234,6 +234,32 @@ h4.tiny_widgethub-headertext {
     }
 }
 
+.tiny_widgethub-loader {
+    position: absolute;
+    z-index: 100;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: #999;
+    box-shadow: 32px 0 #999, -32px 0 #999;
+    animation: tiny_widgethub-flash 0.5s ease-out infinite alternate;
+  }
+@keyframes tiny_widgethub-flash {
+    0% {
+      background-color: #FFF2;
+      box-shadow: 32px 0 #FFF2, -32px 0 #999;
+    }
+    50% {
+      background-color: #999;
+      box-shadow: 32px 0 #FFF2, -32px 0 #FFF2;
+    }
+    100% {
+      background-color: #FFF2;
+      box-shadow: 32px 0 #999, -32px 0 #FFF2;
+    }
+}
 
 /** Custom bootstrap buttons **/
 .tiny_widgethub-btn {

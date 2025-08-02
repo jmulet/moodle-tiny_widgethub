@@ -57,7 +57,7 @@ const ROOT_OPTIONS = [
 const PARAMETERS_OPTIONS = [
     {label: 'name', type: 'variable', info: '*The name of the parameter that will be used in the template.'},
     {label: 'title', type: 'variable', info: '*The title that will appear in the label near the user input.'},
-    {label: 'type', type: 'variable', info: "'textfield' | 'numeric' | 'checkbox' | 'select' | 'textarea' | 'image' | 'color'"},
+    {label: 'type', type: 'variable', info: "'textfield' | 'numeric' | 'checkbox' | 'select' | 'autocomplete' | 'textarea' | 'image' | 'color'"},
     {label: 'options', type: 'variable', info: "A list of options for type=select. Can be a list of strings or objects like {l: 'label', v: 'value'}"},
     {label: 'value', type: 'variable', info: "*The default value for the option. E.g. 11, true, 'someValue'"},
     {label: 'tooltip', type: 'variable', info: 'Optional. Information shown to the user as a popover near the input control'},

@@ -10,7 +10,7 @@ Issue #18: Improve stability of the widget mini-preview. Make UI styles less dep
 
 == 1.3.0 ==
 Adapt the plugin for the Moodle version 5.0:
- - Widget repository: add data-bs- attributes to BS5 components.
+ - Widget repository: add data-bs- attributes to BS5 components
  - Include the possibility to refractor non data-bs- widgets in page to support BS5
  - Adapt card-group and jumbotron widgets to support BS5
  - onInit refractor to BS5 data-bs- properties
@@ -19,7 +19,18 @@ Issue #21: Feature request (minor): sorting and ordering of widgets (and categor
  - Frontend dialog: custom sorting of categories and buttons via order attribute
 
 == 1.3.1 ==
-Added CONTRIBUTING.md, clarifying how to contribute to new widgets.
-Issue #27: Possibility to add External JS Dependencies
-Issue #25: Enhancing Widget Visibility Control with Role-Based Permissions
-Improved documentation includes an example of widget requiring javascript.
+New Features:
+- Issue #27: Added support for external JavaScript dependencies.
+- Issue #25: Enhanced widget visibility control with role-based permissions.
+
+Improvements:
+- Save button on the management page no longer redirects to the widget index page.
+- Improved validation for ymlsetting.
+- Documentation updates:
+  - Added an example of a widget that requires JavaScript.
+  - Added CONTRIBUTING.md with guidelines for contributing new widgets.
+
+Fixes and Technical Changes:
+- Issue #29: Updated how the template part is displayed.
+  - Replaced js-yaml with https://github.com/eemeli/yaml to improve consistency in block literal handling.
+

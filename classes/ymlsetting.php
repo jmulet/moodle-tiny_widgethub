@@ -130,9 +130,10 @@ class ymlsetting extends \admin_setting {
         }
         set_config('def_' . $this->windex, $data, 'tiny_widgethub');
         // Update index.
-        plugininfo::update_widget_index($this->windex);
-        // Redirect to the category page.
-        redirect(new \moodle_url('/admin/category.php', ['category' => 'tiny_widgethub']));
+        $newid = plugininfo::update_widget_index($this->windex);
+        if ($newid > 0) {
+            redirect(new \moodle_url('/admin/settings.php', ['section' => 'tiny_widgethub_spage_' . $newid]));
+        }
         return '';
     }
 

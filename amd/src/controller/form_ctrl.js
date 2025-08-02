@@ -73,6 +73,16 @@ export const Templates = {
    {{/options}}
    </select>
    </div>
+   </div>`,
+
+   AUTOCOMPLETETEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+   <div class="col-sm-7"><input type="text" list="{{elementid}}_aclist" id="{{elementid}}_actmpl" class="form-control" name="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}" autocomplete="off"/>
+   <datalist id="{{elementid}}_aclist">
+   {{#options}}
+   <option value="{{optionValue}}"/>
+   {{/options}}
+   </datalist>
+   </div>
    </div>`
 };
 
@@ -175,7 +185,7 @@ export class FormCtrl {
          markup = this.templateSrv.renderMustache(Templates.NUMERICTEMPLATE, {minMax: minMax, ...generalCtx});
       } else if (param.type === 'checkbox') {
          markup = this.templateSrv.renderMustache(Templates.CHECKBOXTEMPLATE, generalCtx);
-      } else if (param.type === 'select') {
+      } else if (param.type === 'select' || param.type === 'autocomplete') {
          const options = (param.options ?? []).map(opt => {
             let label;
             let value;
@@ -188,7 +198,8 @@ export class FormCtrl {
             }
             return {optionLabel: label, optionValue: value, selected: value === defaultValue};
          });
-         markup = this.templateSrv.renderMustache(Templates.SELECTTEMPLATE, {options, ...generalCtx});
+         const tmpl = param.type === 'select' ? Templates.SELECTTEMPLATE : Templates.AUTOCOMPLETETEMPLATE;
+         markup = this.templateSrv.renderMustache(tmpl, {options, ...generalCtx});
       } else if (param.type === 'color') {
          // Value must be in hex form and must find alpha (0-1)
          const [hex, alpha] = toHexAlphaColor(generalCtx.defaultvalue);

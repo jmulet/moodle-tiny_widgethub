@@ -9,12 +9,12 @@
         <repository>https://github.com/mde/ejs</repository>
     </library>
     <library>
-        <location>amd/src/libs/js_yaml-lazy.js</location>
-        <name>js_yaml</name>
-        <version>4.1.0</version>
-        <license>MIT</license>
+        <location>amd/src/libs/yaml-lazy.js</location>
+        <name>yaml</name>
+        <version>2.8.0</version>
+        <license>ISC</license>
         <licenseversion></licenseversion>
-        <repository>https://github.com/nodeca/js-yaml</repository>
+        <repository>https://github.com/eemeli/yaml</repository>
     </library>
     <library>
         <location>amd/src/libs/ymleditor-lazy.js</location>
