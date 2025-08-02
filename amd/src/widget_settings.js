@@ -339,6 +339,10 @@ export default {
         $previewBtn.on('click', async() => {
             const yml = ymleditor.getValue();
             const validation = await this.validate(yml, opts, partials);
+            if (validation.json && JSON.parse(validation.json).key === 'partials') {
+                // Cannot preview the partials file.
+                return;
+            }
             if (validation.msg) {
                 alert(validation.msg);
             } else if (validation.html) {
