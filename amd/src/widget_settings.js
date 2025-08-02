@@ -24,12 +24,21 @@
  */
 import jQuery from 'jquery';
 import YmlEditor from './libs/ymleditor-lazy';
-import {load, dump} from './libs/js_yaml-lazy';
+import {parse, stringify, Scalar} from './libs/yaml-lazy';
 // eslint-disable-next-line camelcase
 import {get_strings as getStrings, get_string} from 'core/str';
 import {getTemplateSrv} from './service/template_service';
 import {applyPartials} from './options';
 import common from './common';
+
+/**
+ * Does a key name of the yaml file requires a block format?
+ * @param {string} str
+ * @returns {boolean}
+ */
+function needsBlock(str) {
+  return typeof str === 'string' && str.includes('\n');
+}
 
 const {component} = common;
 const templateSrv = getTemplateSrv();
@@ -144,8 +153,37 @@ export default {
             return;
         }
         try {
-            const obj = JSON.parse(json);
-            const yml = dump(obj, {});
+            const _obj = JSON.parse(json);
+            const blockKeys = {
+                template: 'BLOCK_LITERAL',
+                filter: 'BLOCK_LITERAL',
+                instructions: 'BLOCK_FOLDED',
+            };
+
+            for (const [key, style] of Object.entries(blockKeys)) {
+                if (needsBlock(_obj[key])) {
+                    /** @type {any} */
+                    const scalar = new Scalar(_obj[key]);
+                    scalar.type = style;
+                    if (style === 'BLOCK_FOLDED') {
+                        scalar.chomping = 'CLIP';
+                    }
+                    _obj[key] = scalar;
+                }
+            }
+            if (Array.isArray(_obj.parameters)) {
+                for (const param of _obj.parameters) {
+                    if (param.bind && typeof param.bind === 'object') {
+                    ['get', 'set'].forEach(key => {
+                        if (needsBlock(param.bind[key])) {
+                            param.bind[key] = new Scalar(param.bind[key]);
+                            param.bind[key].type = 'BLOCK_LITERAL';
+                        }
+                    });
+                    }
+                }
+            }
+            const yml = stringify(_obj, {indent: 2});
             codeProEditor.setValue(yml);
         } catch (ex) {
             console.error(ex);
@@ -174,7 +212,7 @@ export default {
             /** @type {import('./options').RawWidget} */
             let jsonObj;
             try {
-                jsonObj = load(yml, null) ?? {};
+                jsonObj = parse(yml);
             } catch (ex) {
                 validation.msg = await get_string('erryaml', component) + ':: ' + ex;
                 return validation;

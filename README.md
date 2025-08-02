@@ -6,6 +6,18 @@
 > [!IMPORTANT]
 > This plugin needs a Moodle theme based on Boost since some widgets rely on Bootstrap.
 
+<div class="alert alert-info d-flex align-items-center" role="alert" style="gap: 0.5rem;">
+  <span style="background-color: #ffcc00; color: #000; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 0.85rem;">
+    NEW
+  </span>
+  <div>
+    <a href="https://chatgpt.com/g/g-68512f2f3ce4819182441c429f5b8673-widgethub-yml-builder"
+       target="_blank" rel="noopener noreferrer" style="text-decoration: none; font-weight: 500; color: inherit;">
+      Introducing <strong>WidgetHub GTP</strong> — your new assistant for building and inserting widgets effortlessly!
+    </a>
+  </div>
+</div>
+
 ## Features
 
 Users can:
