@@ -35,6 +35,7 @@ Later, at any time, the component can be reconfigured using context menus provid
 
 - [Examples: Learn how to customize and create widgets.](docs/examples.md)
 - [Yaml API reference.](docs/api.md)
+- [Known issues and workarounds.](docs/issues.md)
 
 ## Migration from Moodle 4x to Moodle 5.0
 
