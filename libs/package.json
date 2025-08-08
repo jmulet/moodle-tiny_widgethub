@@ -12,9 +12,11 @@
   "author": "Josep Mulet Pol",
   "license": "GNU",
   "dependencies": {
-    "@codemirror/lang-yaml": "^6.1.1",
-    "codemirror": "^6.0.1",
-    "yaml": "^2.8.0"
+    "@codemirror/lang-yaml": "^6.1.2",
+    "@codemirror/lint": "^6.8.5",
+    "codemirror": "^6.0.2",
+    "yaml": "^2.8.0",
+    "zod": "^4.0.15"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^26.0.1",

@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable no-console */
 // This file is part of Moodle - http://moodle.org/
 //
@@ -299,7 +300,7 @@ export function applyPartials(widget, partials) {
  * @property {string=} partial
  * @property {string} name
  * @property {string} title
- * @property {'textfield' | 'numeric' | 'checkbox' | 'select' | 'autocomplete' | 'textarea' | 'image' | 'color'} [type]
+ * @property {'textfield' | 'numeric' | 'checkbox' | 'select' | 'autocomplete' | 'textarea' | 'image' | 'color' | 'repeatable'} [type]
  * @property {(ParamOption | string)[]} [options]
  * @property {any} value
  * @property {string=} tip
@@ -312,6 +313,7 @@ export function applyPartials(widget, partials) {
  * @property {boolean} [hidden]
  * @property {boolean} [editable]
  * @property {string} [for]
+ * @property {Param[]} [fields]
  */
 /**
  * @typedef {Object} Action
@@ -451,6 +453,11 @@ export class Widget {
         const obj = {};
         (this._widget.parameters ?? []).forEach((param) => {
             obj[param.name] = param.value;
+            // In repeatable must create an array
+            if (param.type === 'repeatable') {
+                obj[param.name] = [];
+                // (TODO populate it according to min and max values)
+            }
         });
         return obj;
     }
@@ -536,7 +543,11 @@ export class Widget {
      * @returns {boolean}
      */
     hasBindings() {
-        return (this._widget.parameters ?? []).some(param => param.bind !== undefined);
+        const parameters = this._widget.parameters ?? [];
+        const repeatable = parameters.filter(param => param.type === 'repeatable')
+            .map(rep => (rep.fields || []).some(field => field.bind !== undefined));
+        return parameters.some(param => param.bind !== undefined) ||
+            repeatable.some(rep => rep);
     }
     /**
      * Recovers the property value named name of the original definition

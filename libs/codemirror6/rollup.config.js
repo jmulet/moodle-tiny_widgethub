@@ -36,18 +36,4 @@ export default [
             nodeResolve()
         ]
     },
-    {
-        input: './codemirror6/yaml.mjs',
-        output: {
-            sourcemap: false,
-            file: path.resolve(__dirname, '../../amd/src/libs/yaml-lazy.js'),
-            format: 'esm',
-            name: 'yaml',
-            plugins: [],
-            banner
-        },
-        plugins: [
-            nodeResolve()
-        ]
-    },
 ];

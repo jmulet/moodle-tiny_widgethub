@@ -83,7 +83,16 @@ export const Templates = {
    {{/options}}
    </datalist>
    </div>
-   </div>`
+   </div>`,
+
+
+   // TODO IMPLEMENT ME
+   REPEATABLE: `<div id="{{elementid}}"  name="{{varname}}" type="repeatable" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}">
+      <label class="col-sm-5 col-form-label"  for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+      <div class="col">
+      {{innercontrols}} TODO!!!!!!!!!!
+      </div>
+   </div>`,
 };
 
 
@@ -216,6 +225,37 @@ export class FormCtrl {
       return markup;
    }
 
+   /**
+    * It extracts the value of a single HTML control
+    * @param {JQuery<HTMLElement>} $elem
+    * @param {import('../options').Param} param
+    */
+   extractControlValue($elem, param) {
+      const type = $elem.attr("type");
+      /** @type {*} */
+      let value = $elem.val() ?? "";
+      if ($elem.prop("tagName") === "INPUT" && type === "checkbox") {
+         value = $elem.is(':checked');
+      } else if ($elem.prop("tagName") === "INPUT" && type === "number") {
+         if (value.indexOf(".") >= 0) {
+            value = parseFloat(value);
+         } else {
+            value = parseInt(value);
+         }
+      } else if ($elem.prop("tagName") === "INPUT" && type === "color") {
+         // Must also find the corresponding alpha channel value
+         const pname = param.name;
+         const cleanPname = cleanParameterName(pname);
+         const $slider = $elem.closest(".form-group").find(`[name="${cleanPname}_alpha"]`);
+         const alpha = $slider.val() ?? 1;
+         value = toRgba(value, +alpha);
+      }
+
+      if (param.transform) {
+         value = stream(param.transform).reduce(value);
+      }
+      return value;
+   }
 
    /**
     * Obtains the updated parameter values from the modal
@@ -239,31 +279,28 @@ export class FormCtrl {
             ctx[pname] = defaults[pname];
             return;
          }
-         /** @type {*} */
-         let value = $elem.val() ?? "";
-         if ($elem.prop("tagName") === "INPUT" && $elem.attr("type") === "checkbox") {
-            value = $elem.is(':checked');
-         } else if ($elem.prop("tagName") === "INPUT" && $elem.attr("type") === "number") {
-            if (value.indexOf(".") >= 0) {
-               value = parseFloat(value);
-            } else {
-               value = parseInt(value);
-            }
-         } else if ($elem.prop("tagName") === "INPUT" && $elem.attr("type") === "color") {
-            // Must also find the corresponding alpha channel value
-            const $slider = form.find(`[name="${cleanPname}_alpha"]`);
-            const alpha = $slider.val() ?? 1;
-            value = toRgba(value, +alpha);
+         // $elem might be a div for repeatable inputs
+         const type = $elem.attr("type");
+         if (type === 'repeatable') {
+            /** @type {any[]}  */
+            const listValue = [];
+            $elem.find(".repeatable-item").each((i, subform) => {
+               param.fields?.forEach(field => {
+                  const $subform = this.jQuery(subform);
+                  const $subelem = $subform.find(`[name="${cleanParameterName(field.name)}"]`);
+                  listValue.push(this.extractControlValue($subelem, field));
+               });
+            });
+            ctx[pname] = listValue;
+         } else {
+            ctx[pname] = this.extractControlValue($elem, param);
          }
 
-         if (param.transform) {
-            value = stream(param.transform).reduce(value);
-         }
-         ctx[pname] = value;
          if (pname.trim().startsWith("_")) {
-            toPersist[pname] = value;
+               toPersist[pname] = ctx[pname];
          }
       });
+
       if (doStore && this.storage) {
          if (Object.keys(toPersist).length) {
             // Only those starting with $

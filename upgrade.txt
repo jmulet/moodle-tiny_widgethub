@@ -34,3 +34,7 @@ Fixes and Technical Changes:
 - Issue #29: Updated how the template part is displayed.
   - Replaced js-yaml with https://github.com/eemeli/yaml to improve consistency in block literal handling.
 
+
+== 1.4.0 ==
+New Features:
+  - Repeatable parameters

@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'tiny_widgethub';
-$plugin->release = '1.3.1';
+$plugin->release = '1.4.0';
 $plugin->requires = 2022112800;
 $plugin->maturity = MATURITY_STABLE;
-$plugin->version = 2025060601;
+$plugin->version = 2025090101;

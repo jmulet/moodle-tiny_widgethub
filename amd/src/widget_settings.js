@@ -23,8 +23,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import jQuery from 'jquery';
-import YmlEditor from './libs/ymleditor-lazy';
-import {parse, stringify, Scalar} from './libs/yaml-lazy';
+import {YmlEditor, YAML} from './libs/ymleditor-lazy';
 // eslint-disable-next-line camelcase
 import {get_strings as getStrings, get_string} from 'core/str';
 import {getTemplateSrv} from './service/template_service';
@@ -163,7 +162,7 @@ export default {
             for (const [key, style] of Object.entries(blockKeys)) {
                 if (needsBlock(_obj[key])) {
                     /** @type {any} */
-                    const scalar = new Scalar(_obj[key]);
+                    const scalar = new YAML.Scalar(_obj[key]);
                     scalar.type = style;
                     if (style === 'BLOCK_FOLDED') {
                         scalar.chomping = 'CLIP';
@@ -176,14 +175,14 @@ export default {
                     if (param.bind && typeof param.bind === 'object') {
                     ['get', 'set'].forEach(key => {
                         if (needsBlock(param.bind[key])) {
-                            param.bind[key] = new Scalar(param.bind[key]);
+                            param.bind[key] = new YAML.Scalar(param.bind[key]);
                             param.bind[key].type = 'BLOCK_LITERAL';
                         }
                     });
                     }
                 }
             }
-            const yml = stringify(_obj, {indent: 2});
+            const yml = YAML.stringify(_obj, {indent: 2});
             codeProEditor.setValue(yml);
         } catch (ex) {
             console.error(ex);
@@ -212,7 +211,7 @@ export default {
             /** @type {import('./options').RawWidget} */
             let jsonObj;
             try {
-                jsonObj = parse(yml);
+                jsonObj = YAML.parse(yml);
             } catch (ex) {
                 validation.msg = await get_string('erryaml', component) + ':: ' + ex;
                 return validation;
