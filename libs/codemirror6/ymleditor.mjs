@@ -21,7 +21,8 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {EditorView, basicSetup} from "codemirror";
+import {basicSetup} from '@codemirror/basic-setup';
+import {EditorView} from "@codemirror/view";
 import {autocompletion} from "@codemirror/autocomplete";
 import {keymap} from "@codemirror/view";
 import {indentWithTab} from "@codemirror/commands";
