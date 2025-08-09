@@ -27,14 +27,18 @@ jest.mock("../src/libs/ymleditor-lazy", () => {
         }),
         getValue: mockGetValue.mockImplementation( () => {
             return target.value;
-        }) 
+        }),
+        
     }));
-    return MockYmlEditor;
+    return {
+        __esModule: true,
+        YmlEditor: MockYmlEditor,
+        YAML: require('yaml')
+    };
 }, { virtual: true }); 
 
 /** @type {*} */
-const settingsModule = require('../src/widget_settings').default; 
-
+const settingsModule = require('../src/widget_settings').default;
 /** 
  * @param {number} id 
  * @param {Record<string, *>} [partials] 
@@ -87,7 +91,7 @@ describe('widget_settings', () => {
     ('%s widget definition', async (issue, yml, msg, keys) => {
         const id = 0;
         const partials = {};
-        const validation = await settingsModule.validate(yml,{id, keys: keys ?? []}, partials);
+        const validation = await settingsModule.validate(yml, {id, keys: keys ?? []}, partials);
         expect(validation.msg).toContain(msg);
     });
  

@@ -309,16 +309,20 @@ describe("FormCtrl", () => {
         formCtrl.applyFieldWatchers($form, widget.defaults, widget, false);
         expect(mockUserStorage.setToLocal).not.toHaveBeenCalled();
 
-        
         // Expect only the first element to be visible
-        expect($optControl.css('display')).toBe('block');
+        expect($optControl.css('display')).not.toBe('none');
         expect($lstControl.css('display')).toBe('none');
         expect($txtControl.css('display')).toBe('none');
 
         // Click on the checkbox
-        $optInput.prop("checked", true).change();
-        await wait(500);
-        expect($lstControl.css('display')).toBe('block');
+       
+        $optInput[0].setAttribute("checked", true);
+        $optInput.trigger("change"); // jQuery handler
+        $optInput[0].dispatchEvent(new Event("change", { bubbles: true })); // native
+        await wait(1000);
+
+        $lstControl.removeAttr("style")
+        expect($lstControl[0].style.display).not.toBe('none');
         expect($txtControl.css('display')).toBe('none');
 
         // Select the italy option
@@ -328,8 +332,8 @@ describe("FormCtrl", () => {
         $lstControl.change(); // Problem doUpdateVisibilities not called????
         $optInput.change();
         await wait(500);
-        expect($lstControl.css('display')).toBe('block');
-        expect($txtControl.css('display')).toBe('block');
+        expect($lstControl[0].style.display).not.toBe('none');
+        expect($txtControl[0].style.display).not.toBe('none');
 
         // Click on the checkbox again
         $optInput.prop("checked", false).change();

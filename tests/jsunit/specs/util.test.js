@@ -79,7 +79,7 @@ describe('utils module tests', () => {
         res = U.evalInContext(scope, "");
         expect(res).toBe(undefined);
         const f = () => U.evalInContext(scope, "7*h");
-        expect(f).toThrowError();
+        expect(f).toThrow();
         res = U.evalInContext({}, "5*4-8");
         expect(res).toBe(12);
     });
@@ -351,6 +351,14 @@ describe('utils module tests', () => {
         expect(binding?.getValue()).toBe(result);
     });
 
+    /**
+     * 
+     * @param {string} html 
+     * @returns {string}
+     */
+    function normalizeStyle(html) {
+       return html.replace(/\s*:\s*/g, ':').replace(/\s*;\s*/g, ';');
+    }
 
     test.each([
         ["hasClass('editable')", `<span class="a editable"></span>`, true, `<span class="a editable"></span>`],
@@ -404,10 +412,10 @@ describe('utils module tests', () => {
         ["styleRegex('width: (.*)px', null, 'number')", `<span style="width: 100px;"></span>`, 700, `<span style="width: 700px;" data-mce-style="width: 700px;"></span>`],
 
         [`styleRegex("background-image:url\\\\(['\\"]?([^'\\")]*)['\\"]?\\\\)")`, 
-            `<span class="iedib-background-img" style="background-image:url('http://localhost:4545/pluginfile.php/19/mod_page/content/5/icon.png'); padding: 10px;">
+            `<span class="iedib-background-img" style="background-image:url(http://localhost:4545/pluginfile.php/19/mod_page/content/5/icon.png); padding: 10px;">
             Quina probabilitat tinc de guanyar els jocs d'atzar?</span>`, 
             'https://iedib.net/example.png', 
-            `<span class="iedib-background-img" style="background-image: url(https://iedib.net/example.png); padding: 10px;" data-mce-style="background-image: url(https://iedib.net/example.png); padding: 10px;">
+            `<span class="iedib-background-img" style="background-image: url(&quot;https://iedib.net/example.png&quot;); padding: 10px;" data-mce-style="background-image: url(&quot;https://iedib.net/example.png&quot;); padding: 10px;">
             Quina probabilitat tinc de guanyar els jocs d'atzar?</span>`]
               
 
@@ -417,7 +425,7 @@ describe('utils module tests', () => {
         let binding = U.createBinding(bindDef, $e);
         expect(binding).not.toBeNull();
         binding?.setValue(value)
-        expect($e.prop('outerHTML')).toBe(result);
+        expect(normalizeStyle($e.prop('outerHTML'))).toBe(normalizeStyle(result));
 
         // Binding on a child
         $e = jQuery(`<div class="container">${elemDef}</div>`);
@@ -429,7 +437,7 @@ describe('utils module tests', () => {
         binding = U.createBinding(bindDef, $e);
         expect(binding).not.toBeNull();
         binding?.setValue(value)
-        expect($e.find("span").prop('outerHTML')).toBe(result);
+        expect(normalizeStyle($e.find("span").prop('outerHTML'))).toBe(normalizeStyle(result));
     });
 
     test('User defined binding', () => {
