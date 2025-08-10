@@ -171,7 +171,7 @@ const ParamSchema = z.object({
     if (data.title === undefined) {
         ctx.addIssue({code: 'custom', message: "The parameter 'title' is required.", path: ['title']});
     }
-    if (data.value === undefined) {
+    if (data.type !== 'repeatable' && data.value === undefined) {
         ctx.addIssue({code: 'custom', message: "The 'value' property is required for each parameter.", path: ['value']});
     }
 

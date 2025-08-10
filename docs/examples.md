@@ -428,70 +428,69 @@ binding:
 
 ### Example 7. Creating a carousel with bootstrap
 
-This example serves as a starting point to implement an image carousel.
+This example serves as a starting point for implementing an image carousel. It makes use of repeatable parameters, whose value is an array of objects. Each object contains the properties defined in the fields key.
+
+Note that the `value` property is not required for a repeatable parameter, as its values are generated from the default values specified in `fields`.
+
+The number of items in the list can be controlled with the `min` and `max` parameters. If `min` is not specified, it defaults to 1.
+
+Bindings in repeatable fields work as follows: the bind attribute in the parameter definition specifies the CSS query that returns a list of DOM elements. When bind is used in the fields, it does not refer to the widget’s root element; instead, it refers to each element in the returned list.
+
+Please note that the use of repeatable fields requires version `v2` of the YAML schema.
 
 ````yaml
+schema: v2
 key: bs-carousel
 name: Carousel
 category: bootstrap
-template: |
-  <p><br></p>  
-  <div id="carouselExampleCaptions" data-widget="bs_carousel" class="carousel slide" data-ride="carousel">
-  <ol class="carousel-indicators">
-    <li data-target="#carouselExampleCaptions" data-slide-to="0" class="active"> </li>
-    <li data-target="#carouselExampleCaptions" data-slide-to="1"> </li>
-    <li data-target="#carouselExampleCaptions" data-slide-to="2"> </li>
-  </ol>
-  <div class="carousel-inner">
-    <div class="carousel-item active">
-      <img src="{{img1}}" class="d-block w-100" alt="Sample img 1">
-      <div class="carousel-caption d-none d-md-block">
-        <h5>First slide label</h5>
-        <p>Some representative placeholder content for the first slide.</p>
-      </div>
+engine: ejs
+template: >
+  <p><br></p> 
+  <div id="<%=ID%>" data-widget="bs_carousel" class="carousel slide" data-ride="carousel">
+    <ol class="carousel-indicators">
+      <% imgs.forEach((_, i) => { %>
+        <li data-target="#<%=ID%>" data-slide-to="<%=i%>"<% i===0 ?' class="active"' : ''%>>&nbsp;</li>
+      <% }) %>
+    </ol>
+
+    <div class="carousel-inner">
+      <% imgs.forEach((img, i) => { %>
+        <div class="carousel-item<% i===0 ?' active' : ''%>">
+          <img src="<%=img.url%>" class="d-block w-100" alt="image <%=i+1%>">
+          <div class="carousel-caption d-none d-md-block">
+            <h5>Slide label <%=i+1%></h5>
+            <p>Some representative placeholder content for the slide <%=i+1%>.</p>
+          </div>
+        </div>
+      <% }) %>
     </div>
-    <div class="carousel-item">
-      <img src="{{img2}}" class="d-block w-100" alt="Sample img 2">
-      <div class="carousel-caption d-none d-md-block">
-        <h5>Second slide label</h5>
-        <p>Some representative placeholder content for the second slide.</p>
-      </div>
-    </div>
-    <div class="carousel-item">
-      <img src="{{img3}}" class="d-block w-100" alt="Sample img 3">
-      <div class="carousel-caption d-none d-md-block">
-        <h5>Third slide label</h5>
-        <p>Some representative placeholder content for the third slide.</p>
-      </div>
-    </div>
-  </div>
-  <button class="carousel-control-prev" type="button" data-target="#carouselExampleCaptions" data-slide="prev">
-    <span class="carousel-control-prev-icon" aria-hidden="true"> </span>
-    <span class="sr-only">Previous</span>
-  </button>
-  <button class="carousel-control-next" type="button" data-target="#carouselExampleCaptions" data-slide="next">
-    <span class="carousel-control-next-icon" aria-hidden="true"> </span>
-    <span class="sr-only">Next</span>
-  </button>
+
+    <button class="carousel-control-prev" type="button" data-target="#<%=ID%>" data-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true">&nbsp;</span>
+      <span class="sr-only">Previous</span>
+    </button>
+
+    <button class="carousel-control-next" type="button" data-target="#<%=ID%>" data-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true">&nbsp;</span>
+      <span class="sr-only">Next</span>
+    </button>
   </div>   
   <p><br></p>
 selectors: div[data-widget="bs_carousel"]
 parameters:
-  - name: img1
-    title: URL of image 1
-    type: image
-    value: https://picsum.photos/300/200?random=1
-    bind: attr('src', '.carousel-item:nth-of-type(1) img')
-  - name: img2
-    title: URL of image 2
-    type: image
-    value: https://picsum.photos/300/200?random=2
-    bind: attr('src', '.carousel-item:nth-of-type(2) img')
-  - name: img3
-    title: URL of image 3
-    type: image
-    value: https://picsum.photos/300/200?random=3
-    bind: attr('src', '.carousel-item:nth-of-type(3) img')
+  - __ID__
+  - name: imgs
+    title: Images
+    type: repeatable
+    bind: .carousel-item
+    min: 2
+    max: 10
+    fields:
+      - name: url
+        title: URL
+        type: image
+        value: https://picsum.photos/300/200?random={{i}}
+        bind: attr('src', 'img')
 author: Josep Mulet <pep.mulet@gmail.com>
 version: 1.0.0
 ````
