@@ -70,6 +70,7 @@ export class WidgetPropertiesCtrl {
         }
         const widget = currentContext.widget;
         const hostId = this.editor.id;
+        // The DOM element for the root of the widget
         const elem = currentContext.elem;
 
         if (!elem || !widget?.hasBindings()) {
@@ -83,21 +84,37 @@ export class WidgetPropertiesCtrl {
         // Extract param values from DOM
         /** @type {Object.<string, any>} */
         const paramValues = {};
-        widget.parameters.filter(param => param.bind != undefined).forEach((param) => {
-            if (!param.bind) {
-                return;
-            }
-            const binding = createBinding(param.bind, elem, typeof (param.value));
-            if (binding) {
-                bindingsDOM[param.name] = binding;
-                paramValues[param.name] = binding.getValue();
+        // Parameters that contain bindings
+        const parametersWithBindings = widget.parameters.filter(param => param.bind != undefined);
+        parametersWithBindings.forEach((param) => {
+            if (param.bind && param.type !== 'repeatable') {
+                // A simple control binding
+                const binding = createBinding(param.bind, elem, typeof (param.value));
+                if (binding) {
+                    const pname = param.name;
+                    bindingsDOM[pname] = binding;
+                    paramValues[pname] = binding.getValue();
+                }
+            } else if (typeof (param.bind) === 'string' && param.type === 'repeatable') {
+                // Find all item containers in DOM (param.bind is a query to every item element)
+                document.querySelectorAll(param.bind).forEach(itemRoot => {
+                    // For every field in parameter which has binding, create it
+                    param.fields?.filter(f => f.bind !== undefined).forEach((f, i) => {
+                        // @ts-ignore
+                        const binding = createBinding(f.bind, itemRoot, typeof (f.value));
+                        if (binding) {
+                            const pname = `${param.name}[${i}].${f.name}`;
+                            bindingsDOM[pname] = binding;
+                            paramValues[pname] = binding.getValue();
+                        }
+                    });
+                });
             }
         });
 
         // Create parameters form controls
-        // Filter only those parameters which have default Values
         /** @type {string[]} */
-        const controls = widget.parameters.filter(param => param.bind)
+        const controls = parametersWithBindings
             .map(param => this.formCtrl.createControlHTML(hostId, param, paramValues[param.name]));
 
         const ctxData = {
@@ -111,6 +128,7 @@ export class WidgetPropertiesCtrl {
             this.modal?.destroy();
             this.modal = null;
         });
+        // Bind actions on image and color pickers
         this.formCtrl.attachPickers(this.modal.body);
         // Applying watchers to the form elements
         this.formCtrl.applyFieldWatchers(this.modal.body, paramValues, widget, false);
@@ -126,9 +144,22 @@ export class WidgetPropertiesCtrl {
                 updatedValues = this.formCtrl.extractFormParameters(widget, form, true);
             }
             this.modal?.destroy();
-            // Apply Param Values To DOM
+            // Update parameter values back to DOM
             Object.keys(bindingsDOM).forEach(key => {
-                bindingsDOM[key].setValue(updatedValues[key]);
+                const val = updatedValues[key];
+                if (Array.isArray(val)) {
+                    val.forEach((obj, i) => {
+                        if (typeof obj !== 'object') {
+                            return;
+                        }
+                        Object.keys(obj).forEach(objKey => {
+                            const realKey = `${key}[${i}].${objKey}`;
+                            bindingsDOM[realKey].setValue(obj[objKey]);
+                        });
+                    });
+                } else {
+                    bindingsDOM[key].setValue(val);
+                }
             });
         });
 

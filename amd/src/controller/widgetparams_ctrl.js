@@ -79,9 +79,11 @@ export class WidgetParamsCtrl {
          await this.updatePreview(data.idtabpane, ctxFromDialogue);
       });
       this.formCtrl.attachPickers(modal.body);
+      this.formCtrl.attachRepeatable(modal.body, this.widget);
       modal.footer.show();
       modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", async() => {
          // Go back to main menú
+         // TODO detachPicker and detachRepeatable
          modal.destroy();
          if (this.parentCtrl) {
             await this.parentCtrl.handleAction();

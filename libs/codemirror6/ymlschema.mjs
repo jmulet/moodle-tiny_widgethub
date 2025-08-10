@@ -202,6 +202,14 @@ const ParamSchema = z.object({
     if (type === 'checkbox' && data.value !== undefined && typeof (data.value) !== 'boolean') {
         ctx.addIssue({code: 'custom', message: "The value of type 'checkbox' must be true or false", path: ['value']});
     }
+    // Repeatable parameter with bindings in field, require a bind parameter that specifies a query for getting the items
+    if (type === 'repeatable' && data.fields?.some(f => f.bind !== 'undefined')) {
+        if (!(typeof data.bind === 'string')) {
+            ctx.addIssue({code: 'custom',
+                message: "Repeatable parameters that include fields with bindings, require also a bind attribute (string) which specifies a css query to get the items in DOM",
+                path: ['bind']});
+        }
+    }
 });
 
 

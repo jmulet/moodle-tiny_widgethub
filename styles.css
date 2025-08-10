@@ -381,6 +381,29 @@ h4.tiny_widgethub-headertext {
     fill: #fff;
 }
 
+/********************************** Repeatable list **/
+.list-group .tiny_widgethub-additem:first-child {
+  border-top-color: transparent;
+}
+.list-group .tiny_widgethub-additem:last-child {
+  border-bottom-color: transparent;
+}
+.tiny_widgethub-additem {
+  border-left: none; 
+  border-right: none; 
+}
+.tiny_widgethub-additem > hr {
+  z-index: 0;
+}
+.tiny_widgethub-additem > button {
+  z-index: 1;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1;
+  width: 24px; 
+  height: 24px;
+}
+
 /********************************** Specific Widget definitions styles */
 /** subsection **/
 h4.twh-subsub {

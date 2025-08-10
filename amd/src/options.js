@@ -453,10 +453,9 @@ export class Widget {
         const obj = {};
         (this._widget.parameters ?? []).forEach((param) => {
             obj[param.name] = param.value;
-            // In repeatable must create an array
+            // In repeatable must create an empty array (they are populated dynamically)
             if (param.type === 'repeatable') {
                 obj[param.name] = [];
-                // (TODO populate it according to min and max values)
             }
         });
         return obj;
