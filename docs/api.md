@@ -4,7 +4,7 @@ Optional keywords are marked with **[ ]**.
 
 | **Key**               | **Type**                              | **Description**                                                                                           |
 |-----------------------|---------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| **`schema`**             | `v1 or v2`                             | The version of the yaml schema. Repeatable fields are only available in v2 schema. Defaults to `v1`.                                                                      |
+| **`[plugin_version]`**             | `string`                             | (Optional) The version of the Widgethub plugin required. The minimum required version of the Widgethub plugin, specified using comparison operators. Supported formats include >=1.4, >1.4, 1.4 or =1.4.                                         |
 | **`key`**             | `string`                             | A unique identifier for the widget.                                                                      |
 | **`name`**            | `string`                             | The name displayed on the button for selecting the widget.                                                |
 | **`[order]`**           | `string`                              | (Optional) If present, the name used to sort the widget alphabetically otherwise the `name` property is used      |
@@ -60,7 +60,8 @@ The type `Parameter` consists of these fields
 | **`options`**         | `string[]` or `{l: string, v: string}[]` | Options for `select` type.                                                                |
 | **`[min]`**           | `number`                             | (Optional) Minimum value for numeric controls or the minimum number of items in repeatable parameters (defaults to 1).                                                           |
 | **`[max]`**           | `number`                             | (Optional) Maximum value for numeric controls or the maximum number of items in repeatable parameters.                                                           |
-| **`[bind]`**          | `string` or `{get: () => string, set: (value: any) => void}` | (Optional) Binding configuration for parameter values. In repeatable parameters, `bind` is a string that specifies a **css query** that provides a list of DOM elements mapping the list items.    |
+| **`[bind]`**          | `string` or `{get: () => any, set: (value: any) => void}` | (Optional) Binding configuration for parameter values. In repeatable parameters (since v1.4), you can either use the `item_selector` keyword or the format `{get: () => object[], set: (value: object[]) => void}`.   |
+| **`[item_selector]`**      | `string` | (Optional) (Since v1.4) In repeatable parameters, it specifies a **css query** that provides a list of DOM elements mapping the list items.    |
  **`[transform]`**          | `string` | (Optional) Applies a pipe of transform functions to the value obtained from the user form. See below for the list of available transform functions.                         
 | **`[when]`**          | `string` | (Optional) A Javascript expression to programatically determine when this control must be shown. The expression can contain the keys of other parameters or the special key `SELECT_MODE` which is set to `selection` when there exists a selection in the Tiny editor and to `insert` otherwise.                          
 | **`[hidden]`**          | `boolean` | (Optional) Whether the control is hidden or visible.                            

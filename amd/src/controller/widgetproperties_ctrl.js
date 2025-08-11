@@ -25,6 +25,7 @@
 import {getFormCtrl} from '../controller/form_ctrl';
 import {getModalSrv} from '../service/modal_service';
 import {createBinding} from '../util';
+import jQuery from 'jquery';
 
 /**
  * @typedef {JQuery<HTMLElement>} ModalDialogue
@@ -47,14 +48,17 @@ export class WidgetPropertiesCtrl {
      * @param {import('../plugin').TinyMCE} editor
      * @param {import('../controller/form_ctrl').FormCtrl} formCtrl
      * @param {import('../service/modal_service').ModalSrv} modalSrv
-     */
-    constructor(editor, formCtrl, modalSrv) {
+     * @param {JQueryStatic} jQuery
+     **/
+    constructor(editor, formCtrl, modalSrv, jQuery) {
         /** @type {import('../plugin').TinyMCE} */
         this.editor = editor;
         /** @type {import('../controller/form_ctrl').FormCtrl} */
         this.formCtrl = formCtrl;
         /** @type {import('../service/modal_service').ModalSrv} */
         this.modalSrv = modalSrv;
+        /** @type {JQueryStatic} */
+        this.jQuery = jQuery;
     }
 
     /**
@@ -85,7 +89,14 @@ export class WidgetPropertiesCtrl {
         /** @type {Object.<string, any>} */
         const paramValues = {};
         // Parameters that contain bindings
-        const parametersWithBindings = widget.parameters.filter(param => param.bind != undefined);
+        const parametersWithBindings = widget.parameters.filter(param => {
+            if (param.type === 'repeatable') {
+                const fieldsWithBindings = param.fields?.some(f => f.bind !== undefined);
+                return (fieldsWithBindings && param.item_selector !== undefined) || (typeof param.bind === 'object');
+            } else {
+                return param.bind != undefined;
+            }
+        });
         parametersWithBindings.forEach((param) => {
             if (param.bind && param.type !== 'repeatable') {
                 // A simple control binding
@@ -95,20 +106,38 @@ export class WidgetPropertiesCtrl {
                     bindingsDOM[pname] = binding;
                     paramValues[pname] = binding.getValue();
                 }
-            } else if (typeof (param.bind) === 'string' && param.type === 'repeatable') {
-                // Find all item containers in DOM (param.bind is a query to every item element)
-                document.querySelectorAll(param.bind).forEach(itemRoot => {
-                    // For every field in parameter which has binding, create it
-                    param.fields?.filter(f => f.bind !== undefined).forEach((f, i) => {
-                        // @ts-ignore
-                        const binding = createBinding(f.bind, itemRoot, typeof (f.value));
-                        if (binding) {
-                            const pname = `${param.name}[${i}].${f.name}`;
-                            bindingsDOM[pname] = binding;
-                            paramValues[pname] = binding.getValue();
-                        }
+            } else if (param.type === 'repeatable') {
+                if (typeof param.item_selector === 'string') {
+                    /** @type {any[]} */
+                    const lst = [];
+                    paramValues[param.name] = lst;
+                    // Strategy 1. Searching DOM items and creating a binding per input
+                    // Find all item containers in DOM (param.bind is a query to every item element)
+                    elem.find(param.item_selector).each((_, /** @type {Node} */ itemRoot) => {
+                        const $itemRoot = this.jQuery(itemRoot);
+                        // For every field in parameter which has binding, create it
+                        /** @type {Record<string, any>} */
+                        const obj = {};
+                        param.fields?.filter(f => f.bind !== undefined).forEach((f, i) => {
+                            // @ts-ignore
+                            const binding = createBinding(f.bind, $itemRoot, typeof (f.value));
+                            if (binding) {
+                                const pname = `${param.name}[${i}].${f.name}`;
+                                bindingsDOM[pname] = binding;
+                                obj[f.name] = binding.getValue();
+                            }
+                        });
+                        lst.push(obj);
                     });
-                });
+                } else if (typeof param.bind === 'object') {
+                    // Strategy 2. A single binding for the whole array of objects
+                    const binding = createBinding(param.bind, elem);
+                    if (binding) {
+                        const pname = param.name;
+                        bindingsDOM[pname] = binding;
+                        paramValues[pname] = binding.getValue();
+                    }
+                }
             }
         });
 
@@ -147,7 +176,8 @@ export class WidgetPropertiesCtrl {
             // Update parameter values back to DOM
             Object.keys(bindingsDOM).forEach(key => {
                 const val = updatedValues[key];
-                if (Array.isArray(val)) {
+                if (Array.isArray(val) && bindingsDOM[key] === undefined) {
+                    // Follow stategy 1 for repeatable.
                     val.forEach((obj, i) => {
                         if (typeof obj !== 'object') {
                             return;
@@ -158,6 +188,7 @@ export class WidgetPropertiesCtrl {
                         });
                     });
                 } else {
+                    // Regular binding or strategy 2 for repeatable.
                     bindingsDOM[key].setValue(val);
                 }
             });
@@ -172,7 +203,7 @@ export class WidgetPropertiesCtrl {
             trigger: "hover"
             });
         } catch (ex) {
-            // console.error(ex);
+            console.error(ex);
         }
 
         this.modal.show();
@@ -191,7 +222,7 @@ const widgetPropertiesCtrlInstances = new Map();
 export function getWidgetPropertiesCtrl(editor) {
     let instance = widgetPropertiesCtrlInstances.get(editor);
     if (!instance) {
-        instance = new WidgetPropertiesCtrl(editor, getFormCtrl(editor), getModalSrv());
+        instance = new WidgetPropertiesCtrl(editor, getFormCtrl(editor), getModalSrv(), jQuery);
         widgetPropertiesCtrlInstances.set(editor, instance);
     }
     return instance;

@@ -1,4 +1,4 @@
-schema: v2
+plugin_version: '>=1.4'
 key: bs-carousel
 name: Carousel
 category: bootstrap
@@ -8,13 +8,13 @@ template: >
   <div id="<%=ID%>" data-widget="bs_carousel" class="carousel slide" data-ride="carousel">
     <ol class="carousel-indicators">
       <% imgs.forEach((_, i) => { %>
-        <li data-target="#<%=ID%>" data-slide-to="<%=i%>"<% i===0 ?' class="active"' : ''%>>&nbsp;</li>
+        <li data-target="#<%=ID%>" data-slide-to="<%=i%>"<%= i===0 ?' class="active"' : ''%>>&nbsp;</li>
       <% }) %>
     </ol>
 
      <div class="carousel-inner">
       <% imgs.forEach((img, i) => { %>
-        <div class="carousel-item<% i===0 ?' active' : ''%>">
+        <div class="carousel-item<%= i===0 ?' active' : ''%>">
           <img src="<%=img.url%>" class="d-block w-100" alt="image <%=i+1%>">
           <div class="carousel-caption d-none d-md-block">
             <h5>Slide label <%=i+1%></h5>
@@ -41,7 +41,7 @@ parameters:
   - name: imgs
     title: Images
     type: repeatable
-    bind: .carousel-item
+    item_selector: .carousel-item
     min: 2
     max: 10
     fields:
@@ -51,4 +51,4 @@ parameters:
         value: https://picsum.photos/300/200?random={{i}}
         bind: attr('src', 'img')
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 1.0.0
+version: 1.1.0

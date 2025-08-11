@@ -86,8 +86,8 @@ export const Templates = {
    </div>`,
 
    REPEATABLE: `<div id="{{elementid}}" name="{{varname}}" type="repeatable" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}">
-      <label class="col-sm-5 col-form-label" for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
-      {{{#itemControls}}}
+      <label class="form-label" for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+      {{{itemControls}}}
    </div>`,
 };
 
@@ -228,15 +228,17 @@ export class FormCtrl {
                   return;
                }
                const tmpDiv = document.createElement("DIV");
+               tmpDiv.className = 'w-100';
                Object.keys(obj).forEach(key => {
                   const field = param.fields?.filter(f => f.name === key)[0];
                   if (field) {
-                     tmpDiv.append(this.createControlHTML(hostId, field, obj[key], pname));
+                     // TODO --- MUST PASS A PREFIX FOR THE ID
+                     tmpDiv.innerHTML = this.createControlHTML(hostId, field, obj[key], pname);
                   }
                });
                ul.append(RepeatableCtrl.createRegularItem(tmpDiv, false));
             });
-            itemControls = ul.innerHTML;
+            itemControls = ul.outerHTML;
          }
          markup = this.templateSrv.renderMustache(Templates.REPEATABLE, {...generalCtx, itemControls});
       } else {
@@ -305,7 +307,7 @@ export class FormCtrl {
          if (type === 'repeatable') {
             /** @type {any[]}  */
             const listValue = [];
-            $elem.find(".list-group-item.repeatable-regular-item").each((i, subform) => {
+            $elem.find(".list-group-item.tiny_widgethub-regularitem").each((i, subform) => {
                /** @type {Record<string, any>} */
                const itemObj = {};
                param.fields?.forEach(field => {
@@ -479,6 +481,7 @@ export class FormCtrl {
     * @param {import("../options").Widget} widget
     */
    attachRepeatable($form, widget) {
+      const that = this;
       widget.parameters.filter(p => p.type === 'repeatable').forEach((param) => {
          const cleanParamname = cleanParameterName(param.name);
          const $subform = $form.find(`div[type="repeatable"][name="${cleanParamname}"]`);
@@ -496,11 +499,12 @@ export class FormCtrl {
                // Field value must be interpolated with the {{i}} placeholder
                let value = field.value;
                if (typeof (value) === 'string' && value.indexOf("{{i}}") >= 0) {
-                  value = this.templateSrv.mustache(value, {i});
+                  value = that.templateSrv.renderMustache(value, {i: i});
                }
-               return this.createControlHTML(this.editor.id, field, field.value, cleanParamname);
+               return that.createControlHTML(that.editor.id, field, value, cleanParamname);
             });
             const div = document.createElement("div");
+            div.className = 'w-100';
             div.innerHTML = controls.join(" ");
             return div;
          };
@@ -555,7 +559,7 @@ class RepeatableCtrl {
     * @private
     */
    _init() {
-      this._ul.classList.add('list-group', 'list-group-flush');
+      this._ul.classList.add('list-group', 'list-group-flush', 'w-100', 'ml-5');
 
       this._ul.append(RepeatableCtrl.createAddItem());
 
@@ -578,7 +582,7 @@ class RepeatableCtrl {
     */
    static createListGroup() {
       const ul = document.createElement('ul');
-      ul.classList.add('list-group', 'list-group-flush');
+      ul.classList.add('list-group', 'list-group-flush', 'w-100', 'ml-5');
       return ul;
    }
    /**
@@ -588,21 +592,18 @@ class RepeatableCtrl {
     */
    static createAddItem() {
       const li = document.createElement('li');
-      li.classList.add('list-group-item', 'position-relative', 'text-center', 'repeatable-add-item');
-
-      const hr = document.createElement('hr');
-      hr.classList.add('position-absolute', 'top-50', 'start-0', 'w-100', 'm-0');
+      li.classList.add('list-group-item', 'position-relative', 'text-center', 'tiny_widgethub-additem');
 
       const button = document.createElement('button');
       button.type = 'button';
 
-      button.className = 'tiny_widgethub-add-item btn btn-sm btn-outline-secondary bg-white text-secondary rounded-circle position-relative';
+      button.className = 'tiny_widgethub-addbtn btn btn-sm btn-outline-secondary bg-white text-secondary';
 
       const icon = document.createElement('i');
       icon.className = 'fa fa-plus';
 
       button.append(icon);
-      li.append(hr, button);
+      li.append(button);
       return li;
    }
 
@@ -614,13 +615,12 @@ class RepeatableCtrl {
     */
    static createRegularItem(content, showDelBtn) {
       const li = document.createElement('li');
-      li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center', 'repeatable-regular-item');
-
+      li.classList.add('list-group-item', 'd-flex', 'w-100', 'justify-content-between', 'align-items-center', 'tiny_widgethub-regularitem');
       li.append(content);
       if (showDelBtn) {
          const button = document.createElement('button');
          button.type = 'button';
-         button.className = 'tiny_widgethub-remove-item btn btn-sm btn-outline-danger';
+         button.className = 'tiny_widgethub-removeitem btn btn-sm btn-outline-danger';
 
          const icon = document.createElement('i');
          icon.className = 'fa fa-trash';
@@ -636,15 +636,15 @@ class RepeatableCtrl {
     * @private
     */
    _updateButtonStates() {
-      const count = this._ul.querySelectorAll('.list-group-item:not(.repeatable-add-item-row)').length;
+      const count = this._ul.querySelectorAll('.list-group-item.tiny_widgethub-regularitem').length;
 
       const canDelete = count > (this._opts.min ?? 1);
       /** @type {NodeListOf<HTMLButtonElement>} */
-      let buttons = this._ul.querySelectorAll('button.tiny_widgethub-remove-item');
+      let buttons = this._ul.querySelectorAll('button.tiny_widgethub-removeitem');
       buttons.forEach(btn => (btn.disabled = !canDelete));
 
       const canAdd = this._opts.max === undefined || count < this._opts.max;
-      buttons = this._ul.querySelectorAll('button.tiny_widgethub-add-item');
+      buttons = this._ul.querySelectorAll('button.tiny_widgethub-addbtn');
       buttons.forEach(btn => (btn.disabled = !canAdd));
    }
 
@@ -667,11 +667,11 @@ class RepeatableCtrl {
          return;
       }
 
-      if (btn.classList.contains('tiny_widgethub-add-item')) {
+      if (btn.classList.contains('tiny_widgethub-addbtn')) {
          this._itemCount += 1;
          const content = this._itemBuilder(this._itemCount);
          li.after(RepeatableCtrl.createRegularItem(content, true), RepeatableCtrl.createAddItem());
-      } else if (btn.classList.contains('tiny_widgethub-remove-item')) {
+      } else if (btn.classList.contains('tiny_widgethub-removeitem')) {
          const separator = li.previousElementSibling;
          if (separator) {
             separator.remove();

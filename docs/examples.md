@@ -428,18 +428,13 @@ binding:
 
 ### Example 7. Creating a carousel with bootstrap
 
-This example serves as a starting point for implementing an image carousel. It makes use of repeatable parameters, whose value is an array of objects. Each object contains the properties defined in the fields key.
+This example serves as a starting point for implementing an image carousel. It makes use of **repeatable parameters**, whose value is an array of objects. Each object contains the properties defined in the fields key. Note that the `value` property, however, is not required for a repeatable parameter, as its values are generated from the default values specified in `fields`.
+Please note that the use of repeatable fields requires at least `plugin_version: '>=1.4'` in the YAML schema.
 
-Note that the `value` property is not required for a repeatable parameter, as its values are generated from the default values specified in `fields`.
-
-The number of items in the list can be controlled with the `min` and `max` parameters. If `min` is not specified, it defaults to 1.
-
-Bindings in repeatable fields work as follows: the bind attribute in the parameter definition specifies the CSS query that returns a list of DOM elements. When bind is used in the fields, it does not refer to the widget’s root element; instead, it refers to each element in the returned list.
-
-Please note that the use of repeatable fields requires version `v2` of the YAML schema.
+The number of items in the list can be controlled with the `min` and `max` keys. If `min` is not specified, it defaults to 1.
 
 ````yaml
-schema: v2
+plugin_version: '>=1.4'
 key: bs-carousel
 name: Carousel
 category: bootstrap
@@ -449,13 +444,13 @@ template: >
   <div id="<%=ID%>" data-widget="bs_carousel" class="carousel slide" data-ride="carousel">
     <ol class="carousel-indicators">
       <% imgs.forEach((_, i) => { %>
-        <li data-target="#<%=ID%>" data-slide-to="<%=i%>"<% i===0 ?' class="active"' : ''%>>&nbsp;</li>
+        <li data-target="#<%=ID%>" data-slide-to="<%=i%>"<%= i===0 ?' class="active"' : ''%>>&nbsp;</li>
       <% }) %>
     </ol>
 
     <div class="carousel-inner">
       <% imgs.forEach((img, i) => { %>
-        <div class="carousel-item<% i===0 ?' active' : ''%>">
+        <div class="carousel-item<%= i===0 ?' active' : ''%>">
           <img src="<%=img.url%>" class="d-block w-100" alt="image <%=i+1%>">
           <div class="carousel-caption d-none d-md-block">
             <h5>Slide label <%=i+1%></h5>
@@ -482,7 +477,7 @@ parameters:
   - name: imgs
     title: Images
     type: repeatable
-    bind: .carousel-item
+    item_selector: .carousel-item
     min: 2
     max: 10
     fields:
@@ -496,3 +491,42 @@ version: 1.0.0
 ````
 
 **Note:** To change the images, right click onto the widget and, from the contextual menu, open the "properties" option. Please do not use the Tiny image button directly since it will break the HTML markup.
+
+Two ways to implement bindings in repeatable fields are supported:
+
+1. Specify `item_selector` as a CSS selector that returns a list of DOM elements; one per item. Then, use the `bind` key in the fields as usual. Note that in this mode, the `bind` key refers to each element in the returned list, not to the widget’s root element. This method creates a binding for every field and for each item in the list.
+
+2. Alternatively, `remove item_selector` and define a `bind` property as an object with `get(e: E): V` and `set(e: E, v: V)` functions. Here, `e` is the widget root element, and `v` is an array of objects. String-based bindings are not supported in this case. Using this mechanism, the previous example would be implemented as:
+
+````yml
+···
+parameters:
+  - __ID__
+  - name: imgs
+    title: Images
+    type: repeatable
+    item_selector: .carousel-item
+    min: 2
+    max: 10
+    fields:
+      - name: url
+        title: URL
+        type: image
+        value: https://picsum.photos/300/200?random={{i}}
+    bind:
+      get: |
+        (e) => {
+          return e.find('.carousel-item img').map((_, el) => ({ url: el.getAttribute('src') })).get();
+        }
+      set: |
+        (e, v) => {
+          e.find('.carousel-item img').each((i, el) => {
+            el.setAttribute('src', v[i].src);
+            el.setAttribute('data-mce-src', v[i].url);
+          });
+        }
+author: Josep Mulet <pep.mulet@gmail.com>
+version: 1.0.0
+````
+
+**Note:** Due to TinyMCE’s internal logic, when programmatically changing `src` or `href` attributes of a DOM element, you must also update the corresponding `data-mce-src` or `data-mce-href` attributes accordingly.

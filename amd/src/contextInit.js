@@ -81,7 +81,14 @@ const defineIcons = function(editor) {
  * @returns {boolean}
  */
 function hasBindings(widget) {
-    return widget.parameters?.some(param => param.bind !== undefined);
+    return widget.parameters?.some(param => {
+        if (param.type === 'repeatable') {
+            const hasFieldBindings = param.fields?.some(f => f.bind !== undefined);
+            return typeof param.bind === 'object' || (hasFieldBindings && typeof param.item_selector === 'string');
+        } else {
+            return param.bind !== undefined;
+        }
+    });
 }
 
 /**

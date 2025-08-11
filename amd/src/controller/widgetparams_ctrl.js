@@ -110,7 +110,7 @@ export class WidgetParamsCtrl {
             trigger: "hover"
          });
       } catch (ex) {
-         // console.error(ex);
+         console.error(ex);
       }
 
       modal.show();

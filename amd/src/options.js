@@ -309,6 +309,7 @@ export function applyPartials(widget, partials) {
  * @property {number=} max
  * @property {string=} transform
  * @property {string | {get: string, set: string} } [bind]
+ * @property {string} [item_selector]
  * @property {string=} when
  * @property {boolean} [hidden]
  * @property {boolean} [editable]

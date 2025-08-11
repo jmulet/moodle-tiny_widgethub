@@ -39231,6 +39231,7 @@ var z = /*#__PURE__*/Object.freeze({
   xid: xid
 });
 
+/* eslint-disable camelcase */
 /* eslint-disable complexity */
 /* eslint-disable max-len */
 // This file is part of Moodle - http://moodle.org/
@@ -39387,6 +39388,7 @@ const NonRepeatableParamSchema = z.object({
 const ParamSchema = z.object({
     ...commonParamSchema,
     'type': z.enum(['textfield', 'numeric', 'checkbox', 'select', 'autocomplete', 'textarea', 'image', 'color', 'repeatable']).optional(),
+    item_selector: z.string().optional().describe('A css query that provides the DOM elements; one per item'),
     fields: z.array(z.lazy(() => NonRepeatableParamSchema)).optional().describe('A list of parameters that define the repeatable object'),
 }).superRefine((data, ctx) => {
     // Manually check for required fields
@@ -39429,11 +39431,21 @@ const ParamSchema = z.object({
     }
     // Repeatable parameter with bindings in field, require a bind parameter that specifies a query for getting the items
     if (type === 'repeatable' && data.fields?.some(f => f.bind !== 'undefined')) {
-        if (!(typeof data.bind === 'string')) {
+        if (typeof data.item_selector !== 'string' && typeof data.bind !== 'object') {
             ctx.addIssue({code: 'custom',
-                message: "Repeatable parameters that include fields with bindings, require also a bind attribute (string) which specifies a css query to get the items in DOM",
+                message: "Repeatable parameters that include fields with bindings, require `bind` or `item_selector`",
                 path: ['bind']});
         }
+    }
+    if (type === 'repeatable' && data.bind && data.item_selector) {
+        ctx.addIssue({code: 'custom',
+            message: "Repeatable parameters can only use either `bind` or `item_selector` at the same time.",
+            path: ['bind']});
+    }
+    if (type === 'repeatable' && data.bind !== undefined && typeof data.bind !== 'object') {
+        ctx.addIssue({code: 'custom',
+            message: "Repeatable parameters can only use object {get, set} for `bind`.",
+            path: ['bind']});
     }
 });
 
@@ -39451,9 +39463,12 @@ const ActionSchema = z.object({
     }
 });
 
+const partialSchema = z.string().regex(/^__([A-Z0-9_]+)__$/).describe('A parameter name defined in the partials file');
+
 // Schema for the main RawWidget type
 const widgetSchema = z.object({
-    schema: z.enum(['v1', 'v2']).optional().describe("Schema version, 'v1' or 'v2'."),
+    plugin_version: z.string().regex(/^(?:>=|>|=)?\d+\.\d+(?:\.\d+)?$/, {message: "Minim plugin version required must follow the []>, >=, =] xx.yy.zz pattern (e.g., >=1.4)."})
+        .optional().describe("Minimum plugin version required, '>=1.4' or '>1.4'."),
     key: z.string().optional().describe("*The key of the snippet"),
     name: z.string().optional().describe("*The name of the snippet"),
     category: z.string().optional().describe("Optional. The category of the snippet (defaults to MISC)"),
@@ -39470,7 +39485,7 @@ const widgetSchema = z.object({
     selectors: z.union([z.string(), z.array(z.string())]).optional().describe("Optional. CSS selectors to identify the widget."),
     insertquery: z.string().optional().describe("Optional. CSS selector where to insert content in SELECTION mode"),
     unwrap: z.string().optional().describe("Optional. CSS selectors of template content to extract on unwrap."),
-    parameters: z.array(ParamSchema).optional().describe("Optional. A list of parameters of the snippet"),
+    parameters: z.array(z.union([ParamSchema, partialSchema])).optional().describe("Optional. A list of parameters of the snippet"),
     requires: z.array(z.string()).optional().describe("Optional. JS dependencies of the widget."),
     I18n: z.record(z.string(), z.record(z.string(), z.string())).optional().describe("Optional. Translation map."),
     'for': z.string().optional().describe("Optional. A list of user ids allowed to use this widget"),
@@ -39506,13 +39521,13 @@ const widgetSchema = z.object({
     }
 
     // Cross-field validation for bind/selectors
-    const hasBindParameter = data.parameters?.some(p => p.bind !== undefined);
+    const hasBindParameter = data.parameters?.some(p => typeof p === 'object' && (p.bind !== undefined || p.item_selector !== undefined));
     if (hasBindParameter) {
         const hasSelectors = data.selectors && ((Array.isArray(data.selectors) && data.selectors.length > 0) || (typeof data.selectors === 'string' && data.selectors.trim() !== ''));
         if (!hasSelectors) {
             ctx.addIssue({
                 code: 'custom',
-                message: "The 'selectors' property is required at the root when any parameter has a 'bind' property.",
+                message: "The 'selectors' property is required at the root when any parameter has bindings.",
                 path: ['selectors']
             });
         }

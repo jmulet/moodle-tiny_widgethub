@@ -382,15 +382,21 @@ h4.tiny_widgethub-headertext {
 }
 
 /********************************** Repeatable list **/
+.tiny_widgethub-regularitem {
+    background: whitesmoke;
+}
+.tiny_widgethub-additem {
+  height: 25px;
+  padding: 0!important;
+  z-index: 2;
+  border-left: none; 
+  border-right: none; 
+}
 .list-group .tiny_widgethub-additem:first-child {
   border-top-color: transparent;
 }
 .list-group .tiny_widgethub-additem:last-child {
   border-bottom-color: transparent;
-}
-.tiny_widgethub-additem {
-  border-left: none; 
-  border-right: none; 
 }
 .tiny_widgethub-additem > hr {
   z-index: 0;
