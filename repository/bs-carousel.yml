@@ -5,7 +5,7 @@ category: bootstrap
 engine: ejs
 template: >
   <p><br></p> 
-  <div id="<%=ID%>" data-widget="bs_carousel" class="carousel slide" data-ride="carousel">
+  <div id="<%=ID%>" data-widget="bs-carousel" class="carousel slide" data-ride="carousel">
     <ol class="carousel-indicators">
       <% imgs.forEach((_, i) => { %>
         <li data-target="#<%=ID%>" data-slide-to="<%=i%>"<%= i===0 ?' class="active"' : ''%>>&nbsp;</li>
@@ -16,10 +16,12 @@ template: >
       <% imgs.forEach((img, i) => { %>
         <div class="carousel-item<%= i===0 ?' active' : ''%>">
           <img src="<%=img.url%>" class="d-block w-100" alt="image <%=i+1%>">
+          <% if (usecaptions) { %>
           <div class="carousel-caption d-none d-md-block">
             <h5>Slide label <%=i+1%></h5>
             <p>Some representative placeholder content for the slide <%=i+1%>.</p>
           </div>
+          <% } %>
         </div>
       <% }) %>
     </div>
@@ -35,9 +37,12 @@ template: >
     </button>
   </div>   
   <p><br></p>
-selectors: div[data-widget="bs_carousel"]
+selectors: div[data-widget="bs-carousel"]
 parameters:
   - __ID__
+  - name: usecaptions
+    title: Include image captions?
+    value: true
   - name: imgs
     title: Images
     type: repeatable
@@ -51,4 +56,4 @@ parameters:
         value: https://picsum.photos/300/200?random={{i}}
         bind: attr('src', 'img')
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 1.1.0
+version: 1.2.0

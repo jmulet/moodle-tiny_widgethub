@@ -4,10 +4,15 @@
     "name": "Carousel",
     "category": "bootstrap",
     "engine": "ejs",
-    "template": "<p><br></p>  <div id=\"<%=ID%>\" data-widget=\"bs_carousel\" class=\"carousel slide\" data-ride=\"carousel\">\n  <ol class=\"carousel-indicators\">\n    <% imgs.forEach((_, i) => { %>\n      <li data-target=\"#<%=ID%>\" data-slide-to=\"<%=i%>\"<%= i===0 ?' class=\"active\"' : ''%>>&nbsp;</li>\n    <% }) %>\n  </ol>\n\n   <div class=\"carousel-inner\">\n    <% imgs.forEach((img, i) => { %>\n      <div class=\"carousel-item<%= i===0 ?' active' : ''%>\">\n        <img src=\"<%=img.url%>\" class=\"d-block w-100\" alt=\"image <%=i+1%>\">\n        <div class=\"carousel-caption d-none d-md-block\">\n          <h5>Slide label <%=i+1%></h5>\n          <p>Some representative placeholder content for the slide <%=i+1%>.</p>\n        </div>\n      </div>\n    <% }) %>\n  </div>\n\n  <button class=\"carousel-control-prev\" type=\"button\" data-target=\"#<%=ID%>\" data-slide=\"prev\">\n    <span class=\"carousel-control-prev-icon\" aria-hidden=\"true\">&nbsp;</span>\n    <span class=\"sr-only\">Previous</span>\n  </button>\n\n  <button class=\"carousel-control-next\" type=\"button\" data-target=\"#<%=ID%>\" data-slide=\"next\">\n    <span class=\"carousel-control-next-icon\" aria-hidden=\"true\">&nbsp;</span>\n    <span class=\"sr-only\">Next</span>\n  </button>\n</div>    <p><br></p>\n",
-    "selectors": "div[data-widget=\"bs_carousel\"]",
+    "template": "<p><br></p>  <div id=\"<%=ID%>\" data-widget=\"bs-carousel\" class=\"carousel slide\" data-ride=\"carousel\">\n  <ol class=\"carousel-indicators\">\n    <% imgs.forEach((_, i) => { %>\n      <li data-target=\"#<%=ID%>\" data-slide-to=\"<%=i%>\"<%= i===0 ?' class=\"active\"' : ''%>>&nbsp;</li>\n    <% }) %>\n  </ol>\n\n   <div class=\"carousel-inner\">\n    <% imgs.forEach((img, i) => { %>\n      <div class=\"carousel-item<%= i===0 ?' active' : ''%>\">\n        <img src=\"<%=img.url%>\" class=\"d-block w-100\" alt=\"image <%=i+1%>\">\n        <% if (usecaptions) { %>\n        <div class=\"carousel-caption d-none d-md-block\">\n          <h5>Slide label <%=i+1%></h5>\n          <p>Some representative placeholder content for the slide <%=i+1%>.</p>\n        </div>\n        <% } %>\n      </div>\n    <% }) %>\n  </div>\n\n  <button class=\"carousel-control-prev\" type=\"button\" data-target=\"#<%=ID%>\" data-slide=\"prev\">\n    <span class=\"carousel-control-prev-icon\" aria-hidden=\"true\">&nbsp;</span>\n    <span class=\"sr-only\">Previous</span>\n  </button>\n\n  <button class=\"carousel-control-next\" type=\"button\" data-target=\"#<%=ID%>\" data-slide=\"next\">\n    <span class=\"carousel-control-next-icon\" aria-hidden=\"true\">&nbsp;</span>\n    <span class=\"sr-only\">Next</span>\n  </button>\n</div>    <p><br></p>\n",
+    "selectors": "div[data-widget=\"bs-carousel\"]",
     "parameters": [
         "__ID__",
+        {
+            "name": "usecaptions",
+            "title": "Include image captions?",
+            "value": true
+        },
         {
             "name": "imgs",
             "title": "Images",
@@ -27,5 +32,5 @@
         }
     ],
     "author": "Josep Mulet <pep.mulet@gmail.com>",
-    "version": "1.1.0"
+    "version": "1.2.0"
 }

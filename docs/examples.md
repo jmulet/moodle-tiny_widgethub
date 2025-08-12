@@ -441,7 +441,7 @@ category: bootstrap
 engine: ejs
 template: >
   <p><br></p> 
-  <div id="<%=ID%>" data-widget="bs_carousel" class="carousel slide" data-ride="carousel">
+  <div id="<%=ID%>" data-widget="bs-carousel" class="carousel slide" data-ride="carousel">
     <ol class="carousel-indicators">
       <% imgs.forEach((_, i) => { %>
         <li data-target="#<%=ID%>" data-slide-to="<%=i%>"<%= i===0 ?' class="active"' : ''%>>&nbsp;</li>
@@ -471,7 +471,7 @@ template: >
     </button>
   </div>   
   <p><br></p>
-selectors: div[data-widget="bs_carousel"]
+selectors: div[data-widget="bs-carousel"]
 parameters:
   - __ID__
   - name: imgs
@@ -512,7 +512,7 @@ parameters:
       - name: url
         title: URL
         type: image
-        value: https://picsum.photos/300/200?random={{i}}
+        value: https://picsum.photos/300/200?random={{i}} # i is the number of items in the list
     bind:
       get: |
         (e) => {
@@ -521,7 +521,7 @@ parameters:
       set: |
         (e, v) => {
           e.find('.carousel-item img').each((i, el) => {
-            el.setAttribute('src', v[i].src);
+            el.setAttribute('src', v[i].url);
             el.setAttribute('data-mce-src', v[i].url);
           });
         }

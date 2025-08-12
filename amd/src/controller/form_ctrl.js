@@ -303,8 +303,7 @@ export class FormCtrl {
             return;
          }
          // $elem might be a div for repeatable inputs
-         const type = $elem.attr("type");
-         if (type === 'repeatable') {
+         if (param.type === 'repeatable') {
             /** @type {any[]}  */
             const listValue = [];
             $elem.find(".list-group-item.tiny_widgethub-regularitem").each((i, subform) => {
