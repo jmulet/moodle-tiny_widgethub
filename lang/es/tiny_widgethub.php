@@ -44,6 +44,7 @@ $string['errpropincompatible'] = 'Las propiedades {$a} no se pueden usar simulta
 $string['errproprequired'] = 'Les propiedades {$a} son obligatorias';
 $string['errunbalancedhtml'] = 'Las etiquetas HTML del template no estan equilibradas';
 $string['errunexpected'] = 'Error inesperado';
+$string['errversionmismatch'] = 'El widget necesita como mínimo la versión {$a->required}. Instalado {$a->installed}.';
 $string['erryaml'] = 'Error sintáctico de Yaml';
 $string['filterres'] = 'Resultado del filtro';
 $string['generalsettings'] = 'Configuración general';

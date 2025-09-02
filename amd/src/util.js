@@ -1041,3 +1041,64 @@ export function toggleClass(elem, ...classNames) {
         }
     });
 }
+
+/**
+ * Normalize version string to [major, minor, patch]
+ * @param {string} v
+ * @returns {number[]}
+ */
+function parseVersion(v) {
+    return v
+      .split('.')
+      .map(part => Number(part.trim()))
+      .concat([0, 0])
+      .slice(0, 3);
+}
+
+/**
+ * Compares a version with a given condition.
+ * @param {string} current - The current version to compare against condition in major.minor.revision format
+ * @param {string | null | undefined} [condition] - The condition to meet. In <, <=, =, >=, major.minor.revision
+ * @returns {boolean} True if current meets condition
+ */
+export function compareVersion(current, condition) {
+  if (!condition) {
+    return true;
+  }
+
+  // Parse condition string
+  const match = condition.trim().match(/^(>=|<=|>|<|=)?\s*(\d+(?:\.\d+){0,2})$/);
+  if (!match) {
+    console.error("Invalid version condition: " + condition);
+    return true;
+  }
+
+  const operator = match[1] || "=";
+  const targetVersion = parseVersion(match[2]);
+  const currentVersion = parseVersion(current);
+
+  // Compare versions
+  let cmp = 0;
+  for (let i = 0; i < 3; i++) {
+    if (currentVersion[i] > targetVersion[i]) {
+      cmp = 1;
+      break;
+    }
+    if (currentVersion[i] < targetVersion[i]) {
+      cmp = -1;
+      break;
+    }
+  }
+
+  // Evaluate based on operator
+  switch (operator) {
+    case ">": return cmp > 0;
+    case ">=": return cmp >= 0;
+    case "<": return cmp < 0;
+    case "<=": return cmp <= 0;
+    case "=": return cmp === 0;
+    default:
+     console.log("Unknown operator: " + operator);
+     return true;
+  }
+}

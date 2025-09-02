@@ -429,12 +429,12 @@ binding:
 ### Example 7. Creating a carousel with bootstrap
 
 This example serves as a starting point for implementing an image carousel. It makes use of **repeatable parameters**, whose value is an array of objects. Each object contains the properties defined in the fields key. Note that the `value` property, however, is not required for a repeatable parameter, as its values are generated from the default values specified in `fields`.
-Please note that the use of repeatable fields requires at least `plugin_version: '>=1.4'` in the YAML schema.
+Please note that the use of repeatable fields requires at least `plugin_release: '>=1.4'` in the YAML schema.
 
 The number of items in the list can be controlled with the `min` and `max` keys. If `min` is not specified, it defaults to 1.
 
 ````yaml
-plugin_version: '>=1.4'
+plugin_release: '>=1.4'
 key: bs-carousel
 name: Carousel
 category: bootstrap

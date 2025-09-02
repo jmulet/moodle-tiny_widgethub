@@ -17,6 +17,16 @@ const wait = function(delay) {
 }
 
 describe('utils module tests', () => {
+    /** @type {any} */
+    let consoleSpy;
+
+    beforeEach(() => {
+        consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        consoleSpy.mockRestore();
+    });
 
     test('genID starts with alpha-numeric', () => {
         const g = U.genID();
@@ -532,4 +542,58 @@ describe('utils module tests', () => {
         U.toggleClass(elem, 'cl1', 'cl3');
         expect([...elem.classList].sort()).toStrictEqual(['cl2', 'cl4']);        
     });
+
+    test.each([
+        // Basic comparisons
+        ["1.2.3", "1.2.3", true, false],
+        ["1.2.3", "= 1.2.3", true, false],
+        ["1.2.3", "> 1.2.2", true, false],
+        ["1.2.3", ">= 1.2.3", true, false],
+        ["1.2.3", "< 1.2.4", true, false],
+        ["1.2.3", "<= 1.2.3", true, false],
+        ["1.2.3", "< 1.2.3", false, false],
+        ["1.2.3", "> 1.2.3", false, false],
+        ["1.2.3", "= 1.2.2", false, false],
+
+        // Missing minor or patch
+        ["1", "= 1.0.0", true, false],
+        ["1", ">= 0.9.9", true, false],
+        ["1.2", "= 1.2.0", true, false],
+        ["1.2", "< 1.2.1", true, false],
+        ["1.2.3", "> 1.1", true, false],
+        ["2", "<= 2.0.0", true, false],
+
+        // Spaces around numbers/operators
+        [" 1.2.3 ", " = 1.2.3 ", true, false],
+        ["1.2.3", ">= 1.2", true, false],
+        ["1.2.3", " < 2.0.0 ", true, false],
+        [" 1.2.3", " >1.2.4", false, false],
+        ["1.2.3", "= 1.2.3 ", true, false],
+        ["1 . 2 . 3", "= 1.2.3", true, false],
+
+        // Edge cases
+        ["0.0.0", "= 0", true, false],
+        ["0.0.1", "> 0", true, false],
+        ["0.1", "< 0.2.0", true, false],
+        ["1.0.0", "< 2", true, false],
+        ["2.0.0", "> 1.9.9", true, false],
+
+        // Invalid / empty / null / undefined
+        ["1.2.3", ">> 1.2.3", true, true],
+        ["1.2.3", "=> 1.2.3", true, true],
+        ["1.2.3", "1..2", true, true],
+        ["1.2.3", ">= abc", true, true],
+        ["1.2.3", "", true, false],
+        ["1.2.3", null, true, false],
+        ["1.2.3", undefined, true, false],
+    ])(
+        'compareVersion(%s, %s)',
+        (current, condition, expected, shouldThrow) => {
+            expect(U.compareVersion(current, condition)).toBe(expected);
+            if (shouldThrow) {
+                expect(consoleSpy).toHaveBeenCalled();
+            } 
+            }
+    );
+
 });

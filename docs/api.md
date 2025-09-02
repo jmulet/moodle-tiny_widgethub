@@ -4,7 +4,7 @@ Optional keywords are marked with **[ ]**.
 
 | **Key**               | **Type**                              | **Description**                                                                                           |
 |-----------------------|---------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| **`[plugin_version]`**             | `string`                             | (Optional) The version of the Widgethub plugin required. The minimum required version of the Widgethub plugin, specified using comparison operators. Supported formats include >=1.4, >1.4, 1.4 or =1.4.                                         |
+| **`[plugin_release]`**             | `string`                             | (Optional) The version of the Widgethub plugin required. The minimum required version of the Widgethub plugin, specified using comparison operators. Supported formats include >=1.4, >1.4, 1.4 or =1.4.                                         |
 | **`key`**             | `string`                             | A unique identifier for the widget.                                                                      |
 | **`name`**            | `string`                             | The name displayed on the button for selecting the widget.                                                |
 | **`[order]`**           | `string`                              | (Optional) If present, the name used to sort the widget alphabetically otherwise the `name` property is used      |

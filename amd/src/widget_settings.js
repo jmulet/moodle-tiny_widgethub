@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable no-console */
 /* eslint-disable no-alert */
 // This file is part of Moodle - http://moodle.org/
@@ -29,6 +30,7 @@ import {get_strings as getStrings, get_string} from 'core/str';
 import {getTemplateSrv} from './service/template_service';
 import {applyPartials} from './options';
 import common from './common';
+import {compareVersion} from './util';
 
 /**
  * Does a key name of the yaml file requires a block format?
@@ -288,6 +290,15 @@ export default {
                             }
                         }
                     });
+            }
+
+            // Check if the widget is compatible the with current release
+            if (jsonObj.plugin_release && !compareVersion(common.currentRelease, jsonObj.plugin_release)) {
+                const errStr3 = await get_string('errversionmismatch', component, {
+                    required: jsonObj.plugin_release,
+                    installed: common.currentRelease
+                });
+                validation.msg += errStr3;
             }
         } catch (ex) {
             validation.msg = await get_string('errunexpected', component) + ':: ' + ex;

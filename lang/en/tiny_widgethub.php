@@ -44,6 +44,7 @@ $string['errpropincompatible'] = 'The properties {$a} cannot be used simultaneou
 $string['errproprequired'] = 'The properties {$a} are required';
 $string['errunbalancedhtml'] = 'Unbalanced HTML tags in the template';
 $string['errunexpected'] = 'Unexpected error';
+$string['errversionmismatch'] = 'Widget requires at least release {$a->required}. Installed {$a->installed}.';
 $string['erryaml'] = 'Yaml syntax error';
 $string['filterres'] = 'Result of the filter';
 $string['generalsettings'] = 'General settings';

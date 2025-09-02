@@ -242,7 +242,7 @@ const partialSchema = z.string().regex(/^__([A-Z0-9_]+)__$/).describe('A paramet
 
 // Schema for the main RawWidget type
 export const widgetSchema = z.object({
-    plugin_version: z.string().regex(/^(?:>=|>|=)?\d+\.\d+(?:\.\d+)?$/, {message: "Minim plugin version required must follow the []>, >=, =] xx.yy.zz pattern (e.g., >=1.4)."})
+    plugin_release: z.string().regex(/^(?:>=|>|=)?\d+\.\d+(?:\.\d+)?$/, {message: "Minimum plugin version required must follow the [ >, >=, =, ] xx.yy.zz pattern (e.g., >=1.4)."})
         .optional().describe("Minimum plugin version required, '>=1.4' or '>1.4'."),
     key: z.string().optional().describe("*The key of the snippet"),
     name: z.string().optional().describe("*The name of the snippet"),

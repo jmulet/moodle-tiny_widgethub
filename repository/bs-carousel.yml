@@ -1,4 +1,4 @@
-plugin_version: '>=1.4'
+plugin_release: '>=1.4'
 key: bs-carousel
 name: Carousel
 category: bootstrap

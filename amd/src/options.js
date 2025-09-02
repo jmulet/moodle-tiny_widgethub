@@ -25,6 +25,7 @@
 
 import {getPluginOptionName} from 'editor_tiny/options';
 import Common from './common';
+import { compareVersion } from './util';
 const pluginName = Common.pluginName;
 
 const showPlugin = getPluginOptionName(pluginName, 'showplugin');
@@ -134,13 +135,15 @@ export const getWidgetDict = (editor) => {
     const wrappedWidgets = rawWidgets
         .map(w => new Widget(w, partials || {}));
 
-    // Remove those buttons that aren't usable for the current user
+    // Remove those widgets that aren't usable for the current user
+    // and not supported by the currentVersion of the plugin.
     const userInfo = editor.options.get(userInfoOpt);
-    wrappedWidgets.filter(w => w.isFor(userInfo)).forEach(w => {
-        if (_widgetDict) {
-            _widgetDict[w.key] = w;
-        }
-    });
+    wrappedWidgets.filter(w => w.isFor(userInfo) && compareVersion(Common.currentRelease, w.prop('plugin_release')))
+        .forEach(w => {
+            if (_widgetDict) {
+                _widgetDict[w.key] = w;
+            }
+        });
     return _widgetDict;
 };
 
@@ -323,6 +326,7 @@ export function applyPartials(widget, partials) {
  */
 /**
  * @typedef {Object} RawWidget
+ * @property {string} [plugin_release]
  * @property {number} id
  * @property {string} key
  * @property {string} name
