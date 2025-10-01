@@ -1,8 +1,7 @@
 key: bs-columns
-name: Responsive columns
+name: $string.bscolumns_name
 category: bootstrap
-instructions: > 
-  Adds a responsive two columns layout
+instructions: $string.bscolumns_instructions
 engine: ejs
 template: |
   <p><br></p>
@@ -23,8 +22,8 @@ selectors:
 unwrap: div.row div > *
 parameters:
   - name: w1
-    title: Width of the first column
-    tip: The remaining space is assigned to the second column
+    title: $string.bscolumns_with
+    tip: $string.bscolumns_with_tip
     value: 6
     options:
       - {l: '8%',  v: 1}

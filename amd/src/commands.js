@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable no-console */
 // This file is part of Moodle - http://moodle.org/
 //
@@ -27,7 +28,7 @@ import * as coreStr from 'core/str';
 import Common from './common';
 import * as cfg from 'core/config';
 import {initContextActions} from './contextinit';
-import {getAdditionalCss, getGlobalConfig, getWidgetDict, isPluginVisible, Shared, getEditorOptions} from './options';
+import {getAdditionalCss, getGlobalConfig, getWidgetDict, isPluginVisible, Shared, getEditorOptions, isShareStyles} from './options';
 import jQuery from "jquery";
 import {getWidgetPickCtrl} from './controller/widgetpicker_ctrl';
 import {getListeners} from './extension';
@@ -221,9 +222,11 @@ function initializer(editor) {
         // http://localhost:4141/theme/styles.php/boost/1721728984_1/all
         // TODO: Missing themesubrevision
         const subversion = 1;
-        // @ts-ignore
-        const allCss = `${cfg.wwwroot}/theme/styles.php/${cfg.theme}/${cfg.themerev}_${subversion}/all`;
-        editor.dom.loadCSS(allCss);
+        if (isShareStyles(editor)) {
+            // @ts-ignore
+            const allCss = `${cfg.wwwroot}/theme/styles.php/${cfg.theme}/${cfg.themerev}_${subversion}/all`;
+            editor.dom.loadCSS(allCss);
+        }
 
         // Inject styles and Javascript into the editor's iframe
         // editor.dom.loadCSS(`${baseUrl}/libs/fontawesome/css/font-awesome.min.css`);

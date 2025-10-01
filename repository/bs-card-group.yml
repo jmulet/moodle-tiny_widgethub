@@ -1,8 +1,7 @@
 key: bs-card-group
-name: Card group
+name: $string.bscardgroup_name
 category: bootstrap
-instructions: > 
-  Use card groups to render cards as a single, attached element with equal width and height columns. 
+instructions: $string.bscardgroup_instructions
 engine: ejs
 template: |
   <p><br></p>
@@ -13,11 +12,11 @@ template: |
     <div class="card h-100">
       <img class="card-img-top" src="https://picsum.photos/300/100" alt="Card image cap">
       <div class="card-body">
-        <h5 class="card-title">Card title</h5>
-        <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+        <h5 class="card-title">$string.bscardgroup_cardtitle</h5>
+        <p class="card-text">Lorem ipsum 1.</p>
       </div>
       <div class="card-footer">
-        <small class="text-muted">Last updated 3 mins ago</small>
+        <small class="text-muted">Lorem ipsum 2.</small>
       </div>
     </div>
     </div>
@@ -27,7 +26,7 @@ template: |
   <p><br></p>
 parameters:
   - name: 'n'
-    title: Number of cards
+    title: $string.bscardgroup_number
     value: 3
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 1.2.0
+version: 1.3.0

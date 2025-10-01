@@ -1,5 +1,5 @@
 key: bs-badge
-name: Badge
+name: $string.bsbadge_name
 category: bootstrap
 template: |
   <span class="badge badge-{{severity}}{{#pill}} badge-pill{{/pill}}">Lorem ipsum</span>
@@ -8,7 +8,7 @@ unwrap: '*'
 insertquery: span.badge
 parameters:
   - name: severity
-    title: Type of badge
+    title: $string.bsbadge_severity_title
     bind: classRegex('badge-(.*)')
     value: primary    
     options:
@@ -21,8 +21,8 @@ parameters:
       - light
       - dark
   - name: pill
-    title: Make badge rounded
+    title: $string.bsbadge_pill_title
     bind: hasClass('badge-pill')
     value: false
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 1.1.0
+version: 1.2.0

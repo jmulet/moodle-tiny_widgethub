@@ -1,5 +1,5 @@
 key: bs-collapsible
-name: Collapsible
+name: $string.bscollapsible_name
 category: bootstrap
 engine: ejs
 template: |
@@ -12,7 +12,7 @@ template: |
           <button type="button" class="btn btn-link" data-toggle="collapse" data-bs-toggle="collapse" data-target="#coll_<%= id %>_<%= i %>"
             data-bs-target="#coll_<%= id %>_<%= i %>" 
             aria-expanded="<%= i==1 ? 'true' : 'false' %>" aria-controls="coll_<%= id %>_<%= i %>">
-            <span>Label #<%= i %></span>
+            <span>$string.bscollapsible_label #<%= i %></span>
           </button>
         </h5>
       </div>
@@ -35,12 +35,12 @@ parameters:
     hidden: true
     editable: false
   - name: 'n'
-    title: Number of collapsibles
+    title: $string.bscollapsible_number
     value: 3
     min: 1
   - name: indp
-    title: Independent collapsibles?
-    tooltip: When this options is checked, several cards can be expanded simultaneously
+    title: $string.bscollapsible_indp
+    tooltip: $string.bscollapsible_indp_tip
     value: false
     bind:
       get: (e) => e.find('div.collapse[data-parent],div.collapse[data-bs-parent]').length === 0

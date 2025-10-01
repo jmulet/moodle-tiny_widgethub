@@ -284,7 +284,7 @@ export default {
                         }
                         if (p.type === 'select') {
                             const options = p.options.map(o => typeof (o) === 'string' ? o : o.v);
-                            if (!p.value || options.indexOf(p.value) < 0) {
+                            if (p.value === undefined || options.indexOf(p.value) < 0) {
                                 validation.msg += replacePlaceholders(errStr2, p.name + '.value', 'in options');
                                 return;
                             }

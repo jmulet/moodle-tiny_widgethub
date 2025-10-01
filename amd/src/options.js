@@ -99,6 +99,14 @@ export const getAdditionalCss = (editor) => {
 
 /**
  * @param {import('./plugin').TinyMCE} editor
+ * @returns {boolean} - whether site styles should be inserted into iframe
+ */
+export const isShareStyles = (editor) => {
+    return editor.options.get(shareStyles);
+};
+
+/**
+ * @param {import('./plugin').TinyMCE} editor
  * @param {string} key
  * @param {string} defaultValue
  * @returns {string} - An object with the key/value properties

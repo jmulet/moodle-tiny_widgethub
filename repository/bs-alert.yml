@@ -1,5 +1,5 @@
 key: bs-alert
-name: Alert container
+name: $string.bsalert_name
 category: bootstrap
 template: |
   <p></p>
@@ -19,7 +19,7 @@ insertquery: div[role="alert"].alert .alert-content
 unwrap: '*'
 parameters:
   - name: severity
-    title: Type of alert
+    title: $string.bsalert_severity_title
     bind: classRegex('alert-(.*)')
     value: primary    
     options:
@@ -32,7 +32,7 @@ parameters:
       - light
       - dark
   - name: closable
-    title: Closable
+    title: $string.bsalert_closable_title
     value: false
     bind:
       get: (e) => e.find("button.close").length > 0
@@ -49,4 +49,4 @@ parameters:
         }
 autocomplete: severity
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 1.3.1
+version: 1.4.0
