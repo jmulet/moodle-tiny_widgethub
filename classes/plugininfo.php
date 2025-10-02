@@ -369,7 +369,7 @@ class plugininfo extends plugin implements
         // Always fallback to English as last resort.
         $fallbacklangs[] = 'en';
 
-        // Load strings for current language first
+        // Load strings for current language first.
         $allstrings = get_string_manager()->load_component_strings($component, $currentlang) ?: [];
 
         // Load fallback languages and merge missing keys.
