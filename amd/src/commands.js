@@ -101,7 +101,11 @@ export const getSetup = async() => {
             onAction: defaultAction,
             onItemAction: (/** @type {*} */ api, /** @type {string} */ key) => {
                 const widgetPickCtrl = getWidgetPickCtrl(editor);
-                const ctx = storage.getRecentUsed().filter(e => e.key === key)[0].p;
+                /** @type {Record<string, *>} */
+                let ctx = widgetsDict[key]?.defaults || {};
+                // Use stored preferences if any stored
+                const ctxStored = storage.getRecentUsed().filter(e => e.key === key)[0]?.p || {};
+                ctx = {...ctx, ...ctxStored};
                 widgetPickCtrl.handlePickModalAction(widgetsDict[key], true, ctx);
             }
         });
@@ -160,7 +164,10 @@ export const getSetup = async() => {
                     const pair = value.split('|');
                     const key = pair[0].trim();
                     /** @type {Record<string, *>} */
-                    const ctx = {};
+                    let ctx = widgetsDict[key]?.defaults || {};
+                    // Si hi ha preferències desades, empra-les
+                    const ctxStored = storage.getRecentUsed().filter(e => e.key === key)[0]?.p || {};
+                    ctx = {...ctx, ...ctxStored};
                     if (pair.length === 2) {
                         const [varname, value] = pair[1].split(":");
                         ctx[varname] = value;
