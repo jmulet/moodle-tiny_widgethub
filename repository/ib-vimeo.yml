@@ -1,10 +1,6 @@
 key: ib-vimeo
 name: Vimeo
-category: video
-instructions: >
-  <b>Attention</b>: It is recommended to use the institutional YouTube channel!<br>
-  Embed a Vimeo video responsively into the page. Enter the Vimeo video ID and a title.
-  You can specify the start time of the video in seconds.
+category: $string.ibvgdrive_category
 template: |
   <p><br></p>
   <div class="twh-video-container" {{#if}}[maxWidth>100]style="max-width:{{maxWidth}}px"{{/if}}>
@@ -12,29 +8,29 @@ template: |
       <iframe src="https://player.vimeo.com/video/{{vimeoId}}{{#startSecond}}#t={{startSecond}}s{{/startSecond}}" frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>
     </div>
       <div class="twh-caption">
-     <span class="twh-caption-counter">Video</span><span class="twh-caption-title">: {{title}}</span></div>
+     <span class="twh-caption-counter">$string.ibvgdrive_category</span><span class="twh-caption-title">: {{title}}</span></div>
     </div>
   <p><br></p>
 parameters:
   - name: vimeoId
     value: "823111497"
-    title: Vimeo Video URL or ID
-    tip: You can enter the full URL or just the numeric video ID.
+    title: $string.ibvimeo_vimeoid
+    tip: $string.ibvimeo_vimeoid_tip
     type: textfield
     transform: vimeoId
   - name: title
-    value: Write a title
-    title: Descriptive Title
+    value: $string.ibvgdrive_title_value
+    title: $string.ibvgdrive_title
     type: textfield
   - name: maxWidth
     value: 500
-    title: Maximum Width in px
+    title: $string.ibvgdrive_maxwidth
     min: 100
   - name: startSecond
     value: 0
-    title: Start Playback at Second
-    tip: Set to 0 to start from the beginning of the video.
+    title: $string.ibvimeo_startsec
+    tip: $string.ibvimeo_startsec_tip
     min: 0
 scope: ^page-mod-(book|page|assign|quizz)-
 author: Josep Mulet Pol <pep.mulet@gmail.com>
-version: 1.1.0
+version: 2.0.0

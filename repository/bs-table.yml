@@ -62,4 +62,4 @@ parameters:
     title: $string.bstable_responsive
     value: false
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 1.2.0
+version: 2.0.0

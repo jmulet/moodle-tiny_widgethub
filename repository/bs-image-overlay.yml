@@ -21,4 +21,4 @@ parameters:
     value: https://media.traveler.es/photos/613778947ad90bc43bae0779/16:9/w_2240,c_limit/101691.jpg
     bind: attr('src', 'img.card-img')
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 1.1.0
+version: 2.0.0

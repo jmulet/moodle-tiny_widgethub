@@ -1,8 +1,6 @@
 key: ib-textfragment
-name: Text Fragment
-instructions: |
-  Use this component to insert a text excerpt from a book. 
-  If you want to reduce the width, you can set a maximum width, e.g., 400px.
+name: $string.ibfragment_name
+instructions: $string.ibfragment_instructions
 template: >-
   <p><br></p>
   <div class="twh-fragment {{#notranslate}}notranslate{{/notranslate}}" data-lang="{{_lang}}" {{#if}}[maxWidth>0]style="max-width: {{maxWidth}}px;"{{/if}}>
@@ -17,7 +15,7 @@ selectors: div.twh-fragment
 unwrap: div.twh-iq > *
 parameters:
   - name: _lang
-    title: Language
+    title: $string.ibfragment_lang
     value: en
     options:
       - {l: English, v: en}
@@ -27,13 +25,13 @@ parameters:
       - {l: German, v: de}
   - name: maxWidth
     value: 0
-    title: Maximum Width (px)
+    title: $string.ibfragment_maxwidth 
     min: 0
-    tip: For example, 500. If you don't want to limit the width, leave it as 0.
+    tip: $string.ibfragment_maxwidth_tip
     bind: styleRegex('max-width:(.*)px', null, 'number')
   - name: notranslate
     value: false
-    title: Prevent translation by Google
+    title: $string.ibfragment_notranslate
     bind: hasClass('notranslate')
 I18n:
   msg:
@@ -43,4 +41,4 @@ I18n:
     fr: FRAGMENT DE TEXTE
     de: TEXTFRAGMENT
 author: Josep Mulet Pol <pep.mulet@gmail.com>
-version: 1.1.0
+version: 2.0.0

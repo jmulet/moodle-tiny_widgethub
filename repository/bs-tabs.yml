@@ -1,8 +1,7 @@
 key: bs-tabs
-name: Tabs menu
+name: $string.bstabs_name
 category: bootstrap
-instructions: >
-  Create a tab menu. You can define the number of tabs (<b>at least 2</b>).
+instructions: $string.bstabs_instructions
 engine: ejs
 template: |
   <p><br></p>
@@ -28,12 +27,12 @@ unwrap: "div.tab-content > div.tab-pane > *"
 parameters: 
   - name: tabs
     value: 2
-    title: Number of tabs
+    title: $string.bstabs_tabs
     min: 1
     max: 6
-    tip: An excessive number of tabs can cause visualization problems on mobile devices.
+    tip: $string.bstabs_tabs_tip
   - name: effect
-    title: Transition effect
+    title: $string.bstabs_effect
     value: ''
     options:
       - {l: 'None', v: ''}
@@ -53,4 +52,4 @@ contextmenu:
   - predicate: li.nav-item
     actions: moveleft moveright insertafter | remove
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 1.1.1
+version: 2.0.0
