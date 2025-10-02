@@ -314,6 +314,7 @@ class plugininfo extends plugin implements
     /**
      * Reads the widget definition in json format.
      * @param \SplFileInfo $fileinfo
+     * @param array $allstrings
      * @return array|bool
      */
     protected static function parse_widget_preset(\SplFileInfo $fileinfo, array $allstrings) {
