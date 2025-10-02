@@ -24,7 +24,7 @@ parameters:
     type: textfield
   - name: maxWidth
     value: 500
-    title: $string.ibvgdrive_maxwidth
+    title: $string.ibfragment_maxwidth
     min: 100
   - name: startSecond
     value: 0

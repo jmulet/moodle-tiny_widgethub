@@ -20,7 +20,7 @@ parameters:
     transform: ytId
   - name: maxWidth
     value: 500
-    title: $string.ibvgdrive_maxwidth
+    title: $string.ibfragment_maxwidth
     min: 100
   - name: title
     value: $string.ibvgdrive_title_value
