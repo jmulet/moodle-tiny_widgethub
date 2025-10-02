@@ -316,13 +316,29 @@ class plugininfo extends plugin implements
      * @param \SplFileInfo $fileinfo
      * @return array|bool
      */
-    protected static function parse_widget_preset(\SplFileInfo $fileinfo) {
+    protected static function parse_widget_preset(\SplFileInfo $fileinfo, array $allstrings) {
         $file = $fileinfo->openFile("r");
         $content = "";
         while (!$file->eof()) {
             $content .= $file->fgets();
         }
-        $presetobject = json_decode($content);
+        // Replace all language strings.
+        if (empty($allstrings)) {
+            return $content;
+        }
+
+        $pattern = '/\$string\.([a-zA-Z0-9_]+)/';
+
+        $contenttranslated = preg_replace_callback(
+            $pattern,
+            function (array $matches) use ($allstrings) {
+                $key = $matches[1];
+                return $allstrings[$key] ?? $matches[0];
+            },
+            $content
+        );
+
+        $presetobject = json_decode($contenttranslated);
         // Check it is a valid json.
         if ($presetobject && is_object($presetobject)) {
             return get_object_vars($presetobject);
@@ -340,6 +356,33 @@ class plugininfo extends plugin implements
         $ret = [];
         $dirs = [];
 
+        $component = 'tiny_widgethub';
+        $currentlang = current_language();
+        $fallbacklangs = [];
+
+        // Split current language (xx_yy) to xx.
+        if (strpos($currentlang, '_') !== false) {
+            $fallbacklangs[] = explode('_', $currentlang)[0];
+        }
+
+        // Always fallback to English as last resort.
+        $fallbacklangs[] = 'en';
+
+        // Load strings for current language first
+        $allstrings = get_string_manager()->load_component_strings($component, $currentlang) ?: [];
+
+        // Load fallback languages and merge missing keys.
+        foreach ($fallbacklangs as $lang) {
+            $fallbackstrings = get_string_manager()->load_component_strings($component, $lang) ?: [];
+            // Merge only missing keys.
+            foreach ($fallbackstrings as $key => $val) {
+                if (!isset($allstrings[$key])) {
+                    $allstrings[$key] = $val;
+                }
+            }
+        }
+        // Now $allstrings contains strings for current language with proper fallback.
+
         // Search in the presets folder.
         $snippetpresetsdir = $CFG->dirroot . '/lib/editor/tiny/plugins/widgethub/presets';
         if (file_exists($snippetpresetsdir)) {
@@ -351,7 +394,7 @@ class plugininfo extends plugin implements
                     // Process only .json files.
                     $ext = pathinfo($fileinfo->getFilename())['extension'];
                     if ($ext == 'json') {
-                        $preset = self::parse_widget_preset($fileinfo);
+                        $preset = self::parse_widget_preset($fileinfo, $allstrings);
                         if ($preset) {
                             $ret[] = $preset;
                         }
