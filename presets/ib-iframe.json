@@ -1,18 +1,18 @@
 {
     "key": "ib-iframe",
-    "name": "Insert iFrame/HTML",
-    "instructions": "This snippet allows you to insert the HTML code for an iFrame at a specific point in the document.\n",
+    "name": "$string.ibiframe_name",
+    "instructions": "$string.ibiframe_instructions",
     "template": "{{{code}}}",
     "selectors": "iframe",
     "parameters": [
         {
             "name": "code",
-            "value": "<b>Sample</b>",
-            "title": "HTML Code",
+            "value": "<b>$string.ibcolors_sample</b>",
+            "title": "$string.ibiframe_code",
             "type": "textarea"
         }
     ],
     "scope": "^page-mod-(book|page|assign|quiz)-",
     "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
-    "version": "1.1.0"
+    "version": "2.0.0"
 }

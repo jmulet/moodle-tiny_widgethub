@@ -31,7 +31,7 @@ import {evalInContext, genID} from '../util';
  * @param {Object.<string, any>} ctx2
  * @returns {string}
  */
-const defineVar = function (text, ctx2) {
+const defineVar = function(text, ctx2) {
     const pos = text.indexOf("=");
     const varname = text.substring(0, pos).trim();
     const varvalue = evalInContext(ctx2, text.substring(pos + 1).trim());
@@ -206,7 +206,7 @@ export class TemplateSrv {
             /**
              * @param {string} text
              */
-            function (text) {
+            function(text) {
                 const pos = text.indexOf("]");
                 const condition = text.substring(0, pos).trim().substring(1);
                 const parts = condition.split(";");
@@ -262,4 +262,34 @@ export function getTemplateSrv() {
         instanceSrv = new TemplateSrv(mustache, ejsLoader);
     }
     return instanceSrv;
+}
+
+/**
+ * Creates default value for a given parameter.
+ * @param {import('../options').Param} param
+ * @param {boolean | undefined} [populateRepeatable]
+ * @returns {any}
+ */
+export function createDefaultsForParam(param, populateRepeatable) {
+    if (param.type !== 'repeatable') {
+        return param.value ?? '';
+    }
+    const lst = [];
+    if (populateRepeatable) {
+        // In repeatable fields, create objects in lst up to min value.
+        const nitems = param.min || 0;
+        for (let i = 1; i <= nitems; i++) {
+            /** @type {Record<string, *>} */
+            const obj = {};
+            param.fields?.forEach(field => {
+                let val = field.value ?? '';
+                if (typeof (val) === 'string' && val.indexOf("{{i}}") >= 0) {
+                    val = getTemplateSrv().renderMustache(val, {i});
+                }
+                obj[field.name] = val;
+            });
+            lst.push(obj);
+        }
+    }
+    return lst;
 }

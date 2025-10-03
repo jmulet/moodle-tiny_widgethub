@@ -328,8 +328,7 @@ class plugininfo extends plugin implements
             return $content;
         }
 
-        $pattern = '/\$string\.([a-zA-Z0-9_]+)/';
-
+        $pattern = '/\$string\.([a-z_]+)/';
         $contenttranslated = preg_replace_callback(
             $pattern,
             function (array $matches) use ($allstrings) {
@@ -358,7 +357,9 @@ class plugininfo extends plugin implements
         $dirs = [];
 
         $component = 'tiny_widgethub';
-        $currentlang = current_language();
+        // Site's default language with fallback to user language.
+        $currentlang = !empty($CFG->lang) ? $CFG->lang : (current_language() ?: 'en');
+        // In case translations packs are not available for $currentlang.
         $fallbacklangs = [];
 
         // Split current language (xx_yy) to xx.
@@ -409,9 +410,10 @@ class plugininfo extends plugin implements
     /**
      * Saves the current $preset to the database and updates the index key
      * @param array $presets
+     * @param boolean $force Optional. Forces saving regardless of version or author changes. Defaults false
      * @return void
      */
-    public static function save_update_presets($presets) {
+    public static function save_update_presets(array $presets, bool $force = false): void {
         // Obtain the configuration options for the plugin from the config table.
         $conf = get_config('tiny_widgethub');
         // Obtain the index.
@@ -435,7 +437,7 @@ class plugininfo extends plugin implements
                     $mustupdate = false;
                 }
             }
-            if ($mustupdate) {
+            if ($force || $mustupdate) {
                 // Save the definition.
                 set_config('def_' . $id, json_encode($preset) , 'tiny_widgethub');
                 // Update the index object.

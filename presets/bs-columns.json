@@ -1,8 +1,8 @@
 {
     "key": "bs-columns",
-    "name": "Responsive columns",
+    "name": "$string.bscolumns_name",
     "category": "bootstrap",
-    "instructions": "Adds a responsive two columns layout\n",
+    "instructions": "$string.bscolumns_instructions",
     "engine": "ejs",
     "template": "<p><br></p>\n<div class=\"container-fluid\">\n  <div class=\"row\">\n    <div class=\"col-sm-<%=w1%>\">\n      <p>__LOREM__</p>\n    </div>\n    <div class=\"col-sm-<%=12-w1%>\">\n      <p>__LOREM__</p>\n    </div>\n  </div>\n</div>\n<p><br></p>\n",
     "selectors": [
@@ -13,8 +13,8 @@
     "parameters": [
         {
             "name": "w1",
-            "title": "Width of the first column",
-            "tip": "The remaining space is assigned to the second column",
+            "title": "$string.bscolumns_width",
+            "tip": "$string.bscolumns_width_tip",
             "value": 6,
             "options": [
                 {
@@ -69,5 +69,5 @@
         }
     ],
     "author": "Josep Mulet <pep.mulet@gmail.com>",
-    "version": "1.1.0"
+    "version": "2.0.0"
 }

@@ -276,9 +276,6 @@ export const widgetSchema = z.object({
     if (data.name === undefined) {
         ctx.addIssue({code: 'custom', message: "The 'name' property is required.", path: ['name']});
     }
-    if (data.category === undefined) {
-        ctx.addIssue({code: 'custom', message: "The 'category' property is required.", path: ['category']});
-    }
     if (data.version === undefined) {
         ctx.addIssue({code: 'custom', message: "The 'version' property is required.", path: ['version']});
     }

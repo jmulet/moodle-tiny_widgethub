@@ -27,7 +27,7 @@ import jQuery from 'jquery';
 import {YmlEditor, YAML} from './libs/ymleditor-lazy';
 // eslint-disable-next-line camelcase
 import {get_strings as getStrings, get_string} from 'core/str';
-import {getTemplateSrv} from './service/template_service';
+import {getTemplateSrv, createDefaultsForParam} from './service/template_service';
 import {applyPartials} from './options';
 import common from './common';
 import {compareVersion} from './util';
@@ -259,7 +259,7 @@ export default {
                 /** @type {Object.<string, any>} */
                 const ctx = {};
                 (jsonObj.parameters ?? []).forEach(param => {
-                    ctx[param.name] = param.value;
+                    ctx[param.name] = createDefaultsForParam(param, true);
                 });
                 const engine = jsonObj?.engine;
                 try {

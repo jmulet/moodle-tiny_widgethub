@@ -25,7 +25,8 @@
 
 import {getPluginOptionName} from 'editor_tiny/options';
 import Common from './common';
-import { compareVersion } from './util';
+import {compareVersion} from './util';
+import {createDefaultsForParam} from './service/template_service';
 const pluginName = Common.pluginName;
 
 const showPlugin = getPluginOptionName(pluginName, 'showplugin');
@@ -465,11 +466,7 @@ export class Widget {
         /** @type {Object.<string, any> } */
         const obj = {};
         (this._widget.parameters ?? []).forEach((param) => {
-            obj[param.name] = param.value;
-            // In repeatable must create an empty array (they are populated dynamically)
-            if (param.type === 'repeatable') {
-                obj[param.name] = [];
-            }
+            obj[param.name] = createDefaultsForParam(param);
         });
         return obj;
     }

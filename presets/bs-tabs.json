@@ -1,8 +1,8 @@
 {
     "key": "bs-tabs",
-    "name": "Tabs menu",
+    "name": "$string.bstabs_name",
     "category": "bootstrap",
-    "instructions": "Create a tab menu. You can define the number of tabs (<b>at least 2</b>).\n",
+    "instructions": "$string.bstabs_instructions",
     "engine": "ejs",
     "template": "<p><br></p>\n<div class=\"whb-tabmenu\">\n<ul class=\"nav nav-tabs\" role=\"tablist\">\n<% for(var i=1; i<=tabs; i++) { %>\n<li class=\"nav-item\">\n  <a class=\"nav-link<%= i==1 ? ' active' : '' %>\" href=\"#<%=ID%>_<%=i%>\" data-toggle=\"tab\" data-bs-toggle=\"tab\" role=\"tab\"><span>&nbsp;</span><span>Tab<%=i%></span></a>\n</li> \n<% } %>\n</ul>\n<div class=\"tab-content\">\n<% for(var i=1; i<=tabs; i++) { %>\n<div class=\"tab-pane<%= effect ? ' ' + effect : '' %><%= i==1 ? ' show active' : '' %>\" id=\"<%=ID%>_<%=i%>\" role=\"tabpanel\">\n<p><%=i%> __LOREM__</p>\n</div>\n<% } %>\n</div>\n</div> \n<p><br></p>\n",
     "selectors": "div.whb-tabmenu",
@@ -11,14 +11,14 @@
         {
             "name": "tabs",
             "value": 2,
-            "title": "Number of tabs",
+            "title": "$string.bstabs_tabs",
             "min": 1,
             "max": 6,
-            "tip": "An excessive number of tabs can cause visualization problems on mobile devices."
+            "tip": "$string.bstabs_tabs_tip"
         },
         {
             "name": "effect",
-            "title": "Transition effect",
+            "title": "$string.bstabs_effect",
             "value": "",
             "options": [
                 {
@@ -46,5 +46,5 @@
         }
     ],
     "author": "Josep Mulet <pep.mulet@gmail.com>",
-    "version": "1.1.1"
+    "version": "2.0.0"
 }

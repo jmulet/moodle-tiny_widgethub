@@ -162,6 +162,7 @@ div.tiny_widgethub-growl {
     font-size: 80%;
     font-weight: bold;
     text-transform: uppercase;
+    overflow: hidden;
 }
 
 .tiny_widgethub-title {

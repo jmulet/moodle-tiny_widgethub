@@ -86,7 +86,7 @@ export const Templates = {
    </div>`,
 
    REPEATABLE: `<div id="{{elementid}}" name="{{varname}}" type="repeatable" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}">
-      <label class="form-label" for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+      <span class="form-label" title="{{varname}}">{{vartitle}} ${questionPopover}</span>
       {{{itemControls}}}
    </div>`,
 };
@@ -170,7 +170,7 @@ export class FormCtrl {
       let markup = '';
       let pname = cleanParameterName(param.name);
       if (prefixName) {
-         pname = prefixName + "." + pname;
+         pname = prefixName + "_" + pname;
       }
       const generalCtx = {
          elementid: hostId + "_" + pname,
@@ -232,7 +232,6 @@ export class FormCtrl {
                Object.keys(obj).forEach(key => {
                   const field = param.fields?.filter(f => f.name === key)[0];
                   if (field) {
-                     // TODO --- MUST PASS A PREFIX FOR THE ID
                      tmpDiv.innerHTML = this.createControlHTML(hostId, field, obj[key], pname);
                   }
                });
@@ -481,7 +480,9 @@ export class FormCtrl {
     */
    attachRepeatable($form, widget) {
       const that = this;
+
       widget.parameters.filter(p => p.type === 'repeatable').forEach((param) => {
+         // Make the parameter do not produce any default
          const cleanParamname = cleanParameterName(param.name);
          const $subform = $form.find(`div[type="repeatable"][name="${cleanParamname}"]`);
          if (!param.fields?.length) {
@@ -500,7 +501,7 @@ export class FormCtrl {
                if (typeof (value) === 'string' && value.indexOf("{{i}}") >= 0) {
                   value = that.templateSrv.renderMustache(value, {i: i});
                }
-               return that.createControlHTML(that.editor.id, field, value, cleanParamname);
+               return that.createControlHTML(that.editor.id, field, value, cleanParamname + i);
             });
             const div = document.createElement("div");
             div.className = 'w-100';

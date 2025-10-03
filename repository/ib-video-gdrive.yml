@@ -24,7 +24,7 @@ parameters:
     type: textarea
   - name: maxWidth
     value: 500
-    title: $string.ibvgdrive_maxwidth
+    title: $string.ibfragment_maxwidth
     min: 100
 scope: ^page-mod-(book|page|assign|quizz)-
 author: Josep Mulet Pol <pep.mulet@gmail.com>
