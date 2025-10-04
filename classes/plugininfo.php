@@ -408,9 +408,9 @@ class plugininfo extends plugin implements
     }
 
     /**
-     * Saves the current $preset to the database and updates the index key
+     * Saves the current $preset to the database and updates the index key.
      * @param array $presets
-     * @param boolean $force Optional. Forces saving regardless of version or author changes. Defaults false
+     * @param bool $force Optional. Forces saving regardless of version or author changes. Defaults false.
      * @return void
      */
     public static function save_update_presets(array $presets, bool $force = false): void {
