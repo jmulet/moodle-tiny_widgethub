@@ -35,8 +35,8 @@ parameters:
     title: $string.bstabs_effect
     value: ''
     options:
-      - {l: 'None', v: ''}
-      - {l: 'Fade', v: 'fade'}
+      - {l: '$string.bstabs_optionsnone', v: ''}
+      - {l: '$string.bstabs_optionsfade', v: 'fade'}
     bind:
       get: (e) => e.find('div.tab-pane').hasClass('fade') ? 'fade':''
       set: |

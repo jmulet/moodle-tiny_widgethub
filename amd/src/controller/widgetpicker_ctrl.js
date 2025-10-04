@@ -37,7 +37,7 @@ import {debounce, genID, hashCode, searchComp, toggleClass} from '../util';
  * @param {boolean} visible
  */
 export const setVisibility = function(el, visible) {
-    if(!el) {
+    if (!el) {
         return;
     }
     if (visible) {
@@ -155,8 +155,9 @@ export class WidgetPickerCtrl {
     async createModal() {
         /** @type {string} */
         const searchtext = this.storage.getFromSession("searchtext", "");
+        const miscStr = await get_string('misc', 'tiny_widgethub');
         const data = {
-            ...this.getPickTemplateContext(),
+            ...this.getPickTemplateContext({misc: miscStr}),
             searchtext
         };
 
@@ -340,10 +341,10 @@ export class WidgetPickerCtrl {
      */
     /**
      * Get the template context for the dialogue.
-     *
+     * @param {Record<string, string>} translations
      * @returns {TemplateContext} data
      */
-    getPickTemplateContext() {
+    getPickTemplateContext(translations) {
         /** @type {Record<string, string>} */
         const categoryOrderMap = {};
         getGlobalConfig(this.editor, 'category.order', '')
@@ -366,7 +367,7 @@ export class WidgetPickerCtrl {
         const categories = {};
         allButtons.forEach(btn => {
             const isFilter = btn.isFilter();
-            const catName = (btn.category ?? 'MISC').toUpperCase();
+            const catName = (btn.category ?? translations.misc ?? 'MISC').toUpperCase();
             let found = categories[catName];
             if (!found) {
                 const color = hashCode(catName) % 360;

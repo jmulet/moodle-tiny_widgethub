@@ -414,10 +414,10 @@ export class Widget {
         return this._widget.template ?? this._widget.filter ?? '';
     }
     /**
-     * @returns {string}
+     * @returns {string | undefined}
      */
     get category() {
-        return this._widget.category ?? "MISC";
+        return this._widget.category;
     }
     /**
      * @returns {string=}
