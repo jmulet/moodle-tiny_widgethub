@@ -22,11 +22,11 @@
             "value": "",
             "options": [
                 {
-                    "l": "None",
+                    "l": "$string.bstabs_optionsnone",
                     "v": ""
                 },
                 {
-                    "l": "Fade",
+                    "l": "$string.bstabs_optionsfade",
                     "v": "fade"
                 }
             ],

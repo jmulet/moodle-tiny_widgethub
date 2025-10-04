@@ -367,7 +367,10 @@ export class WidgetPickerCtrl {
         const categories = {};
         allButtons.forEach(btn => {
             const isFilter = btn.isFilter();
-            const catName = (btn.category ?? translations.misc ?? 'MISC').toUpperCase();
+            let catName = (btn.category ?? 'MISC').toUpperCase();
+            if (catName === 'MISC' && translations.misc) {
+                catName = translations.misc.toUpperCase();
+            }
             let found = categories[catName];
             if (!found) {
                 const color = hashCode(catName) % 360;
