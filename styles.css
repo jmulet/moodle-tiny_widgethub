@@ -576,15 +576,6 @@ h4.twh-subsub::before {
 .twh-caption {
     text-align: center;
     margin: 10px auto;
-}
-
-.twh-caption-counter {
-    font-weight: bold;
-    font-size: 90%;
-}
-
-.twh-caption-title {
-    font-style: italic;
     font-size: 90%;
 }
 

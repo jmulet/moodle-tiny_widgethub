@@ -57,7 +57,7 @@ class settingsutil {
             'tiny_widgethub/additionalcss',
             'tiny_widgethub_additionalcss',
             get_string('additionalcss', 'tiny_widgethub'),
-            '',
+            "html, body {\n height: initial!important;\n}",
             PARAM_RAW
         );
         // Define additional settings in key=value syntax per line.

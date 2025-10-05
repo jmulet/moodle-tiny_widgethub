@@ -164,16 +164,17 @@ export class FormCtrl {
     * @param {import('../options').Param} param - The parameter object defining the control
     * @param {any} defaultValue - Default values for the parameter
     * @param {string} [prefixName] - Add a suffix to the control name
+    * @param {number | undefined} [index] - Index used in repeatable fields
     * @returns {string} - The generated HTML for this control
     */
-   createControlHTML(hostId, param, defaultValue, prefixName) {
+   createControlHTML(hostId, param, defaultValue, prefixName, index) {
       let markup = '';
       let pname = cleanParameterName(param.name);
       if (prefixName) {
          pname = prefixName + "_" + pname;
       }
       const generalCtx = {
-         elementid: hostId + "_" + pname,
+         elementid: hostId + "_" + pname + (index === undefined ? '' : index),
          varname: pname,
          vartitle: param.title,
          defaultvalue: defaultValue,
@@ -232,7 +233,7 @@ export class FormCtrl {
                Object.keys(obj).forEach(key => {
                   const field = param.fields?.filter(f => f.name === key)[0];
                   if (field) {
-                     tmpDiv.innerHTML = this.createControlHTML(hostId, field, obj[key], pname);
+                     tmpDiv.innerHTML = this.createControlHTML(hostId, field, obj[key], pname, index);
                   }
                });
                ul.append(RepeatableCtrl.createRegularItem(tmpDiv, false));
@@ -311,7 +312,7 @@ export class FormCtrl {
                param.fields?.forEach(field => {
                   const $subform = this.jQuery(subform);
                   const cleanFieldname = cleanParameterName(field.name);
-                  const $subelem = $subform.find(`[name="${cleanParamname}.${cleanFieldname}"]`);
+                  const $subelem = $subform.find(`[name="${cleanParamname}_${cleanFieldname}"]`);
                   itemObj[field.name] = this.extractControlValue($subelem, field);
                });
                listValue.push(itemObj);
@@ -501,7 +502,7 @@ export class FormCtrl {
                if (typeof (value) === 'string' && value.indexOf("{{i}}") >= 0) {
                   value = that.templateSrv.renderMustache(value, {i: i});
                }
-               return that.createControlHTML(that.editor.id, field, value, cleanParamname + i);
+               return that.createControlHTML(that.editor.id, field, value, cleanParamname, i);
             });
             const div = document.createElement("div");
             div.className = 'w-100';
