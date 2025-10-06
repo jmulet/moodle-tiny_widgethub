@@ -18,7 +18,7 @@ parameters:
     title: $string.ibvgdrive_title
     type: textfield
   - name: iframe_code
-    value: <iframe src="https://drive.google.com/file/d/1C-xFq_cPF9kr1Xq9XINixAkU46AHAVUE/preview" width="640" height="480" allow="autoplay" fullscreen="1"></iframe>
+    value: <iframe src="https://drive.google.com/file/d/1Ev4oVwHmspOjrx7Kql6R7QxoUFcJEknF/preview" width="640" height="480" allow="autoplay" fullscreen="1"></iframe>
     title: $string.ibvgdrive_iframecode
     tip: $string.ibvgdrive_iframecode_tip
     type: textarea

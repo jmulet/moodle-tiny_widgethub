@@ -35,9 +35,7 @@
                 "set": "(e, v) => {\n  if(v) {\n    e.find('div.tab-pane').addClass('fade');\n  } else {\n    e.find('div.tab-pane').removeClass('fade');\n  }\n}\n"
             }
         },
-        {
-            "partial": "ID"
-        }
+        "__ID__"
     ],
     "contextmenu": [
         {

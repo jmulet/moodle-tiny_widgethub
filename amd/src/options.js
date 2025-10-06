@@ -358,7 +358,7 @@ export function applyPartials(widget, partials) {
  * @property {string} [autocomplete]
  * @property {string} version
  * @property {string} author
- * @property {string[]} [requires]
+ * @property {string} [requires]
  * @property {boolean} [hidden]
  * @property {number} [stars]
  * @property {Action[]} [contextmenu]

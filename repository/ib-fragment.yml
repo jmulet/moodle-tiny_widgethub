@@ -1,7 +1,7 @@
 key: ib-textfragment
 name: $string.ibfragment_name
 instructions: $string.ibfragment_instructions
-template: >-
+template: |
   <p><br></p>
   <div class="twh-fragment {{#notranslate}}notranslate{{/notranslate}}" data-lang="{{_lang}}" {{#if}}[maxWidth>0]style="max-width: {{maxWidth}}px;"{{/if}}>
   <h4>{{#I18n}}msg{{/I18n}}:</h4>

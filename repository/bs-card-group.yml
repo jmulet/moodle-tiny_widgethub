@@ -10,7 +10,7 @@ template: |
     <% for(var i=1; i<=n; i++) { %>
     <div class="col">
     <div class="card h-100">
-      <img class="card-img-top" src="https://picsum.photos/300/100" alt="Card image cap">
+      <img class="card-img-top" src="https://picsum.photos/300/100?random=<%=i%>" alt="Card image cap">
       <div class="card-body">
         <h5 class="card-title">$string.bscardgroup_cardtitle</h5>
         <p class="card-text">Lorem ipsum 1.</p>

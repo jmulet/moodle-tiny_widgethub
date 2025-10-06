@@ -47,7 +47,7 @@ parameters:
             e.find('div.tab-pane').removeClass('fade');
           }
         }
-  - partial: ID
+  - __ID__
 contextmenu:
   - predicate: li.nav-item
     actions: moveleft moveright insertafter | remove

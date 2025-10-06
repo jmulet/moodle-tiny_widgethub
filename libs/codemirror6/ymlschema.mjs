@@ -71,7 +71,7 @@ import z from 'zod';
 // Schema for the ParamOption type
 const ParamOptionSchema = z.object({
     l: z.string().optional().describe('The option label'),
-    v: z.string().optional().describe('The option value'),
+    v: z.union([z.string(), z.number(), z.boolean()]).optional().describe('The option value'),
     a: z.object({
         to: z.string(),
         content: z.string(),
@@ -238,10 +238,19 @@ const ActionSchema = z.object({
     }
 });
 
-const partialSchema = z.string().regex(/^__([A-Z0-9_]+)__$/).describe('A parameter name defined in the partials file');
+// Make all fields optional
+const PartialSchema = ParamSchema.partial().extend({
+  partial: z.string().regex(/^([A-Z0-9_]+)$/).describe('A parameter name defined in the partials file')
+});
+
+const PartialStringSchema = z.string().regex(/^__([A-Z0-9_]+)__$/).describe('A parameter name defined in the partials file');
+
+const partialsWidgetSchema = z.object({
+  key: z.literal('partials'),
+}).describe("Special case: disables all normal rules when key = 'partials'");
 
 // Schema for the main RawWidget type
-export const widgetSchema = z.object({
+const normalWidgetSchema = z.object({
     plugin_release: z.string().regex(/^(?:>=|>|=)?\d+\.\d+(?:\.\d+)?$/, {message: "Minimum plugin version required must follow the [ >, >=, =, ] xx.yy.zz pattern (e.g., >=1.4)."})
         .optional().describe("Minimum plugin version required, '>=1.4' or '>1.4'."),
     key: z.string().optional().describe("*The key of the snippet"),
@@ -260,8 +269,8 @@ export const widgetSchema = z.object({
     selectors: z.union([z.string(), z.array(z.string())]).optional().describe("Optional. CSS selectors to identify the widget."),
     insertquery: z.string().optional().describe("Optional. CSS selector where to insert content in SELECTION mode"),
     unwrap: z.string().optional().describe("Optional. CSS selectors of template content to extract on unwrap."),
-    parameters: z.array(z.union([ParamSchema, partialSchema])).optional().describe("Optional. A list of parameters of the snippet"),
-    requires: z.array(z.string()).optional().describe("Optional. JS dependencies of the widget."),
+    parameters: z.array(z.union([PartialStringSchema, PartialSchema, ParamSchema])).optional().describe("Optional. A list of parameters of the snippet"),
+    requires: z.string().optional().describe("Optional. JS dependencies of the widget."),
     I18n: z.record(z.string(), z.record(z.string(), z.string())).optional().describe("Optional. Translation map."),
     'for': z.string().optional().describe("Optional. A list of user ids allowed to use this widget"),
     hidden: z.boolean().optional().describe("Optional. Set to true to hide this widget"),
@@ -306,6 +315,8 @@ export const widgetSchema = z.object({
     }
 });
 
+export const widgetSchema = z.union([partialsWidgetSchema, normalWidgetSchema]);
+
 // Options for autocompletion
 // Generated from zod schema
 
@@ -323,7 +334,7 @@ function schemaToAutocomplete(schema) {
 }
 
 export const widgetAutocompletions = {
-    ROOT_OPTIONS: schemaToAutocomplete(widgetSchema),
+    ROOT_OPTIONS: schemaToAutocomplete(normalWidgetSchema),
     PARAMETERS_OPTIONS: schemaToAutocomplete(ParamSchema),
     OPTIONS_OPTIONS: schemaToAutocomplete(ParamOptionSchema),
     BIND_OPTIONS: schemaToAutocomplete(BindObjectSchema),

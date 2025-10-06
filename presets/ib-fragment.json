@@ -2,7 +2,7 @@
     "key": "ib-textfragment",
     "name": "$string.ibfragment_name",
     "instructions": "$string.ibfragment_instructions",
-    "template": "<p><br></p> <div class=\"twh-fragment {{#notranslate}}notranslate{{/notranslate}}\" data-lang=\"{{_lang}}\" {{#if}}[maxWidth>0]style=\"max-width: {{maxWidth}}px;\"{{/if}}> <h4>{{#I18n}}msg{{/I18n}}:</h4> <div class=\"twh-iq\"> <p>__LOREM__</p> </div> </div> <p><br></p>",
+    "template": "<p><br></p>\n<div class=\"twh-fragment {{#notranslate}}notranslate{{/notranslate}}\" data-lang=\"{{_lang}}\" {{#if}}[maxWidth>0]style=\"max-width: {{maxWidth}}px;\"{{/if}}>\n<h4>{{#I18n}}msg{{/I18n}}:</h4>\n<div class=\"twh-iq\">\n<p>__LOREM__</p>\n</div>\n</div>\n<p><br></p>\n",
     "insertquery": ".twh-fragment>div.twh-iq",
     "selectors": "div.twh-fragment",
     "unwrap": "div.twh-iq > *",
