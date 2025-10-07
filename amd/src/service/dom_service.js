@@ -52,7 +52,7 @@ export class DomSrv {
         // Does $e contain references to another elements in the $root which are not in $target?
         ['data-target', 'data-bs-target', 'href'].forEach((dataX) => {
             const attr = $e.attr(dataX);
-            if (attr?.startsWith("#")) {
+            if (attr?.startsWith("#") && attr.length > 1) {
                 $e.removeClass('active show');
                 const rootRef = $root.find(attr);
                 const targetRef = $target.find(attr);
@@ -110,7 +110,7 @@ export class DomSrv {
         const found = [];
         if ($e.is(searchFor)) {
             let attr = $e.attr('data-target') ?? $e.attr('data-bs-target') ?? $e.attr('href');
-            if (attr) {
+            if (attr && attr !== '#') {
                 found.push(...$root.find(attr).toArray());
             }
         }
@@ -119,7 +119,7 @@ export class DomSrv {
             const $descendants = $e.find(searchFor);
             if ($descendants.length) {
                 let attr = $descendants.attr('data-target') ?? $descendants.attr('data-bs-target') ?? $descendants.attr('href');
-                if (attr) {
+                if (attr && attr !== '#') {
                     found.push(...$root.find(attr).toArray());
                 }
             }
