@@ -26,8 +26,8 @@
             "tooltip": "$string.bscollapsible_indp_tip",
             "value": false,
             "bind": {
-                "get": "(e) => e.find('div.collapse[data-parent],div.collapse[data-bs-parent]').length === 0",
-                "set": "(e, v) => {\n  var $elements = e.find('div.collapse');\n  if(v) {\n    $elements.removeAttr('data-parent data-bs-parent');\n  } else {\n    var id = e.attr('id');\n    $elements.attr('data-parent', '#' + id).attr('data-bs-parent', '#' + id);\n  }\n}\n"
+                "getValue": "(el) => el.querySelector('div.collapse[data-parent],div.collapse[data-bs-parent]') === null",
+                "setValue": "(el, v) => {\n  var id = el.getAttribute('id');\n  el.querySelectorAll('div.collapse').forEach(elem => {\n    if (v) {\n      elem.removeAttribute('data-parent');\n      elem.removeAttribute('data-bs-parent');\n    } else {\n      elem.setAttribute('data-parent', `#${id}`);\n      elem.setAttribute('data-bs-parent', `#${id}`);\n    }\n  });\n}\n"
             }
         }
     ],
@@ -38,5 +38,5 @@
         }
     ],
     "author": "Josep Mulet <pep.mulet@gmail.com>",
-    "version": "2.0.0"
+    "version": "2.1.0"
 }

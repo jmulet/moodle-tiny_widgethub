@@ -28,12 +28,12 @@
             "title": "$string.bsalert_closable_title",
             "value": false,
             "bind": {
-                "get": "(e) => e.find(\"button.close\").length > 0",
-                "set": "(e, v) => {\n    if (v && !e.find(\"button.close\")[0]) {\n      var btn = '<button type=\"button\" class=\"close\" data-dismiss=\"alert\" data-bs-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>';\n      e.prepend(btn);\n      e.addClass('alert-dismissible');\n    } else if (!v) {\n      e.removeClass('alert-dismissible');\n      e.find(\"button.close\").remove();\n    }\n}\n"
+                "getValue": "(el) => el.querySelector(\"button.close\") !== null",
+                "setValue": "(el, v) => {\n    var btnClose = el.querySelector(\"button.close\");\n    if (v && btnClose === null) {\n      var btn = '<button type=\"button\" class=\"close\" data-dismiss=\"alert\" data-bs-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>';\n      const template = document.createElement('template');\n      template.innerHTML = btn;\n      el.prepend(template.content.firstChild);\n      el.classList.add('alert-dismissible');\n    } else if (!v) {\n      el.classList.remove('alert-dismissible');\n      btnClose && btnClose.remove();\n    }\n}\n"
             }
         }
     ],
     "autocomplete": "severity",
     "author": "Josep Mulet <pep.mulet@gmail.com>",
-    "version": "2.0.0"
+    "version": "2.1.0"
 }

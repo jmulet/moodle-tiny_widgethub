@@ -63,11 +63,11 @@
                 }
             ],
             "bind": {
-                "get": "(e) => {\n    var className = e.find('div.row > div').first().attr('class');\n    console.log(className);\n    var match = new RegExp(/col-sm-(\\d+)/).exec(className) || [];\n    console.log(match);\n    return parseInt(match[1] || '6');\n}\n",
-                "set": "(e, v) => {\n    var col1 = e.find('div.row > div').first();\n    var col2 = col1.next();\n    col1.removeClass().addClass('col-sm-' + v);;\n    col2.removeClass().addClass('col-sm-' + (12-v));\n}\n"
+                "getValue": "(el) => {\n    var col1 = el.querySelector('div.row > div');\n    var className = col1 ? col1.className : '';\n    var match = /col-sm-(\\d+)/.exec(className) || [];\n    return parseInt(match[1] || '6', 10);\n}\n",
+                "setValue": "(el, v) => {\n    var col1 = el.querySelector('div.row > div');\n    var col2 = col1 ? col1.nextElementSibling : null;\n    if (col1 && col2) {\n      col1.className = 'col-sm-' + v;\n      col2.className = 'col-sm-' + (12 - v);\n    }\n  }\n}\n"
             }
         }
     ],
     "author": "Josep Mulet <pep.mulet@gmail.com>",
-    "version": "2.0.0"
+    "version": "2.1.0"
 }

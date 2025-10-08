@@ -38,13 +38,19 @@ parameters:
       - {l: '$string.bstabs_optionsnone', v: ''}
       - {l: '$string.bstabs_optionsfade', v: 'fade'}
     bind:
-      get: (e) => e.find('div.tab-pane').hasClass('fade') ? 'fade':''
-      set: |
-        (e, v) => {
-          if(v) {
-            e.find('div.tab-pane').addClass('fade');
+      getValue: | 
+        (el) => {
+          var pane = el.querySelector('div.tab-pane');
+          return pane && pane.classList.contains('fade') ? 'fade' : '';
+        }
+      setValue: |
+        (el, v) => {
+          const pane = el.querySelector('div.tab-pane');
+          if (!pane) return;
+          if (v) {
+            pane.classList.add('fade');
           } else {
-            e.find('div.tab-pane').removeClass('fade');
+            pane.classList.remove('fade');
           }
         }
   - __ID__
@@ -52,4 +58,4 @@ contextmenu:
   - predicate: li.nav-item
     actions: moveleft moveright insertafter | remove
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 2.0.0
+version: 2.1.0

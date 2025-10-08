@@ -38,20 +38,22 @@ parameters:
       - {l: '83%', v: 10}
       - {l: '92%', v: 11}
     bind:
-      get: |
-        (e) => {
-            var className = e.find('div.row > div').first().attr('class');
-            console.log(className);
-            var match = new RegExp(/col-sm-(\d+)/).exec(className) || [];
-            console.log(match);
-            return parseInt(match[1] || '6');
+      getValue: |
+        (el) => {
+            var col1 = el.querySelector('div.row > div');
+            var className = col1 ? col1.className : '';
+            var match = /col-sm-(\d+)/.exec(className) || [];
+            return parseInt(match[1] || '6', 10);
         }
-      set: |
-        (e, v) => {
-            var col1 = e.find('div.row > div').first();
-            var col2 = col1.next();
-            col1.removeClass().addClass('col-sm-' + v);;
-            col2.removeClass().addClass('col-sm-' + (12-v));
+      setValue: |
+        (el, v) => {
+            var col1 = el.querySelector('div.row > div');
+            var col2 = col1 ? col1.nextElementSibling : null;
+            if (col1 && col2) {
+              col1.className = 'col-sm-' + v;
+              col2.className = 'col-sm-' + (12 - v);
+            }
+          }
         }
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 2.0.0
+version: 2.1.0

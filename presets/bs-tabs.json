@@ -31,8 +31,8 @@
                 }
             ],
             "bind": {
-                "get": "(e) => e.find('div.tab-pane').hasClass('fade') ? 'fade':''",
-                "set": "(e, v) => {\n  if(v) {\n    e.find('div.tab-pane').addClass('fade');\n  } else {\n    e.find('div.tab-pane').removeClass('fade');\n  }\n}\n"
+                "getValue": "(el) => {\n  var pane = el.querySelector('div.tab-pane');\n  return pane && pane.classList.contains('fade') ? 'fade' : '';\n}\n",
+                "setValue": "(el, v) => {\n  const pane = el.querySelector('div.tab-pane');\n  if (!pane) return;\n  if (v) {\n    pane.classList.add('fade');\n  } else {\n    pane.classList.remove('fade');\n  }\n}\n"
             }
         },
         "__ID__"
@@ -44,5 +44,5 @@
         }
     ],
     "author": "Josep Mulet <pep.mulet@gmail.com>",
-    "version": "2.0.0"
+    "version": "2.1.0"
 }

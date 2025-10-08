@@ -197,7 +197,7 @@ describe("WidgetPickerCtrl", () => {
         mockEditor.selection.getContent.mockClear();
         mockEditor.selection.getContent.mockReturnValue("");
 
-        const ctx = widgetPickCtrl.getPickTemplateContext();
+        const ctx = widgetPickCtrl.getPickTemplateContext({});
 
         expect(ctx.selectmode).toBe(false);
         expect(ctx.rid).toMatch(/^[a-zA-Z]\w*$/);

@@ -410,8 +410,8 @@ These functions may be suitable for most of the cases, but, in some ocassions th
 
 ````yaml
 binding:
-  get: ($e) => /* return whatever you need from the jQuery element $e */
-  set: ($e, v) => /* update all you need of the element $e with the new value v */
+  getValue: (el) => /* return whatever you need from the vanilla JS element el */
+  setValue: (el, v) => /* update all you need of the element el with the new value v */
 ````
 
 For example, let's see how to hasClass function might be implemented using this API
@@ -419,10 +419,14 @@ For example, let's see how to hasClass function might be implemented using this 
 ````yaml
 # Example of how hasClass can be simulated (assuming that the root is in the p element)
 binding:
-  get: ($e) => $e.find('span').hasClass('badge')
-  set: |
-      ($e, v) => {
-        v ? $e.addClass('badge') : $e.removeClass('badge')    
+  getValue: |
+      (el) => {
+        var span = el.querySelector('span');
+        return span && span.classList.contains('badge');
+      }
+  setValue: |
+      (el, v) => {
+        v ? el.classList.add('badge') : el.classList.remove('badge')    
       }
 ````
 
@@ -496,7 +500,7 @@ Two ways to implement bindings in repeatable fields are supported:
 
 1. Specify `item_selector` as a CSS selector that returns a list of DOM elements; one per item. Then, use the `bind` key in the fields as usual. Note that in this mode, the `bind` key refers to each element in the returned list, not to the widget’s root element. This method creates a binding for every field and for each item in the list.
 
-2. Alternatively, `remove item_selector` and define a `bind` property as an object with `get(e: E): V` and `set(e: E, v: V)` functions. Here, `e` is the widget root element, and `v` is an array of objects. String-based bindings are not supported in this case. Using this mechanism, the previous example would be implemented as:
+2. Alternatively, `remove item_selector` and define a `bind` property as an object with `getValue(el: HTMLElement): V` and `setValue(el: HTMLElement, v: V)` functions. Here, `el` is the widget root element, and `v` is an array of objects. String-based bindings are not supported in this case. Using this mechanism, the previous example would be implemented as:
 
 ````yml
 ···
@@ -514,15 +518,19 @@ parameters:
         type: image
         value: https://picsum.photos/300/200?random={{i}} # i is the number of items in the list
     bind:
-      get: |
-        (e) => {
-          return e.find('.carousel-item img').map((_, el) => ({ url: el.getAttribute('src') })).get();
+      getValue: |
+        (el) => {      
+          var imgs = el.querySelectorAll('.carousel-item img');
+          return Array.from(imgs).map(img => ({ url: img.getAttribute('src') }));
         }
-      set: |
-        (e, v) => {
-          e.find('.carousel-item img').each((i, el) => {
-            el.setAttribute('src', v[i].url);
-            el.setAttribute('data-mce-src', v[i].url);
+      setValue: |
+        (el, v) => {
+          var imgs = el.querySelectorAll('.carousel-item img');
+          imgs.forEach((img, i) => {
+            if (v[i]) {
+              img.setAttribute('src', v[i].url);
+              img.setAttribute('data-mce-src', v[i].url);
+            }
           });
         }
 author: Josep Mulet <pep.mulet@gmail.com>

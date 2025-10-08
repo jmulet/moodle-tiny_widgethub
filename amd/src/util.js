@@ -905,7 +905,7 @@ const bindingFactory = function($e) {
  * @property {(value: string | boolean | number) => void} setValue
  */
 /**
- * @param {string | {get: string, set: string}} definition
+ * @param {string | {get: string, set: string, getValue: string, setValue: string}} definition
  * @param {JQuery<HTMLElement>} elem  - The root of widget
  * @param {string=} castTo  - The type that must be returned
  * @returns {Binding | null}
@@ -916,16 +916,28 @@ export const createBinding = (definition, elem, castTo) => {
     if (typeof (definition) === 'string') {
         return evalInContext({...bindingFactory(elem)}, definition, true);
     } else {
-        // The user provides the get and set functions
+        // The user provides the get and set functions (for jQuery element) @deprecated
+        // or getValue, setValue (for vanilla JS elements)
         bindFn = {
             getValue: () => {
-                let v = evalInContext({elem}, `(${definition.get})(elem)`);
+                let v;
+                if (definition.get) {
+                    v = evalInContext({elem}, `(${definition.get})(elem)`);
+                } else if (definition.getValue) {
+                    v = evalInContext({elem: elem[0]}, `(${definition.getValue})(elem)`);
+                }
                 if (castTo) {
                     v = performCasting(v, castTo);
                 }
                 return v;
             },
-            setValue: (v) => evalInContext({elem, v}, `(${definition.set})(elem, v)`)
+            setValue: (v) => {
+                if (definition.set) {
+                    evalInContext({elem, v}, `(${definition.set})(elem, v)`);
+                } else if (definition.setValue) {
+                    evalInContext({elem: elem[0], v}, `(${definition.setValue})(elem, v)`);
+                }
+            }
         };
     }
     return bindFn;

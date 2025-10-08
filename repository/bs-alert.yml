@@ -35,18 +35,21 @@ parameters:
     title: $string.bsalert_closable_title
     value: false
     bind:
-      get: (e) => e.find("button.close").length > 0
-      set: |
-        (e, v) => {
-            if (v && !e.find("button.close")[0]) {
+      getValue: (el) => el.querySelector("button.close") !== null
+      setValue: |
+        (el, v) => {
+            var btnClose = el.querySelector("button.close");
+            if (v && btnClose === null) {
               var btn = '<button type="button" class="close" data-dismiss="alert" data-bs-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
-              e.prepend(btn);
-              e.addClass('alert-dismissible');
+              const template = document.createElement('template');
+              template.innerHTML = btn;
+              el.prepend(template.content.firstChild);
+              el.classList.add('alert-dismissible');
             } else if (!v) {
-              e.removeClass('alert-dismissible');
-              e.find("button.close").remove();
+              el.classList.remove('alert-dismissible');
+              btnClose && btnClose.remove();
             }
         }
 autocomplete: severity
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 2.0.0
+version: 2.1.0

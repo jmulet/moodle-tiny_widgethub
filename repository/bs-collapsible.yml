@@ -43,19 +43,22 @@ parameters:
     tooltip: $string.bscollapsible_indp_tip
     value: false
     bind:
-      get: (e) => e.find('div.collapse[data-parent],div.collapse[data-bs-parent]').length === 0
-      set: |
-        (e, v) => {
-          var $elements = e.find('div.collapse');
-          if(v) {
-            $elements.removeAttr('data-parent data-bs-parent');
-          } else {
-            var id = e.attr('id');
-            $elements.attr('data-parent', '#' + id).attr('data-bs-parent', '#' + id);
-          }
+      getValue: (el) => el.querySelector('div.collapse[data-parent],div.collapse[data-bs-parent]') === null
+      setValue: |
+        (el, v) => {
+          var id = el.getAttribute('id');
+          el.querySelectorAll('div.collapse').forEach(elem => {
+            if (v) {
+              elem.removeAttribute('data-parent');
+              elem.removeAttribute('data-bs-parent');
+            } else {
+              elem.setAttribute('data-parent', `#${id}`);
+              elem.setAttribute('data-bs-parent', `#${id}`);
+            }
+          });
         }
 contextmenu:
   - predicate: .card
     actions: moveup movedown insertafter | remove
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 2.0.0
+version: 2.1.0
