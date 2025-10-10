@@ -1,4 +1,13 @@
 /* eslint-disable no-console */
+/**
+ * Utility Script for the WidgetHub Plugin
+ *
+ * Usage:
+ * - This script must be executed using NodeJS
+ *
+ * Author: Josep Mulet Pol <pep.mulet@gmail.com>
+ */
+
 const fs = require('fs');
 const path = require('path');
 
@@ -28,7 +37,7 @@ function checkAlphabeticalOrder(filename = "string_data.txt") {
 
         // Use a loop with regex.exec to extract all capturing groups
         while ((match = regex.exec(data)) !== null) {
-            keys.push(match[1]); // match[1] is the content of the first capturing group (the key)
+            keys.push(match[1]); // Match[1] is the content of the first capturing group (the key)
         }
 
         if (keys.length === 0) {
@@ -159,7 +168,7 @@ function areSetsEqual(setA, setB) {
         return false;
     }
 
-    // 2. Element check: Use the .every() method on SetA's elements 
+    // 2. Element check: Use the .every() method on SetA's elements
     // to verify that every element exists in SetB.
     for (const item of setA) {
         if (!setB.has(item)) {

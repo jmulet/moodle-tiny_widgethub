@@ -221,7 +221,7 @@ export default {
             validation.json = JSON.stringify(jsonObj, null, 0);
 
             // Check if the structure is correct
-            if (!jsonObj?.key) {
+            if (!jsonObj?.key?.trim()) {
                 validation.msg = await get_string('errproprequired', component, "'key'") + ' ';
             } else if (jsonObj.key === 'partials') {
                 // Do not apply validation on partials file

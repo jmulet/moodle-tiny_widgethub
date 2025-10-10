@@ -30,7 +30,7 @@ import {getEditorOptions, getGlobalConfig} from '../options';
 import {getModalSrv} from '../service/modal_service';
 import {getTemplateSrv} from '../service/template_service';
 import {getUserStorage} from '../service/userstorage_service';
-import {debounce, genID, hashCode, searchComp, toggleClass} from '../util';
+import {debounce, genID, hashCode, removeRndFromCtx, searchComp, toggleClass} from '../util';
 
 /**
  * @param {HTMLElement} el
@@ -497,9 +497,10 @@ export class WidgetPickerCtrl {
         // By default always initialize context ctx to widget's defaults
         /** @type {Record<string, any> | undefined} */
         let ctx = widget.defaults || {};
-        if (aRecent) {
-            const stored = this.storage.getRecentUsed().filter(e => e.key === widget.key)[0]?.p || {};
-            ctx = {...ctx, ...stored};
+        const forceInsert = aRecent !== null || button?.dataset?.insert === 'true';
+        if (aRecent && forceInsert) {
+            const stored = this.storage.getRecentUsed().find(e => e.key === widget.key)?.p || {};
+            ctx = {...ctx, ...removeRndFromCtx(stored, widget.parameters)};
         }
         // Must open a configuration dialogue for the current widget
         let confirmMsg = null;
@@ -507,7 +508,6 @@ export class WidgetPickerCtrl {
         if (!widget.isUsableInScope()) {
             confirmMsg = await get_string('confirmusage', 'tiny_widgethub');
         }
-        const forceInsert = aRecent !== null || button?.dataset?.insert === 'true';
         if (confirmMsg) {
             this.editor.windowManager.confirm(confirmMsg,
                 /** @param {*} state */

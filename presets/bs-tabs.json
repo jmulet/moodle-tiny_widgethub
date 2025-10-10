@@ -32,7 +32,7 @@
             ],
             "bind": {
                 "getValue": "(el) => {\n  var pane = el.querySelector('div.tab-pane');\n  return pane && pane.classList.contains('fade') ? 'fade' : '';\n}\n",
-                "setValue": "(el, v) => {\n  const pane = el.querySelector('div.tab-pane');\n  if (!pane) return;\n  if (v) {\n    pane.classList.add('fade');\n  } else {\n    pane.classList.remove('fade');\n  }\n}\n"
+                "setValue": "(el, v) => {\n  el.querySelectorAll('div.tab-pane').forEach(pane => {;\n    if (v) {\n      pane.classList.add('fade');\n    } else {\n      pane.classList.remove('fade');\n    }\n  });\n}\n"
             }
         },
         "__ID__"

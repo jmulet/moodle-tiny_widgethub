@@ -64,7 +64,7 @@
             ],
             "bind": {
                 "getValue": "(el) => {\n    var col1 = el.querySelector('div.row > div');\n    var className = col1 ? col1.className : '';\n    var match = /col-sm-(\\d+)/.exec(className) || [];\n    return parseInt(match[1] || '6', 10);\n}\n",
-                "setValue": "(el, v) => {\n    var col1 = el.querySelector('div.row > div');\n    var col2 = col1 ? col1.nextElementSibling : null;\n    if (col1 && col2) {\n      col1.className = 'col-sm-' + v;\n      col2.className = 'col-sm-' + (12 - v);\n    }\n  }\n}\n"
+                "setValue": "(el, v) => {\n    var col1 = el.querySelector('div.row > div');\n    var col2 = col1 ? col1.nextElementSibling : null;\n    if (col1 && col2) {\n      col1.className = 'col-sm-' + v;\n      col2.className = 'col-sm-' + (12 - v);\n    }\n}\n"
             }
         }
     ],

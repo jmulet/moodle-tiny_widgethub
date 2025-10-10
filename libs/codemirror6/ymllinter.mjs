@@ -81,7 +81,7 @@ function findNodeAtObjectPath(cstNode, path) {
 
 /**
  * Creates a linter for CodeMirror
- * @param {import("zod").ZodObject} schema
+ * @param {import("zod").ZodSchema} schema
  * @returns
  */
 export const createYamlZodLinter = (schema) => {
@@ -117,9 +117,10 @@ export const createYamlZodLinter = (schema) => {
                 const node = findNodeAtObjectPath(doc.contents, issue.path);
                 const range = node && node.range ? node.range : [0, view.state.doc.length];
 
+                const isWarning = issue.message?.indexOf('[DEPRECATED]') >= 0;
                 diagnostics.push({
                     from: range[0], to: range[1],
-                    severity: 'error',
+                    severity: isWarning ? 'warning' : 'error',
                     message: `Schema Error: ${issue.message} (at ${issue.path.join('.') || 'root'})`,
                 });
             }

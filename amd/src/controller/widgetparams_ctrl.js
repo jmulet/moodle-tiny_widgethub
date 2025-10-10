@@ -19,7 +19,7 @@ import {getListeners} from '../extension';
 import {getModalSrv} from '../service/modal_service';
 import {getTemplateSrv} from '../service/template_service';
 import {getUserStorage} from '../service/userstorage_service';
-import {applyWidgetFilterFactory} from '../util';
+import {applyWidgetFilterFactory, removeRndFromCtx} from '../util';
 import * as coreStr from "core/str";
 
 /**
@@ -191,7 +191,9 @@ export class WidgetParamsCtrl {
       if (pos >= 0) {
          recentList.splice(pos, 1);
       }
-      recentList.unshift({key: this.widget.key, p: ctxFromDialogue});
+      // Never store values that are obtained from $RND
+      const ctxFiltered = removeRndFromCtx(ctxFromDialogue, this.widget.parameters);
+      recentList.unshift({key: this.widget.key, p: ctxFiltered});
       if (recentList.length > 4) {
          recentList.splice(5, recentList.length - 4);
       }

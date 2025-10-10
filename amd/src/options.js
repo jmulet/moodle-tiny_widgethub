@@ -25,7 +25,7 @@
 
 import {getPluginOptionName} from 'editor_tiny/options';
 import Common from './common';
-import {compareVersion} from './util';
+import {compareVersion, genID} from './util';
 import {createDefaultsForParam} from './service/template_service';
 const pluginName = Common.pluginName;
 
@@ -320,7 +320,7 @@ export function applyPartials(widget, partials) {
  * @property {number=} min
  * @property {number=} max
  * @property {string=} transform
- * @property {string | {get: string, set: string} } [bind]
+ * @property {string | {get?: string, set?: string, getValue?: string, setValue?: string} } [bind]
  * @property {string} [item_selector]
  * @property {string=} when
  * @property {boolean} [hidden]
@@ -379,6 +379,10 @@ export class Widget {
      * @param {Object.<string, any>=} partials
      */
     constructor(widget, partials) {
+        if (!widget.key) {
+            // Define a random key
+            widget.key = 'w' + genID();
+        }
         partials = partials ?? {};
         applyPartials(widget, partials);
         this._widget = widget;

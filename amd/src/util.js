@@ -905,7 +905,7 @@ const bindingFactory = function($e) {
  * @property {(value: string | boolean | number) => void} setValue
  */
 /**
- * @param {string | {get: string, set: string, getValue: string, setValue: string}} definition
+ * @param {string | {get?: string, set?: string, getValue?: string, setValue?: string}} definition
  * @param {JQuery<HTMLElement>} elem  - The root of widget
  * @param {string=} castTo  - The type that must be returned
  * @returns {Binding | null}
@@ -921,10 +921,10 @@ export const createBinding = (definition, elem, castTo) => {
         bindFn = {
             getValue: () => {
                 let v;
-                if (definition.get) {
-                    v = evalInContext({elem}, `(${definition.get})(elem)`);
-                } else if (definition.getValue) {
+                if (definition.getValue) {
                     v = evalInContext({elem: elem[0]}, `(${definition.getValue})(elem)`);
+                } else if (definition.get) {
+                    v = evalInContext({elem}, `(${definition.get})(elem)`);
                 }
                 if (castTo) {
                     v = performCasting(v, castTo);
@@ -932,10 +932,10 @@ export const createBinding = (definition, elem, castTo) => {
                 return v;
             },
             setValue: (v) => {
-                if (definition.set) {
-                    evalInContext({elem, v}, `(${definition.set})(elem, v)`);
-                } else if (definition.setValue) {
+                if (definition.setValue) {
                     evalInContext({elem: elem[0], v}, `(${definition.setValue})(elem, v)`);
+                } else if (definition.set) {
+                    evalInContext({elem, v}, `(${definition.set})(elem, v)`);
                 }
             }
         };
@@ -1113,4 +1113,20 @@ export function compareVersion(current, condition) {
      console.log("Unknown operator: " + operator);
      return true;
   }
+}
+
+/**
+ * Parameters that are generated from $RND must never
+ * be stored as recently used, nor used as new contexts
+ * @param {Record<string, any>} ctx
+ * @param {import('./options').Param[]} parameters
+ * @returns {Record<string, any>}
+ */
+export function removeRndFromCtx(ctx, parameters) {
+    return Object.fromEntries(
+        Object.entries(ctx).filter(([k]) => {
+            const val = parameters.find(p => p.name === k)?.value;
+            return val !== '$RND';
+        })
+    );
 }

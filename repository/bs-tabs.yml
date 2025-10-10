@@ -45,13 +45,13 @@ parameters:
         }
       setValue: |
         (el, v) => {
-          const pane = el.querySelector('div.tab-pane');
-          if (!pane) return;
-          if (v) {
-            pane.classList.add('fade');
-          } else {
-            pane.classList.remove('fade');
-          }
+          el.querySelectorAll('div.tab-pane').forEach(pane => {;
+            if (v) {
+              pane.classList.add('fade');
+            } else {
+              pane.classList.remove('fade');
+            }
+          });
         }
   - __ID__
 contextmenu:

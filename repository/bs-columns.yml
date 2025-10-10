@@ -53,7 +53,6 @@ parameters:
               col1.className = 'col-sm-' + v;
               col2.className = 'col-sm-' + (12 - v);
             }
-          }
         }
 author: Josep Mulet <pep.mulet@gmail.com>
 version: 2.1.0

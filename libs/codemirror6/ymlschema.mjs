@@ -87,14 +87,22 @@ const ParamOptionSchema = z.object({
 
 // Schema for the 'bind' object, ensuring both get and set are present.
 const BindObjectSchema = z.object({
-    get: z.string().optional().describe('How to get the variable value from jQuery<HTMLElement> e. E.g., get: function(e){return "···";}'),
-    set: z.string().optional().describe('How to set the variable value v to jQuery<HTMLElement> e. E.g., set: function(e, value){···}')
+    getValue: z.string().optional().describe('How to get the variable value from HTMLElement el. E.g., get: function(el){return "···";}'),
+    setValue: z.string().optional().describe('How to set the variable value v to HTMLElement el. E.g., set: function(el, value){···}'),
+    get: z.string().optional().describe('[DEPRECATED] Use `getValue` instead. How to get the variable value from jQuery<HTMLElement> e. E.g., get: function(e){return "···";}'),
+    set: z.string().optional().describe('[DEPRECATED] Use `setValue` instead. How to set the variable value v to jQuery<HTMLElement> e. E.g., set: function(e, value){···}')
 }).superRefine((data, ctx) => {
-    if (data.get === undefined) {
-        ctx.addIssue({code: 'custom', message: "The 'bind' object must have a 'get' property.", path: ['get']});
+    if (data.get !== undefined && data.getValue == undefined) {
+        ctx.addIssue({code: 'custom', message: '[DEPRECATED] Use `getValue` instead. getValue: (el: HTMLElement) => any', path: ['get']});
     }
-    if (data.set === undefined) {
-        ctx.addIssue({code: 'custom', message: "The 'bind' object must have a 'set' property.", path: ['set']});
+    if (data.get === undefined && data.getValue == undefined) {
+        ctx.addIssue({code: 'custom', message: "The 'bind' object must have a 'get/getValue' property.", path: ['getValue']});
+    }
+    if (data.set !== undefined && data.setValue == undefined) {
+        ctx.addIssue({code: 'custom', message: '[DEPRECATED] Use `setValue` instead. setValue: (el: HTMLElement, v: any) => void', path: ['set']});
+    }
+    if (data.set === undefined && data.setValue === undefined) {
+        ctx.addIssue({code: 'custom', message: "The 'bind' object must have a 'set/setValue' property.", path: ['setValue']});
     }
 });
 
@@ -119,43 +127,61 @@ const commonParamSchema = {
     'for': z.string().optional().describe("Optional. Tell for which user ids (comma separated) this control will be visible"),
 };
 
-// This is an internal schema for fields inside a 'repeatable' type.
-const NonRepeatableParamSchema = z.object({
-        ...commonParamSchema,
-        'type': z.enum(['textfield', 'numeric', 'checkbox', 'select', 'autocomplete', 'textarea', 'image', 'color']).optional(),
-    }).superRefine((data, ctx) => {
-    // Manually check for required fields
+/**
+ * @param {*} data
+ * @param {z.RefinementCtx} ctx
+ * @param {{ allowRepeatable: boolean }} params
+ */
+function validateCommonParam(data, ctx, params) {
+    // Required fields
     if (data.name === undefined) {
         ctx.addIssue({code: 'custom', message: "The parameter 'name' is required.", path: ['name']});
     }
     if (data.title === undefined) {
         ctx.addIssue({code: 'custom', message: "The parameter 'title' is required.", path: ['title']});
     }
-    if (data.value === undefined) {
+    if (!params.allowRepeatable && data.value === undefined) {
         ctx.addIssue({code: 'custom', message: "The 'value' property is required for each parameter.", path: ['value']});
     }
 
-    // Conditional validation logic
-    const hasOptions = data.options !== undefined && data.options.length > 0;
+    // Conditional validation
+    const hasOptions = Array.isArray(data.options) && data.options.length > 0;
     const type = data.type;
-    if (type === 'select' && typeof data.value !== 'boolean') {
-        ctx.addIssue({code: 'custom', message: "For type 'select', the value must be a boolean.", path: ['value']});
+
+    if (['autocomplete', 'select'].includes(type)) {
+        const plainOptions = data.options?.map((/** @type {any} */ e) => (e.v !== undefined ? e.v : e)) ?? [];
+        if (!hasOptions) {
+            ctx.addIssue({code: 'custom', message: "Options are required when type is 'autocomplete' or 'select'.", path: ['options']});
+        } else if (!plainOptions.includes(data.value)) {
+            ctx.addIssue({code: 'custom', message: "Value of a select parameter must be one of the items in options.", path: ['value']});
+        }
     }
-    if (type === 'autocomplete' && !hasOptions) {
-        ctx.addIssue({code: 'custom', message: "Options are required when type is 'autocomplete'.", path: ['options']});
-    }
-    if (hasOptions && type !== undefined && !['select', 'autocomplete'].includes(type)) {
+
+    if (hasOptions && type && !['select', 'autocomplete'].includes(type)) {
         ctx.addIssue({code: 'custom', message: "Options are only allowed when type is 'select' or 'autocomplete'.", path: ['options']});
     }
-    if (type !== 'numeric' && (data.min !== undefined || data.max !== undefined)) {
-        ctx.addIssue({code: 'custom', message: "Min/Max are only allowed when type is 'numeric'", path: ['min']});
+
+    const isImplicitNumeric = data.type === undefined && typeof (data.value) === 'number';
+    if (!isImplicitNumeric && !['numeric', 'repeatable'].includes(type) && (data.min !== undefined || data.max !== undefined)) {
+        ctx.addIssue({code: 'custom', message: "Min/Max are only allowed when type is 'numeric' or 'repeatable'", path: ['min']});
     }
-    if (type === 'numeric' && data.value !== undefined && typeof (data.value) !== 'number') {
-           ctx.addIssue({code: 'custom', message: "The value of type 'numeric' must be a number", path: ['value']});
+
+    if (type === 'numeric' && data.value !== undefined && typeof data.value !== 'number') {
+        ctx.addIssue({code: 'custom', message: "The value of type 'numeric' must be a number", path: ['value']});
     }
-    if (type === 'checkbox' && data.value !== undefined && typeof (data.value) !== 'boolean') {
+
+    if (type === 'checkbox' && data.value !== undefined && typeof data.value !== 'boolean') {
         ctx.addIssue({code: 'custom', message: "The value of type 'checkbox' must be true or false", path: ['value']});
     }
+}
+
+
+// This is an internal schema for fields inside a 'repeatable' type.
+const NonRepeatableParamSchema = z.object({
+    ...commonParamSchema,
+    'type': z.enum(['textfield', 'numeric', 'checkbox', 'select', 'autocomplete', 'textarea', 'image', 'color']).optional(),
+}).superRefine((data, ctx) => {
+    validateCommonParam(data, ctx, {allowRepeatable: false});
 });
 
 
@@ -166,61 +192,44 @@ const ParamSchema = z.object({
     item_selector: z.string().optional().describe('A css query that provides the DOM elements; one per item'),
     fields: z.array(z.lazy(() => NonRepeatableParamSchema)).optional().describe('A list of parameters that define the repeatable object'),
 }).superRefine((data, ctx) => {
-    // Manually check for required fields
-    if (data.name === undefined) {
-        ctx.addIssue({code: 'custom', message: "The parameter 'name' is required.", path: ['name']});
-    }
-    if (data.title === undefined) {
-        ctx.addIssue({code: 'custom', message: "The parameter 'title' is required.", path: ['title']});
-    }
-    if (data.type !== 'repeatable' && data.value === undefined) {
-        ctx.addIssue({code: 'custom', message: "The 'value' property is required for each parameter.", path: ['value']});
+    validateCommonParam(data, ctx, {allowRepeatable: true});
+    const isRepeatable = data.type === 'repeatable';
+
+    if (!isRepeatable) {
+        if (data.fields !== undefined) {
+            ctx.addIssue({code: 'custom', message: "Fields are only allowed when type is 'repeatable'", path: ['fields']});
+        }
+        return;
     }
 
-    // Conditional validation logic
-    const hasOptions = data.options !== undefined && data.options.length > 0;
-    const type = data.type;
-    if (type === 'select' && typeof data.value !== 'boolean') {
-        ctx.addIssue({code: 'custom', message: "For type 'select', the value must be a boolean.", path: ['value']});
-    }
-    if (type === 'autocomplete' && !hasOptions) {
-        ctx.addIssue({code: 'custom', message: "Options are required when type is 'autocomplete'.", path: ['options']});
-    }
-    if (hasOptions && type !== undefined && !['select', 'autocomplete'].includes(type)) {
-        ctx.addIssue({code: 'custom', message: "Options are only allowed when type is 'select' or 'autocomplete'.", path: ['options']});
-    }
-    if (data.type && !['numeric', 'repeatable'].includes(data.type) && (data.min !== undefined || data.max !== undefined)) {
-        ctx.addIssue({code: 'custom', message: "Min/Max are only allowed when type is 'numeric' or 'repeatable'", path: ['min']});
-    }
-    if (data.type !== 'repeatable' && data.fields !== undefined) {
-        ctx.addIssue({code: 'custom', message: "Fields are only allowed when type is 'repeatable'", path: ['fields']});
-    }
-    if (data.type === 'repeatable' && data.fields === undefined) {
+    // Only conditions affecting repeatable fields
+
+    if (data.fields === undefined) {
         ctx.addIssue({code: 'custom', message: "Fields are required when type is 'repeatable'", path: ['type']});
     }
-    if (type === 'numeric' && data.value !== undefined && typeof (data.value) !== 'number') {
-           ctx.addIssue({code: 'custom', message: "The value of type 'numeric' must be a number", path: ['value']});
-    }
-    if (type === 'checkbox' && data.value !== undefined && typeof (data.value) !== 'boolean') {
-        ctx.addIssue({code: 'custom', message: "The value of type 'checkbox' must be true or false", path: ['value']});
-    }
     // Repeatable parameter with bindings in field, require a bind parameter that specifies a query for getting the items
-    if (type === 'repeatable' && data.fields?.some(f => f.bind !== 'undefined')) {
+    if (data.fields?.some(f => f.bind !== 'undefined')) {
         if (typeof data.item_selector !== 'string' && typeof data.bind !== 'object') {
-            ctx.addIssue({code: 'custom',
+            ctx.addIssue({
+                code: 'custom',
                 message: "Repeatable parameters that include fields with bindings, require `bind` or `item_selector`",
-                path: ['bind']});
+                path: ['bind']
+            });
         }
     }
-    if (type === 'repeatable' && data.bind && data.item_selector) {
-        ctx.addIssue({code: 'custom',
+    if (data.bind && data.item_selector) {
+        ctx.addIssue({
+            code: 'custom',
             message: "Repeatable parameters can only use either `bind` or `item_selector` at the same time.",
-            path: ['bind']});
+            path: ['bind']
+        });
     }
-    if (type === 'repeatable' && data.bind !== undefined && typeof data.bind !== 'object') {
-        ctx.addIssue({code: 'custom',
+    if (data.bind !== undefined && typeof data.bind !== 'object') {
+        ctx.addIssue({
+            code: 'custom',
             message: "Repeatable parameters can only use object {get, set} for `bind`.",
-            path: ['bind']});
+            path: ['bind']
+        });
     }
 });
 
@@ -240,13 +249,13 @@ const ActionSchema = z.object({
 
 // Make all fields optional
 const PartialSchema = ParamSchema.partial().extend({
-  partial: z.string().regex(/^([A-Z0-9_]+)$/).describe('A parameter name defined in the partials file')
+    partial: z.string().regex(/^([A-Z0-9_]+)$/).describe('A parameter name defined in the partials file')
 });
 
 const PartialStringSchema = z.string().regex(/^__([A-Z0-9_]+)__$/).describe('A parameter name defined in the partials file');
 
 const partialsWidgetSchema = z.object({
-  key: z.literal('partials'),
+    key: z.literal('partials'),
 }).describe("Special case: disables all normal rules when key = 'partials'");
 
 // Schema for the main RawWidget type
