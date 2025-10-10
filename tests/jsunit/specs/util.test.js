@@ -596,4 +596,38 @@ describe('utils module tests', () => {
             }
     );
 
+
+    test("removeRndFromCtx should remove parameters associated to $RND", () => {
+        /** @type {*} */
+        const parameters = [
+            {name: 'q', value: ''},
+            {name: 'id', value: '$RND'},
+            {name: 'effect', value: 'none'},
+        ];
+        const ctx = {
+            q: 'foo value',
+            id: 'd24523fvvv_34',
+            effect: 'fade'
+        }
+        expect(U.removeRndFromCtx(ctx, parameters)).toStrictEqual({ 
+            q: 'foo value',
+            effect: 'fade'}
+        );
+    });
+
+    test("removeRndFromCtx should not remove any parameters", () => {
+        /** @type {*} */
+        const parameters = [
+            {name: 'q', value: ''},
+            {name: 'id', value: 'RND'},
+            {name: 'effect', value: 'none'},
+        ];
+        const ctx = {
+            q: 'foo value',
+            id: 'd24523fvvv_34',
+            effect: 'fade'
+        }
+        expect(U.removeRndFromCtx(ctx, parameters)).toStrictEqual(ctx);
+    });
+
 });
