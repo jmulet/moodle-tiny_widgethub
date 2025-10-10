@@ -75,7 +75,7 @@ instructions: (Optional) A detail explanation
 # (Optional) defaults to 'mustache' although you can also use 'ejs' depending on the type of template used
 engine: mustache
 # Write your HTML with or without parameters. In mustache, parameters are written within double brakets {{..}}
-# Therefore what is a parameter that we must define below
+# Therefore 'what' is a parameter that we must define below
 template: |
   <p>Hello {{what}}</p>
 parameters:
@@ -537,4 +537,6 @@ author: Josep Mulet <pep.mulet@gmail.com>
 version: 1.0.0
 ````
 
-**Note:** Due to TinyMCE’s internal logic, when programmatically changing `src` or `href` attributes of a DOM element, you must also update the corresponding `data-mce-src` or `data-mce-href` attributes accordingly.
+**Note 1:** For the sake of simplicity, the conditional `when` has no effect in the fields of a repeatable parameter.
+
+**Note 2:** Due to TinyMCE’s internal logic, when programmatically changing `src` or `href` attributes of a DOM element, you must also update the corresponding `data-mce-src` or `data-mce-href` attributes accordingly.

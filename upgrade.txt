@@ -37,10 +37,11 @@ Fixes and Technical Changes:
 
 == 1.4.0 ==
 New Features:
-  - Repeatable parameters
+  - Repeatable parameters.
+  - Widget editor in admin settings includes a linter to validate yml schema.
 Fixes:
   - Issue #35: A significant number of strings have not yet been localized.
-    Widget definitions are localized and use the site's default language when installed.
+    Widget repository is localized and it uses the site's default language when installed.
   - Issue #37: Sharecss bug ? 
     Now share styles option in admin setting can be turned off.
   - Issue #38 Error on contextmenu remove or insert: unrecognized expression

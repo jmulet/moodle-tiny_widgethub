@@ -91,11 +91,20 @@ export const getSetup = async() => {
             tooltip: widgetNameTitle,
             columns: 1,
             fetch: (/** @type ((items: *[]) => void) */callback) => {
-                const items = storage.getRecentUsed().map(e => ({
+                const isSelectMode = editor.selection.getContent().trim().length > 0;
+                const items = storage.getRecentUsed()
+                .filter(e => {
+                    const widget = widgetsDict[e.key];
+                    if (!widget?.name) {
+                        return false;
+                    }
+                    return !isSelectMode || (isSelectMode && widget.isSelectCapable());
+                })
+                .map(e => ({
                     type: 'choiceitem',
                     text: widgetsDict[e.key]?.name,
                     value: e.key
-                })).filter(item => item.text !== undefined);
+                }));
                 callback(items);
             },
             onAction: defaultAction,

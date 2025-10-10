@@ -260,7 +260,7 @@ export class WidgetPickerCtrl {
 
     async handleAction() {
         this.storage.loadStore();
-
+        const selectmode = this.isSelectMode();
         if (!this.modal) {
             // Create the modal if not exists.
             await this.createModal();
@@ -268,16 +268,23 @@ export class WidgetPickerCtrl {
             // Update list of recent
             const widgetDict = this.editorOptions.widgetDict;
             const html = this.storage.getRecentUsed()
-                .filter(r => widgetDict[r.key] !== undefined)
+                .filter(r => {
+                    const widget = widgetDict[r.key];
+                    if (widget === undefined) {
+                        return false;
+                    }
+                    return !selectmode || (selectmode && widget.isSelectCapable());
+                })
                 .map(r =>
-                    `<a href="javascript:void(0)" data-key="${r.key}" data-insert="recent"><span class="badge badge-secondary">${widgetDict[r.key].name}</span></a>`)
+                    `<a href="javascript:void(0)" data-key="${r.key}" data-insert="recent">
+                    <span class="badge badge-secondary text-truncate d-inline-block" style="max-width: 120px;" title="${widgetDict[r.key].name}">
+                    ${widgetDict[r.key].name}</span></a>`)
                 .join('\n');
             this.modal.body.find('.tiny_widgethub-recent').html(html);
         }
         // Call filter function to make sure the list is updated.
         this.onSearchKeyup();
 
-        const selectmode = this.isSelectMode();
         if (selectmode) {
             this.modal.header.find("span.tiny_widgethub-blink").removeClass("d-none");
         } else {
@@ -307,7 +314,7 @@ export class WidgetPickerCtrl {
      * @returns {Promise<string>}
      */
     generatePreview(widget) {
-        const toInterpolate = {...widget.defaults};
+        const toInterpolate = {...widget.defaultsWithRepeatable(true)};
         // Decide which template engine to use
         const engine = widget.prop('engine');
         return this.templateSrv.render(widget.template ?? "", toInterpolate, widget.I18n, engine);

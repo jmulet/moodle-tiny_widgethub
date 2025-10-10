@@ -467,10 +467,17 @@ export class Widget {
      * @returns {Object.<string, any>}
      */
     get defaults() {
+        return this.defaultsWithRepeatable(false);
+    }
+    /**
+     * @param {boolean} [populateRepeatable]
+     * @returns {Object.<string, any>}
+     */
+    defaultsWithRepeatable(populateRepeatable = true) {
         /** @type {Object.<string, any> } */
         const obj = {};
         (this._widget.parameters ?? []).forEach((param) => {
-            obj[param.name] = createDefaultsForParam(param);
+            obj[param.name] = createDefaultsForParam(param, populateRepeatable);
         });
         return obj;
     }
@@ -551,6 +558,12 @@ export class Widget {
             return true;
         }
         return new RegExp(widgetScopes).test(scope);
+    }
+    /**
+     * @returns {boolean}
+     */
+    isSelectCapable() {
+        return this._widget.selectors !== undefined && this._widget.insertquery !== undefined;
     }
     /**
      * @returns {boolean}
