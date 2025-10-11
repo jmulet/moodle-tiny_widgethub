@@ -3,7 +3,6 @@ name: $string.ibvgdrive_name
 category: $string.ibvgdrive_category
 instructions: $string.ibvgdrive_instructions
 template: |
-  <p><br></p>
   <div class="twh-video-container twh-video-gdrive" {{#if}}[maxWidth>100]style="max-width:{{maxWidth}}px"{{/if}}>
     <div class="twh-videoWrapper">
     {{{iframe_code}}}  
@@ -15,7 +14,7 @@ template: |
 parameters: 
   - name: title
     value: $string.ibvgdrive_title_value
-    title: $string.ibvgdrive_title
+    title: $string.ibtime_title
     type: textfield
   - name: iframe_code
     value: <iframe src="https://drive.google.com/file/d/1Ev4oVwHmspOjrx7Kql6R7QxoUFcJEknF/preview" width="640" height="480" allow="autoplay" fullscreen="1"></iframe>

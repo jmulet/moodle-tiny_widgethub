@@ -39,6 +39,7 @@ Fixes and Technical Changes:
 New Features:
   - Repeatable parameters.
   - Widget editor in admin settings includes a linter to validate yml schema.
+  - Configuration of several widget insert mechanisms.
 Fixes:
   - Issue #35: A significant number of strings have not yet been localized.
     Widget repository is localized and it uses the site's default language when installed.

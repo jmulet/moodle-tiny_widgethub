@@ -1,8 +1,7 @@
 key: ib-section
 name: $string.ibsection_name
 instructions: $string.ibsection_instructions
-template: | 
-  <p><br></p>
+template: |
   <h4 class="twh-subsub"><span class="twh-iq">{{title}}</span></h4>
   <p><br></p>
 selectors: h4.twh-subsub

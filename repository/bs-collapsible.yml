@@ -3,7 +3,6 @@ name: $string.bscollapsible_name
 category: bootstrap
 engine: ejs
 template: |
-  <p></p>
   <div id="acc_<%= id %>" class="collapsible">
     <% for(var i=1; i<=n; i++) { %>
     <div class="card">      
@@ -25,7 +24,7 @@ template: |
     </div>
     <% } %>
   </div>
-  <p></p>
+  <p><br></p>
 selectors: div.collapsible
 unwrap: .card-header span, .card-body
 parameters:

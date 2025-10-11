@@ -3,7 +3,7 @@
     "name": "$string.bsimageoverlay_name",
     "category": "bootstrap",
     "instructions": "$string.bsimageoverlay_instructions",
-    "template": "<p><br></p>\n<div class=\"card twh-img-overlay bg-dark text-white\">\n  <img class=\"card-img\" src=\"{{img}}\" alt=\"Card image\">\n  <div class=\"card-img-overlay\">\n    <h5 class=\"card-title\">$string.bscardgroup_cardtitle</h5>\n    <p class=\"card-text\">Lorem ipsum 1.</p>\n    <p class=\"card-text\">Lorem ipsum 2.</p>\n  </div>\n</div>\n<p><br></p>\n",
+    "template": "<div class=\"card twh-img-overlay bg-dark text-white\">\n  <img class=\"card-img\" src=\"{{img}}\" alt=\"Card image\">\n  <div class=\"card-img-overlay\">\n    <h5 class=\"card-title\">$string.bscardgroup_cardtitle</h5>\n    <p class=\"card-text\">Lorem ipsum 1.</p>\n    <p class=\"card-text\">Lorem ipsum 2.</p>\n  </div>\n</div>\n<p><br></p>\n",
     "selectors": "div.card.twh-img-overlay",
     "parameters": [
         {

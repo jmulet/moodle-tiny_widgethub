@@ -4,7 +4,6 @@ category: bootstrap
 instructions: $string.bstabs_instructions
 engine: ejs
 template: |
-  <p><br></p>
   <div class="whb-tabmenu">
   <ul class="nav nav-tabs" role="tablist">
   <% for(var i=1; i<=tabs; i++) { %>

@@ -2,7 +2,6 @@ key: ib-vimeo
 name: Vimeo
 category: $string.ibvgdrive_category
 template: |
-  <p><br></p>
   <div class="twh-video-container" {{#if}}[maxWidth>100]style="max-width:{{maxWidth}}px"{{/if}}>
     <div class="twh-videoWrapper">
       <iframe src="https://player.vimeo.com/video/{{vimeoId}}{{#startSecond}}#t={{startSecond}}s{{/startSecond}}" frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>
@@ -20,7 +19,7 @@ parameters:
     transform: vimeoId
   - name: title
     value: $string.ibvgdrive_title_value
-    title: $string.ibvgdrive_title
+    title: $string.ibtime_title
     type: textfield
   - name: maxWidth
     value: 500

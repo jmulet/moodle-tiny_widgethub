@@ -2,7 +2,7 @@
     "key": "ib-section",
     "name": "$string.ibsection_name",
     "instructions": "$string.ibsection_instructions",
-    "template": "<p><br></p>\n<h4 class=\"twh-subsub\"><span class=\"twh-iq\">{{title}}</span></h4>\n<p><br></p>\n",
+    "template": "<h4 class=\"twh-subsub\"><span class=\"twh-iq\">{{title}}</span></h4>\n<p><br></p>\n",
     "selectors": "h4.twh-subsub",
     "insertquery": ".twh-iq",
     "unwrap": ".twh-iq",

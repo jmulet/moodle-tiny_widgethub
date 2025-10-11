@@ -4,7 +4,6 @@ category: bootstrap
 instructions: $string.bscardgroup_instructions
 engine: ejs
 template: |
-  <p><br></p>
   <div class="container">
     <div class="row row-cols-1 row-cols-md-3 g-4">
     <% for(var i=1; i<=n; i++) { %>

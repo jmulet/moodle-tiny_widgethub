@@ -35,6 +35,7 @@
     * rid: The random id.
     * searchtext: The text to search.
     * categories: The categories of the widget.
+    * showquickbuttons: Boolean used to decide whether to show or not ray buttons.
 
     Example context (json):
     {
@@ -58,11 +59,15 @@
                         "widgettitle": "widget title",
                         "category": "Category",
                         "widgetkey": "widget key",
-                        "widgetname": "widget name"
+                        "widgetname": "widget name",
+                        "isfilter": false,
+                        "filterset": false,
+                        "maincolclass": "col-10"
                     }
                 ]
             }
-        ]
+        ],
+        "showquickbuttons": true
     }
 }}
 {{< core/modal }}
@@ -118,17 +123,18 @@
                                   </button>
                                 {{/isfilter}}
                                 <button data-title="{{widgettitle}}" data-category="{{category}}" 
-                                    class="{{#isfilter}}col-8{{/isfilter}} {{^isfilter}}col-10{{/isfilter}} tiny_widgethub-btn tiny_widgethub-btn-outline-primary" data-insert="false"> 
+                                    class="{{maincolclass}} tiny_widgethub-btn tiny_widgethub-btn-outline-primary" data-insert="false"> 
                                         {{#disabled}}<span class="twh-icon">
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M367.2 412.5L99.5 144.8C77.1 176.1 64 214.5 64 256c0 106 86 192 192 192c41.5 0 79.9-13.1 111.2-35.5zm45.3-45.3C434.9 335.9 448 297.5 448 256c0-106-86-192-192-192c-41.5 0-79.9 13.1-111.2 35.5L412.5 367.2zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256z"/></svg>
                                         </span>{{/disabled}} {{widgetname}}
                                 </button>
+                                {{#showquickbuttons}}
                                 <button class="col-2 tiny_widgethub-btn tiny_widgethub-btn-outline-primary" data-insert="true" title="{{#str}} directinsert, tiny_widgethub {{/str}}">
                                     <span class="twh-icon">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M0 256L28.5 28c2-16 15.6-28 31.8-28H228.9c15 0 27.1 12.1 27.1 27.1c0 3.2-.6 6.5-1.7 9.5L208 160H347.3c20.2 0 36.7 16.4 36.7 36.7c0 7.4-2.2 14.6-6.4 20.7l-192.2 281c-5.9 8.6-15.6 13.7-25.9 13.7h-2.9c-15.7 0-28.5-12.8-28.5-28.5c0-2.3 .3-4.6 .9-6.9L176 288H32c-17.7 0-32-14.3-32-32z"/></svg>
                                     </span>
                                 </button>
-
+                                {{/showquickbuttons}}
                                 </div>
                             {{/buttons}}
                         </div>

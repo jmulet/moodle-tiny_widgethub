@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 /* eslint-disable max-len */
 /* eslint-disable no-eq-null */
 /* eslint-disable no-console */
@@ -261,10 +262,11 @@ export class WidgetPickerCtrl {
     async handleAction() {
         this.storage.loadStore();
         const selectmode = this.isSelectMode();
+        const recentlyUsedBehavior = getGlobalConfig(this.editor, 'insert.recentlyused.behavior', 'lastused');
         if (!this.modal) {
             // Create the modal if not exists.
             await this.createModal();
-        } else {
+        } else if (recentlyUsedBehavior !== 'none') {
             // Update list of recent
             const widgetDict = this.editorOptions.widgetDict;
             const html = this.storage.getRecentUsed()
@@ -334,6 +336,7 @@ export class WidgetPickerCtrl {
      * @property {boolean} selectable
      * @property {boolean} isfilter
      * @property {boolean} filterset
+     * @property {string} maincolclass
      */
     /**
      * @typedef {Object} Category
@@ -344,7 +347,7 @@ export class WidgetPickerCtrl {
      * @property {Button[]} buttons
      */
     /**
-     *  @typedef {{rid: string, selectmode: boolean, elementid: string, categories: Category[], recent: *[]}} TemplateContext
+     *  @typedef {{rid: string, selectmode: boolean, elementid: string, categories: Category[], recent: *[], showquickbuttons: boolean}} TemplateContext
      */
     /**
      * Get the template context for the dialogue.
@@ -368,6 +371,8 @@ export class WidgetPickerCtrl {
         // Parse filters that are autoset by the user.
         const autoFilters = this.storage.getFromLocal("startup.filters", "")
             .split(",").map(f => f.trim());
+
+        const quickbuttonBehavior = getGlobalConfig(this.editor, 'insert.quickbutton.behavior', 'ctrlclick');
         /**
          * @type {Object.<string, Category>}
          **/
@@ -394,6 +399,7 @@ export class WidgetPickerCtrl {
                 };
                 categories[catName] = found;
             }
+            const colwidth = (quickbuttonBehavior === 'none' ? 12 : 10) - (isFilter ? 2 : 0);
             found.buttons.push({
                 hidden: false,
                 category: catName,
@@ -406,7 +412,8 @@ export class WidgetPickerCtrl {
                 disabled: !btn.isUsableInScope(),
                 selectable: btn.insertquery != null,
                 isfilter: isFilter,
-                filterset: isFilter && autoFilters.includes(btn.key)
+                filterset: isFilter && autoFilters.includes(btn.key),
+                maincolclass: `col-${colwidth}`
             });
         });
         const categoriesList = Object.values(categories);
@@ -417,40 +424,46 @@ export class WidgetPickerCtrl {
             cat.hidden = cat.buttons.filter(btn => !btn.hidden).length == 0;
         });
 
+        /** @type {any[]} */
+        let recentList = [];
+
+        const recentlyUsedBehavior = getGlobalConfig(this.editor, 'insert.recentlyused.behavior', 'lastused');
+        if (recentlyUsedBehavior !== 'none') {
         // Update the list of recently used widgets
-        const recentList = this.storage.getRecentUsed().filter((/** @type {any} **/ recent) => {
-            const key = recent.key;
-            const widget = snptDict[key];
-            if (!widget?.isUsableInScope()) {
-                return false;
-            }
-            // In select mode must filter widgets that do support it
-            const selectable = widget.insertquery !== undefined;
-            const isSelection = this.isSelectMode();
-            return key.length > 0 && (!isSelection || (isSelection && selectable));
-        })
-            .map((/** @type {any} **/ recent) => {
+            recentList = this.storage.getRecentUsed().filter((/** @type {any} **/ recent) => {
                 const key = recent.key;
-                const snpt = snptDict[key];
-                if (snpt) {
-                    return {
-                        key: key,
-                        name: snpt.name
-                    };
-                } else {
-                    return {
-                        key: key,
-                        name: ""
-                    };
+                const widget = snptDict[key];
+                if (!widget?.isUsableInScope()) {
+                    return false;
                 }
+                // In select mode must filter widgets that do support it
+                const selectable = widget.insertquery !== undefined;
+                const isSelection = this.isSelectMode();
+                return key.length > 0 && (!isSelection || (isSelection && selectable));
+            }).map((/** @type {any} **/ recent) => {
+                    const key = recent.key;
+                    const snpt = snptDict[key];
+                    if (snpt) {
+                        return {
+                            key: key,
+                            name: snpt.name
+                        };
+                    } else {
+                        return {
+                            key: key,
+                            name: ""
+                        };
+                    }
             });
+        }
 
         return {
             rid: genID(),
             selectmode: this.isSelectMode(),
             elementid: this.editor.id,
             categories: categoriesList,
-            recent: recentList
+            recent: recentList,
+            showquickbuttons: quickbuttonBehavior !== 'none'
         };
     }
 
@@ -497,18 +510,42 @@ export class WidgetPickerCtrl {
             this.storage.setToLocal('startup.filters', [...autoFilters].join(","), true);
             return;
         }
-        /** @type {HTMLElement | undefined} */
+
         // Recently used badges use <a> while real buttons are button[data-key]
-        const aRecent = target.closest('a[data-key]');
-        // If it is a recently used widget, recover the used parameters
-        // By default always initialize context ctx to widget's defaults
+        /** @type {HTMLElement | undefined} */
+        const aRecentBadge = target.closest('a[data-key]');
+
+        // Determine if it is a rayButton
+        const isRayButton = button?.dataset?.insert === 'true';
+
         /** @type {Record<string, any> | undefined} */
-        let ctx = widget.defaults || {};
-        const forceInsert = aRecent !== null || button?.dataset?.insert === 'true';
-        if (aRecent && forceInsert) {
-            const stored = this.storage.getRecentUsed().find(e => e.key === widget.key)?.p || {};
-            ctx = {...ctx, ...removeRndFromCtx(stored, widget.parameters)};
+        let ctx;
+        const bypassParamsModal = aRecentBadge !== null || isRayButton;
+        if (bypassParamsModal) {
+            // Quick insert
+            ctx = widget.defaultsWithRepeatable(true) || {};
+            // Should it load recently used values?
+            const metaActive = event.ctrlKey || event.metaKey;
+            /**
+             * @param {string} key
+             * @param {string} defaultValue
+             * @returns {boolean}
+             */
+            const isBehaviourLastUsed = (key, defaultValue) => {
+                let b = getGlobalConfig(this.editor, `insert.${key}.behavior`, defaultValue);
+                return (b === 'ctrlclick' && metaActive) || b === 'lastused';
+            };
+            const shouldLoadRecentValues = (aRecentBadge && isBehaviourLastUsed('recentlyused', 'lastused')) ||
+                (isRayButton && isBehaviourLastUsed('quickbutton', 'ctrlclick'));
+            if (shouldLoadRecentValues) {
+                const stored = this.storage.getRecentUsed().find(e => e.key === widget.key)?.p || {};
+                ctx = {...ctx, ...removeRndFromCtx(stored, widget.parameters)};
+            }
+        } else {
+            // Normal insert
+            ctx = widget.defaults || {};
         }
+
         // Must open a configuration dialogue for the current widget
         let confirmMsg = null;
 
@@ -520,11 +557,11 @@ export class WidgetPickerCtrl {
                 /** @param {*} state */
                 (state) => {
                     if (state) {
-                        this.handlePickModalAction(widget, forceInsert, ctx);
+                        this.handlePickModalAction(widget, bypassParamsModal, ctx);
                     }
                 });
         } else {
-            this.handlePickModalAction(widget, forceInsert, ctx);
+            this.handlePickModalAction(widget, bypassParamsModal, ctx);
         }
     }
 
@@ -541,8 +578,9 @@ export class WidgetPickerCtrl {
         // Decide whether to show the form or directly doInsert
         if (forceInsert || ((widget.parameters ?? []).length === 0 && !widget.instructions)) {
             // Do insert directly
-            paramsController.insertWidget(ctx ?? {});
+            paramsController.insertWidget(ctx ?? {}, forceInsert);
         } else {
+            // Show widget's parameters modal
             paramsController.handleAction();
         }
     }

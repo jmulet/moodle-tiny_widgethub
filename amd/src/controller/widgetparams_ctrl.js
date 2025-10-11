@@ -182,23 +182,26 @@ export class WidgetParamsCtrl {
 
    /**
     * @param {Object.<string, any>} ctxFromDialogue
+    * @param {boolean} [skipRecent]
     * @returns
     */
-   async insertWidget(ctxFromDialogue) {
-      /** @type {{key: string, p: Record<string, any>}[]} */
-      const recentList = this.storage.getRecentUsed();
-      const pos = recentList.map(e => e.key).indexOf(this.widget.key);
-      if (pos >= 0) {
-         recentList.splice(pos, 1);
-      }
-      // Never store values that are obtained from $RND
-      const ctxFiltered = removeRndFromCtx(ctxFromDialogue, this.widget.parameters);
-      recentList.unshift({key: this.widget.key, p: ctxFiltered});
-      if (recentList.length > 4) {
-         recentList.splice(5, recentList.length - 4);
-      }
+   async insertWidget(ctxFromDialogue, skipRecent) {
+      if (!skipRecent) {
+         /** @type {{key: string, p: Record<string, any>}[]} */
+         const recentList = this.storage.getRecentUsed();
+         const pos = recentList.map(e => e.key).indexOf(this.widget.key);
+         if (pos >= 0) {
+            recentList.splice(pos, 1);
+         }
+         // Never store values that are obtained from $RND
+         const ctxFiltered = removeRndFromCtx(ctxFromDialogue, this.widget.parameters);
+         recentList.unshift({key: this.widget.key, p: ctxFiltered});
+         if (recentList.length > 4) {
+            recentList.splice(5, recentList.length - 4);
+         }
 
-      this.storage.setToSession("recent", JSON.stringify(recentList), true);
+         this.storage.setToSession("recent", JSON.stringify(recentList), true);
+      }
 
       if (this.widget.isFilter()) {
          this.applyWidgetFilter(this.widget.template ?? '', false, ctxFromDialogue);

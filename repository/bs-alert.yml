@@ -2,7 +2,6 @@ key: bs-alert
 name: $string.bsalert_name
 category: bootstrap
 template: |
-  <p></p>
   <div class="m-2 alert alert-{{severity}}{{#closable}} alert-dismissible{{/closable}} fade show" role="alert">
     {{#closable}}
      <button type="button" class="close" data-dismiss="alert" data-bs-dismiss="alert" aria-label="Close">
@@ -13,7 +12,7 @@ template: |
       <p>Lorem ipsum.</p>
     </div>
   </div>
-  <p></p>
+  <p><br></p>
 selectors: div[role="alert"].alert
 insertquery: div[role="alert"].alert .alert-content
 unwrap: '*'

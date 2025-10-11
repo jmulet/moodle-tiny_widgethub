@@ -3,7 +3,6 @@ name: $string.bstable_name
 category: bootstrap
 instructions: $string.bstable_instructions
 template: |
-  <p><br></p> 
   {{#responsive}}<div class="table-responsive">{{/responsive}}
   <table class="table{{#stripes}} table-striped{{/stripes}}{{#borders}} table-bordered{{/borders}}{{#hover}} table-hover{{/hover}} whb-bstable">
   {{#desc}}
@@ -42,7 +41,7 @@ parameters:
     title: $string.bstable_footer
     value: false
   - name: desc
-    title: $string.bstable_desc
+    title: $string.ibtime_title
     type: textfield
     value: ''
   - name: stripes

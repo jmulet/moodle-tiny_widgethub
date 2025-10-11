@@ -329,7 +329,7 @@ export class FormCtrl {
 
       if (doStore && this.storage) {
          if (Object.keys(toPersist).length) {
-            // Only those starting with $
+            // Only those starting with _
             this.storage.setToLocal('values', toPersist, true);
          }
          // Should all values be persisted?

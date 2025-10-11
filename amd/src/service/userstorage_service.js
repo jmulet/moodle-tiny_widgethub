@@ -39,11 +39,9 @@ export class UserStorageSrv {
         /** @type {Storage} */
         this.sessionStorage = iStorage.sessionStorage;
         /** @type {number} */
-        this.userId = editorOptions.userInfo.id;
-        /** @type {number} */
-        this.courseId = editorOptions.courseId;
+        this._courseId = editorOptions.courseId;
         /** @type {string} */
-        this.STORE_KEY = "iedib-widgets_" + editorOptions.userInfo.id;
+        this.STORE_KEY = "tinywidgethub_" + editorOptions.userInfo.id;
         /**
          * @type {Record<string, any>}
          */

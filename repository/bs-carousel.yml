@@ -4,7 +4,6 @@ name: $string.bscarousel_name
 category: bootstrap
 engine: ejs
 template: >
-  <p><br></p> 
   <div id="<%=ID%>" data-widget="bs-carousel" class="carousel slide" data-ride="carousel">
     <ol class="carousel-indicators">
       <% imgs.forEach((_, i) => { %>
@@ -56,7 +55,7 @@ parameters:
         value: https://picsum.photos/300/200?random={{i}}
         bind: attr('src', 'img')
       - name: title
-        title: $string.ibvgdrive_title
+        title: $string.ibtime_title
         value: $string.bscarousel_slide {{i}}
 author: Josep Mulet <pep.mulet@gmail.com>
 version: 2.0.0

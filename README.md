@@ -7,9 +7,7 @@
 > This plugin needs a Moodle theme based on Boost since some widgets rely on Bootstrap.
 
 <div class="alert alert-info d-flex align-items-center" role="alert" style="gap: 0.5rem;">
-  <span style="background-color: #ffcc00; color: #000; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 0.85rem;">
-    NEW
-  </span>
+   
   <div>
     <a href="https://chatgpt.com/g/g-68512f2f3ce4819182441c429f5b8673-widgethub-yml-builder"
        target="_blank" rel="noopener noreferrer" style="text-decoration: none; font-weight: 500; color: inherit;">
@@ -70,9 +68,44 @@ The options available are:
 
   - *oninit.refractor.bs5=0* - Enable (`1`) or disable (`0`) automatic refractoring of Bootstrap 5 `data-bs-xxx` attributes when the editor opens (default: 0).
 
-  - *jsBaseUrl* - If specified, this **base URL** will be prepended to the `requires` property in the widget definition — *unless* `requires` already starts with `http`, in which case the base URL will be ignored.
+  - *jsBaseUrl* - If specified, this **base URL** will be prepended to the `requires` property in the widget definition — *unless* `requires` already starts with `http`, in which case the base URL will be ignored. This feature is useful for dynamically changing the location of the JavaScript assets required by the widgets.
 
-This feature is useful for dynamically changing the location of the JavaScript assets required by the widgets.
+**Insert Behavior Configuration**
+ This section defines the general behavior configuration for all insert mechanisms in the plugin.
+
+**Behavior Modes**
+Each insert mechanism can be configured with one of the following modes:
+
+| Mode | Description |
+|------|--------------|
+| **none** | Disables the insert mechanism entirely. |
+| **default** | Inserts widget with default values. |
+| **lastused** | Inserts widget using the last used values. |
+| **ctrlclick** | Inserts widget with default values normally, and last used values when holding **Ctrl/Cmd** while clicking. |
+
+
+
+- Configuration Options
+
+  - **`insert.splitbutton.behavior=lastused`**  
+    Controls the behavior of the *Split Button* in the TinyMCE toolbar.  
+    **Options:** `none` | `default` | `lastused`
+
+  - **`insert.recentlyused.behavior=lastused`**  
+    Controls the behavior of the *Recently Used* badges displayed under the search text field.  
+    **Options:** `none` | `default` | `lastused` | `ctrlclick`
+
+  - **`insert.autocomplete.behavior=lastused`**  
+    Controls the *Autocompletion* feature behavior.  
+    **Options:** `none` | `default` | `lastused`
+
+  - **`insert.autocomplete.symbol=@`**  
+    Defines the symbol that triggers the autocompletion menu.  
+    This option has no effect if `insert.autocomplete.behavior=none`.
+
+  - **`insert.quickbutton.behavior=ctrlclick`**  
+    Controls the behavior of the *Quick Button* (that with a ray icon) next to the main widget button.  
+    **Options:** `none` | `default` | `lastused` | `ctrlclick`
 
 The capability 'tiny/widgethub:viewplugin' allows to set the plugin visibility for any role. Keep in mind that, by default, the role student is prevented from using the plugin.
 

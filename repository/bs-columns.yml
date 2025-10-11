@@ -4,7 +4,6 @@ category: bootstrap
 instructions: $string.bscolumns_instructions
 engine: ejs
 template: |
-  <p><br></p>
   <div class="container-fluid">
     <div class="row">
       <div class="col-sm-<%=w1%>">

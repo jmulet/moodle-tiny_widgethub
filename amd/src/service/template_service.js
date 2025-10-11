@@ -126,7 +126,7 @@ export class TemplateSrv {
              * @param {string} text
              * @param {Mustache.render} render
              */
-            function (text, render) {
+            function(text, render) {
                 const pos = text.indexOf("]");
                 const condition = text.substring(0, pos).trim().substring(1);
                 const show = evalInContext(ctx, condition);
@@ -140,14 +140,14 @@ export class TemplateSrv {
             /**
              * @param {string} text
              */
-            function (text) {
+            function(text) {
                 defineVar(text, ctx);
             };
         ctx.eval = () =>
             /**
              * @param {string} text
              */
-            function (text) {
+            function(text) {
                 return evalInContext(ctx, text) + "";
             };
         ctx.I18n = () =>
@@ -155,7 +155,7 @@ export class TemplateSrv {
              * @param {string} text
              * @param {Mustache.render} render
              */
-            function (text, render) {
+            function(text, render) {
                 // @ts-ignore
                 const key = render(text).trim();
                 const dict = translations[key] || {};
@@ -165,7 +165,7 @@ export class TemplateSrv {
             /**
              * @param {string} text
              */
-            function (text) {
+            function(text) {
                 const pos = text.indexOf("]");
                 const cond = text.substring(0, pos).trim().substring(1);
                 const components = cond.split(",");

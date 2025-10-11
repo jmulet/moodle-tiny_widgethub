@@ -114,7 +114,7 @@ export const isShareCss = (editor) => {
  */
 export const getGlobalConfig = (editor, key, defaultValue) => {
     const dict = editor.options.get(globalConfig) ?? {};
-    return dict[key] ?? defaultValue;
+    return dict[key]?.trim() ?? defaultValue;
 };
 
 /**

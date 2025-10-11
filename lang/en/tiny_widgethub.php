@@ -15,6 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * This is a comment for translators.
+ * @AMOS: Strings beginning with "bs..." and "ib..." are used only during the installation or update process.
+ * Once widget definitions are stored in the database, they retain the site's default language that was set 
+ * during installation.
+ * 
  * Tiny WidgetHub plugin version details.
  *
  * @package     tiny_widgethub
@@ -66,7 +71,6 @@ $string['bspopover_word'] = 'Word';
 $string['bspopover_word_tip'] = 'When you click on this word, the balloon will appear';
 $string['bstable_borders'] = 'Show borders';
 $string['bstable_cell'] = 'Cell';
-$string['bstable_desc'] = 'A description for the table';
 $string['bstable_foot'] = 'Foot';
 $string['bstable_footer'] = 'Include footer';
 $string['bstable_headers'] = 'Include headers';
@@ -152,7 +156,6 @@ $string['ibvgdrive_iframecode'] = 'Iframe code';
 $string['ibvgdrive_iframecode_tip'] = 'Paste the iframe code you obtained from sharing on Drive.';
 $string['ibvgdrive_instructions'] = 'Embed a video that the user has previously shared from its Google Drive. Enter the iframe share code and optionally a title.';
 $string['ibvgdrive_name'] = 'Video Google Drive';
-$string['ibvgdrive_title'] = 'Descriptive title';
 $string['ibvgdrive_title_value'] = 'Write a title';
 $string['ibvimeo_startsec'] = 'Start playback at seconds';
 $string['ibvimeo_startsec_tip'] = 'Set to 0 to start from the beginning of the video.';

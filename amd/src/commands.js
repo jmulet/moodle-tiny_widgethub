@@ -78,50 +78,60 @@ export const getSetup = async() => {
         // Register the Icon.
         editor.ui.registry.addIcon(Common.icon, buttonImage.html);
 
+        const storage = getUserStorage(editor);
+        const widgetsDict = getWidgetDict(editor);
+
+        // Register the Toolbar Button or SplitButton - including recently used widgets
         const defaultAction = () => {
             const widgetPickCtrl = getWidgetPickCtrl(editor);
             widgetPickCtrl.handleAction();
         };
-
-        const storage = getUserStorage(editor);
-        const widgetsDict = getWidgetDict(editor);
-        // Register the Toolbar SplitButton - including recently used widgets
-        editor.ui.registry.addSplitButton(Common.component, {
+        const toolbarButtonSpec = {
             icon: Common.icon,
             tooltip: widgetNameTitle,
-            columns: 1,
-            fetch: (/** @type ((items: *[]) => void) */callback) => {
-                const isSelectMode = editor.selection.getContent().trim().length > 0;
-                const items = storage.getRecentUsed()
-                .filter(e => {
-                    const widget = widgetsDict[e.key];
-                    if (!widget?.name) {
-                        return false;
+            onAction: defaultAction
+        };
+        const splitButtonBehavior = getGlobalConfig(editor, 'insert.splitbutton.behavior', 'lastused');
+        if (splitButtonBehavior === 'none') {
+            editor.ui.registry.addButton(Common.component, toolbarButtonSpec);
+        } else {
+            editor.ui.registry.addSplitButton(Common.component, {
+                ...toolbarButtonSpec,
+                columns: 1,
+                fetch: (/** @type ((items: *[]) => void) */callback) => {
+                    const isSelectMode = editor.selection.getContent().trim().length > 0;
+                    const items = storage.getRecentUsed()
+                    .filter(e => {
+                        const widget = widgetsDict[e.key];
+                        if (!widget?.name) {
+                            return false;
+                        }
+                        return !isSelectMode || (isSelectMode && widget.isSelectCapable());
+                    })
+                    .map(e => ({
+                        type: 'choiceitem',
+                        text: widgetsDict[e.key]?.name,
+                        value: e.key
+                    }));
+                    callback(items);
+                },
+                onItemAction: (/** @type {*} */ api, /** @type {string} */ key) => {
+                    const widgetPickCtrl = getWidgetPickCtrl(editor);
+                    const widget = widgetsDict[key];
+                    if (!widget) {
+                        return;
                     }
-                    return !isSelectMode || (isSelectMode && widget.isSelectCapable());
-                })
-                .map(e => ({
-                    type: 'choiceitem',
-                    text: widgetsDict[e.key]?.name,
-                    value: e.key
-                }));
-                callback(items);
-            },
-            onAction: defaultAction,
-            onItemAction: (/** @type {*} */ api, /** @type {string} */ key) => {
-                const widgetPickCtrl = getWidgetPickCtrl(editor);
-                const widget = widgetsDict[key];
-                if (!widget) {
-                    return;
+                    /** @type {Record<string, *>} */
+                    let ctx = widget.defaultsWithRepeatable(true) || {};
+                    if (splitButtonBehavior === 'lastused') {
+                        // Use stored preferences if any stored
+                        const ctxStored = storage.getRecentUsed().find(e => e.key === key)?.p || {};
+                        ctx = {...ctx, ...removeRndFromCtx(ctxStored, widget.parameters)};
+                    }
+                    widgetPickCtrl.handlePickModalAction(widget, true, ctx);
                 }
-                /** @type {Record<string, *>} */
-                let ctx = widget.defaults || {};
-                // Use stored preferences if any stored
-                const ctxStored = storage.getRecentUsed().find(e => e.key === key)?.p || {};
-                ctx = {...ctx, ...removeRndFromCtx(ctxStored, widget.parameters)};
-                widgetPickCtrl.handlePickModalAction(widgetsDict[key], true, ctx);
-            }
-        });
+            });
+        }
 
         // Add the Menu Item.
         // This allows it to be added to a standard menu, or a context menu.
@@ -136,8 +146,9 @@ export const getSetup = async() => {
         };
 
         // Add an Autocompleter @<search widget name>.
-        const autoCompleteTrigger = getGlobalConfig(editor, 'autocomplete.trigger', '@');
-        if (autoCompleteTrigger) {
+        const autoCompleteBehavior = getGlobalConfig(editor, 'insert.autocomplete.behavior', 'lastused');
+        const autoCompleteTrigger = getGlobalConfig(editor, 'insert.autocomplete.symbol', '@');
+        if (autoCompleteBehavior !== 'none' && autoCompleteTrigger) {
             editor.ui.registry.addAutocompleter(Common.component + '_autocompleter', {
                 trigger: autoCompleteTrigger,
                 columns: 1,
@@ -174,13 +185,20 @@ export const getSetup = async() => {
                 },
                 onAction: (/** @type {*}*/ api, /** @type {Range}*/ rng, /** @type {string}*/ value) => {
                     api.hide();
+                    rng = rng || api.getRange();
                     const pair = value.split('|');
                     const key = pair[0].trim();
+                    const widget = widgetsDict[key];
+                    if (!widget) {
+                        return;
+                    }
                     /** @type {Record<string, *>} */
-                    let ctx = widgetsDict[key]?.defaults || {};
-                    // Si hi ha preferències desades, empra-les
-                    const ctxStored = storage.getRecentUsed().filter(e => e.key === key)[0]?.p || {};
-                    ctx = {...ctx, ...ctxStored};
+                    let ctx = widget.defaultsWithRepeatable(true) || {};
+                    // Should it load recently used values?
+                    if (autoCompleteBehavior === 'lastused') {
+                        const ctxStored = storage.getRecentUsed().find(e => e.key === key)?.p || {};
+                        ctx = {...ctx, ...removeRndFromCtx(ctxStored, widget.parameters)};
+                    }
                     if (pair.length === 2) {
                         const [varname, value] = pair[1].split(":");
                         ctx[varname] = value;
@@ -188,7 +206,7 @@ export const getSetup = async() => {
                     editor.selection.setRng(rng);
                     editor.insertContent('');
                     const widgetPickCtrl = getWidgetPickCtrl(editor);
-                    widgetPickCtrl.handlePickModalAction(widgetsDict[key], true, ctx);
+                    widgetPickCtrl.handlePickModalAction(widget, true, ctx);
                 }
             });
         }

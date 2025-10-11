@@ -15,6 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * This is a comment for translators.
+ * @AMOS: Strings beginning with "bs..." and "ib..." are used only during the installation or update process.
+ * Once widget definitions are stored in the database, they retain the site's default language that was set 
+ * during installation.
+ * 
  * Tiny WidgetHub plugin version details.
  *
  * @package     tiny_widgethub
@@ -66,7 +71,6 @@ $string['bspopover_word'] = 'Palabra';
 $string['bspopover_word_tip'] = 'Cuando hagas clic en esta palabra, aparecerá el popover';
 $string['bstable_borders'] = 'Mostrar bordes';
 $string['bstable_cell'] = 'Celda';
-$string['bstable_desc'] = 'Una descripción para la tabla';
 $string['bstable_foot'] = 'Pie';
 $string['bstable_footer'] = 'Incluir pie de tabla';
 $string['bstable_headers'] = 'Incluir encabezados';
@@ -152,7 +156,6 @@ $string['ibvgdrive_iframecode'] = 'Código de iframe';
 $string['ibvgdrive_iframecode_tip'] = 'Pega el código de iframe que obtuviste al compartir desde Drive.';
 $string['ibvgdrive_instructions'] = 'Inserta un video que el usuario haya compartido previamente desde Google Drive. Ingresa el código de iframe y opcionalmente un título.';
 $string['ibvgdrive_name'] = 'Video Google Drive';
-$string['ibvgdrive_title'] = 'Título descriptivo';
 $string['ibvgdrive_title_value'] = 'Escribe un título';
 $string['ibvimeo_startsec'] = 'Iniciar reproducción en segundos';
 $string['ibvimeo_startsec_tip'] = 'Establece en 0 para comenzar desde el inicio del video.';

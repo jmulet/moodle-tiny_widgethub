@@ -4,7 +4,7 @@
     "category": "bootstrap",
     "instructions": "$string.bscolumns_instructions",
     "engine": "ejs",
-    "template": "<p><br></p>\n<div class=\"container-fluid\">\n  <div class=\"row\">\n    <div class=\"col-sm-<%=w1%>\">\n      <p>__LOREM__</p>\n    </div>\n    <div class=\"col-sm-<%=12-w1%>\">\n      <p>__LOREM__</p>\n    </div>\n  </div>\n</div>\n<p><br></p>\n",
+    "template": "<div class=\"container-fluid\">\n  <div class=\"row\">\n    <div class=\"col-sm-<%=w1%>\">\n      <p>__LOREM__</p>\n    </div>\n    <div class=\"col-sm-<%=12-w1%>\">\n      <p>__LOREM__</p>\n    </div>\n  </div>\n</div>\n<p><br></p>\n",
     "selectors": [
         "div.container-fluid",
         "div.row"

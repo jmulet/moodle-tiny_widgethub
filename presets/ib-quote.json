@@ -2,7 +2,7 @@
     "key": "ib-quote",
     "name": "$string.ibquote_name",
     "instructions": "$string.ibquote_instructions",
-    "template": "<p><br></p>  <div class=\"twh-quote {{#notranslate}}notranslate{{/notranslate}}\"> <div class=\"twh-iq\"> <p>__LOREM__</p> </div> <cite>{{author}}</cite> </div> <p><br></p>\n",
+    "template": "<div class=\"twh-quote {{#notranslate}}notranslate{{/notranslate}}\">\n<div class=\"twh-iq\">\n<p>__LOREM__</p>\n</div>\n<cite>{{author}}</cite>\n</div>\n<p><br></p>\n",
     "insertquery": "div.twh-iq",
     "selectors": "div.twh-quote",
     "unwrap": "*",

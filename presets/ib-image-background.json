@@ -3,7 +3,7 @@
     "name": "$string.ibimgbg_name",
     "category": "$string.ibimgbg_category",
     "instructions": "$string.ibimgbg_instructions",
-    "template": "<p><br></p> \n<div class=\"twh-background-img\" style=\"background-image: url('{{url}}'); padding:10px; min-height:40px; background-repeat: no-repeat; -webkit-background-size: cover; background-size: cover; background-position: 50% 50%;\">\n<h3><b>Lorem ipsum</b></h3>\n<p><em>Lorem ipsum</em></p>\n</div>\n<p><br></p>\n",
+    "template": "<div class=\"twh-background-img\" style=\"background-image: url('{{url}}'); padding:10px; min-height:40px; background-repeat: no-repeat; -webkit-background-size: cover; background-size: cover; background-position: 50% 50%;\">\n<h3><b>Lorem ipsum</b></h3>\n<p><em>Lorem ipsum</em></p>\n</div>\n<p><br></p>\n",
     "selectors": "div.twh-background-img",
     "parameters": [
         {
