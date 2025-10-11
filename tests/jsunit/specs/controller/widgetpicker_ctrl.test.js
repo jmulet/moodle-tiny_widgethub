@@ -46,6 +46,8 @@ const widget1 = {
     key: 'k1',
     name: "widget k1",
     defaults: { p1: "a", p2: 11 },
+    defaultsWithRepeatable: jest.fn().mockReturnValue({ p1: "a", p2: 11 }),
+    isSelectCapable: jest.fn().mockReturnValue(false),
     template: "<p>Hello</p>",
     parameters: [
         { name: "p1", value: "", type: "textfield" },
@@ -225,7 +227,7 @@ describe("WidgetPickerCtrl", () => {
         });
 
         widgetPickCtrl.handlePickModalAction(widget1, true);
-        expect(insertWidget).toHaveBeenCalledWith({});
+        expect(insertWidget).toHaveBeenCalledWith({}, true);
 
         widgetPickCtrl.handlePickModalAction(widget1, false);
         expect(handleAction).toHaveBeenCalled();

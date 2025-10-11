@@ -32,7 +32,6 @@ require_once($CFG->libdir . '/adminlib.php');
  * Summary of widgettable
  */
 class widgettable extends \admin_setting {
-
     /**
      * Summary of visiblename
      * @var string
