@@ -18,7 +18,7 @@
  * This is a comment for translators.
  * AMOS: Strings beginning with "bs..." and "ib..." are used only during the installation or update process.
  * Once widget definitions are stored in the database, they retain the site's default language that was set
- * during installation. 
+ * during installation.
  *
  * Tiny WidgetHub plugin version details.
  *
