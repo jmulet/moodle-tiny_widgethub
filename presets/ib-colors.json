@@ -1,26 +1,26 @@
 {
     "key": "ib-colors",
-    "name": "Foreground and background colors",
-    "category": "styles",
-    "template": "&nbsp;<span style=\"color:{{_front}};background-color:{{_back}};\" class=\"twh-sty-colors\">Sample text</span>&nbsp;\n",
+    "name": "$string.ibcolors_name",
+    "category": "$string.ibcolors_category",
+    "template": "<span style=\"color:{{_front}};background-color:{{_back}};\" class=\"twh-sty-colors\">$string.ibcolors_sample</span>",
     "selectors": "span.twh-sty-colors",
     "insertquery": "span.twh-sty-colors",
     "parameters": [
         {
             "name": "_front",
-            "title": "Foreground color",
+            "title": "$string.ibcolors_front",
             "bind": "styleRegex('color')",
             "type": "color",
             "value": "#0000ff"
         },
         {
             "name": "_back",
-            "title": "Background color",
+            "title": "$string.ibcolors_background",
             "bind": "styleRegex('background-color')",
             "type": "color",
             "value": "#ffffff00"
         }
     ],
     "author": "Josep Mulet <pep.mulet@gmail.com>",
-    "version": "1.1.0"
+    "version": "2.0.0"
 }

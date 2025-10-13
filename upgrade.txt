@@ -34,3 +34,18 @@ Fixes and Technical Changes:
 - Issue #29: Updated how the template part is displayed.
   - Replaced js-yaml with https://github.com/eemeli/yaml to improve consistency in block literal handling.
 
+
+== 1.4.0 ==
+New Features:
+  - Repeatable parameters.
+  - Widget editor in admin settings includes a linter to validate yml schema.
+  - Configuration of several widget insert mechanisms.
+Fixes:
+  - Issue #35: A significant number of strings have not yet been localized.
+    Widget repository is localized and it uses the site's default language when installed.
+  - Issue #37: Sharecss bug ? 
+    Now share styles option in admin setting can be turned off.
+  - Issue #38 Error on contextmenu remove or insert: unrecognized expression
+Changes:
+  - Bindings with get/set functions which use jQuery elements are deprecated.
+    Please use getValue/setValue instead which use regular DOM elements.

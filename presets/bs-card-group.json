@@ -1,17 +1,17 @@
 {
     "key": "bs-card-group",
-    "name": "Card group",
+    "name": "$string.bscardgroup_name",
     "category": "bootstrap",
-    "instructions": "Use card groups to render cards as a single, attached element with equal width and height columns. \n",
+    "instructions": "$string.bscardgroup_instructions",
     "engine": "ejs",
-    "template": "<p><br></p>\n<div class=\"container\">\n  <div class=\"row row-cols-1 row-cols-md-3 g-4\">\n  <% for(var i=1; i<=n; i++) { %>\n  <div class=\"col\">\n  <div class=\"card h-100\">\n    <img class=\"card-img-top\" src=\"https://picsum.photos/300/100\" alt=\"Card image cap\">\n    <div class=\"card-body\">\n      <h5 class=\"card-title\">Card title</h5>\n      <p class=\"card-text\">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>\n    </div>\n    <div class=\"card-footer\">\n      <small class=\"text-muted\">Last updated 3 mins ago</small>\n    </div>\n  </div>\n  </div>\n  <% } %>\n  </div>\n</div>\n<p><br></p>\n",
+    "template": "<div class=\"container\">\n  <div class=\"row row-cols-1 row-cols-md-3 g-4\">\n  <% for(var i=1; i<=n; i++) { %>\n  <div class=\"col\">\n  <div class=\"card h-100\">\n    <img class=\"card-img-top\" src=\"https://picsum.photos/300/100?random=<%=i%>\" alt=\"Card image cap\">\n    <div class=\"card-body\">\n      <h5 class=\"card-title\">$string.bscardgroup_cardtitle</h5>\n      <p class=\"card-text\">Lorem ipsum 1.</p>\n    </div>\n    <div class=\"card-footer\">\n      <small class=\"text-muted\">Lorem ipsum 2.</small>\n    </div>\n  </div>\n  </div>\n  <% } %>\n  </div>\n</div>\n<p><br></p>\n",
     "parameters": [
         {
             "name": "n",
-            "title": "Number of cards",
+            "title": "$string.bscardgroup_number",
             "value": 3
         }
     ],
     "author": "Josep Mulet <pep.mulet@gmail.com>",
-    "version": "1.2.0"
+    "version": "2.0.0"
 }

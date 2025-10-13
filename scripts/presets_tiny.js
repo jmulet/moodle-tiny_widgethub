@@ -224,7 +224,7 @@ function findErrors(parsed) {
 
     // All parameters must have a default value.
     (parsed.parameters || []).forEach((/** @type {*} */ p) => {
-        if (p.value === null || p.value === undefined) {
+        if (p.type !== 'repeatable' && (p.value === null || p.value === undefined)) {
             console.error(`The parameter ${JSON.stringify(p)} requires a default value in widget ${parsed.key}`, parsed);
             console.error(":-( Parameter value missing! Fix this issue and run the script again.");
             process.exit(1);

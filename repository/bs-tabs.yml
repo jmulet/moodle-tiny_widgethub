@@ -1,11 +1,9 @@
 key: bs-tabs
-name: Tabs menu
+name: $string.bstabs_name
 category: bootstrap
-instructions: >
-  Create a tab menu. You can define the number of tabs (<b>at least 2</b>).
+instructions: $string.bstabs_instructions
 engine: ejs
 template: |
-  <p><br></p>
   <div class="whb-tabmenu">
   <ul class="nav nav-tabs" role="tablist">
   <% for(var i=1; i<=tabs; i++) { %>
@@ -28,29 +26,35 @@ unwrap: "div.tab-content > div.tab-pane > *"
 parameters: 
   - name: tabs
     value: 2
-    title: Number of tabs
+    title: $string.bstabs_tabs
     min: 1
     max: 6
-    tip: An excessive number of tabs can cause visualization problems on mobile devices.
+    tip: $string.bstabs_tabs_tip
   - name: effect
-    title: Transition effect
+    title: $string.bstabs_effect
     value: ''
     options:
-      - {l: 'None', v: ''}
-      - {l: 'Fade', v: 'fade'}
+      - {l: '$string.bstabs_optionsnone', v: ''}
+      - {l: '$string.bstabs_optionsfade', v: 'fade'}
     bind:
-      get: (e) => e.find('div.tab-pane').hasClass('fade') ? 'fade':''
-      set: |
-        (e, v) => {
-          if(v) {
-            e.find('div.tab-pane').addClass('fade');
-          } else {
-            e.find('div.tab-pane').removeClass('fade');
-          }
+      getValue: | 
+        (el) => {
+          var pane = el.querySelector('div.tab-pane');
+          return pane && pane.classList.contains('fade') ? 'fade' : '';
         }
-  - partial: ID
+      setValue: |
+        (el, v) => {
+          el.querySelectorAll('div.tab-pane').forEach(pane => {;
+            if (v) {
+              pane.classList.add('fade');
+            } else {
+              pane.classList.remove('fade');
+            }
+          });
+        }
+  - __ID__
 contextmenu:
   - predicate: li.nav-item
     actions: moveleft moveright insertafter | remove
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 1.1.1
+version: 2.1.0

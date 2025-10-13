@@ -57,8 +57,10 @@ function tiny_widgethub_parseconfig($configstr) {
     $lines = explode("\n", trim($configstr)); // Split into lines.
     foreach ($lines as $line) {
         if (strpos($line, '=') !== false) {
-            list($key, $value) = explode('=', $line, 2); // Split key-value pair.
-            $config[trim($key)] = trim($value); // Trim spaces around key and value.
+            $parts = explode('=', $line, 2);
+            $key = trim($parts[0]);
+            $value = isset($parts[1]) ? trim($parts[1]) : '';
+            $config[$key] = $value;
         }
     }
     return $config;
@@ -69,9 +71,8 @@ function tiny_widgethub_parseconfig($configstr) {
  */
 class plugininfo extends plugin implements
     plugin_with_buttons,
-    plugin_with_menuitems,
-    plugin_with_configuration {
-
+    plugin_with_configuration,
+    plugin_with_menuitems {
     /**
      * Get the editor buttons for this plugins
      *
@@ -128,7 +129,7 @@ class plugininfo extends plugin implements
             // Obtain the configuration options for the plugin from the config table.
             $roles = get_user_roles($context, $USER->id);
             // Extract role shortnames.
-            $userroles = array_map(function($role) {
+            $userroles = array_map(function ($role) {
                 return $role->shortname;
             }, $roles);
 
@@ -144,8 +145,7 @@ class plugininfo extends plugin implements
             $params['courseid'] = $COURSE->id;
             $params['widgetlist'] = $widgetlist;
             // Configuration.
-            $params['sharecss'] = $conf->sharecss;
-            $params['additionalcss'] = $conf->additionalcss;
+            $params['sharecss'] = (bool) $conf->sharecss;
             // Syntax key=value per line.
             $params['cfg'] = tiny_widgethub_parseconfig($conf->cfg ?? '');
         }
@@ -272,8 +272,7 @@ class plugininfo extends plugin implements
         if (!isset($widgetindex)) {
             $widgetindex = self::get_widget_index($conf);
         }
-        $indexid = array_search('partials',
-        array_combine(array_keys($widgetindex), array_column($widgetindex, 'key')));
+        $indexid = array_search('partials', array_combine(array_keys($widgetindex), array_column($widgetindex, 'key')));
         $partials = (object)[];
         if ($indexid) {
             $definition = $conf->{'def_' . $indexid};
@@ -314,15 +313,31 @@ class plugininfo extends plugin implements
     /**
      * Reads the widget definition in json format.
      * @param \SplFileInfo $fileinfo
+     * @param array $allstrings
      * @return array|bool
      */
-    protected static function parse_widget_preset(\SplFileInfo $fileinfo) {
+    protected static function parse_widget_preset(\SplFileInfo $fileinfo, array $allstrings) {
         $file = $fileinfo->openFile("r");
         $content = "";
         while (!$file->eof()) {
             $content .= $file->fgets();
         }
-        $presetobject = json_decode($content);
+        // Replace all language strings.
+        if (empty($allstrings)) {
+            return $content;
+        }
+
+        $pattern = '/\$string\.([a-z_]+)/';
+        $contenttranslated = preg_replace_callback(
+            $pattern,
+            function (array $matches) use ($allstrings) {
+                $key = $matches[1];
+                return $allstrings[$key] ?? $matches[0];
+            },
+            $content
+        );
+
+        $presetobject = json_decode($contenttranslated);
         // Check it is a valid json.
         if ($presetobject && is_object($presetobject)) {
             return get_object_vars($presetobject);
@@ -340,6 +355,35 @@ class plugininfo extends plugin implements
         $ret = [];
         $dirs = [];
 
+        $component = 'tiny_widgethub';
+        // Site's default language with fallback to user language.
+        $currentlang = !empty($CFG->lang) ? $CFG->lang : (current_language() ?: 'en');
+        // In case translations packs are not available for $currentlang.
+        $fallbacklangs = [];
+
+        // Split current language (xx_yy) to xx.
+        if (strpos($currentlang, '_') !== false) {
+            $fallbacklangs[] = explode('_', $currentlang)[0];
+        }
+
+        // Always fallback to English as last resort.
+        $fallbacklangs[] = 'en';
+
+        // Load strings for current language first.
+        $allstrings = get_string_manager()->load_component_strings($component, $currentlang) ?: [];
+
+        // Load fallback languages and merge missing keys.
+        foreach ($fallbacklangs as $lang) {
+            $fallbackstrings = get_string_manager()->load_component_strings($component, $lang) ?: [];
+            // Merge only missing keys.
+            foreach ($fallbackstrings as $key => $val) {
+                if (!isset($allstrings[$key])) {
+                    $allstrings[$key] = $val;
+                }
+            }
+        }
+        // Now $allstrings contains strings for current language with proper fallback.
+
         // Search in the presets folder.
         $snippetpresetsdir = $CFG->dirroot . '/lib/editor/tiny/plugins/widgethub/presets';
         if (file_exists($snippetpresetsdir)) {
@@ -351,7 +395,7 @@ class plugininfo extends plugin implements
                     // Process only .json files.
                     $ext = pathinfo($fileinfo->getFilename())['extension'];
                     if ($ext == 'json') {
-                        $preset = self::parse_widget_preset($fileinfo);
+                        $preset = self::parse_widget_preset($fileinfo, $allstrings);
                         if ($preset) {
                             $ret[] = $preset;
                         }
@@ -363,11 +407,12 @@ class plugininfo extends plugin implements
     }
 
     /**
-     * Saves the current $preset to the database and updates the index key
+     * Saves the current $preset to the database and updates the index key.
      * @param array $presets
+     * @param bool $force Optional. Forces saving regardless of version or author changes. Defaults false.
      * @return void
      */
-    public static function save_update_presets($presets) {
+    public static function save_update_presets(array $presets, bool $force = false): void {
         // Obtain the configuration options for the plugin from the config table.
         $conf = get_config('tiny_widgethub');
         // Obtain the index.
@@ -386,14 +431,16 @@ class plugininfo extends plugin implements
                 $old = json_decode($conf->{'def_' . $id});
                 // Condition to override existing definition.
                 // Author has changed or version is less than previous.
-                if (isset($old) && (isset($preset['author']) && $old->author != $preset['author'])
-                    || (isset($preset['version']) && strcmp($old->version, $preset['version']) >= 0)) {
+                if (
+                    isset($old) && (isset($preset['author']) && $old->author != $preset['author'])
+                    || (isset($preset['version']) && strcmp($old->version, $preset['version']) >= 0)
+                ) {
                     $mustupdate = false;
                 }
             }
-            if ($mustupdate) {
+            if ($force || $mustupdate) {
                 // Save the definition.
-                set_config('def_' . $id, json_encode($preset) , 'tiny_widgethub');
+                set_config('def_' . $id, json_encode($preset), 'tiny_widgethub');
                 // Update the index object.
                 $widgetindex[$id] = [
                     'key' => $preset['key'],

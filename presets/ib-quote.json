@@ -1,8 +1,8 @@
 {
     "key": "ib-quote",
-    "name": "Quote",
-    "instructions": "Use this snippet to quote a famous (short) phrase by an author.\n",
-    "template": "<p><br></p>  <div class=\"twh-quote {{#notranslate}}notranslate{{/notranslate}}\"> <div class=\"twh-iq\"> <p>You don't really understand something unless you can explain it to your grandmother.</p> </div> <cite>{{author}}</cite> </div> <p><br></p>\n",
+    "name": "$string.ibquote_name",
+    "instructions": "$string.ibquote_instructions",
+    "template": "<div class=\"twh-quote {{#notranslate}}notranslate{{/notranslate}}\">\n<div class=\"twh-iq\">\n<p>__LOREM__</p>\n</div>\n<cite>{{author}}</cite>\n</div>\n<p><br></p>\n",
     "insertquery": "div.twh-iq",
     "selectors": "div.twh-quote",
     "unwrap": "*",
@@ -10,15 +10,15 @@
         {
             "name": "author",
             "value": "Albert Einstein",
-            "title": "Author of the quote"
+            "title": "$string.ibquote_author"
         },
         {
             "name": "notranslate",
             "value": true,
-            "title": "Prevent translation by Google",
+            "title": "$string.ibquote_notranslate",
             "bind": "hasClass('notranslate')"
         }
     ],
     "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
-    "version": "1.1.0"
+    "version": "2.0.0"
 }

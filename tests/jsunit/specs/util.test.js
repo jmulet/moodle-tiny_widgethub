@@ -17,6 +17,16 @@ const wait = function(delay) {
 }
 
 describe('utils module tests', () => {
+    /** @type {any} */
+    let consoleSpy;
+
+    beforeEach(() => {
+        consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        consoleSpy.mockRestore();
+    });
 
     test('genID starts with alpha-numeric', () => {
         const g = U.genID();
@@ -79,7 +89,7 @@ describe('utils module tests', () => {
         res = U.evalInContext(scope, "");
         expect(res).toBe(undefined);
         const f = () => U.evalInContext(scope, "7*h");
-        expect(f).toThrowError();
+        expect(f).toThrow();
         res = U.evalInContext({}, "5*4-8");
         expect(res).toBe(12);
     });
@@ -351,6 +361,14 @@ describe('utils module tests', () => {
         expect(binding?.getValue()).toBe(result);
     });
 
+    /**
+     * 
+     * @param {string} html 
+     * @returns {string}
+     */
+    function normalizeStyle(html) {
+       return html.replace(/\s*:\s*/g, ':').replace(/\s*;\s*/g, ';');
+    }
 
     test.each([
         ["hasClass('editable')", `<span class="a editable"></span>`, true, `<span class="a editable"></span>`],
@@ -404,10 +422,10 @@ describe('utils module tests', () => {
         ["styleRegex('width: (.*)px', null, 'number')", `<span style="width: 100px;"></span>`, 700, `<span style="width: 700px;" data-mce-style="width: 700px;"></span>`],
 
         [`styleRegex("background-image:url\\\\(['\\"]?([^'\\")]*)['\\"]?\\\\)")`, 
-            `<span class="iedib-background-img" style="background-image:url('http://localhost:4545/pluginfile.php/19/mod_page/content/5/icon.png'); padding: 10px;">
+            `<span class="iedib-background-img" style="background-image:url(http://localhost:4545/pluginfile.php/19/mod_page/content/5/icon.png); padding: 10px;">
             Quina probabilitat tinc de guanyar els jocs d'atzar?</span>`, 
             'https://iedib.net/example.png', 
-            `<span class="iedib-background-img" style="background-image: url(https://iedib.net/example.png); padding: 10px;" data-mce-style="background-image: url(https://iedib.net/example.png); padding: 10px;">
+            `<span class="iedib-background-img" style="background-image: url(&quot;https://iedib.net/example.png&quot;); padding: 10px;" data-mce-style="background-image: url(&quot;https://iedib.net/example.png&quot;); padding: 10px;">
             Quina probabilitat tinc de guanyar els jocs d'atzar?</span>`]
               
 
@@ -417,7 +435,7 @@ describe('utils module tests', () => {
         let binding = U.createBinding(bindDef, $e);
         expect(binding).not.toBeNull();
         binding?.setValue(value)
-        expect($e.prop('outerHTML')).toBe(result);
+        expect(normalizeStyle($e.prop('outerHTML'))).toBe(normalizeStyle(result));
 
         // Binding on a child
         $e = jQuery(`<div class="container">${elemDef}</div>`);
@@ -429,7 +447,7 @@ describe('utils module tests', () => {
         binding = U.createBinding(bindDef, $e);
         expect(binding).not.toBeNull();
         binding?.setValue(value)
-        expect($e.find("span").prop('outerHTML')).toBe(result);
+        expect(normalizeStyle($e.find("span").prop('outerHTML'))).toBe(normalizeStyle(result));
     });
 
     test('User defined binding', () => {
@@ -524,4 +542,92 @@ describe('utils module tests', () => {
         U.toggleClass(elem, 'cl1', 'cl3');
         expect([...elem.classList].sort()).toStrictEqual(['cl2', 'cl4']);        
     });
+
+    test.each([
+        // Basic comparisons
+        ["1.2.3", "1.2.3", true, false],
+        ["1.2.3", "= 1.2.3", true, false],
+        ["1.2.3", "> 1.2.2", true, false],
+        ["1.2.3", ">= 1.2.3", true, false],
+        ["1.2.3", "< 1.2.4", true, false],
+        ["1.2.3", "<= 1.2.3", true, false],
+        ["1.2.3", "< 1.2.3", false, false],
+        ["1.2.3", "> 1.2.3", false, false],
+        ["1.2.3", "= 1.2.2", false, false],
+
+        // Missing minor or patch
+        ["1", "= 1.0.0", true, false],
+        ["1", ">= 0.9.9", true, false],
+        ["1.2", "= 1.2.0", true, false],
+        ["1.2", "< 1.2.1", true, false],
+        ["1.2.3", "> 1.1", true, false],
+        ["2", "<= 2.0.0", true, false],
+
+        // Spaces around numbers/operators
+        [" 1.2.3 ", " = 1.2.3 ", true, false],
+        ["1.2.3", ">= 1.2", true, false],
+        ["1.2.3", " < 2.0.0 ", true, false],
+        [" 1.2.3", " >1.2.4", false, false],
+        ["1.2.3", "= 1.2.3 ", true, false],
+        ["1 . 2 . 3", "= 1.2.3", true, false],
+
+        // Edge cases
+        ["0.0.0", "= 0", true, false],
+        ["0.0.1", "> 0", true, false],
+        ["0.1", "< 0.2.0", true, false],
+        ["1.0.0", "< 2", true, false],
+        ["2.0.0", "> 1.9.9", true, false],
+
+        // Invalid / empty / null / undefined
+        ["1.2.3", ">> 1.2.3", true, true],
+        ["1.2.3", "=> 1.2.3", true, true],
+        ["1.2.3", "1..2", true, true],
+        ["1.2.3", ">= abc", true, true],
+        ["1.2.3", "", true, false],
+        ["1.2.3", null, true, false],
+        ["1.2.3", undefined, true, false],
+    ])(
+        'compareVersion(%s, %s)',
+        (current, condition, expected, shouldThrow) => {
+            expect(U.compareVersion(current, condition)).toBe(expected);
+            if (shouldThrow) {
+                expect(consoleSpy).toHaveBeenCalled();
+            } 
+            }
+    );
+
+
+    test("removeRndFromCtx should remove parameters associated to $RND", () => {
+        /** @type {*} */
+        const parameters = [
+            {name: 'q', value: ''},
+            {name: 'id', value: '$RND'},
+            {name: 'effect', value: 'none'},
+        ];
+        const ctx = {
+            q: 'foo value',
+            id: 'd24523fvvv_34',
+            effect: 'fade'
+        }
+        expect(U.removeRndFromCtx(ctx, parameters)).toStrictEqual({ 
+            q: 'foo value',
+            effect: 'fade'}
+        );
+    });
+
+    test("removeRndFromCtx should not remove any parameters", () => {
+        /** @type {*} */
+        const parameters = [
+            {name: 'q', value: ''},
+            {name: 'id', value: 'RND'},
+            {name: 'effect', value: 'none'},
+        ];
+        const ctx = {
+            q: 'foo value',
+            id: 'd24523fvvv_34',
+            effect: 'fade'
+        }
+        expect(U.removeRndFromCtx(ctx, parameters)).toStrictEqual(ctx);
+    });
+
 });

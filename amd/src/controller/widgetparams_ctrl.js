@@ -19,7 +19,7 @@ import {getListeners} from '../extension';
 import {getModalSrv} from '../service/modal_service';
 import {getTemplateSrv} from '../service/template_service';
 import {getUserStorage} from '../service/userstorage_service';
-import {applyWidgetFilterFactory} from '../util';
+import {applyWidgetFilterFactory, removeRndFromCtx} from '../util';
 import * as coreStr from "core/str";
 
 /**
@@ -79,9 +79,11 @@ export class WidgetParamsCtrl {
          await this.updatePreview(data.idtabpane, ctxFromDialogue);
       });
       this.formCtrl.attachPickers(modal.body);
+      this.formCtrl.attachRepeatable(modal.body, this.widget);
       modal.footer.show();
       modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", async() => {
          // Go back to main menú
+         // TODO detachPicker and detachRepeatable
          modal.destroy();
          if (this.parentCtrl) {
             await this.parentCtrl.handleAction();
@@ -108,7 +110,7 @@ export class WidgetParamsCtrl {
             trigger: "hover"
          });
       } catch (ex) {
-         // console.error(ex);
+         console.error(ex);
       }
 
       modal.show();
@@ -180,21 +182,26 @@ export class WidgetParamsCtrl {
 
    /**
     * @param {Object.<string, any>} ctxFromDialogue
+    * @param {boolean} [skipRecent]
     * @returns
     */
-   async insertWidget(ctxFromDialogue) {
-      /** @type {{key: string, p: Record<string, any>}[]} */
-      const recentList = this.storage.getRecentUsed();
-      const pos = recentList.map(e => e.key).indexOf(this.widget.key);
-      if (pos >= 0) {
-         recentList.splice(pos, 1);
-      }
-      recentList.unshift({key: this.widget.key, p: ctxFromDialogue});
-      if (recentList.length > 4) {
-         recentList.splice(5, recentList.length - 4);
-      }
+   async insertWidget(ctxFromDialogue, skipRecent) {
+      if (!skipRecent) {
+         /** @type {{key: string, p: Record<string, any>}[]} */
+         const recentList = this.storage.getRecentUsed();
+         const pos = recentList.map(e => e.key).indexOf(this.widget.key);
+         if (pos >= 0) {
+            recentList.splice(pos, 1);
+         }
+         // Never store values that are obtained from $RND
+         const ctxFiltered = removeRndFromCtx(ctxFromDialogue, this.widget.parameters);
+         recentList.unshift({key: this.widget.key, p: ctxFiltered});
+         if (recentList.length > 4) {
+            recentList.splice(5, recentList.length - 4);
+         }
 
-      this.storage.setToSession("recent", JSON.stringify(recentList), true);
+         this.storage.setToSession("recent", JSON.stringify(recentList), true);
+      }
 
       if (this.widget.isFilter()) {
          this.applyWidgetFilter(this.widget.template ?? '', false, ctxFromDialogue);

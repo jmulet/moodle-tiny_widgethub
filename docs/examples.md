@@ -75,7 +75,7 @@ instructions: (Optional) A detail explanation
 # (Optional) defaults to 'mustache' although you can also use 'ejs' depending on the type of template used
 engine: mustache
 # Write your HTML with or without parameters. In mustache, parameters are written within double brakets {{..}}
-# Therefore what is a parameter that we must define below
+# Therefore 'what' is a parameter that we must define below
 template: |
   <p>Hello {{what}}</p>
 parameters:
@@ -410,8 +410,8 @@ These functions may be suitable for most of the cases, but, in some ocassions th
 
 ````yaml
 binding:
-  get: ($e) => /* return whatever you need from the jQuery element $e */
-  set: ($e, v) => /* update all you need of the element $e with the new value v */
+  getValue: (el) => /* return whatever you need from the vanilla JS element el */
+  setValue: (el, v) => /* update all you need of the element el with the new value v */
 ````
 
 For example, let's see how to hasClass function might be implemented using this API
@@ -419,81 +419,124 @@ For example, let's see how to hasClass function might be implemented using this 
 ````yaml
 # Example of how hasClass can be simulated (assuming that the root is in the p element)
 binding:
-  get: ($e) => $e.find('span').hasClass('badge')
-  set: |
-      ($e, v) => {
-        v ? $e.addClass('badge') : $e.removeClass('badge')    
+  getValue: |
+      (el) => {
+        var span = el.querySelector('span');
+        return span && span.classList.contains('badge');
+      }
+  setValue: |
+      (el, v) => {
+        v ? el.classList.add('badge') : el.classList.remove('badge')    
       }
 ````
 
 ### Example 7. Creating a carousel with bootstrap
 
-This example serves as a starting point to implement an image carousel.
+This example serves as a starting point for implementing an image carousel. It makes use of **repeatable parameters**, whose value is an array of objects. Each object contains the properties defined in the fields key. Note that the `value` property, however, is not required for a repeatable parameter, as its values are generated from the default values specified in `fields`.
+Please note that the use of repeatable fields requires at least `plugin_release: '>=1.4'` in the YAML schema.
+
+The number of items in the list can be controlled with the `min` and `max` keys. If `min` is not specified, it defaults to 1.
 
 ````yaml
+plugin_release: '>=1.4'
 key: bs-carousel
 name: Carousel
 category: bootstrap
-template: |
-  <p><br></p>  
-  <div id="carouselExampleCaptions" data-widget="bs_carousel" class="carousel slide" data-ride="carousel">
-  <ol class="carousel-indicators">
-    <li data-target="#carouselExampleCaptions" data-slide-to="0" class="active"> </li>
-    <li data-target="#carouselExampleCaptions" data-slide-to="1"> </li>
-    <li data-target="#carouselExampleCaptions" data-slide-to="2"> </li>
-  </ol>
-  <div class="carousel-inner">
-    <div class="carousel-item active">
-      <img src="{{img1}}" class="d-block w-100" alt="Sample img 1">
-      <div class="carousel-caption d-none d-md-block">
-        <h5>First slide label</h5>
-        <p>Some representative placeholder content for the first slide.</p>
-      </div>
+engine: ejs
+template: >
+  <p><br></p> 
+  <div id="<%=ID%>" data-widget="bs-carousel" class="carousel slide" data-ride="carousel">
+    <ol class="carousel-indicators">
+      <% imgs.forEach((_, i) => { %>
+        <li data-target="#<%=ID%>" data-slide-to="<%=i%>"<%= i===0 ?' class="active"' : ''%>>&nbsp;</li>
+      <% }) %>
+    </ol>
+
+    <div class="carousel-inner">
+      <% imgs.forEach((img, i) => { %>
+        <div class="carousel-item<%= i===0 ?' active' : ''%>">
+          <img src="<%=img.url%>" class="d-block w-100" alt="image <%=i+1%>">
+          <div class="carousel-caption d-none d-md-block">
+            <h5>Slide label <%=i+1%></h5>
+            <p>Some representative placeholder content for the slide <%=i+1%>.</p>
+          </div>
+        </div>
+      <% }) %>
     </div>
-    <div class="carousel-item">
-      <img src="{{img2}}" class="d-block w-100" alt="Sample img 2">
-      <div class="carousel-caption d-none d-md-block">
-        <h5>Second slide label</h5>
-        <p>Some representative placeholder content for the second slide.</p>
-      </div>
-    </div>
-    <div class="carousel-item">
-      <img src="{{img3}}" class="d-block w-100" alt="Sample img 3">
-      <div class="carousel-caption d-none d-md-block">
-        <h5>Third slide label</h5>
-        <p>Some representative placeholder content for the third slide.</p>
-      </div>
-    </div>
-  </div>
-  <button class="carousel-control-prev" type="button" data-target="#carouselExampleCaptions" data-slide="prev">
-    <span class="carousel-control-prev-icon" aria-hidden="true"> </span>
-    <span class="sr-only">Previous</span>
-  </button>
-  <button class="carousel-control-next" type="button" data-target="#carouselExampleCaptions" data-slide="next">
-    <span class="carousel-control-next-icon" aria-hidden="true"> </span>
-    <span class="sr-only">Next</span>
-  </button>
+
+    <button class="carousel-control-prev" type="button" data-target="#<%=ID%>" data-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true">&nbsp;</span>
+      <span class="sr-only">Previous</span>
+    </button>
+
+    <button class="carousel-control-next" type="button" data-target="#<%=ID%>" data-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true">&nbsp;</span>
+      <span class="sr-only">Next</span>
+    </button>
   </div>   
   <p><br></p>
-selectors: div[data-widget="bs_carousel"]
+selectors: div[data-widget="bs-carousel"]
 parameters:
-  - name: img1
-    title: URL of image 1
-    type: image
-    value: https://picsum.photos/300/200?random=1
-    bind: attr('src', '.carousel-item:nth-of-type(1) img')
-  - name: img2
-    title: URL of image 2
-    type: image
-    value: https://picsum.photos/300/200?random=2
-    bind: attr('src', '.carousel-item:nth-of-type(2) img')
-  - name: img3
-    title: URL of image 3
-    type: image
-    value: https://picsum.photos/300/200?random=3
-    bind: attr('src', '.carousel-item:nth-of-type(3) img')
+  - __ID__
+  - name: imgs
+    title: Images
+    type: repeatable
+    item_selector: .carousel-item
+    min: 2
+    max: 10
+    fields:
+      - name: url
+        title: URL
+        type: image
+        value: https://picsum.photos/300/200?random={{i}}
+        bind: attr('src', 'img')
 author: Josep Mulet <pep.mulet@gmail.com>
 version: 1.0.0
 ````
 
 **Note:** To change the images, right click onto the widget and, from the contextual menu, open the "properties" option. Please do not use the Tiny image button directly since it will break the HTML markup.
+
+Two ways to implement bindings in repeatable fields are supported:
+
+1. Specify `item_selector` as a CSS selector that returns a list of DOM elements; one per item. Then, use the `bind` key in the fields as usual. Note that in this mode, the `bind` key refers to each element in the returned list, not to the widget’s root element. This method creates a binding for every field and for each item in the list.
+
+2. Alternatively, `remove item_selector` and define a `bind` property as an object with `getValue(el: HTMLElement): V` and `setValue(el: HTMLElement, v: V)` functions. Here, `el` is the widget root element, and `v` is an array of objects. String-based bindings are not supported in this case. Using this mechanism, the previous example would be implemented as:
+
+````yml
+···
+parameters:
+  - __ID__
+  - name: imgs
+    title: Images
+    type: repeatable
+    item_selector: .carousel-item
+    min: 2
+    max: 10
+    fields:
+      - name: url
+        title: URL
+        type: image
+        value: https://picsum.photos/300/200?random={{i}} # i is the number of items in the list
+    bind:
+      getValue: |
+        (el) => {      
+          var imgs = el.querySelectorAll('.carousel-item img');
+          return Array.from(imgs).map(img => ({ url: img.getAttribute('src') }));
+        }
+      setValue: |
+        (el, v) => {
+          var imgs = el.querySelectorAll('.carousel-item img');
+          imgs.forEach((img, i) => {
+            if (v[i]) {
+              img.setAttribute('src', v[i].url);
+              img.setAttribute('data-mce-src', v[i].url);
+            }
+          });
+        }
+author: Josep Mulet <pep.mulet@gmail.com>
+version: 1.0.0
+````
+
+**Note 1:** For the sake of simplicity, the conditional `when` has no effect in the fields of a repeatable parameter.
+
+**Note 2:** Due to TinyMCE’s internal logic, when programmatically changing `src` or `href` attributes of a DOM element, you must also update the corresponding `data-mce-src` or `data-mce-href` attributes accordingly.

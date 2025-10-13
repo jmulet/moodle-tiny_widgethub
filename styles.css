@@ -162,6 +162,7 @@ div.tiny_widgethub-growl {
     font-size: 80%;
     font-weight: bold;
     text-transform: uppercase;
+    overflow: hidden;
 }
 
 .tiny_widgethub-title {
@@ -381,6 +382,35 @@ h4.tiny_widgethub-headertext {
     fill: #fff;
 }
 
+/********************************** Repeatable list **/
+.tiny_widgethub-regularitem {
+    background: whitesmoke;
+}
+.tiny_widgethub-additem {
+  height: 25px;
+  padding: 0!important;
+  z-index: 2;
+  border-left: none; 
+  border-right: none; 
+}
+.list-group .tiny_widgethub-additem:first-child {
+  border-top-color: transparent;
+}
+.list-group .tiny_widgethub-additem:last-child {
+  border-bottom-color: transparent;
+}
+.tiny_widgethub-additem > hr {
+  z-index: 0;
+}
+.tiny_widgethub-additem > button {
+  z-index: 1;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1;
+  width: 24px; 
+  height: 24px;
+}
+
 /********************************** Specific Widget definitions styles */
 /** subsection **/
 h4.twh-subsub {
@@ -546,15 +576,6 @@ h4.twh-subsub::before {
 .twh-caption {
     text-align: center;
     margin: 10px auto;
-}
-
-.twh-caption-counter {
-    font-weight: bold;
-    font-size: 90%;
-}
-
-.twh-caption-title {
-    font-style: italic;
     font-size: 90%;
 }
 

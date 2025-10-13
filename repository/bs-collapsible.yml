@@ -1,9 +1,8 @@
 key: bs-collapsible
-name: Collapsible
+name: $string.bscollapsible_name
 category: bootstrap
 engine: ejs
 template: |
-  <p></p>
   <div id="acc_<%= id %>" class="collapsible">
     <% for(var i=1; i<=n; i++) { %>
     <div class="card">      
@@ -12,7 +11,7 @@ template: |
           <button type="button" class="btn btn-link" data-toggle="collapse" data-bs-toggle="collapse" data-target="#coll_<%= id %>_<%= i %>"
             data-bs-target="#coll_<%= id %>_<%= i %>" 
             aria-expanded="<%= i==1 ? 'true' : 'false' %>" aria-controls="coll_<%= id %>_<%= i %>">
-            <span>Label #<%= i %></span>
+            <span>$string.bscollapsible_label #<%= i %></span>
           </button>
         </h5>
       </div>
@@ -25,7 +24,7 @@ template: |
     </div>
     <% } %>
   </div>
-  <p></p>
+  <p><br></p>
 selectors: div.collapsible
 unwrap: .card-header span, .card-body
 parameters:
@@ -35,27 +34,30 @@ parameters:
     hidden: true
     editable: false
   - name: 'n'
-    title: Number of collapsibles
+    title: $string.bscollapsible_number
     value: 3
     min: 1
   - name: indp
-    title: Independent collapsibles?
-    tooltip: When this options is checked, several cards can be expanded simultaneously
+    title: $string.bscollapsible_indp
+    tooltip: $string.bscollapsible_indp_tip
     value: false
     bind:
-      get: (e) => e.find('div.collapse[data-parent],div.collapse[data-bs-parent]').length === 0
-      set: |
-        (e, v) => {
-          var $elements = e.find('div.collapse');
-          if(v) {
-            $elements.removeAttr('data-parent data-bs-parent');
-          } else {
-            var id = e.attr('id');
-            $elements.attr('data-parent', '#' + id).attr('data-bs-parent', '#' + id);
-          }
+      getValue: (el) => el.querySelector('div.collapse[data-parent],div.collapse[data-bs-parent]') === null
+      setValue: |
+        (el, v) => {
+          var id = el.getAttribute('id');
+          el.querySelectorAll('div.collapse').forEach(elem => {
+            if (v) {
+              elem.removeAttribute('data-parent');
+              elem.removeAttribute('data-bs-parent');
+            } else {
+              elem.setAttribute('data-parent', `#${id}`);
+              elem.setAttribute('data-bs-parent', `#${id}`);
+            }
+          });
         }
 contextmenu:
   - predicate: .card
     actions: moveup movedown insertafter | remove
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 1.2.0
+version: 2.1.0

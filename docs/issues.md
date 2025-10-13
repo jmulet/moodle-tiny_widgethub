@@ -20,7 +20,6 @@ To prevent this, insert a non-breaking space (`&nbsp;`) or another HTML entity i
 ---
 
 
-
 **Issue:** HTML Comments Wrapped in `<p>` Tags in TinyMCE
 
 When inserting a WidgetHub template into TinyMCE that includes HTML comments (e.g. `<!-- Start of Box-Activity -->`), TinyMCE may wrap these comments in `<p>` tags. This only happens to some comments (typically the first one) and not others. Additionally, TinyMCE may insert extra empty `<p>` elements.
@@ -50,6 +49,26 @@ template: |
 <template data-comment="Start of Box-Activity"></template>
 ````
 
+
+## Page scrolls to top when clicking non-editable zones
+
+**Issue:**
+When clicking over non-editable areas inside the editor (where the cursor changes to an arrow), the page unexpectedly scrolls back to the top of the document.
+
+**Impact:**
+This behavior disrupts the editing workflow, forcing users to manually scroll back to their previous position each time they click outside editable regions.
+
+**Cause:**
+The issue is linked to custom CSS rules added via shareCss. In particular, setting html and body elements to height: 100% triggers this problem within the Tiny editor iframe.
+
+**Workaround / Solution:**
+Override the conflicting rule by applying the following CSS through iframe's customCss when the related option or checkbox is enabled:
+
+```css
+html, body {
+ height: initial!important;
+}
+```
 
 ## Image editing inside Tiny editor
 **Issue:**

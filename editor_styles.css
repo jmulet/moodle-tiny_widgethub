@@ -38,3 +38,7 @@ a[data-toggle="popover"], a[data-bs-toggle="popover"] {
 .tiny_widgethub-jsarea > script::after {
     content: attr(src);
 }
+/** Make captions always visible in the editor, so they can be edited */
+div[data-widget="bs-carousel"] .carousel-caption {
+    display: block!important;
+}

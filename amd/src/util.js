@@ -905,7 +905,7 @@ const bindingFactory = function($e) {
  * @property {(value: string | boolean | number) => void} setValue
  */
 /**
- * @param {string | {get: string, set: string}} definition
+ * @param {string | {get?: string, set?: string, getValue?: string, setValue?: string}} definition
  * @param {JQuery<HTMLElement>} elem  - The root of widget
  * @param {string=} castTo  - The type that must be returned
  * @returns {Binding | null}
@@ -916,16 +916,28 @@ export const createBinding = (definition, elem, castTo) => {
     if (typeof (definition) === 'string') {
         return evalInContext({...bindingFactory(elem)}, definition, true);
     } else {
-        // The user provides the get and set functions
+        // The user provides the get and set functions (for jQuery element) @deprecated
+        // or getValue, setValue (for vanilla JS elements)
         bindFn = {
             getValue: () => {
-                let v = evalInContext({elem}, `(${definition.get})(elem)`);
+                let v;
+                if (definition.getValue) {
+                    v = evalInContext({elem: elem[0]}, `(${definition.getValue})(elem)`);
+                } else if (definition.get) {
+                    v = evalInContext({elem}, `(${definition.get})(elem)`);
+                }
                 if (castTo) {
                     v = performCasting(v, castTo);
                 }
                 return v;
             },
-            setValue: (v) => evalInContext({elem, v}, `(${definition.set})(elem, v)`)
+            setValue: (v) => {
+                if (definition.setValue) {
+                    evalInContext({elem: elem[0], v}, `(${definition.setValue})(elem, v)`);
+                } else if (definition.set) {
+                    evalInContext({elem, v}, `(${definition.set})(elem, v)`);
+                }
+            }
         };
     }
     return bindFn;
@@ -1040,4 +1052,81 @@ export function toggleClass(elem, ...classNames) {
             classList.add(name);
         }
     });
+}
+
+/**
+ * Normalize version string to [major, minor, patch]
+ * @param {string} v
+ * @returns {number[]}
+ */
+function parseVersion(v) {
+    return v
+      .split('.')
+      .map(part => Number(part.trim()))
+      .concat([0, 0])
+      .slice(0, 3);
+}
+
+/**
+ * Compares a version with a given condition.
+ * @param {string} current - The current version to compare against condition in major.minor.revision format
+ * @param {string | null | undefined} [condition] - The condition to meet. In <, <=, =, >=, major.minor.revision
+ * @returns {boolean} True if current meets condition
+ */
+export function compareVersion(current, condition) {
+  if (!condition) {
+    return true;
+  }
+
+  // Parse condition string
+  const match = condition.trim().match(/^(>=|<=|>|<|=)?\s*(\d+(?:\.\d+){0,2})$/);
+  if (!match) {
+    console.error("Invalid version condition: " + condition);
+    return true;
+  }
+
+  const operator = match[1] || "=";
+  const targetVersion = parseVersion(match[2]);
+  const currentVersion = parseVersion(current);
+
+  // Compare versions
+  let cmp = 0;
+  for (let i = 0; i < 3; i++) {
+    if (currentVersion[i] > targetVersion[i]) {
+      cmp = 1;
+      break;
+    }
+    if (currentVersion[i] < targetVersion[i]) {
+      cmp = -1;
+      break;
+    }
+  }
+
+  // Evaluate based on operator
+  switch (operator) {
+    case ">": return cmp > 0;
+    case ">=": return cmp >= 0;
+    case "<": return cmp < 0;
+    case "<=": return cmp <= 0;
+    case "=": return cmp === 0;
+    default:
+     console.log("Unknown operator: " + operator);
+     return true;
+  }
+}
+
+/**
+ * Parameters that are generated from $RND must never
+ * be stored as recently used, nor used as new contexts
+ * @param {Record<string, any>} ctx
+ * @param {import('./options').Param[]} parameters
+ * @returns {Record<string, any>}
+ */
+export function removeRndFromCtx(ctx, parameters) {
+    return Object.fromEntries(
+        Object.entries(ctx).filter(([k]) => {
+            const val = parameters.find(p => p.name === k)?.value;
+            return val !== '$RND';
+        })
+    );
 }

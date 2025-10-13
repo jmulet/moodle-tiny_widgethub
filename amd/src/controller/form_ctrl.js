@@ -83,18 +83,23 @@ export const Templates = {
    {{/options}}
    </datalist>
    </div>
-   </div>`
+   </div>`,
+
+   REPEATABLE: `<div id="{{elementid}}" name="{{varname}}" type="repeatable" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}">
+      <span class="form-label" title="{{varname}}">{{vartitle}} ${questionPopover}</span>
+      {{{itemControls}}}
+   </div>`,
 };
 
 
 export class FormCtrl {
-  /**
-   * @param {import('../plugin').TinyMCE} editor
-   * @param {import('../service/userstorage_service').UserStorageSrv} userStorage
-   * @param {import('../service/template_service').TemplateSrv} templateSrv
-   * @param {import('../service/file_service').FileSrv} fileSrv
-   * @param {JQueryStatic} jQuery
-   */
+   /**
+    * @param {import('../plugin').TinyMCE} editor
+    * @param {import('../service/userstorage_service').UserStorageSrv} userStorage
+    * @param {import('../service/template_service').TemplateSrv} templateSrv
+    * @param {import('../service/file_service').FileSrv} fileSrv
+    * @param {JQueryStatic} jQuery
+    */
    constructor(editor, userStorage, templateSrv, fileSrv, jQuery) {
       /** @type {import('../plugin').TinyMCE} */
       this.editor = editor;
@@ -158,13 +163,18 @@ export class FormCtrl {
     * @param {string} hostId - The id of the editor
     * @param {import('../options').Param} param - The parameter object defining the control
     * @param {any} defaultValue - Default values for the parameter
+    * @param {string} [prefixName] - Add a suffix to the control name
+    * @param {number | undefined} [index] - Index used in repeatable fields
     * @returns {string} - The generated HTML for this control
     */
-   createControlHTML(hostId, param, defaultValue) {
+   createControlHTML(hostId, param, defaultValue, prefixName, index) {
       let markup = '';
-      const pname = cleanParameterName(param.name);
+      let pname = cleanParameterName(param.name);
+      if (prefixName) {
+         pname = prefixName + "_" + pname;
+      }
       const generalCtx = {
-         elementid: hostId + "_" + pname,
+         elementid: hostId + "_" + pname + (index === undefined ? '' : index),
          varname: pname,
          vartitle: param.title,
          defaultvalue: defaultValue,
@@ -209,6 +219,28 @@ export class FormCtrl {
          markup = this.templateSrv.renderMustache(Templates.COLORTEMPLATE, generalCtx);
       } else if (param.type === 'image') {
          markup = this.templateSrv.renderMustache(Templates.IMAGETEMPLATE, generalCtx);
+      } else if (param.type === 'repeatable') {
+         let itemControls = '';
+         if (Array.isArray(defaultValue) && defaultValue.length) {
+            // Generate the controls statically (used in context menus)
+            const ul = RepeatableCtrl.createListGroup();
+            defaultValue.forEach(obj => {
+               if (typeof obj !== 'object') {
+                  return;
+               }
+               const tmpDiv = document.createElement("DIV");
+               tmpDiv.className = 'w-100';
+               Object.keys(obj).forEach(key => {
+                  const field = param.fields?.filter(f => f.name === key)[0];
+                  if (field) {
+                     tmpDiv.innerHTML = this.createControlHTML(hostId, field, obj[key], pname, index);
+                  }
+               });
+               ul.append(RepeatableCtrl.createRegularItem(tmpDiv, false));
+            });
+            itemControls = ul.outerHTML;
+         }
+         markup = this.templateSrv.renderMustache(Templates.REPEATABLE, {...generalCtx, itemControls});
       } else {
          // Assume textfield
          markup = this.templateSrv.renderMustache(Templates.TEXTFIELDTEMPLATE, generalCtx);
@@ -216,6 +248,37 @@ export class FormCtrl {
       return markup;
    }
 
+   /**
+    * It extracts the value of a single HTML control
+    * @param {JQuery<HTMLElement>} $elem
+    * @param {import('../options').Param} param
+    */
+   extractControlValue($elem, param) {
+      const type = $elem.attr("type");
+      /** @type {*} */
+      let value = $elem.val() ?? "";
+      if ($elem.prop("tagName") === "INPUT" && type === "checkbox") {
+         value = $elem.is(':checked');
+      } else if ($elem.prop("tagName") === "INPUT" && type === "number") {
+         if (value.indexOf(".") >= 0) {
+            value = parseFloat(value);
+         } else {
+            value = parseInt(value);
+         }
+      } else if ($elem.prop("tagName") === "INPUT" && type === "color") {
+         // Must also find the corresponding alpha channel value
+         const pname = param.name;
+         const cleanPname = cleanParameterName(pname);
+         const $slider = $elem.closest(".form-group").find(`[name="${cleanPname}_alpha"]`);
+         const alpha = $slider.val() ?? 1;
+         value = toRgba(value, +alpha);
+      }
+
+      if (param.transform) {
+         value = stream(param.transform).reduce(value);
+      }
+      return value;
+   }
 
    /**
     * Obtains the updated parameter values from the modal
@@ -233,40 +296,40 @@ export class FormCtrl {
       const defaults = widget.defaults;
       widget.parameters.forEach(param => {
          const pname = param.name;
-         const cleanPname = cleanParameterName(pname);
-         const $elem = form.find(`[name="${cleanPname}"]`);
+         const cleanParamname = cleanParameterName(pname);
+         const $elem = form.find(`[name="${cleanParamname}"]`);
          if (!$elem.length) {
             ctx[pname] = defaults[pname];
             return;
          }
-         /** @type {*} */
-         let value = $elem.val() ?? "";
-         if ($elem.prop("tagName") === "INPUT" && $elem.attr("type") === "checkbox") {
-            value = $elem.is(':checked');
-         } else if ($elem.prop("tagName") === "INPUT" && $elem.attr("type") === "number") {
-            if (value.indexOf(".") >= 0) {
-               value = parseFloat(value);
-            } else {
-               value = parseInt(value);
-            }
-         } else if ($elem.prop("tagName") === "INPUT" && $elem.attr("type") === "color") {
-            // Must also find the corresponding alpha channel value
-            const $slider = form.find(`[name="${cleanPname}_alpha"]`);
-            const alpha = $slider.val() ?? 1;
-            value = toRgba(value, +alpha);
+         // $elem might be a div for repeatable inputs
+         if (param.type === 'repeatable') {
+            /** @type {any[]}  */
+            const listValue = [];
+            $elem.find(".list-group-item.tiny_widgethub-regularitem").each((i, subform) => {
+               /** @type {Record<string, any>} */
+               const itemObj = {};
+               param.fields?.forEach(field => {
+                  const $subform = this.jQuery(subform);
+                  const cleanFieldname = cleanParameterName(field.name);
+                  const $subelem = $subform.find(`[name="${cleanParamname}_${cleanFieldname}"]`);
+                  itemObj[field.name] = this.extractControlValue($subelem, field);
+               });
+               listValue.push(itemObj);
+            });
+            ctx[pname] = listValue;
+         } else {
+            ctx[pname] = this.extractControlValue($elem, param);
          }
 
-         if (param.transform) {
-            value = stream(param.transform).reduce(value);
-         }
-         ctx[pname] = value;
          if (pname.trim().startsWith("_")) {
-            toPersist[pname] = value;
+            toPersist[pname] = ctx[pname];
          }
       });
+
       if (doStore && this.storage) {
          if (Object.keys(toPersist).length) {
-            // Only those starting with $
+            // Only those starting with _
             this.storage.setToLocal('values', toPersist, true);
          }
          // Should all values be persisted?
@@ -411,6 +474,220 @@ export class FormCtrl {
       // Decide which form elements are visible accoding to the current values of the parameters.
       doUpdateVisibilities();
    }
+   /**
+    * Create controllers for every repeatable element in form.
+    * @param {JQuery<HTMLElement>} $form
+    * @param {import("../options").Widget} widget
+    */
+   attachRepeatable($form, widget) {
+      const that = this;
+
+      widget.parameters.filter(p => p.type === 'repeatable').forEach((param) => {
+         // Make the parameter do not produce any default
+         const cleanParamname = cleanParameterName(param.name);
+         const $subform = $form.find(`div[type="repeatable"][name="${cleanParamname}"]`);
+         if (!param.fields?.length) {
+            $subform.hide();
+            return;
+         }
+         /**
+          * Inform the controller how to create a new item
+          * @param {number} i
+          * @returns {HTMLElement}
+          */
+         const itemBuilder = (i) => {
+            const controls = (param.fields ?? []).map(field => {
+               // Field value must be interpolated with the {{i}} placeholder
+               let value = field.value;
+               if (typeof (value) === 'string' && value.indexOf("{{i}}") >= 0) {
+                  value = that.templateSrv.renderMustache(value, {i: i});
+               }
+               return that.createControlHTML(that.editor.id, field, value, cleanParamname, i);
+            });
+            const div = document.createElement("div");
+            div.className = 'w-100';
+            div.innerHTML = controls.join(" ");
+            return div;
+         };
+         new RepeatableCtrl($subform[0], itemBuilder, param);
+      });
+   }
+}
+
+/**
+ * @typedef {Object} RepeatableOptions
+ * @property {number} [min=1] - The minimum number of items allowed in the list.
+ * @property {number} [max] - The maximum number of items allowed in the list.
+ */
+
+/**
+ * @callback ItemBuilder
+ * @param {number} index - The index of the item being created.
+ * @returns {HTMLElement} - The DOM Node to be inserted into the item.
+ */
+
+/**
+ * Controls a UI component that allows users to add and remove items from a list.
+ * This class uses the underscore convention (_) to indicate private properties and methods.
+ */
+class RepeatableCtrl {
+   // Properties are defined in the constructor for broader compatibility.
+
+   /**
+    * @param {HTMLElement} form - The container element to append the list to.
+    * @param {ItemBuilder} itemBuilder - A function that returns the content for a new item.
+    * @param {RepeatableOptions} [opts={}] - Configuration options for the controller.
+    */
+   constructor(form, itemBuilder, opts = {}) {
+      /** @private */
+      this._form = form;
+      /** @private */
+      this._itemBuilder = itemBuilder;
+      /** @private */
+      this._opts = {min: 1, ...opts};
+      /** @private */
+      /** @type {HTMLUListElement} */
+      this._ul = document.createElement('ul');
+      /** @private */
+      this._itemCount = 0;
+      /** @private */
+      this._boundOnClick = this._onClick.bind(this);
+      this._init();
+   }
+
+   /**
+    * Initializes the list, creates the initial items, and attaches event listeners.
+    * @private
+    */
+   _init() {
+      this._ul.classList.add('list-group', 'list-group-flush', 'w-100', 'ml-5');
+
+      this._ul.append(RepeatableCtrl.createAddItem());
+
+      const initialCount = this._opts.min;
+      for (let i = 0; i < initialCount; i++) {
+         // Generate the content
+         this._itemCount += 1;
+         const content = this._itemBuilder(this._itemCount);
+         this._ul.append(RepeatableCtrl.createRegularItem(content, true));
+         this._ul.append(RepeatableCtrl.createAddItem());
+      }
+
+      this._form.append(this._ul);
+      this._updateButtonStates();
+      this._ul.addEventListener('click', this._boundOnClick);
+   }
+   /**
+    * Creates a list group container for the list items
+    * @returns {HTMLUListElement}
+    */
+   static createListGroup() {
+      const ul = document.createElement('ul');
+      ul.classList.add('list-group', 'list-group-flush', 'w-100', 'ml-5');
+      return ul;
+   }
+   /**
+    * Creates the "add item" separator row with a plus button.
+    * @private
+    * @returns {HTMLLIElement} The list item element representing the add button.
+    */
+   static createAddItem() {
+      const li = document.createElement('li');
+      li.classList.add('list-group-item', 'position-relative', 'text-center', 'tiny_widgethub-additem');
+
+      const button = document.createElement('button');
+      button.type = 'button';
+
+      button.className = 'tiny_widgethub-addbtn btn btn-sm btn-outline-secondary bg-white text-secondary';
+
+      const icon = document.createElement('i');
+      icon.className = 'fa fa-plus';
+
+      button.append(icon);
+      li.append(button);
+      return li;
+   }
+
+   /**
+    * Creates a regular list item containing user-defined content and a remove button.
+    * @param {string | Node} content
+    * @param {boolean} showDelBtn
+    * @returns {HTMLLIElement} The list item element.
+    */
+   static createRegularItem(content, showDelBtn) {
+      const li = document.createElement('li');
+      li.classList.add('list-group-item', 'd-flex', 'w-100', 'justify-content-between', 'align-items-center', 'tiny_widgethub-regularitem');
+      li.append(content);
+      if (showDelBtn) {
+         const button = document.createElement('button');
+         button.type = 'button';
+         button.className = 'tiny_widgethub-removeitem btn btn-sm btn-outline-danger';
+
+         const icon = document.createElement('i');
+         icon.className = 'fa fa-trash';
+
+         button.append(icon);
+         li.append(button);
+      }
+      return li;
+   }
+
+   /**
+    * Updates the enabled/disabled state of all add and remove buttons.
+    * @private
+    */
+   _updateButtonStates() {
+      const count = this._ul.querySelectorAll('.list-group-item.tiny_widgethub-regularitem').length;
+
+      const canDelete = count > (this._opts.min ?? 1);
+      /** @type {NodeListOf<HTMLButtonElement>} */
+      let buttons = this._ul.querySelectorAll('button.tiny_widgethub-removeitem');
+      buttons.forEach(btn => (btn.disabled = !canDelete));
+
+      const canAdd = this._opts.max === undefined || count < this._opts.max;
+      buttons = this._ul.querySelectorAll('button.tiny_widgethub-addbtn');
+      buttons.forEach(btn => (btn.disabled = !canAdd));
+   }
+
+   /**
+    * Handles click events on the list, delegating to add or remove actions.
+    * @private
+    * @param {MouseEvent} evt - The click event.
+    */
+   _onClick(evt) {
+      if (!(evt.target instanceof Element)) {
+         return;
+      }
+      const btn = evt.target?.closest("button");
+      if (!btn || btn.disabled) {
+         return;
+      }
+
+      const li = btn.closest('li');
+      if (!li) {
+         return;
+      }
+
+      if (btn.classList.contains('tiny_widgethub-addbtn')) {
+         this._itemCount += 1;
+         const content = this._itemBuilder(this._itemCount);
+         li.after(RepeatableCtrl.createRegularItem(content, true), RepeatableCtrl.createAddItem());
+      } else if (btn.classList.contains('tiny_widgethub-removeitem')) {
+         const separator = li.previousElementSibling;
+         if (separator) {
+            separator.remove();
+         }
+         li.remove();
+      }
+
+      this._updateButtonStates();
+   }
+   /**
+    * Removes the event listener on the list
+    */
+   destroy() {
+      this._ul.removeEventListener('click', this._boundOnClick);
+   }
 }
 
 
@@ -420,11 +697,11 @@ const formCtrlInstances = new Map();
  * @returns {FormCtrl}
  */
 export function getFormCtrl(editor) {
-    let instance = formCtrlInstances.get(editor);
-    if (!instance) {
-        // @ts-ignore
-        instance = new FormCtrl(editor, getUserStorage(editor), getTemplateSrv(), getFileSrv(editor), jquery);
-        formCtrlInstances.set(editor, instance);
-    }
-    return instance;
+   let instance = formCtrlInstances.get(editor);
+   if (!instance) {
+      // @ts-ignore
+      instance = new FormCtrl(editor, getUserStorage(editor), getTemplateSrv(), getFileSrv(editor), jquery);
+      formCtrlInstances.set(editor, instance);
+   }
+   return instance;
 }

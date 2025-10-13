@@ -1,25 +1,23 @@
 key: bs-image-overlay
-name: Image overlay
+name: $string.bsimageoverlay_name
 category: bootstrap
-instructions: > 
-  Turn an image into a card background and overlay your card's text. 
+instructions: $string.bsimageoverlay_instructions 
 template: |
-  <p><br></p>
   <div class="card twh-img-overlay bg-dark text-white">
     <img class="card-img" src="{{img}}" alt="Card image">
     <div class="card-img-overlay">
-      <h5 class="card-title">Card title</h5>
-      <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-      <p class="card-text">Last updated 3 mins ago</p>
+      <h5 class="card-title">$string.bscardgroup_cardtitle</h5>
+      <p class="card-text">Lorem ipsum 1.</p>
+      <p class="card-text">Lorem ipsum 2.</p>
     </div>
   </div>
   <p><br></p>
 selectors: div.card.twh-img-overlay
 parameters:
   - name: img
-    title: Background image
+    title: $string.bsimageoverlay_img
     type: image
     value: https://media.traveler.es/photos/613778947ad90bc43bae0779/16:9/w_2240,c_limit/101691.jpg
     bind: attr('src', 'img.card-img')
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 1.1.0
+version: 2.0.0

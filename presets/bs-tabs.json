@@ -1,43 +1,41 @@
 {
     "key": "bs-tabs",
-    "name": "Tabs menu",
+    "name": "$string.bstabs_name",
     "category": "bootstrap",
-    "instructions": "Create a tab menu. You can define the number of tabs (<b>at least 2</b>).\n",
+    "instructions": "$string.bstabs_instructions",
     "engine": "ejs",
-    "template": "<p><br></p>\n<div class=\"whb-tabmenu\">\n<ul class=\"nav nav-tabs\" role=\"tablist\">\n<% for(var i=1; i<=tabs; i++) { %>\n<li class=\"nav-item\">\n  <a class=\"nav-link<%= i==1 ? ' active' : '' %>\" href=\"#<%=ID%>_<%=i%>\" data-toggle=\"tab\" data-bs-toggle=\"tab\" role=\"tab\"><span>&nbsp;</span><span>Tab<%=i%></span></a>\n</li> \n<% } %>\n</ul>\n<div class=\"tab-content\">\n<% for(var i=1; i<=tabs; i++) { %>\n<div class=\"tab-pane<%= effect ? ' ' + effect : '' %><%= i==1 ? ' show active' : '' %>\" id=\"<%=ID%>_<%=i%>\" role=\"tabpanel\">\n<p><%=i%> __LOREM__</p>\n</div>\n<% } %>\n</div>\n</div> \n<p><br></p>\n",
+    "template": "<div class=\"whb-tabmenu\">\n<ul class=\"nav nav-tabs\" role=\"tablist\">\n<% for(var i=1; i<=tabs; i++) { %>\n<li class=\"nav-item\">\n  <a class=\"nav-link<%= i==1 ? ' active' : '' %>\" href=\"#<%=ID%>_<%=i%>\" data-toggle=\"tab\" data-bs-toggle=\"tab\" role=\"tab\"><span>&nbsp;</span><span>Tab<%=i%></span></a>\n</li> \n<% } %>\n</ul>\n<div class=\"tab-content\">\n<% for(var i=1; i<=tabs; i++) { %>\n<div class=\"tab-pane<%= effect ? ' ' + effect : '' %><%= i==1 ? ' show active' : '' %>\" id=\"<%=ID%>_<%=i%>\" role=\"tabpanel\">\n<p><%=i%> __LOREM__</p>\n</div>\n<% } %>\n</div>\n</div> \n<p><br></p>\n",
     "selectors": "div.whb-tabmenu",
     "unwrap": "div.tab-content > div.tab-pane > *",
     "parameters": [
         {
             "name": "tabs",
             "value": 2,
-            "title": "Number of tabs",
+            "title": "$string.bstabs_tabs",
             "min": 1,
             "max": 6,
-            "tip": "An excessive number of tabs can cause visualization problems on mobile devices."
+            "tip": "$string.bstabs_tabs_tip"
         },
         {
             "name": "effect",
-            "title": "Transition effect",
+            "title": "$string.bstabs_effect",
             "value": "",
             "options": [
                 {
-                    "l": "None",
+                    "l": "$string.bstabs_optionsnone",
                     "v": ""
                 },
                 {
-                    "l": "Fade",
+                    "l": "$string.bstabs_optionsfade",
                     "v": "fade"
                 }
             ],
             "bind": {
-                "get": "(e) => e.find('div.tab-pane').hasClass('fade') ? 'fade':''",
-                "set": "(e, v) => {\n  if(v) {\n    e.find('div.tab-pane').addClass('fade');\n  } else {\n    e.find('div.tab-pane').removeClass('fade');\n  }\n}\n"
+                "getValue": "(el) => {\n  var pane = el.querySelector('div.tab-pane');\n  return pane && pane.classList.contains('fade') ? 'fade' : '';\n}\n",
+                "setValue": "(el, v) => {\n  el.querySelectorAll('div.tab-pane').forEach(pane => {;\n    if (v) {\n      pane.classList.add('fade');\n    } else {\n      pane.classList.remove('fade');\n    }\n  });\n}\n"
             }
         },
-        {
-            "partial": "ID"
-        }
+        "__ID__"
     ],
     "contextmenu": [
         {
@@ -46,5 +44,5 @@
         }
     ],
     "author": "Josep Mulet <pep.mulet@gmail.com>",
-    "version": "1.1.1"
+    "version": "2.1.0"
 }

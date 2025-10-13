@@ -57,7 +57,7 @@ class settingsutil {
             'tiny_widgethub/additionalcss',
             'tiny_widgethub_additionalcss',
             get_string('additionalcss', 'tiny_widgethub'),
-            '',
+            "html, body {\n height: initial!important;\n}",
             PARAM_RAW
         );
         // Define additional settings in key=value syntax per line.
@@ -114,8 +114,7 @@ class settingsutil {
             $title = get_string('edit', 'tiny_widgethub') . ' ' . $widget->name;
         }
         // Page Settings for every widget.
-        $settingspage = new \admin_settingpage('tiny_widgethub_spage_' . $windx,
-            $title, 'moodle/site:config', true);
+        $settingspage = new \admin_settingpage('tiny_widgethub_spage_' . $windx, $title, 'moodle/site:config', true);
 
         if ($windx > 0) {
             $settingspage->add(

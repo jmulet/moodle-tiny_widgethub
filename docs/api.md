@@ -4,6 +4,7 @@ Optional keywords are marked with **[ ]**.
 
 | **Key**               | **Type**                              | **Description**                                                                                           |
 |-----------------------|---------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| **`[plugin_release]`**             | `string`                             | (Optional) The version of the Widgethub plugin required. The minimum required version of the Widgethub plugin, specified using comparison operators. Supported formats include >=1.4, >1.4, 1.4 or =1.4.                                         |
 | **`key`**             | `string`                             | A unique identifier for the widget.                                                                      |
 | **`name`**            | `string`                             | The name displayed on the button for selecting the widget.                                                |
 | **`[order]`**           | `string`                              | (Optional) If present, the name used to sort the widget alphabetically otherwise the `name` property is used      |
@@ -38,7 +39,7 @@ The type ContextMenu is defined by
 | **Key**               | **Type**                              | **Description**                                                                                           |
 |-----------------------|---------------------------------------|-----------------------------------------------------------------------------------------------------------|
 | **`predicate`**     | `string`                             | CSS query for elements triggering the context menu.                                                        |
-| **`actions`**       | `array`                              | Actions such as  `moveup`, `movedown`, `moveleft`, `moveright`, `clone`, `delete`                          |
+| **`actions`**       | `string`                             | Space separated actions such as  `moveup`, `movedown`, `moveleft`, `moveright`, `insertafter`, `remove`                          |
 
 ---  
 
@@ -55,11 +56,12 @@ The type `Parameter` consists of these fields
 | **`[tip]`**       | `string`                             | (Optional) Simply a shortcut for `tooltip`                                               |
 **`[partial]`**       | `string`                             | (Optional) A string with double trailing and leading undercore. This variable must be defined into the `partials` widget.        |
 | **`value`**           | `any`                                | Default value for the parameter. If he type is 'select', then the value must match one of the options.                                                                        |
-| **`[type]`**          | `'textfield' or 'textarea' or 'numeric' or 'select' or 'checkbox' or 'color'` | (Optional) Input type inferred from `value` or other parameters.                                         |
+| **`[type]`**          | `'textfield' or 'textarea' or 'numeric' or 'select' or 'autocomplete' or 'checkbox' or 'color' or 'repeatable'` | (Optional) In some cases, type can be inferred from `value` or other parameters.                                         |
 | **`options`**         | `string[]` or `{l: string, v: string}[]` | Options for `select` type.                                                                |
-| **`[min]`**           | `number`                             | (Optional) Minimum value for numeric controls only.                                                           |
-| **`[max]`**           | `number`                             | (Optional) Maximum value for numeric controls only.                                                           |
-| **`[bind]`**          | `string` or `{get: () => string, set: (value: any) => void}` | (Optional) Binding configuration for parameter values.                                                   |
+| **`[min]`**           | `number`                             | (Optional) Minimum value for numeric controls or the minimum number of items in repeatable parameters (defaults to 1).                                                           |
+| **`[max]`**           | `number`                             | (Optional) Maximum value for numeric controls or the maximum number of items in repeatable parameters.                                                           |
+| **`[bind]`**          | `string` or ` {getValue: (el: HTMLElement) => any, setValue: (el: HTMLElement, value: any) => void}` or `@Deprecated {get: ($e: jQuery) => any, set: ($e: jQuery, value: any) => void}` | (Optional) Binding configuration for parameter values. In repeatable parameters (since v1.4), you can either use the `item_selector` keyword or the format `{getValue: (el) => object[], setValue: (el, value: object[]) => void}`.   |
+| **`[item_selector]`**      | `string` | (Optional) (Since v1.4) In repeatable parameters, it specifies a **css query** that provides a list of DOM elements mapping the list items.    |
  **`[transform]`**          | `string` | (Optional) Applies a pipe of transform functions to the value obtained from the user form. See below for the list of available transform functions.                         
 | **`[when]`**          | `string` | (Optional) A Javascript expression to programatically determine when this control must be shown. The expression can contain the keys of other parameters or the special key `SELECT_MODE` which is set to `selection` when there exists a selection in the Tiny editor and to `insert` otherwise.                          
 | **`[hidden]`**          | `boolean` | (Optional) Whether the control is hidden or visible.                            

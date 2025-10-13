@@ -1,12 +1,10 @@
 key: ib-quote
-name: Quote
-instructions: |
-  Use this snippet to quote a famous (short) phrase by an author.
-template: >
-  <p><br></p> 
+name: $string.ibquote_name
+instructions: $string.ibquote_instructions
+template: |
   <div class="twh-quote {{#notranslate}}notranslate{{/notranslate}}">
   <div class="twh-iq">
-  <p>You don't really understand something unless you can explain it to your grandmother.</p>
+  <p>__LOREM__</p>
   </div>
   <cite>{{author}}</cite>
   </div>
@@ -17,10 +15,10 @@ unwrap: "*"
 parameters: 
   - name: author
     value: Albert Einstein
-    title: Author of the quote
+    title: $string.ibquote_author
   - name: notranslate
     value: true
-    title: Prevent translation by Google
+    title: $string.ibquote_notranslate
     bind: hasClass('notranslate')
 author: Josep Mulet Pol <pep.mulet@gmail.com>
-version: 1.1.0
+version: 2.0.0

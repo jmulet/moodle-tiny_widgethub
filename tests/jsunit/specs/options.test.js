@@ -101,7 +101,7 @@ describe('Options', () => {
         expect(registerOption).toHaveBeenNthCalledWith(2, "user", expect.any(Object));
         expect(registerOption).toHaveBeenNthCalledWith(3, "courseid", expect.any(Object));
         expect(registerOption).toHaveBeenNthCalledWith(4, "widgetlist", expect.any(Object));
-        expect(registerOption).toHaveBeenNthCalledWith(5, "sharestyles", expect.any(Object));
+        expect(registerOption).toHaveBeenNthCalledWith(5, "sharecss", expect.any(Object));
         expect(registerOption).toHaveBeenNthCalledWith(6, "additionalcss", expect.any(Object));
     });
 

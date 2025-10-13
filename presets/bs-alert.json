@@ -1,15 +1,15 @@
 {
     "key": "bs-alert",
-    "name": "Alert container",
+    "name": "$string.bsalert_name",
     "category": "bootstrap",
-    "template": "<p></p>\n<div class=\"m-2 alert alert-{{severity}}{{#closable}} alert-dismissible{{/closable}} fade show\" role=\"alert\">\n  {{#closable}}\n   <button type=\"button\" class=\"close\" data-dismiss=\"alert\" data-bs-dismiss=\"alert\" aria-label=\"Close\">\n     <span aria-hidden=\"true\">&times;</span>\n   </button>\n  {{/closable}}\n  <div class=\"alert-content\">\n    <p>Lorem ipsum.</p>\n  </div>\n</div>\n<p></p>\n",
+    "template": "<div class=\"m-2 alert alert-{{severity}}{{#closable}} alert-dismissible{{/closable}} fade show\" role=\"alert\">\n  {{#closable}}\n   <button type=\"button\" class=\"close\" data-dismiss=\"alert\" data-bs-dismiss=\"alert\" aria-label=\"Close\">\n     <span aria-hidden=\"true\">&times;</span>\n   </button>\n  {{/closable}}\n  <div class=\"alert-content\">\n    <p>Lorem ipsum.</p>\n  </div>\n</div>\n<p><br></p>\n",
     "selectors": "div[role=\"alert\"].alert",
     "insertquery": "div[role=\"alert\"].alert .alert-content",
     "unwrap": "*",
     "parameters": [
         {
             "name": "severity",
-            "title": "Type of alert",
+            "title": "$string.bsalert_severity_title",
             "bind": "classRegex('alert-(.*)')",
             "value": "primary",
             "options": [
@@ -25,15 +25,15 @@
         },
         {
             "name": "closable",
-            "title": "Closable",
+            "title": "$string.bsalert_closable_title",
             "value": false,
             "bind": {
-                "get": "(e) => e.find(\"button.close\").length > 0",
-                "set": "(e, v) => {\n    if (v && !e.find(\"button.close\")[0]) {\n      var btn = '<button type=\"button\" class=\"close\" data-dismiss=\"alert\" data-bs-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>';\n      e.prepend(btn);\n      e.addClass('alert-dismissible');\n    } else if (!v) {\n      e.removeClass('alert-dismissible');\n      e.find(\"button.close\").remove();\n    }\n}\n"
+                "getValue": "(el) => el.querySelector(\"button.close\") !== null",
+                "setValue": "(el, v) => {\n    var btnClose = el.querySelector(\"button.close\");\n    if (v && btnClose === null) {\n      var btn = '<button type=\"button\" class=\"close\" data-dismiss=\"alert\" data-bs-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>';\n      const template = document.createElement('template');\n      template.innerHTML = btn;\n      el.prepend(template.content.firstChild);\n      el.classList.add('alert-dismissible');\n    } else if (!v) {\n      el.classList.remove('alert-dismissible');\n      btnClose && btnClose.remove();\n    }\n}\n"
             }
         }
     ],
     "autocomplete": "severity",
     "author": "Josep Mulet <pep.mulet@gmail.com>",
-    "version": "1.3.1"
+    "version": "2.1.0"
 }

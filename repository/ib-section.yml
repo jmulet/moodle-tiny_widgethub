@@ -1,10 +1,7 @@
 key: ib-section
-name: Page Section
-instructions: > 
-  Create a section within a page or a Moodle book.
-  The title should not end with a period.
-template: | 
-  <p><br></p>
+name: $string.ibsection_name
+instructions: $string.ibsection_instructions
+template: |
   <h4 class="twh-subsub"><span class="twh-iq">{{title}}</span></h4>
   <p><br></p>
 selectors: h4.twh-subsub
@@ -12,8 +9,8 @@ insertquery: .twh-iq
 unwrap: .twh-iq
 parameters: 
   - name: title
-    value: Section title
-    title: Section title
+    value: $string.ibsection_title
+    title: $string.ibsection_title
     when: "!SELECT_MODE"
 author: Josep Mulet Pol <pep.mulet@gmail.com>
-version: 1.1.0
+version: 2.0.0

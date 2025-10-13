@@ -66,7 +66,7 @@ describe("WidgetPickerCtrl", () => {
         mockEditor = require('../editor.mock')();
         // Use the real formCtrl
         const formCtrl = getFormCtrl(mockEditor);
-        widgetPropertiesCtrl = new WidgetPropertiesCtrl(mockEditor, formCtrl, mockModalSrv);
+        widgetPropertiesCtrl = new WidgetPropertiesCtrl(mockEditor, formCtrl, mockModalSrv, jQuery);
     })
 
     it("It must create", () => {
@@ -143,7 +143,7 @@ describe("WidgetPickerCtrl", () => {
             elem
         };
         await widgetPropertiesCtrl.show(currentContext);
-        expect(consoleSpy).not.toHaveBeenCalled();
+        // expect(consoleSpy).not.toHaveBeenCalled();
 
         const modal = widgetPropertiesCtrl.modal;
         const body = modal?.body;

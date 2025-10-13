@@ -1,64 +1,64 @@
 {
     "key": "bs-table",
-    "name": "Bootstrap table",
+    "name": "$string.bstable_name",
     "category": "bootstrap",
-    "instructions": "Create a table with n rows and m columns\n",
-    "template": "<p><br></p> \n{{#responsive}}<div class=\"table-responsive\">{{/responsive}}\n<table class=\"table{{#stripes}} table-striped{{/stripes}}{{#borders}} table-bordered{{/borders}}{{#hover}} table-hover{{/hover}} whb-bstable\">\n{{#desc}}\n<caption class=\"caption-top\">Table: {{desc}}</caption>\n{{/desc}}\n{{#headers}}\n  <thead>\n    <tr>{{#each}}[j=ncols]<th role=\"col\">Title{{j}}</th>{{/each}}</tr>\n  </thead>\n{{/headers}}\n<tbody class=\"table-group-divider\">\n  {{#each}}[i=nrows]<tr>{{#each}}[j=ncols]<td>Cell{{i}}{{j}}</td>{{/each}}</tr>{{/each}}\n</tbody>\n{{#footer}}\n  <tfoot class=\"table-group-divider\">\n    <tr>{{#each}}[j=ncols]<th>Foot{{j}}</th>{{/each}}</tr>\n  </tfoot>\n{{/footer}}\n</table> \n{{#responsive}}</div>{{/responsive}}\n<p><br></p>\n",
+    "instructions": "$string.bstable_instructions",
+    "template": "{{#responsive}}<div class=\"table-responsive\">{{/responsive}}\n<table class=\"table{{#stripes}} table-striped{{/stripes}}{{#borders}} table-bordered{{/borders}}{{#hover}} table-hover{{/hover}} whb-bstable\">\n{{#desc}}\n<caption class=\"caption-top\">$string.bstable_table: {{desc}}</caption>\n{{/desc}}\n{{#headers}}\n  <thead>\n    <tr>{{#each}}[j=ncols]<th role=\"col\">$string.bstable_title {{j}}</th>{{/each}}</tr>\n  </thead>\n{{/headers}}\n<tbody class=\"table-group-divider\">\n  {{#each}}[i=nrows]<tr>{{#each}}[j=ncols]<td>$string.bstable_cell {{i}}{{j}}</td>{{/each}}</tr>{{/each}}\n</tbody>\n{{#footer}}\n  <tfoot class=\"table-group-divider\">\n    <tr>{{#each}}[j=ncols]<th>$string.bstable_foot{{j}}</th>{{/each}}</tr>\n  </tfoot>\n{{/footer}}\n</table> \n{{#responsive}}</div>{{/responsive}}\n<p><br></p>\n",
     "selectors": "table.whb-bstable",
     "parameters": [
         {
             "name": "nrows",
-            "title": "Number of rows",
+            "title": "$string.bstable_nrows",
             "value": 3,
             "min": 1
         },
         {
             "name": "ncols",
-            "title": "Number of columns",
+            "title": "$string.bstable_ncols",
             "value": 4,
             "min": 1
         },
         {
             "name": "headers",
-            "title": "Include headers",
+            "title": "$string.bstable_headers",
             "value": true
         },
         {
             "name": "footer",
-            "title": "Include footer",
+            "title": "$string.bstable_footer",
             "value": false
         },
         {
             "name": "desc",
-            "title": "A description for the table",
+            "title": "$string.ibtime_title",
             "type": "textfield",
             "value": ""
         },
         {
             "name": "stripes",
-            "title": "Show stripes",
-            "tip": "Odd rows will be rendered with gray background",
+            "title": "$string.bstable_stripes",
+            "tip": "$string.bstable_stripes_tip",
             "value": false,
             "bind": "hasClass('table-striped')"
         },
         {
             "name": "hover",
-            "title": "Highlight row on mouse over",
+            "title": "$string.bstable_hover",
             "value": false,
             "bind": "hasClass('table-hover')"
         },
         {
             "name": "borders",
-            "title": "Show borders",
+            "title": "$string.bstable_borders",
             "value": false,
             "bind": "hasClass('table-bordered')"
         },
         {
             "name": "responsive",
-            "title": "Responsive behaviour",
+            "title": "$string.bstable_responsive",
             "value": false
         }
     ],
     "author": "Josep Mulet <pep.mulet@gmail.com>",
-    "version": "1.1.0"
+    "version": "2.0.0"
 }

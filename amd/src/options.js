@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable no-console */
 // This file is part of Moodle - http://moodle.org/
 //
@@ -24,6 +25,8 @@
 
 import {getPluginOptionName} from 'editor_tiny/options';
 import Common from './common';
+import {compareVersion, genID} from './util';
+import {createDefaultsForParam} from './service/template_service';
 const pluginName = Common.pluginName;
 
 const showPlugin = getPluginOptionName(pluginName, 'showplugin');
@@ -31,7 +34,7 @@ const userInfoOpt = getPluginOptionName(pluginName, 'user');
 const courseId = getPluginOptionName(pluginName, 'courseid');
 const widgetList = getPluginOptionName(pluginName, 'widgetlist');
 
-const shareStyles = getPluginOptionName(pluginName, 'sharestyles');
+const shareCss = getPluginOptionName(pluginName, 'sharecss');
 const additionalCss = getPluginOptionName(pluginName, 'additionalcss');
 const globalConfig = getPluginOptionName(pluginName, 'cfg');
 
@@ -65,7 +68,7 @@ export const register = (editor) => {
         "default": [],
     });
 
-    registerOption(shareStyles, {
+    registerOption(shareCss, {
         processor: 'boolean',
         "default": true,
     });
@@ -97,13 +100,21 @@ export const getAdditionalCss = (editor) => {
 
 /**
  * @param {import('./plugin').TinyMCE} editor
+ * @returns {boolean} - whether site styles should be inserted into iframe
+ */
+export const isShareCss = (editor) => {
+    return editor.options.get(shareCss);
+};
+
+/**
+ * @param {import('./plugin').TinyMCE} editor
  * @param {string} key
  * @param {string} defaultValue
  * @returns {string} - An object with the key/value properties
  */
 export const getGlobalConfig = (editor, key, defaultValue) => {
     const dict = editor.options.get(globalConfig) ?? {};
-    return dict[key] ?? defaultValue;
+    return dict[key]?.trim() ?? defaultValue;
 };
 
 /**
@@ -133,13 +144,15 @@ export const getWidgetDict = (editor) => {
     const wrappedWidgets = rawWidgets
         .map(w => new Widget(w, partials || {}));
 
-    // Remove those buttons that aren't usable for the current user
+    // Remove those widgets that aren't usable for the current user
+    // and not supported by the currentVersion of the plugin.
     const userInfo = editor.options.get(userInfoOpt);
-    wrappedWidgets.filter(w => w.isFor(userInfo)).forEach(w => {
-        if (_widgetDict) {
-            _widgetDict[w.key] = w;
-        }
-    });
+    wrappedWidgets.filter(w => w.isFor(userInfo) && compareVersion(Common.currentRelease, w.prop('plugin_release')))
+        .forEach(w => {
+            if (_widgetDict) {
+                _widgetDict[w.key] = w;
+            }
+        });
     return _widgetDict;
 };
 
@@ -299,7 +312,7 @@ export function applyPartials(widget, partials) {
  * @property {string=} partial
  * @property {string} name
  * @property {string} title
- * @property {'textfield' | 'numeric' | 'checkbox' | 'select' | 'autocomplete' | 'textarea' | 'image' | 'color'} [type]
+ * @property {'textfield' | 'numeric' | 'checkbox' | 'select' | 'autocomplete' | 'textarea' | 'image' | 'color' | 'repeatable'} [type]
  * @property {(ParamOption | string)[]} [options]
  * @property {any} value
  * @property {string=} tip
@@ -307,11 +320,13 @@ export function applyPartials(widget, partials) {
  * @property {number=} min
  * @property {number=} max
  * @property {string=} transform
- * @property {string | {get: string, set: string} } [bind]
+ * @property {string | {get?: string, set?: string, getValue?: string, setValue?: string} } [bind]
+ * @property {string} [item_selector]
  * @property {string=} when
  * @property {boolean} [hidden]
  * @property {boolean} [editable]
  * @property {string} [for]
+ * @property {Param[]} [fields]
  */
 /**
  * @typedef {Object} Action
@@ -320,6 +335,7 @@ export function applyPartials(widget, partials) {
  */
 /**
  * @typedef {Object} RawWidget
+ * @property {string} [plugin_release]
  * @property {number} id
  * @property {string} key
  * @property {string} name
@@ -342,7 +358,7 @@ export function applyPartials(widget, partials) {
  * @property {string} [autocomplete]
  * @property {string} version
  * @property {string} author
- * @property {string[]} [requires]
+ * @property {string} [requires]
  * @property {boolean} [hidden]
  * @property {number} [stars]
  * @property {Action[]} [contextmenu]
@@ -363,6 +379,10 @@ export class Widget {
      * @param {Object.<string, any>=} partials
      */
     constructor(widget, partials) {
+        if (!widget.key) {
+            // Define a random key
+            widget.key = 'w' + genID();
+        }
         partials = partials ?? {};
         applyPartials(widget, partials);
         this._widget = widget;
@@ -398,10 +418,10 @@ export class Widget {
         return this._widget.template ?? this._widget.filter ?? '';
     }
     /**
-     * @returns {string}
+     * @returns {string | undefined}
      */
     get category() {
-        return this._widget.category ?? "MISC";
+        return this._widget.category;
     }
     /**
      * @returns {string=}
@@ -447,10 +467,17 @@ export class Widget {
      * @returns {Object.<string, any>}
      */
     get defaults() {
+        return this.defaultsWithRepeatable(false);
+    }
+    /**
+     * @param {boolean} [populateRepeatable]
+     * @returns {Object.<string, any>}
+     */
+    defaultsWithRepeatable(populateRepeatable = true) {
         /** @type {Object.<string, any> } */
         const obj = {};
         (this._widget.parameters ?? []).forEach((param) => {
-            obj[param.name] = param.value;
+            obj[param.name] = createDefaultsForParam(param, populateRepeatable);
         });
         return obj;
     }
@@ -535,8 +562,18 @@ export class Widget {
     /**
      * @returns {boolean}
      */
+    isSelectCapable() {
+        return this._widget.selectors !== undefined && this._widget.insertquery !== undefined;
+    }
+    /**
+     * @returns {boolean}
+     */
     hasBindings() {
-        return (this._widget.parameters ?? []).some(param => param.bind !== undefined);
+        const parameters = this._widget.parameters ?? [];
+        const repeatable = parameters.filter(param => param.type === 'repeatable')
+            .map(rep => (rep.fields || []).some(field => field.bind !== undefined));
+        return parameters.some(param => param.bind !== undefined) ||
+            repeatable.some(rep => rep);
     }
     /**
      * Recovers the property value named name of the original definition

@@ -12,3 +12,7 @@ scripts/styles.css
 copy.sh
 playground/
 .qodo
+repository/lang
+repository/lang/en
+repository/lang/es
+repository/lang/ca

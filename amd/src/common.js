@@ -31,5 +31,6 @@ export default {
     baseUrl,
     component,
     pluginName: `${component}/plugin`,
-    icon: `${component}`
+    icon: `${component}`,
+    currentRelease: '1.4.0'
 };

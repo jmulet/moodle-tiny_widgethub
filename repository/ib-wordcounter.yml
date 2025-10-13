@@ -1,8 +1,7 @@
 key: ib-wordcounter
-name: Show the number of words
+name: $string.ibwc_name
 category: misc
-instructions: >
-  This is an example widget that shows how to integrate javascript.
+instructions: $string.ibwc_instructions
 template: |
   <p><br></p>
   <div data-widget="ib-wordcounter">
@@ -13,4 +12,4 @@ selectors: div[data-widget="ib-wordcounter"]
 insertquery: div[data-widget="ib-wordcounter"]
 requires: https://raw.githubusercontent.com/jmulet/moodle-tiny_widgethub/refs/heads/develop/repository/ib-wordcounter.js
 author: Josep Mulet Pol <pep.mulet@gmail.com>
-version: 1.0.0
+version: 2.0.0

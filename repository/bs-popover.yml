@@ -1,8 +1,7 @@
 key: bs-popover
 name: Popover
 category: bootstrap
-instructions: >
-  Add a popover annotation to a word/s. It is activated when the mouse is clicked.
+instructions: $string.bspopover_instructions
 template: |
   <a href="javascript:void(0)" data-toggle="popover" data-bs-toggle="popover" data-trigger="click" data-bs-trigger="click" 
   data-original-title="{{title}}" data-bs-original-title="{{title}}" data-content="{{{anotation}}}" data-bs-content="{{{anotation}}}" 
@@ -13,14 +12,14 @@ unwrap: .whb-inspoint
 insertquery: .whb-inspoint
 parameters:
   - name: word
-    title: Word
+    title: $string.bspopover_word
     value: Moodle
     type: textfield
-    tip: When you click on this word, the balloon will appear
+    tip: $string.bspopover_word_tip
     when: "!SELECT_MODE" 
   - name: placement
     value: auto
-    title: Popover placement
+    title: $string.bspopover_placement
     options:
       - auto
       - top
@@ -30,16 +29,16 @@ parameters:
     bind: attrBS('placement')
   - name: title
     value: ""
-    title: Title of popover
+    title: $string.bspopover_title
     transform: trim
-    tip: This parameter is optional. If you add it, the title will appear above the balloon
+    tip: $string.bspopover_title_tip
     bind: attrBS('original-title')
   - name: anotation
     value: It's <b>awesome</b> 
-    title: Content of popover
+    title: $string.bspopover_anotation
     type: textarea 
     transform: escapeQuotes
-    tip: You can write basic HTML content
+    tip: $string.bspopover_anotation_tip
     bind: attrBS('content')
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 1.3.0
+version: 2.0.0

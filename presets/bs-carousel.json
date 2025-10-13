@@ -1,0 +1,41 @@
+{
+    "plugin_release": ">=1.4",
+    "key": "bs-carousel",
+    "name": "$string.bscarousel_name",
+    "category": "bootstrap",
+    "engine": "ejs",
+    "template": "<div id=\"<%=ID%>\" data-widget=\"bs-carousel\" class=\"carousel slide\" data-ride=\"carousel\">\n  <ol class=\"carousel-indicators\">\n    <% imgs.forEach((_, i) => { %>\n      <li data-target=\"#<%=ID%>\" data-slide-to=\"<%=i%>\"<%= i===0 ?' class=\"active\"' : ''%>>&nbsp;</li>\n    <% }) %>\n  </ol>\n\n   <div class=\"carousel-inner\">\n    <% imgs.forEach((img, i) => { %>\n      <div class=\"carousel-item<%= i===0 ?' active' : ''%>\">\n        <img src=\"<%=img.url%>\" class=\"d-block w-100\" alt=\"image <%=i+1%>\">\n        <% if (usecaptions) { %>\n        <div class=\"carousel-caption d-none d-md-block\">\n          <h5><%=img.title%></h5>\n          <p>Lorem ipsum $string.bscarousel_slide <%=i+1%>.</p>\n        </div>\n        <% } %>\n      </div>\n    <% }) %>\n  </div>\n\n  <button class=\"carousel-control-prev\" type=\"button\" data-target=\"#<%=ID%>\" data-slide=\"prev\">\n    <span class=\"carousel-control-prev-icon\" aria-hidden=\"true\">&nbsp;</span>\n    <span class=\"sr-only\">Previous</span>\n  </button>\n\n  <button class=\"carousel-control-next\" type=\"button\" data-target=\"#<%=ID%>\" data-slide=\"next\">\n    <span class=\"carousel-control-next-icon\" aria-hidden=\"true\">&nbsp;</span>\n    <span class=\"sr-only\">Next</span>\n  </button>\n</div>    <p><br></p>\n",
+    "selectors": "div[data-widget=\"bs-carousel\"]",
+    "parameters": [
+        "__ID__",
+        {
+            "name": "usecaptions",
+            "title": "$string.bscarousel_usecaptions",
+            "value": true
+        },
+        {
+            "name": "imgs",
+            "title": "$string.bscarousel_imgs",
+            "type": "repeatable",
+            "item_selector": ".carousel-item",
+            "min": 2,
+            "max": 10,
+            "fields": [
+                {
+                    "name": "url",
+                    "title": "URL",
+                    "type": "image",
+                    "value": "https://picsum.photos/300/200?random={{i}}",
+                    "bind": "attr('src', 'img')"
+                },
+                {
+                    "name": "title",
+                    "title": "$string.ibtime_title",
+                    "value": "$string.bscarousel_slide {{i}}"
+                }
+            ]
+        }
+    ],
+    "author": "Josep Mulet <pep.mulet@gmail.com>",
+    "version": "2.0.0"
+}

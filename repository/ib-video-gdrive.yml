@@ -1,32 +1,30 @@
 key: ib-video-gdrive
-name: Video-GDrive
-category: video
-instructions: >
-  Embed a video that the user has previously shared from its Google Drive. Enter the iframe share code and optionally a title.
+name: $string.ibvgdrive_name
+category: $string.ibvgdrive_category
+instructions: $string.ibvgdrive_instructions
 template: |
-  <p><br></p>
   <div class="twh-video-container twh-video-gdrive" {{#if}}[maxWidth>100]style="max-width:{{maxWidth}}px"{{/if}}>
     <div class="twh-videoWrapper">
     {{{iframe_code}}}  
     </div>
       <div class="twh-caption">
-     <span class="twh-caption-counter">Video</span><span class="twh-caption-title">: {{title}}</span></div>
+     <span class="twh-caption-counter">$string.ibvgdrive_category</span><span class="twh-caption-title">: {{title}}</span></div>
     </div>
   <p><br></p>
 parameters: 
   - name: title
-    value: Write a title
-    title: Descriptive Title
+    value: $string.ibvgdrive_title_value
+    title: $string.ibtime_title
     type: textfield
   - name: iframe_code
-    value: <iframe src="https://drive.google.com/file/d/1C-xFq_cPF9kr1Xq9XINixAkU46AHAVUE/preview" width="640" height="480" allow="autoplay" fullscreen="1"></iframe>
-    title: Iframe code
-    tip: Paste the iframe code you obtained from sharing on Drive.
+    value: <iframe src="https://drive.google.com/file/d/1Ev4oVwHmspOjrx7Kql6R7QxoUFcJEknF/preview" width="640" height="480" allow="autoplay" fullscreen="1"></iframe>
+    title: $string.ibvgdrive_iframecode
+    tip: $string.ibvgdrive_iframecode_tip
     type: textarea
   - name: maxWidth
     value: 500
-    title: Maximum width in px
+    title: $string.ibfragment_maxwidth
     min: 100
 scope: ^page-mod-(book|page|assign|quizz)-
 author: Josep Mulet Pol <pep.mulet@gmail.com>
-version: 1.1.0
+version: 2.0.0

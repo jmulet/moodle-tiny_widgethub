@@ -1,8 +1,7 @@
 key: bs-alert
-name: Alert container
+name: $string.bsalert_name
 category: bootstrap
 template: |
-  <p></p>
   <div class="m-2 alert alert-{{severity}}{{#closable}} alert-dismissible{{/closable}} fade show" role="alert">
     {{#closable}}
      <button type="button" class="close" data-dismiss="alert" data-bs-dismiss="alert" aria-label="Close">
@@ -13,13 +12,13 @@ template: |
       <p>Lorem ipsum.</p>
     </div>
   </div>
-  <p></p>
+  <p><br></p>
 selectors: div[role="alert"].alert
 insertquery: div[role="alert"].alert .alert-content
 unwrap: '*'
 parameters:
   - name: severity
-    title: Type of alert
+    title: $string.bsalert_severity_title
     bind: classRegex('alert-(.*)')
     value: primary    
     options:
@@ -32,21 +31,24 @@ parameters:
       - light
       - dark
   - name: closable
-    title: Closable
+    title: $string.bsalert_closable_title
     value: false
     bind:
-      get: (e) => e.find("button.close").length > 0
-      set: |
-        (e, v) => {
-            if (v && !e.find("button.close")[0]) {
+      getValue: (el) => el.querySelector("button.close") !== null
+      setValue: |
+        (el, v) => {
+            var btnClose = el.querySelector("button.close");
+            if (v && btnClose === null) {
               var btn = '<button type="button" class="close" data-dismiss="alert" data-bs-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
-              e.prepend(btn);
-              e.addClass('alert-dismissible');
+              const template = document.createElement('template');
+              template.innerHTML = btn;
+              el.prepend(template.content.firstChild);
+              el.classList.add('alert-dismissible');
             } else if (!v) {
-              e.removeClass('alert-dismissible');
-              e.find("button.close").remove();
+              el.classList.remove('alert-dismissible');
+              btnClose && btnClose.remove();
             }
         }
 autocomplete: severity
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 1.3.1
+version: 2.1.0
