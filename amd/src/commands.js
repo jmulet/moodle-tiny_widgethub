@@ -1,4 +1,4 @@
-/* eslint-disable max-len */
+
 /* eslint-disable no-console */
 // This file is part of Moodle - http://moodle.org/
 //
@@ -81,6 +81,24 @@ export const getSetup = async() => {
         const storage = getUserStorage(editor);
         const widgetsDict = getWidgetDict(editor);
 
+        /**
+         * This helper function makes adjustments to the context required for the widget.
+         * @param {import('./options').Widget} widget
+         * @param {string} behavior - none / default / lastused
+         * @param {boolean} includeRepeatable - should repeatable fields be populated?
+         * @returns {Record<string, *>}
+         */
+        const contextMerger = (widget, behavior, includeRepeatable) => {
+            /** @type {Record<string, *>} */
+            let ctx = widget.defaultsWithRepeatable(includeRepeatable) || {};
+            // Should it load recently used values?
+            if (behavior === 'lastused') {
+                const ctxStored = storage.getRecentUsed().find(e => e.key === widget.key)?.p || {};
+                ctx = {...ctx, ...removeRndFromCtx(ctxStored, widget.parameters)};
+            }
+            return ctx;
+        };
+
         // Register the Toolbar Button or SplitButton - including recently used widgets
         const defaultAction = () => {
             const widgetPickCtrl = getWidgetPickCtrl(editor);
@@ -95,41 +113,42 @@ export const getSetup = async() => {
         if (splitButtonBehavior === 'none') {
             editor.ui.registry.addButton(Common.component, toolbarButtonSpec);
         } else {
-            editor.ui.registry.addSplitButton(Common.component, {
-                ...toolbarButtonSpec,
-                columns: 1,
-                fetch: (/** @type ((items: *[]) => void) */callback) => {
-                    const isSelectMode = editor.selection.getContent().trim().length > 0;
-                    const items = storage.getRecentUsed()
+            /**
+             *
+             * @param {((items: *[]) => void) } callback
+             */
+            const splitbuttonFetch = (callback) => {
+                const isSelectMode = editor.selection.getContent().trim().length > 0;
+                const items = storage.getRecentUsed()
                     .filter(e => {
                         const widget = widgetsDict[e.key];
-                        if (!widget?.name) {
-                            return false;
-                        }
-                        return !isSelectMode || (isSelectMode && widget.isSelectCapable());
+                        return widget?.name && (!isSelectMode || widget.isSelectCapable());
                     })
                     .map(e => ({
                         type: 'choiceitem',
                         text: widgetsDict[e.key]?.name,
                         value: e.key
                     }));
-                    callback(items);
-                },
-                onItemAction: (/** @type {*} */ api, /** @type {string} */ key) => {
-                    const widgetPickCtrl = getWidgetPickCtrl(editor);
-                    const widget = widgetsDict[key];
-                    if (!widget) {
-                        return;
-                    }
-                    /** @type {Record<string, *>} */
-                    let ctx = widget.defaultsWithRepeatable(true) || {};
-                    if (splitButtonBehavior === 'lastused') {
-                        // Use stored preferences if any stored
-                        const ctxStored = storage.getRecentUsed().find(e => e.key === key)?.p || {};
-                        ctx = {...ctx, ...removeRndFromCtx(ctxStored, widget.parameters)};
-                    }
-                    widgetPickCtrl.handlePickModalAction(widget, true, ctx);
+                callback(items);
+            };
+            /**
+             * @param {*} api
+             * @param {string} key
+             */
+            const splitbuttonAction = (api, key) => {
+                const widgetPickCtrl = getWidgetPickCtrl(editor);
+                const widget = widgetsDict[key];
+                if (!widget) {
+                    return;
                 }
+                const ctx = contextMerger(widget, splitButtonBehavior, true);
+                widgetPickCtrl.handlePickModalAction(widget, true, ctx);
+            };
+            editor.ui.registry.addSplitButton(Common.component, {
+                ...toolbarButtonSpec,
+                columns: 1,
+                fetch: splitbuttonFetch,
+                onItemAction: splitbuttonAction
             });
         }
 
@@ -149,70 +168,76 @@ export const getSetup = async() => {
         const autoCompleteBehavior = getGlobalConfig(editor, 'insert.autocomplete.behavior', 'lastused');
         const autoCompleteTrigger = getGlobalConfig(editor, 'insert.autocomplete.symbol', '@');
         if (autoCompleteBehavior !== 'none' && autoCompleteTrigger) {
+            /**
+             * @param {string} pattern
+             * @returns {Promise<{type: string, value: string, text: string}[]>}
+             */
+            const autocompleterFetch = (pattern) => {
+                /** @type {{type: string, value: string, text: string}[]} */
+                const results = [];
+                getMatchedWidgets(pattern).forEach((/** @type {import('./options').Widget} */ w) => {
+                    const varname = w.prop('autocomplete')?.trim();
+                    const param = findVariableByName(varname, w.parameters);
+                    if (!param?.options) {
+                        results.push({
+                            type: 'autocompleteitem',
+                            value: w.key,
+                            text: w.name
+                        });
+                    } else {
+                        param.options.forEach(opt => {
+                            let value = opt;
+                            let label = opt;
+                            if (typeof opt === 'object') {
+                                value = opt.v;
+                                label = opt.l;
+                            }
+                            results.push({
+                                type: 'autocompleteitem',
+                                value: `${w.key}|${varname}:${value}`,
+                                text: w.name + " " + label
+                            });
+                        });
+                    }
+                });
+                return Promise.resolve(results);
+            };
+            /**
+             * @param {*} api
+             * @param {Range} rng
+             * @param {string} value
+             */
+            const autocompleterAction = (api, rng, value) => {
+                api.hide();
+                rng = rng || api.getRange();
+                const pair = value.split('|');
+                const key = pair[0].trim();
+                const widget = widgetsDict[key];
+                if (!widget) {
+                    return;
+                }
+                const ctx = contextMerger(widget, autoCompleteBehavior, true);
+                if (pair.length === 2) {
+                    const [varname, varvalue] = pair[1].split(":");
+                    ctx[varname] = varvalue;
+                }
+                editor.selection.setRng(rng);
+                editor.insertContent('');
+                const widgetPickCtrl = getWidgetPickCtrl(editor);
+                widgetPickCtrl.handlePickModalAction(widget, true, ctx);
+            };
+
             editor.ui.registry.addAutocompleter(Common.component + '_autocompleter', {
                 trigger: autoCompleteTrigger,
                 columns: 1,
                 minChars: 3,
-                fetch: (/** @type {string}*/ pattern) => {
-                        /** @type {{type: string, value: string, text: string}[]} */
-                        const results = [];
-                        getMatchedWidgets(pattern).forEach((/** @type {import('./options').Widget} */ w) => {
-                            const varname = w.prop('autocomplete')?.trim();
-                            const param = findVariableByName(varname, w.parameters);
-                            if (!param?.options) {
-                                results.push({
-                                    type: 'autocompleteitem',
-                                    value: w.key,
-                                    text: w.name
-                                });
-                            } else {
-                                param.options.forEach(opt => {
-                                    let value = opt;
-                                    let label = opt;
-                                    if (typeof opt === 'object') {
-                                        value = opt.v;
-                                        label = opt.l;
-                                    }
-                                    results.push({
-                                        type: 'autocompleteitem',
-                                        value: `${w.key}|${varname}:${value}`,
-                                        text: w.name + " " + label
-                                    });
-                                });
-                            }
-                        });
-                        return Promise.resolve(results);
-                },
-                onAction: (/** @type {*}*/ api, /** @type {Range}*/ rng, /** @type {string}*/ value) => {
-                    api.hide();
-                    rng = rng || api.getRange();
-                    const pair = value.split('|');
-                    const key = pair[0].trim();
-                    const widget = widgetsDict[key];
-                    if (!widget) {
-                        return;
-                    }
-                    /** @type {Record<string, *>} */
-                    let ctx = widget.defaultsWithRepeatable(true) || {};
-                    // Should it load recently used values?
-                    if (autoCompleteBehavior === 'lastused') {
-                        const ctxStored = storage.getRecentUsed().find(e => e.key === key)?.p || {};
-                        ctx = {...ctx, ...removeRndFromCtx(ctxStored, widget.parameters)};
-                    }
-                    if (pair.length === 2) {
-                        const [varname, value] = pair[1].split(":");
-                        ctx[varname] = value;
-                    }
-                    editor.selection.setRng(rng);
-                    editor.insertContent('');
-                    const widgetPickCtrl = getWidgetPickCtrl(editor);
-                    widgetPickCtrl.handlePickModalAction(widget, true, ctx);
-                }
+                fetch: autocompleterFetch,
+                onAction: autocompleterAction
             });
         }
 
         // Initialize context menus, styles and scripts into editor's iframe
-        initializer(editor);
+        initializeEditor(editor);
     };
 };
 
@@ -220,7 +245,7 @@ export const getSetup = async() => {
  * If the user has selected automatic apply of filters on startup, apply them!
  * @param {import('./plugin').TinyMCE} editor
  */
-const autoFilter = (editor) => {
+const applyAutoFilters = (editor) => {
     const storage = getUserStorage(editor);
     const requiresFilter = storage.getFromLocal("startup.filters", "").split(",");
 
@@ -247,10 +272,10 @@ const autoFilter = (editor) => {
  * Inject styles and scripts into editor's iframe
  * @param {import('./plugin').TinyMCE} editor
  */
-function initializer(editor) {
+function initializeEditor(editor) {
     editor.once('SetContent', () => {
         // Run all subscribers
-        autoFilter(editor);
+        applyAutoFilters(editor);
         getListeners('contentSet').forEach(listener => listener(editor));
     });
     // Add the bootstrap, CSS, etc... into the editor's iframe
