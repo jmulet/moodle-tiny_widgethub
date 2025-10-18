@@ -5,7 +5,7 @@
     "engine": "ejs",
     "template": "<div id=\"acc_<%= id %>\" class=\"collapsible\">\n  <% for(var i=1; i<=n; i++) { %>\n  <div class=\"card\">      \n    <div class=\"card-header\" id=\"head_<%= id %>_<%= i %>\">\n      <h5 class=\"mb-0\">\n        <button type=\"button\" class=\"btn btn-link\" data-toggle=\"collapse\" data-bs-toggle=\"collapse\" data-target=\"#coll_<%= id %>_<%= i %>\"\n          data-bs-target=\"#coll_<%= id %>_<%= i %>\" \n          aria-expanded=\"<%= i==1 ? 'true' : 'false' %>\" aria-controls=\"coll_<%= id %>_<%= i %>\">\n          <span>$string.bscollapsible_label #<%= i %></span>\n        </button>\n      </h5>\n    </div>\n    <div id=\"coll_<%= id %>_<%= i %>\" class=\"collapse<%= i==1 ? ' show' : '' %>\" aria-labelledby=\"head_<%= id %>_<%= i %>\"\n     <%- indp ? '' : ' data-parent=\"#acc_' + id + '\" data-bs-parent=\"#acc_' + id + '\"' %>>\n      <div class=\"card-body\">\n        <p>Lorem ipsum section <%= i %></p>\n      </div>\n    </div>\n  </div>\n  <% } %>\n</div>\n<p><br></p>\n",
     "selectors": "div.collapsible",
-    "unwrap": ".card-header span, .card-body",
+    "unwrap": ".card-header span, .card-body>*",
     "parameters": [
         {
             "name": "id",

@@ -130,13 +130,28 @@ const predefinedActionsFactory = function(editor, domSrv) {
             if (!context?.elem || !context?.widget?.unwrap) {
                 return;
             }
-            /** @type {Node | null} */
-            let toUnpack = context.elem.querySelector(context.widget.unwrap);
-            if (!toUnpack) {
-                // Create a text node from the element's text content
-                toUnpack = document.createTextNode(context.elem.textContent);
+            /** @type {NodeListOf<Node>} */
+            const nodes = context.elem.querySelectorAll(context.widget.unwrap);
+
+            const parent = context.elem.parentNode;
+            if (!parent) {
+                return;
             }
-            context.elem.replaceWith(toUnpack);
+
+            if (nodes.length === 0) {
+                // Fallback: single text node
+                const textNode = document.createTextNode(context.elem.textContent);
+                context.elem.replaceWith(textNode);
+            } else if (nodes.length === 1) {
+                // Only one node: normal unwrap
+                context.elem.replaceWith(nodes[0]);
+            } else {
+                // More than one node: wrap in DocumentFragment to replace
+                const fragment = document.createDocumentFragment();
+                nodes.forEach(node => fragment.appendChild(node));
+                context.elem.replaceWith(fragment);
+            }
+
             // Call any subscribers
             getListeners('widgetRemoved').forEach(listener => listener(editor, context.widget));
         },

@@ -362,7 +362,7 @@ export class FormCtrl {
                   /** @type {{url?: string}} */
                   const params = await this.fileSrv.displayImagePicker();
                   if (params?.url) {
-                     const parent = /** @type {HTMLElement} */ (evt.currentTarget).parentElement;
+                     const parent = /** @type {HTMLElement} */ (evt.target).parentElement;
                      const input = parent?.querySelector('input');
                      if (input) {
                         input.value = params.url;
