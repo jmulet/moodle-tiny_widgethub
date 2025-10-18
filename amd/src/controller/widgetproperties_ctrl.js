@@ -25,7 +25,6 @@
 import {getFormCtrl} from '../controller/form_ctrl';
 import {getModalSrv} from '../service/modal_service';
 import {createBinding} from '../util';
-import jQuery from 'jquery';
 
 /**
  * @typedef {JQuery<HTMLElement>} ModalDialogue
@@ -48,17 +47,14 @@ export class WidgetPropertiesCtrl {
      * @param {import('../plugin').TinyMCE} editor
      * @param {import('../controller/form_ctrl').FormCtrl} formCtrl
      * @param {import('../service/modal_service').ModalSrv} modalSrv
-     * @param {JQueryStatic} jQuery
      **/
-    constructor(editor, formCtrl, modalSrv, jQuery) {
+    constructor(editor, formCtrl, modalSrv) {
         /** @type {import('../plugin').TinyMCE} */
         this.editor = editor;
         /** @type {import('../controller/form_ctrl').FormCtrl} */
         this.formCtrl = formCtrl;
         /** @type {import('../service/modal_service').ModalSrv} */
         this.modalSrv = modalSrv;
-        /** @type {JQueryStatic} */
-        this.jQuery = jQuery;
     }
 
     /**
@@ -116,8 +112,7 @@ export class WidgetPropertiesCtrl {
                     bindingsDOM[param.name] = lstBindings;
                     // Strategy 1. Searching DOM items and creating a binding per input
                     // Find all item containers in DOM (param.bind is a query to every item element)
-                    elem.querySelectorAll(param.item_selector).forEach((/** @type {Node} */ itemRoot) => {
-                        const $itemRoot = this.jQuery(itemRoot);
+                    elem.querySelectorAll(param.item_selector).forEach(itemRoot => {
                         // For every field in parameter which has binding, create it
                         /** @type {Record<string, any>} */
                         const objValue = {};
@@ -125,7 +120,7 @@ export class WidgetPropertiesCtrl {
                         const objBinding = {};
                         param.fields?.filter(f => f.bind !== undefined).forEach(f => {
                             // @ts-ignore
-                            const binding = createBinding(f.bind, $itemRoot, typeof (f.value));
+                            const binding = createBinding(f.bind, itemRoot, typeof (f.value));
                             if (binding) {
                                 objBinding[f.name] = binding;
                                 objValue[f.name] = binding.getValue();
@@ -233,7 +228,7 @@ const widgetPropertiesCtrlInstances = new Map();
 export function getWidgetPropertiesCtrl(editor) {
     let instance = widgetPropertiesCtrlInstances.get(editor);
     if (!instance) {
-        instance = new WidgetPropertiesCtrl(editor, getFormCtrl(editor), getModalSrv(), jQuery);
+        instance = new WidgetPropertiesCtrl(editor, getFormCtrl(editor), getModalSrv());
         widgetPropertiesCtrlInstances.set(editor, instance);
     }
     return instance;

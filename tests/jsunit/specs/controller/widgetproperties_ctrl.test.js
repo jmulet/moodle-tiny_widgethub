@@ -1,7 +1,6 @@
 /**
  * @jest-environment jsdom
  */
-import jQuery from 'jquery';
 import { htmlToElement } from '../../src/util';
 require('../module.mocks')(jest);
 
@@ -67,7 +66,7 @@ describe("WidgetPickerCtrl", () => {
         mockEditor = require('../editor.mock')();
         // Use the real formCtrl
         const formCtrl = getFormCtrl(mockEditor);
-        widgetPropertiesCtrl = new WidgetPropertiesCtrl(mockEditor, formCtrl, mockModalSrv, jQuery);
+        widgetPropertiesCtrl = new WidgetPropertiesCtrl(mockEditor, formCtrl, mockModalSrv);
     })
 
     it("It must create", () => {
