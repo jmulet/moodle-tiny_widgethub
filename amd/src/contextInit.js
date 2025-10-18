@@ -15,7 +15,6 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 import {getWidgetDict} from './options';
-import jQuery from "jquery";
 import {getDomSrv} from './service/dom_service';
 import {getWidgetPropertiesCtrl} from './controller/widgetproperties_ctrl';
 import {getMenuItemProviders, getListeners} from './extension';
@@ -33,9 +32,9 @@ import {get_strings} from 'core/str';
 /**
  * Defines the type PathResult
  * @typedef {Object} PathResult
- * @property {JQuery<HTMLElement>} selectedElement - The DOM element from which the search starts.
- * @property {JQuery<HTMLElement>} [elem] - Indicates the element corresponding to the selector of the widget found
- * @property {JQuery<HTMLElement>} [targetElement] - Indicates the element corresponding the intermediate selector
+ * @property {Element} selectedElement - The DOM element from which the search starts.
+ * @property {Element} [elem] - Indicates the element corresponding to the selector of the widget found
+ * @property {Element | null | undefined} [targetElement] - Indicates the element corresponding the intermediate selector
  * @property {import('./options').Widget=} widget - The current widget definition associated with the elem
  */
 
@@ -131,11 +130,11 @@ const predefinedActionsFactory = function(editor, domSrv) {
             if (!context?.elem || !context?.widget?.unwrap) {
                 return;
             }
-            /** @type {JQuery<HTMLElement> | string} */
-            let toUnpack = context.elem.find(context.widget.unwrap);
-            if (!toUnpack[0]) {
-                // Create a text element
-                toUnpack = context.elem.text();
+            /** @type {Node | null} */
+            let toUnpack = context.elem.querySelector(context.widget.unwrap);
+            if (!toUnpack) {
+                // Create a text node from the element's text content
+                toUnpack = document.createTextNode(context.elem.textContent);
             }
             context.elem.replaceWith(toUnpack);
             // Call any subscribers
@@ -150,19 +149,20 @@ const predefinedActionsFactory = function(editor, domSrv) {
          * @param {PathResult} context
          */
         movebefore: (context) => {
-            const $e = context?.targetElement;
-            const $root = context?.elem;
-            if (!$e || !$root) {
+            const el = context?.targetElement;
+            const root = context?.elem;
+            if (!el || !root) {
                 return;
             }
-            const prev = $e.prev();
+            const prev = el.previousElementSibling;
             if (prev) {
-                prev.insertAfter($e);
-                if (prev.closest(".nav").length) {
-                    domSrv.findReferences($e, $root).forEach($ref => {
-                        const prev2 = $ref.prev();
+                // Swap el and prev (move el before prev)
+                el.parentNode?.insertBefore(el, prev);
+                if (prev.closest(".nav")) {
+                    domSrv.findReferences(el, root).forEach(ref => {
+                        const prev2 = ref.previousElementSibling;
                         if (prev2) {
-                            prev2.insertAfter($ref);
+                            ref.parentNode?.insertBefore(ref, prev2);
                         }
                     });
                 }
@@ -177,19 +177,23 @@ const predefinedActionsFactory = function(editor, domSrv) {
          * @param {PathResult} context
          */
         moveafter: (context) => {
-            const $e = context?.targetElement;
-            const $root = context?.elem;
-            if (!$e || !$root) {
+            const el = context?.targetElement;
+            const root = context?.elem;
+            if (!el || !root) {
                 return;
             }
-            const next = $e.next();
+
+            const next = el.nextElementSibling;
             if (next) {
-                next.insertBefore($e);
-                if (next.closest(".nav").length) {
-                    domSrv.findReferences($e, $root).forEach($ref => {
-                        const next2 = $ref.next();
+                // Move `el` after `next` (swap their order)
+                next.parentNode?.insertBefore(next, el);
+
+                // If inside a `.nav` ancestor, reorder references too
+                if (next.closest(".nav")) {
+                    domSrv.findReferences(el, root).forEach(ref => {
+                        const next2 = ref.nextElementSibling;
                         if (next2) {
-                            next2.insertBefore($ref);
+                            next2.parentNode?.insertBefore(next2, ref);
                         }
                     });
                 }
@@ -200,34 +204,43 @@ const predefinedActionsFactory = function(editor, domSrv) {
          * @param {PathResult} context
          */
         insertafter: (context) => {
-            const $e = context?.targetElement;
-            const $root = context?.elem;
-            if (!$e || !$root) {
+            const el = context?.targetElement;
+            const root = context?.elem;
+            if (!el || !root) {
                 return;
             }
+
             /** @type {Record<string, string>} */
             const idMap = {};
-            const clone = domSrv.smartClone($e, $root, idMap);
-            clone.insertAfter($e).removeClass("active show");
+            const clone = domSrv.smartClone(el, root, idMap);
+
+            // Insert the clone *after* the original element
+            el.parentNode?.insertBefore(clone, el.nextSibling);
+
+            // Remove "active" and "show" classes
+            clone.classList.remove("active", "show");
         },
         /**
          * Removes the selected element
          * @param {PathResult} context
          */
         remove: (context) => {
-            const $e = context?.targetElement;
-            const $root = context?.elem;
-            if (!$e || !$root) {
+            const el = context?.targetElement;
+            const root = context?.elem;
+            if (!el || !root) {
                 return;
             }
-            // Does the $e or its descendants reference another element in the widget?
-            // If so, it must be removed too
-            domSrv.findReferences($e, $root).forEach($ref => $ref.remove());
-            const $parent = $e.parent();
-            $e.remove();
-            if ($parent.children().length === 0) {
-                // Good candidate to remove the entire widget
-                $root.remove();
+
+            // Remove any references inside the widget
+            domSrv.findReferences(el, root).forEach(ref => ref.remove());
+
+            // Remove the element itself
+            const parent = el.parentNode;
+            el?.remove();
+
+            // If parent is now empty, remove the root widget
+            if (parent && parent.children.length === 0) {
+                root.remove();
             }
         },
         /**
@@ -235,17 +248,17 @@ const predefinedActionsFactory = function(editor, domSrv) {
          * @param {PathResult} context
          */
         printable: (context) => {
-            const elem = context?.elem;
-            if (!elem) {
+            const el = context?.elem;
+            if (!el) {
                 return;
             }
-            elem.toggleClass('d-print-none');
+            el.classList.toggle('d-print-none');
         }
     });
 };
 
 /**
- * @typedef {{editor: import('./plugin').TinyMCE, path?: PathResult, jQuery: JQueryStatic}} ItemMenuContext
+ * @typedef {{editor: import('./plugin').TinyMCE, path?: PathResult}} ItemMenuContext
  */
 
 /**
@@ -260,8 +273,7 @@ export async function initContextActions(editor) {
      * @type {ItemMenuContext}
      */
     const ctx = {
-        editor: editor,
-        jQuery
+        editor: editor
     };
 
     // Define icons
@@ -381,7 +393,7 @@ export async function initContextActions(editor) {
         onAction: genericAction('printable'),
         onSetup: (/** @type {*} */ api) => {
             let toggleState = true;
-            if (ctx.path?.elem?.hasClass('d-print-none')) {
+            if (ctx.path?.elem?.classList?.contains('d-print-none')) {
                 toggleState = false;
             }
             api.setActive(toggleState);
@@ -433,11 +445,11 @@ export async function initContextActions(editor) {
                 }
                 contextmenu.forEach(cm => {
                     // Does the element matches the predicate?
-                    /** @type {HTMLElement | null} */
+                    /** @type {Element | null} */
                     let targetElem = null;
                     // If predicate is unset then use the widget root elem
                     if (!cm.predicate) {
-                        targetElem = ctx.path?.elem?.[0] ?? null;
+                        targetElem = ctx.path?.elem ?? null;
                     } else if (element.matches(cm.predicate)) {
                         targetElem = element;
                     } else {
@@ -447,7 +459,7 @@ export async function initContextActions(editor) {
                         return;
                     }
                     if (ctx.path) {
-                        ctx.path.targetElement = jQuery(targetElem);
+                        ctx.path.targetElement = targetElem;
                     }
                     menuItems.push(...cm.actions.split(' ').map(e => e.trim()));
                 });

@@ -17,29 +17,20 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2025 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import jquery from "jquery";
 
 export class DomSrv {
     /**
-     * @param {JQueryStatic} jQuery
-     */
-    constructor(jQuery) {
-        /** @type {JQueryStatic} */
-        this.jQuery = jQuery;
-    }
-
-    /**
      * When creating a clone of an element must update all its id's
-     * @param {JQuery<HTMLElement>} $e - The element to be treated
-     * @param {JQuery<HTMLElement>} $target - The root element being cloned
-     * @param {JQuery<HTMLElement>} $root - The root element providing the context
+     * @param {Element} el - The element to be treated
+     * @param {Element} target - The root element being cloned
+     * @param {Element} root - The root element providing the context
      * @param {Record<string, string>} idMap - A dictionary to store assigned id's
      */
-    treatElementIds($e, $target, $root, idMap) {
-        const oldId = $e.prop('id');
+    treatElementIds(el, target, root, idMap) {
+        const oldId = el.id;
         if (oldId) {
             let newId = idMap[oldId];
             if (!newId) {
@@ -47,17 +38,17 @@ export class DomSrv {
                 newId = oldId + ext;
                 idMap[oldId] = newId;
             }
-            $e.prop('id', newId);
+            el.id = newId;
         }
-        // Does $e contain references to another elements in the $root which are not in $target?
+        // Does el contain references to another elements in the root which are not in target?
         ['data-target', 'data-bs-target', 'href'].forEach((dataX) => {
-            const attr = $e.attr(dataX);
+            const attr = el.getAttribute(dataX);
             if (attr?.startsWith("#") && attr.length > 1) {
-                $e.removeClass('active show');
-                const rootRef = $root.find(attr);
-                const targetRef = $target.find(attr);
-                if (rootRef.length) {
-                    if (targetRef.length) {
+                el.classList.remove('active', 'show');
+                const rootRef = root.querySelector(attr);
+                const targetRef = target.querySelector(attr);
+                if (rootRef) {
+                    if (targetRef) {
                         // Simply rename property
                         const oldId = attr.substring(1);
                         let newId = idMap[oldId];
@@ -66,18 +57,33 @@ export class DomSrv {
                             newId = oldId + ext;
                             idMap[oldId] = newId;
                         }
-                        $e.attr(dataX, "#" + newId);
+                        el.setAttribute(dataX, "#" + newId);
                     } else {
-                        // (TODO: Deep cloning here?) Must clone the reference as well
+                       // Generar un ID único
                         const newId = 'd' + Math.random().toString(32).substring(2);
-                        const clonedRef = rootRef.clone().prop("id", newId);
-                        $e.prop(dataX, "#" + newId);
+
+                        // Clonar el elemento (deep clone si quieres incluir hijos)
+                        /** @type {any} */
+                        const clonedRef = rootRef.cloneNode(true);
+
+                        // Asignar el nuevo ID
+                        clonedRef.id = newId;
+
+                        // Actualizar el atributo/data en el elemento original
+                        el.setAttribute(dataX, "#" + newId);
+
+                        // Compatibilidad con Bootstrap: actualizar el otro atributo
                         if (dataX === 'data-bs-target') {
-                            $e.prop('data-target', "#" + newId);
+                            el.setAttribute('data-target', "#" + newId);
                         } else if (dataX === 'data-target') {
-                            $e.prop('data-bs-target', "#" + newId);
+                            el.setAttribute('data-bs-target', "#" + newId);
                         }
-                        clonedRef.insertAfter(rootRef).removeClass("active show");
+
+                        // Insertar el clon después del original
+                        rootRef.parentNode?.insertBefore(clonedRef, rootRef.nextSibling);
+
+                        // Quitar clases "active" y "show"
+                        clonedRef.classList.remove('active', 'show');
                     }
                 }
             }
@@ -85,46 +91,54 @@ export class DomSrv {
     }
 
     /**
-     * @param {JQuery<HTMLElement>} $e - the element that must be cloned
-     * @param {JQuery<HTMLElement>} $root - the root element (widget root)
+     * @param {Element} el - the element that must be cloned
+     * @param {Element} root - the root element (widget root)
      * @param {Record<string,string>} idMap - old vs new id map
-     * @returns {JQuery<HTMLElement>} The cloned element with new id's
+     * @returns {Element} The cloned element with new id's
      */
-    smartClone($e, $root, idMap) {
-        const clone = $e.clone();
-        this.treatElementIds(clone, $e, $root, idMap);
-        clone.find('*').each((_, e) => {
-            this.treatElementIds(this.jQuery(e), $e, $root, idMap);
+    smartClone(el, root, idMap) {
+        /** @type {*} */
+        const clone = el.cloneNode(true);
+        this.treatElementIds(clone, el, root, idMap);
+        clone.querySelectorAll('*').forEach((/** @type {HTMLElement} */ e) => {
+            this.treatElementIds(e, el, root, idMap);
         });
         return clone;
     }
 
     /**
-     * @param {JQuery<HTMLElement>} $e - Look in $e and all its descendants if references any other element in $root
-     * @param {JQuery<HTMLElement>} $root
-     * @returns {JQuery<HTMLElement>[]} - A list of referenced elements in $e
+     * @param {Element} el - Look in el and all its descendants if references any other element in root
+     * @param {Element} root
+     * @returns {Element[]} - A list of referenced elements in el
      */
-    findReferences($e, $root) {
+    findReferences(el, root) {
         const searchFor = '[data-target^="#"], [data-bs-target^="#"], [href^="#"]';
-        /** @type {HTMLElement[]} */
+        /** @type {Element[]} */
         const found = [];
-        if ($e.is(searchFor)) {
-            let attr = $e.attr('data-target') ?? $e.attr('data-bs-target') ?? $e.attr('href');
+        if (el.matches(searchFor)) {
+            const attr = el.getAttribute('data-target')
+                ?? el.getAttribute('data-bs-target')
+                ?? el.getAttribute('href');
+
             if (attr && attr !== '#') {
-                found.push(...$root.find(attr).toArray());
+                // QuerySelectorAll returns a NodeList; convert to array with spread.
+                found.push(...root.querySelectorAll(attr));
             }
         }
+
         if (!found.length) {
             // Look in descendants
-            const $descendants = $e.find(searchFor);
-            if ($descendants.length) {
-                let attr = $descendants.attr('data-target') ?? $descendants.attr('data-bs-target') ?? $descendants.attr('href');
+            el.querySelectorAll(searchFor).forEach(desc => {
+                const attr = desc.getAttribute('data-target')
+                        ?? desc.getAttribute('data-bs-target')
+                        ?? desc.getAttribute('href');
+
                 if (attr && attr !== '#') {
-                    found.push(...$root.find(attr).toArray());
+                    found.push(...root.querySelectorAll(attr));
                 }
-            }
+            });
         }
-        return found.map(e => this.jQuery(e));
+        return found;
     }
 
     /**
@@ -161,9 +175,9 @@ export class DomSrv {
     /**
      * Defines the type PathResult
      * @typedef {Object} PathResult
-     * @property {JQuery<HTMLElement>} selectedElement - The DOM element from which the search starts.
-     * @property {JQuery<HTMLElement>} [elem] - Indicates the element corresponding to the selector of the widget found
-     * @property {JQuery<HTMLElement>} [targetElement] - Indicates the element corresponding the intermediate selector
+     * @property {Element} selectedElement - The DOM element from which the search starts.
+     * @property {Element} [elem] - Indicates the element corresponding to the selector of the widget found
+     * @property {Element | null} [targetElement] - Indicates the element corresponding the intermediate selector
      * @property {import('../options').Widget=} widget - The current widget definition associated with the elem
      */
 
@@ -178,7 +192,7 @@ export class DomSrv {
     findWidgetOnEventPath(widgetList, selectedElement) {
         /** @type {PathResult} */
         const res = {
-            selectedElement: this.jQuery(selectedElement)
+            selectedElement
         };
         /** @type {HTMLElement | null} */
         let elem = selectedElement;
@@ -189,7 +203,7 @@ export class DomSrv {
             while (i < n && res.widget === undefined) {
                 if (this.matchesSelectors(elem, widgetList[i].selectors)) {
                     res.widget = widgetList[i];
-                    res.elem = this.jQuery(elem);
+                    res.elem = elem;
                 }
                 i++;
             }
@@ -199,11 +213,12 @@ export class DomSrv {
         // force detection with a fake widget.
         if (!res.widget) {
             const parent = res.selectedElement.closest('ol,img');
-            let tag = res.selectedElement.prop('tagName');
+            /** @type {string | undefined} */
+            let tag = res.selectedElement.tagName;
             const isTag = tag === 'OL' || tag === 'IMG';
-            if (isTag || parent[0]) {
+            if (isTag || parent) {
                 if (!isTag) {
-                    tag = parent.prop('tagName');
+                    tag = parent?.tagName;
                 }
                 /** @ts-ignore */
                 res.widget = {key: `!${tag}`, prop: () => ''};
@@ -216,13 +231,13 @@ export class DomSrv {
 
 /** @type {DomSrv | undefined} */
 let instanceSrv;
+
 /**
  * @returns {DomSrv}
  */
 export function getDomSrv() {
     if (!instanceSrv) {
-        // @ts-ignore
-        instanceSrv = new DomSrv(jquery);
+        instanceSrv = new DomSrv();
     }
     return instanceSrv;
 }

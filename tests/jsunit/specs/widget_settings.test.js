@@ -71,11 +71,11 @@ describe('widget_settings', () => {
          }
        };
        createBody(id, partials);
-       const {$ymlArea, $jsonArea, $partialInput} = settingsModule.getAreas(id);
-       expect($ymlArea.attr('id')).toBe(`id_s_tiny_widgethub_defyml_${id}`);
-       expect($jsonArea.attr('id')).toBe(`id_s_tiny_widgethub_def_${id}`);
-       expect($partialInput.attr('id')).toBe(`id_s_tiny_widgethub_partials_${id}`);
-       expect($partialInput.val()).toBe(JSON.stringify(partials));
+       const {ymlArea, jsonArea, partialInput} = settingsModule.getAreas(id);
+       expect(ymlArea.id).toBe(`id_s_tiny_widgethub_defyml_${id}`);
+       expect(jsonArea.id).toBe(`id_s_tiny_widgethub_def_${id}`);
+       expect(partialInput.id).toBe(`id_s_tiny_widgethub_partials_${id}`);
+       expect(partialInput.value).toBe(JSON.stringify(partials));
     });
 
     test.each([
@@ -105,12 +105,12 @@ describe('widget_settings', () => {
         await settingsModule.init({id, keys: usedKeys});
 
         expect(spyGetAreas).toHaveBeenCalledWith(id);
-        const {$ymlArea, $jsonArea} = settingsModule.getAreas(id);
+        const {ymlArea, jsonArea} = settingsModule.getAreas(id);
         // Editor setter has been called
         expect(mockSetValue).toHaveBeenCalled();
         expect(spyUpdateYaml).toHaveBeenCalled();
         // Yml has been filled with default data
-        expect($ymlArea.val()).not.toBeFalsy();
+        expect(ymlArea.value).not.toBeFalsy();
         // Try to press preview button
         /** @type {HTMLButtonElement | null} */
         const previewBtn = document.body.querySelector("button.btn-secondary");
@@ -127,7 +127,7 @@ describe('widget_settings', () => {
         expect(previewpanel?.classList?.contains('d-none')).toBe(false);
         expect(previewpanel?.innerHTML).toBeTruthy();
         // Check the jsonArea is filled
-        expect($jsonArea.val().indexOf("Hello world!")>=0).toBeTruthy();
+        expect(jsonArea.value.indexOf("Hello world!")>=0).toBeTruthy();
 
         // Delete button must not be in page
         expect(document.querySelector('button.btn-outline-danger')).toBeNull();
@@ -147,7 +147,7 @@ describe('widget_settings', () => {
         createBody(id);
         const spyUpdateYaml = jest.spyOn(settingsModule, 'updateYaml');
         const spyGetAreas = jest.spyOn(settingsModule, 'getAreas');
-        const {$ymlArea, $jsonArea} = settingsModule.getAreas(id);
+        const {ymlArea, jsonArea} = settingsModule.getAreas(id);
         const widgetToEdit = {
             id,
             key: 'key2',
@@ -156,7 +156,7 @@ describe('widget_settings', () => {
             author: 'pep',
             version: '1.0'
         }
-        $jsonArea.val(JSON.stringify(widgetToEdit));
+        jsonArea.value = JSON.stringify(widgetToEdit);
 
         await settingsModule.init({id, keys: usedKeys});
         // Delete button must be in page
@@ -167,7 +167,7 @@ describe('widget_settings', () => {
         expect(mockSetValue).toHaveBeenCalled();
         expect(spyUpdateYaml).toHaveBeenCalled();
         // Yml has been filled with default data
-        expect($ymlArea.val()).toContain('key: key2');
+        expect(ymlArea.value).toContain('key: key2');
         // Try to press preview button
         /** @type {HTMLButtonElement | null} */
         const previewBtn = document.body.querySelector("button.btn-secondary");
@@ -185,7 +185,7 @@ describe('widget_settings', () => {
         expect(previewpanel?.innerHTML).toContain('Widget2');
 
         // Make changes to the widget
-        $ymlArea.val(`key: key2\nname: name2\n author: 'pep'\nversion: '1.0'`)
+        ymlArea.value = `key: key2\nname: name2\n author: 'pep'\nversion: '1.0'`;
         previewBtn?.click();
         await wait(400);
 
@@ -205,7 +205,7 @@ describe('widget_settings', () => {
         createBody(id);
         const spyUpdateYaml = jest.spyOn(settingsModule, 'updateYaml');
         const spyGetAreas = jest.spyOn(settingsModule, 'getAreas');
-        const {$ymlArea, $jsonArea} = settingsModule.getAreas(id);
+        const {ymlArea, jsonArea} = settingsModule.getAreas(id);
         const widgetToEdit = {
             id,
             key: 'key2',
@@ -214,7 +214,7 @@ describe('widget_settings', () => {
             author: 'pep',
             version: '1.0'
         }
-        $jsonArea.val(JSON.stringify(widgetToEdit));
+        jsonArea.value = JSON.stringify(widgetToEdit);
 
         await settingsModule.init({id, keys: usedKeys});
         // Delete button must be in page
@@ -227,15 +227,15 @@ describe('widget_settings', () => {
         /** @type {HTMLFormElement | null} */
         const form = document.body.querySelector('form');
         if(form) {
-            form.submit = jest.fn().mockImplementation(e => e?.preventDefault());
+            form.dispatchEvent = jest.fn().mockImplementation(e => e?.preventDefault());
         }
         deleteBtn?.click();
         await wait(500);
         expect(window.confirm).toHaveBeenCalled();
-        expect($jsonArea.val()).toBeTruthy();
-        expect($ymlArea.val()).toBeTruthy();
+        expect(jsonArea.value).toBeTruthy();
+        expect(ymlArea.value).toBeTruthy();
         // Expect $form.trigger not called
-        expect(form?.submit).not.toHaveBeenCalled();
+        expect(form?.dispatchEvent).not.toHaveBeenCalled();
 
         // Repeat accepting confirm
         mockConfirm.mockClear(); 
@@ -244,9 +244,9 @@ describe('widget_settings', () => {
         await wait(500);
         expect(window.confirm).toHaveBeenCalled();
         // Expect $form.trigger to have been called
-        expect(form?.submit).toHaveBeenCalled();
-        expect($jsonArea.val()).toBeFalsy();
-        expect($ymlArea.val()).toBeFalsy();
+        expect(form?.dispatchEvent).toHaveBeenCalled();
+        expect(jsonArea.value).toBeFalsy();
+        expect(ymlArea.value).toBeFalsy();
       
 
     });

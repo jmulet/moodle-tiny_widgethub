@@ -116,7 +116,7 @@ export class WidgetPropertiesCtrl {
                     bindingsDOM[param.name] = lstBindings;
                     // Strategy 1. Searching DOM items and creating a binding per input
                     // Find all item containers in DOM (param.bind is a query to every item element)
-                    elem.find(param.item_selector).each((_, /** @type {Node} */ itemRoot) => {
+                    elem.querySelectorAll(param.item_selector).forEach((/** @type {Node} */ itemRoot) => {
                         const $itemRoot = this.jQuery(itemRoot);
                         // For every field in parameter which has binding, create it
                         /** @type {Record<string, any>} */
@@ -162,20 +162,21 @@ export class WidgetPropertiesCtrl {
             this.modal?.destroy();
             this.modal = null;
         });
+        const bodyElem = this.modal.body[0];
+        const formElem = this.modal.body.find('form')[0];
         // Bind actions on image and color pickers
-        this.formCtrl.attachPickers(this.modal.body);
+        this.formCtrl.attachPickers(bodyElem);
         // Applying watchers to the form elements
-        this.formCtrl.applyFieldWatchers(this.modal.body, paramValues, widget, false);
+        this.formCtrl.applyFieldWatchers(bodyElem, paramValues, widget, false);
 
         // Bind accept action to modal
         this.modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", () => {
             this.modal?.destroy();
         });
         this.modal.footer.find("button.tiny_widgethub-btn-primary").on("click", () => {
-            const form = this.modal?.body?.find("form");
             let updatedValues = paramValues;
-            if (form) {
-                updatedValues = this.formCtrl.extractFormParameters(widget, form, true);
+            if (formElem) {
+                updatedValues = this.formCtrl.extractFormParameters(widget, formElem, true);
             }
             this.modal?.destroy();
             // Update parameter values back to DOM

@@ -42,12 +42,12 @@ export class WidgetParamsCtrl {
    * @param {import('../plugin').TinyMCE} editor
    * @param {import('../service/userstorage_service').UserStorageSrv} userStorage
    * @param {import('../service/template_service').TemplateSrv} templateSrv
-   * @param {import('../service/modal_service').ModalSrv} modal_service
+   * @param {import('../service/modal_service').ModalSrv} modalSrv
    * @param {import('../controller/form_ctrl').FormCtrl} formCtrl
    * @param {*} applyWidgetFilter
    * @param {import('../options').Widget} widget
    */
-   constructor(editor, userStorage, templateSrv, modal_service, formCtrl, applyWidgetFilter, widget) {
+   constructor(editor, userStorage, templateSrv, modalSrv, formCtrl, applyWidgetFilter, widget) {
       /** @type {import('../plugin').TinyMCE} */
       this.editor = editor;
       /** @type {import('../service/userstorage_service').UserStorageSrv} */
@@ -55,7 +55,7 @@ export class WidgetParamsCtrl {
       /** @type {import('../service/template_service').TemplateSrv} */
       this.templateSrv = templateSrv;
       /** @type {import('../service/modal_service').ModalSrv} */
-      this.modal_service = modal_service;
+      this.modalSrv = modalSrv;
       /** @type {import('../controller/form_ctrl').FormCtrl} */
       this.formCtrl = formCtrl;
       this.applyWidgetFilter = applyWidgetFilter;
@@ -68,18 +68,20 @@ export class WidgetParamsCtrl {
    async handleAction() {
       // Show modal with buttons.
       const data = this.formCtrl.createContext(this.widget);
-      const modal = await this.modal_service.create('params', data, () => {
+      const modal = await this.modalSrv.create('params', data, () => {
          this.modal?.destroy();
          this.modal = null;
       });
       this.modal = modal;
+      const bodyElem = modal.body[0];
+      const formElem = modal.body.find("form")[0];
       modal.body.find(`a[href="#${data.idtabpane}_1"`).on("click", async() => {
          // Handle preview;
-         const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, modal.body.find("form"), true);
+         const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, formElem, true);
          await this.updatePreview(data.idtabpane, ctxFromDialogue);
       });
-      this.formCtrl.attachPickers(modal.body);
-      this.formCtrl.attachRepeatable(modal.body, this.widget);
+      this.formCtrl.attachPickers(bodyElem);
+      this.formCtrl.attachRepeatable(bodyElem, this.widget);
       modal.footer.show();
       modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", async() => {
          // Go back to main menú
@@ -91,7 +93,7 @@ export class WidgetParamsCtrl {
       });
       modal.footer.find("button.tiny_widgethub-btn-primary").on("click", async() => {
          // Go back to main menú
-         const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, modal.body.find("form"), true);
+         const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, formElem, true);
          modal.hide();
          await this.insertWidget(ctxFromDialogue);
          modal.destroy();
@@ -99,7 +101,7 @@ export class WidgetParamsCtrl {
 
       // Change input fields visibilities upon conditions
       const selectmode = this.editor.selection.getContent().trim() != '';
-      this.formCtrl.applyFieldWatchers(modal.body, this.widget.defaults, this.widget, selectmode);
+      this.formCtrl.applyFieldWatchers(bodyElem, this.widget.defaults, this.widget, selectmode);
 
       // Help circles require popover
       try {

@@ -1,4 +1,4 @@
-/* eslint-disable max-len */
+
 /* eslint-disable no-console */
 /* eslint-disable no-alert */
 // This file is part of Moodle - http://moodle.org/
@@ -23,14 +23,13 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import jQuery from 'jquery';
 import {YmlEditor, YAML} from './libs/ymleditor-lazy';
 // eslint-disable-next-line camelcase
 import {get_strings as getStrings, get_string} from 'core/str';
 import {getTemplateSrv, createDefaultsForParam} from './service/template_service';
 import {applyPartials} from './options';
 import common from './common';
-import {compareVersion} from './util';
+import {compareVersion, htmlToElement} from './util';
 
 /**
  * Does a key name of the yaml file requires a block format?
@@ -121,20 +120,20 @@ export default {
     /**
      * @param {number} id
      * @returns {{
-     *     $ymlArea: JQuery<HTMLTextAreaElement>,
-     *     $jsonArea: JQuery<HTMLTextAreaElement>,
-     *     $partialInput: JQuery<HTMLInputElement>,
+     *     ymlArea: HTMLTextAreaElement,
+     *     jsonArea: HTMLTextAreaElement,
+     *     partialInput: HTMLInputElement,
      * }}
      */
     getAreas: function(id) {
         /** @type {*} */
-        const $ymlArea = jQuery(`#id_s_${component}_defyml_${id}`);
+        const ymlArea = document.querySelector(`#id_s_${component}_defyml_${id}`);
         /** @type {*} */
-        const $jsonArea = jQuery(`#id_s_${component}_def_${id}`);
+        const jsonArea = document.querySelector(`#id_s_${component}_def_${id}`);
         /** @type {*} */
-        const $partialInput = jQuery(`#id_s_${component}_partials_${id}`);
+        const partialInput = document.querySelector(`#id_s_${component}_partials_${id}`);
         return {
-            $ymlArea, $jsonArea, $partialInput
+            ymlArea, jsonArea, partialInput
         };
     },
     /**
@@ -143,8 +142,8 @@ export default {
      * @returns
      */
     updateYaml: function(id, codeProEditor) {
-        const {$jsonArea} = this.getAreas(id);
-        const json = (($jsonArea.val() ?? '') + '').trim();
+        const {jsonArea} = this.getAreas(id);
+        const json = ((jsonArea.value ?? '') + '').trim();
         if (!json) {
             if (id) {
                 codeProEditor.setValue('');
@@ -188,7 +187,7 @@ export default {
             codeProEditor.setValue(yml);
         } catch (ex) {
             console.error(ex);
-            $jsonArea.val('');
+            jsonArea.value = '';
             codeProEditor.setValue('');
         }
     },
@@ -312,11 +311,9 @@ export default {
      * @returns
      */
     init: async function(opts) {
-        const {$ymlArea, $jsonArea, $partialInput} = this.getAreas(opts.id);
-        $ymlArea.css({
-            "border": "1px solid gray"
-        });
-        $ymlArea.addClass(component + '-loader');
+        const {ymlArea, jsonArea, partialInput} = this.getAreas(opts.id);
+        ymlArea.style.border = '1px solid gray';
+        ymlArea.classList.add(component + '-loader');
         const i18n = await getStrings([
             {key: 'confirmdelete', component: component},
             {key: 'delete', component: component},
@@ -326,27 +323,36 @@ export default {
         const [confirmdeleteStr, deleteStr, previewStr, savechangesStr] = i18n;
 
         // Partials are passed through a hidden input element
-        const partials = JSON.parse($partialInput.val() || '{}');
+        const partials = JSON.parse(partialInput.value || '{}');
 
         // Hide the control that handles JSON and it is actually saved
-        $jsonArea.css("display", "none");
-        const $target = $jsonArea.parent();
-        const $form = $jsonArea.closest("form");
+        jsonArea.style.display = 'none';
+        // Immediate parent
+        const target = jsonArea.parentNode;
+        // Closest ancestor matching selector
+        const form = jsonArea.closest("form");
+        if (!form || !target) {
+            return;
+        }
         // Hide any submit button if found
-        $form.find('button[type="submit"], input[type="submit"]').hide();
+        /** @type {NodeListOf<HTMLElement>} */
+        const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+        submitButtons.forEach(elem => {
+            elem.style.display = 'none';
+        });
         // Add submit buttons and manually trigger form submit.
-        const $formButtons = jQuery(`<div class="row"><div class="form-buttons offset-sm-3 col-sm-3">
+        const formButtons = htmlToElement(`<div class="row"><div class="form-buttons offset-sm-3 col-sm-3">
             <button type="button" class="btn btn-primary form-submit">${savechangesStr}</button></div></div>`);
-        $form.append($formButtons);
-        const $saveBtn = $formButtons.find("button");
+        form.appendChild(formButtons);
+        const saveBtn = formButtons.querySelector("button");
 
         // Create a preview panel
-        const $previewPanel = jQuery(`<div id="${component}_pp_${opts.id}" class="${component}-previewpanel d-none"></div>`);
-        $target.append($previewPanel);
+        const previewPanel = htmlToElement(`<div id="${component}_pp_${opts.id}" class="${component}-previewpanel d-none"></div>`);
+        target.appendChild(previewPanel);
 
-        const $previewBtn = jQuery(`<button type="button" class="btn btn-secondary m-1">
+        const previewBtn = htmlToElement(`<button type="button" class="btn btn-secondary m-1">
             <i class="fas fa fa-magnifying-glass"></i> ${previewStr}</button>`);
-        $previewBtn.on('click', async() => {
+        previewBtn.addEventListener('click', async() => {
             const yml = ymleditor.getValue();
             const validation = await this.validate(yml, opts, partials);
             if (validation.json && JSON.parse(validation.json).key === 'partials') {
@@ -356,41 +362,40 @@ export default {
             if (validation.msg) {
                 alert(validation.msg);
             } else if (validation.html) {
-                $previewPanel.removeClass('d-none');
-                $jsonArea.trigger('focusin');
-                $jsonArea.val(validation.json ?? '');
-                $jsonArea.trigger('change');
-                $previewPanel.html(validation.html);
+                previewPanel.classList.remove('d-none');
+                jsonArea.dispatchEvent(new Event('focusin', {bubbles: true}));
+                jsonArea.value = validation.json ?? '';
+                jsonArea.dispatchEvent(new Event('change', {bubbles: true}));
+                previewPanel.innerHTML = validation.html;
             }
         });
-        $target.append($previewBtn);
+        target.appendChild(previewBtn);
 
         if (opts.id > 0) {
             // Only show delete button on saved widgets (id=0 is reserved for new ones)
-            const $deleteBtn = jQuery(`<button type="button" class="btn btn-outline-danger m-1">
+            const deleteBtn = htmlToElement(`<button type="button" class="btn btn-outline-danger m-1">
                 <i class="fas fa fa-trash"></i> ${deleteStr}</button>`);
-            $deleteBtn.on('click', async() => {
+            deleteBtn.addEventListener('click', async() => {
                 // Ask confirmation
                 const answer = confirm(confirmdeleteStr);
                 if (!answer) {
                     return;
                 }
                 // Clear all the controls
-                $jsonArea.trigger('focusin');
-                $jsonArea.val('');
-                $jsonArea.trigger('change');
-                $ymlArea.val('');
-                $previewPanel.html('');
+                jsonArea.dispatchEvent(new Event('focusin', {bubbles: true}));
+                jsonArea.value = '';
+                jsonArea.dispatchEvent(new Event('change', {bubbles: true}));
+                ymlArea.value = '';
+                previewPanel.innerHTML = '';
                 // Send form by skipping validation
-                $form.trigger('submit');
+                form.dispatchEvent(new Event('submit', {bubbles: true, cancelable: true}));
             });
-            $target.append($deleteBtn);
+            target.appendChild(deleteBtn);
         }
 
-        const ymleditor = new YmlEditor($ymlArea[0]);
+        const ymleditor = new YmlEditor(ymlArea);
 
-        $saveBtn.on("click",
-            async() => {
+        saveBtn?.addEventListener("click", async() => {
                 // Must update the content from the Yaml control
                 const yml = ymleditor.getValue();
                 // First validate the definition of the widget
@@ -400,15 +405,15 @@ export default {
                 } else {
                     // Ensure that there is a change in the form value to force
                     // the set_updatedcallback to be called
-                    $jsonArea.trigger('focusin');
-                    $jsonArea.val((validation.json ?? '') + ' ');
-                    $jsonArea.trigger('change');
+                    jsonArea.dispatchEvent(new Event('focusin', {bubbles: true}));
+                    jsonArea.value = (validation.json ?? '') + ' ';
+                    jsonArea.dispatchEvent(new Event('change', {bubbles: true}));
                     // Submit form
-                    $form.trigger('submit');
+                    form.dispatchEvent(new Event('submit', {bubbles: true, cancelable: true}));
                 }
             });
 
         this.updateYaml(opts.id, ymleditor);
-        $ymlArea.removeClass(component + '-loader');
+        ymlArea.classList.remove(component + '-loader');
     }
 };

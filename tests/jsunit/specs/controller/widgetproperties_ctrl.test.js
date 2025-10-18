@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import jQuery from 'jquery';
+import { htmlToElement } from '../../src/util';
 require('../module.mocks')(jest);
 
 // Actual form implementation
@@ -96,7 +97,7 @@ describe("WidgetPickerCtrl", () => {
             widget: {
                 hasBindings: () => false
             },
-            elem: jQuery('<span></span>')
+            elem: htmlToElement('<span></span>')
         };
         widgetPropertiesCtrl.show(currentContext);
         expect(consoleSpy).toHaveBeenCalledWith("Invalid widget definition ", currentContext.widget);
@@ -104,7 +105,7 @@ describe("WidgetPickerCtrl", () => {
 
         consoleSpy.mockClear();
 
-        const elem = jQuery('<span></span>');
+        const elem = htmlToElement('<span></span>');
         currentContext = {
             widget,
             elem
@@ -126,21 +127,22 @@ describe("WidgetPickerCtrl", () => {
         // Accept the form
         widgetPropertiesCtrl.modal?.footer.find("button.tiny_widgethub-btn-primary").trigger('click');
         // Check that the elem has been updated accordingly
-        expect(elem.attr('title')).toBe('The title here');
-        expect(elem.hasClass('somecls')).toBe(true);
+        expect(elem.title).toBe('The title here');
+        expect(elem.classList.contains('somecls')).toBe(true);
         expect(mockEditor.setDirty).not.toHaveBeenCalled();
     });
 
     it("Must show the dialog for the current context and cancel changes", async() => {
-        /** @type {*} */
+        /** @type {import('../../src/contextinit').PathResult} */
         let currentContext;
         const consoleSpy = jest.spyOn(global.console, 'error');
         mockEditor.setDirty.mockReset();
        
-        const elem = jQuery('<span title="none"></span>');
+        const elem = htmlToElement('<span title="none"></span>');
         currentContext = {
             widget,
-            elem
+            elem,
+            selectedElement: elem
         };
         await widgetPropertiesCtrl.show(currentContext);
         // expect(consoleSpy).not.toHaveBeenCalled();
@@ -160,8 +162,8 @@ describe("WidgetPickerCtrl", () => {
         // Accept the form
         widgetPropertiesCtrl.modal?.footer.find("button.btn-secondary").trigger('click');
         // Check that the elem has been not been updated
-        expect(elem.attr('title')).toBe('none');
-        expect(elem.hasClass('somecls')).toBe(false);
+        expect(elem.title).toBe('none');
+        expect(elem.classList.contains('somecls')).toBe(false);
         expect(mockEditor.setDirty).not.toHaveBeenCalled();
     });
 

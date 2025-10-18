@@ -1,18 +1,17 @@
 /**
  * @jest-environment jsdom
  */
+import { htmlToElement } from '../../src/util';
+
 require('../module.mocks')(jest);
 const {DomSrv, getDomSrv} = require("../../src/service/dom_service");
-
-/** @ts-ignore */
-const jQuery = require("jquery").default;
 
 /** @type {import('../../src/service/dom_service').DomSrv} */
 let domSrv;
 
 describe("DomSrv", () => {
     beforeEach(() => {
-        domSrv = new DomSrv(jQuery);
+        domSrv = new DomSrv();
     });
 
     test('It must create from cache', () => {
@@ -22,16 +21,16 @@ describe("DomSrv", () => {
         expect(Object.is(d1, d2)).toBe(true);
     });
 
-    test('The jquery node must be cloned', () => {
-        const elem = jQuery('<div id="id1" data-target="#t1"><div id="t1"></div></div>');
+    test('The html node must be cloned', () => {
+        const elem = htmlToElement('<div id="id1" data-target="#t1"><div id="t1"></div></div>');
         /** @type {Record<string, string>} */
         const idMap = {};
         const cloned = domSrv.smartClone(elem, elem, idMap);
-        expect(cloned.prop('outerHTML')).toBe(`<div id="${idMap['id1']}" data-target="#${idMap['t1']}"><div id="${idMap['t1']}"></div></div>`);
+        expect(cloned.outerHTML).toBe(`<div id="${idMap['id1']}" data-target="#${idMap['t1']}"><div id="${idMap['t1']}"></div></div>`);
     });
 
     test('Real case 1', () => {
-        const elem = jQuery(` 
+        const elem = htmlToElement(` 
         <div class="whb-tabmenu">
         <ul class="nav nav-tabs" role="tablist">
             <li class="nav-item">
@@ -57,18 +56,22 @@ describe("DomSrv", () => {
         </div>
         </div>`);
 
-        const toClone = elem.find(".nav-item").first();
+        const toClone = elem.querySelector(".nav-item");
+        if (!toClone) throw new Error("toClone not found"); // runtime guard
+        expect(toClone).toBeTruthy();
 
         /** @type {Record<string, string>} */
 
         const idMap = {};
         const cloned = domSrv.smartClone(toClone, elem, idMap);
-        cloned.insertAfter(toClone);
+        if (!cloned) throw new Error("cloned not found"); // runtime guard
         expect(cloned).toBeTruthy();
+        // @ts-ignore
+        toClone.parentNode.insertBefore(cloned, toClone.nextSibling);
     });
 
     test('find references', () => {
-        const $root = jQuery(`
+        const root = htmlToElement(`
             <div id="root">
                 <div id="controls">
                     <ul>
@@ -90,15 +93,18 @@ describe("DomSrv", () => {
                 </div>
             </div>    
         `);
-        let $e = $root.find("#li2");
-        let found = domSrv.findReferences($e, $root);
-        expect(found.length).toBe(1);
-        expect(found[0].text().trim()).toBe("Content 2");
+        let elem = root.querySelector("#li2");
+        if (!elem) throw new Error("#li2 not found"); // runtime guard
+        expect(elem).toBeTruthy();
+        let found = domSrv.findReferences(elem, root);
+        expect(found).toBeTruthy();
+        expect(found.map(f => f.textContent.trim()).join('')).toBe("Content 2");
         
-        $e = $root.find("#li1 > a");
-        found = domSrv.findReferences($e, $root);
-        expect(found.length).toBe(1);
-        expect(found[0].text().trim()).toBe("Content 1");
+        elem = root.querySelector("#li1 > a");
+        if (!elem) throw new Error("#li1 > a not found"); // runtime guard
+        found = domSrv.findReferences(elem, root);
+        expect(found).toBeTruthy();
+        expect(found.map(f => f.textContent.trim()).join('')).toBe("Content 1");
     });
 
     test.each([
@@ -174,14 +180,14 @@ describe("DomSrv", () => {
         expect(selectedElement?.id).toBe(idClicked);
         // @ts-ignore
         const pathResult = domSrv.findWidgetOnEventPath(widgetList, selectedElement);
-        expect(pathResult.selectedElement[0]).toBe(selectedElement);
+        expect(pathResult.selectedElement).toBe(selectedElement);
         expect(pathResult.widget?.key).toBe(keyFound)
         if (!keyFound?.startsWith("!")) {
             expect(pathResult.targetElement).toBeUndefined();
-            expect(pathResult.elem?.attr("id")).toBe(idFound);
+            expect(pathResult.elem?.id).toBe(idFound);
         } else {
             expect(pathResult.elem).toBeUndefined();
-            expect(pathResult.targetElement?.attr("id")).toBe(idFound);
+            expect(pathResult.targetElement?.id).toBe(idFound);
         }
     })
 });

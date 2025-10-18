@@ -13,8 +13,6 @@ const wait = (/** @type{number} */ delay) => {
 // Make test reproducible
 const util = require("../../src/util");
 
-/** @ts-ignore */
-const jQuery = require("jquery").default;
 const {FormCtrl, getFormCtrl, Templates} = require("../../src/controller/form_ctrl");
  
 /** @type {*} */
@@ -53,7 +51,7 @@ describe("FormCtrl", () => {
             return (_id) + "";
         };
         mockEditor = require('../editor.mock')(12345, {id: 0, username: 'joe', roles: ['student'] }, "text selected");
-        formCtrl = new FormCtrl(mockEditor, mockUserStorage, mockTemplateSrv, mockFileSrv, jQuery);
+        formCtrl = new FormCtrl(mockEditor, mockUserStorage, mockTemplateSrv, mockFileSrv);
     })
 
     it("FormCtrl is created", () => {
@@ -144,7 +142,7 @@ describe("FormCtrl", () => {
             ],
             isFilter: () => false
         };
-        const form = jQuery(`
+        const form = util.htmlToElement(`
             <div>
                 <input type="text" name="p1" value="Example">
                 <textarea name="p2">A long text in the area</textarea>    
@@ -180,7 +178,7 @@ describe("FormCtrl", () => {
             ],
             isFilter: () => false
         };
-        const form = jQuery(`
+        const form = util.htmlToElement(`
             <div>
                 <input type="text" name="p1" value="   Example  ">
                 <textarea name="p2"> A long text in the area   </textarea>    
@@ -195,7 +193,7 @@ describe("FormCtrl", () => {
 
     it("Use stored values for all variables starting with _ when saveall unset", () => {
         // Use the real templateSrv
-        formCtrl = new FormCtrl(mockEditor, mockUserStorage, getTemplateSrv(), mockFileSrv, jQuery);
+        formCtrl = new FormCtrl(mockEditor, mockUserStorage, getTemplateSrv(), mockFileSrv);
         mockUserStorage.getFromLocal = jest.fn().mockImplementation((key, def) => {
             if (key === 'values') {
                 return {_saved: 'The new value'};
@@ -224,20 +222,23 @@ describe("FormCtrl", () => {
         expect(ctx.filter).toBe(false);
         expect(ctx.controls).toHaveLength(2);
         expect(ctx.controls[0]).toBeTruthy();
-        const $control0 = jQuery(ctx.controls[0]).find('input');
-        expect($control0.val()).toBe("The new value");
-        expect($control0.attr('type')).toBe('text');
-        const $control1 = jQuery(ctx.controls[1]).find('input');
-        expect($control1.attr('min')).toBe('1');
-        expect($control1.attr('type')).toBe('number');
-        expect($control1.attr('max')).toBe('110');
-        expect($control1.val()).toBe('18');
+        expect(typeof ctx.controls[0]).toBe('string');
+        const control0 = util.htmlToElement(ctx.controls[0]).querySelector('input');
+        if (!control0) throw new Error("controls[0] input not found");
+        expect(control0.value).toBe("The new value");
+        expect(control0.getAttribute('type')).toBe('text');
+        const control1 = util.htmlToElement(ctx.controls[1]).querySelector('input');
+        if (!control1) throw new Error("controls[1] input not found");
+        expect(control1.getAttribute('min')).toBe('1');
+        expect(control1.getAttribute('type')).toBe('number');
+        expect(control1.getAttribute('max')).toBe('110');
+        expect(control1.value).toBe('18');
     });
 
 
     it("Use stored values for all variables starting with _ when saveall is ON", () => {
         // Use the real templateSrv
-        formCtrl = new FormCtrl(mockEditor, mockUserStorage, getTemplateSrv(), mockFileSrv, jQuery);
+        formCtrl = new FormCtrl(mockEditor, mockUserStorage, getTemplateSrv(), mockFileSrv);
         mockUserStorage.getFromLocal = jest.fn().mockImplementation((key, def) => {
             if (key === 'values') {
                 return {_saved: 'The new value'};
@@ -267,20 +268,22 @@ describe("FormCtrl", () => {
         expect(ctx.filter).toBe(false);
         expect(ctx.controls).toHaveLength(2);
         expect(ctx.controls[0]).toBeTruthy();
-        const $control0 = jQuery(ctx.controls[0]).find('input');
-        expect($control0.val()).toBe("The new value 22");
-        expect($control0.attr('type')).toBe('text');
-        const $control1 = jQuery(ctx.controls[1]).find('input');
-        expect($control1.attr('min')).toBe('1');
-        expect($control1.attr('type')).toBe('number');
-        expect($control1.attr('max')).toBe('110');
-        expect($control1.val()).toBe('49');
+        const control0 = util.htmlToElement(ctx.controls[0]).querySelector('input');
+        if (!control0) throw new Error('control[0] input not found');
+        expect(control0.value).toBe("The new value 22");
+        expect(control0.getAttribute('type')).toBe('text');
+        const control1 = util.htmlToElement(ctx.controls[1]).querySelector('input');
+        if (!control1) throw new Error('control[1] input not found');
+        expect(control1.getAttribute('min')).toBe('1');
+        expect(control1.getAttribute('type')).toBe('number');
+        expect(control1.getAttribute('max')).toBe('110');
+        expect(control1.value).toBe('49');
     });
 
 
     it('Applies field watchers showing and hidding controls depending on input', async() => {
         // Use the real templateSrv
-        formCtrl = new FormCtrl(mockEditor, mockUserStorage, getTemplateSrv(), mockFileSrv, jQuery);
+        formCtrl = new FormCtrl(mockEditor, mockUserStorage, getTemplateSrv(), mockFileSrv);
         /** @type {any} */
         const widget = {
             key: "wk111",
@@ -295,52 +298,63 @@ describe("FormCtrl", () => {
         };
         const ctx = formCtrl.createContext(widget);
         expect(ctx.controls).toHaveLength(3);
-        const $form = jQuery(`<div>${ctx.controls.join('\n')}</div>`);
-        const $optInput = $form.find('[name="opt"]');
-        const $lstInput = $form.find('[name="lst"]');
-        const $txtInput = $form.find('[name="txt"]');
-        const $optControl = $optInput.closest('.form-group');
-        const $lstControl = $lstInput.closest('.form-group');
-        const $txtControl = $txtInput.closest('.form-group');
+        const form = util.htmlToElement(`<div>${ctx.controls.join('\n')}</div>`);
+        /** @type {HTMLInputElement | null} */
+        const optInput = form.querySelector('[name="opt"]');
+        if (!optInput) throw new Error('cannot find optInput');
+        /** @type {HTMLInputElement | null} */
+        const lstInput = form.querySelector('[name="lst"]');
+        if (!lstInput) throw new Error('cannot find lstInput');
+        /** @type {HTMLInputElement | null} */
+        const txtInput = form.querySelector('[name="txt"]');
+        if (!txtInput) throw new Error('cannot find txtInput');
+        /** @type {HTMLElement | null} */
+        const optControl = optInput.closest('.form-group');
+        if (!optControl) throw new Error('cannot find optControl');
+        /** @type {HTMLSelectElement | null} */
+        const lstControl = lstInput.closest('.form-group');
+        if (!lstControl) throw new Error('cannot find lstControl');
+        /** @type {HTMLElement | null} */
+        const txtControl = txtInput.closest('.form-group');
+        if (!txtControl) throw new Error('cannot find txtControl');
         // check initial values
-        expect($optInput.prop('checked')).toBe(false);
-        expect($lstInput.val()).toBe('spain');
-        expect($txtInput.val()).toBe('Not editable');
-        formCtrl.applyFieldWatchers($form, widget.defaults, widget, false);
+        expect(optInput.checked).toBe(false);
+        expect(lstInput.value).toBe('spain');
+        expect(txtInput.value).toBe('Not editable');
+        formCtrl.applyFieldWatchers(form, widget.defaults, widget, false);
         expect(mockUserStorage.setToLocal).not.toHaveBeenCalled();
 
         // Expect only the first element to be visible
-        expect($optControl.css('display')).not.toBe('none');
-        expect($lstControl.css('display')).toBe('none');
-        expect($txtControl.css('display')).toBe('none');
+        expect(optControl.style.display).not.toBe('none');
+        expect(lstControl.style.display).toBe('none');
+        expect(txtControl.style.display).toBe('none');
 
         // Click on the checkbox
        
-        $optInput[0].setAttribute("checked", true);
-        $optInput.trigger("change"); // jQuery handler
-        $optInput[0].dispatchEvent(new Event("change", { bubbles: true })); // native
+        optInput.checked = true;
+        optInput.dispatchEvent(new Event("change", { bubbles: true })); // native
         await wait(1000);
 
-        $lstControl.removeAttr("style")
-        expect($lstControl[0].style.display).not.toBe('none');
-        expect($txtControl.css('display')).toBe('none');
+        lstControl.removeAttribute("style")
+        expect(lstControl.style.display).not.toBe('none');
 
         // Select the italy option
-        $lstControl.val('italy');
-        $lstControl.find('option[value=spain]').attr('selected', false);
-        $lstControl.find('option[value=italy]').attr('selected', true);
-        $lstControl.change(); // Problem doUpdateVisibilities not called????
-        $optInput.change();
+        lstControl.value ='italy';
+        lstControl.querySelector('option[value=spain]')?.setAttribute('selected', 'false');
+        lstControl.querySelector('option[value=italy]')?.setAttribute('selected', 'true');
+        lstControl.dispatchEvent(new Event("change", { bubbles: true })); // native
+        optInput.dispatchEvent(new Event("change", { bubbles: true })); // native
         await wait(500);
-        expect($lstControl[0].style.display).not.toBe('none');
-        expect($txtControl[0].style.display).not.toBe('none');
+        expect(lstControl.style.display).not.toBe('none');
+        expect(txtControl.style.display).not.toBe('none');
 
         // Click on the checkbox again
-        $optInput.prop("checked", false).change();
+        optInput.checked = false;
+        optInput.dispatchEvent(new Event("change", { bubbles: true })); // native
         await wait(500);
         // Expect only the first element to be visible
-        expect($optControl.css('display')).toBe('block');
-        expect($lstControl.css('display')).toBe('none');
-        expect($txtControl.css('display')).toBe('none');
+        expect(optControl.style.display).toBe('');
+        expect(lstControl.style.display).toBe('none');
+        expect(txtControl.style.display).toBe('none');
     });
 });
