@@ -112,7 +112,7 @@ const Transformers = {
     toLowerCase: function(txt) {
         return (txt + "").toLowerCase();
     },
-   /** @param {string} txt */
+    /** @param {string} txt */
     trim: function(txt) {
         return (txt + "").trim();
     },
@@ -157,7 +157,7 @@ const Transformers = {
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
     },
-   /** @param {string} txt */
+    /** @param {string} txt */
     encodeHTML: function(txt) {
         // @ts-ignore
         return encodeURIComponent(txt || "");
@@ -757,7 +757,7 @@ const bindingFactory = function(el) {
          * @returns {Binding}
          */
         attrRegex: function(attr, query, castTo) {
-             /** @type {Element | null} */
+            /** @type {Element | null} */
             let elem = el;
             if (query) {
                 elem = el.querySelector(query);
@@ -803,7 +803,7 @@ const bindingFactory = function(el) {
          * @returns {Binding}
          */
         hasStyle: function(sty, query, neg) {
-             /** @type {Element | null} */
+            /** @type {Element | null} */
             let elem = el;
             if (query) {
                 elem = el.querySelector(query);
@@ -852,7 +852,7 @@ const bindingFactory = function(el) {
          * @returns {Binding}
          */
         styleRegex: function(attr, query, castTo) {
-             /** @type {Element | null} */
+            /** @type {Element | null} */
             let elem = el;
             if (query) {
                 elem = el.querySelector(query);
@@ -1013,9 +1013,9 @@ export function toRgba(hex, alpha) {
         g = 0,
         b = 0;
     if (result) {
-      r = parseInt(result[1], 16);
-      g = parseInt(result[2], 16);
-      b = parseInt(result[3], 16);
+        r = parseInt(result[1], 16);
+        g = parseInt(result[2], 16);
+        b = parseInt(result[3], 16);
     }
     if (alpha === 1) {
         return `rgb(${r},${g},${b})`;
@@ -1042,7 +1042,7 @@ export function debounce(cb, delay = 1000) {
             window.clearTimeout(timeoutId);
         }
         timeoutId = window.setTimeout(() => {
-          cb(...args);
+            cb(...args);
         }, delay);
     };
     debounced.clear = () => {
@@ -1077,10 +1077,10 @@ export function toggleClass(elem, ...classNames) {
  */
 function parseVersion(v) {
     return v
-      .split('.')
-      .map(part => Number(part.trim()))
-      .concat([0, 0])
-      .slice(0, 3);
+        .split('.')
+        .map(part => Number(part.trim()))
+        .concat([0, 0])
+        .slice(0, 3);
 }
 
 /**
@@ -1090,45 +1090,45 @@ function parseVersion(v) {
  * @returns {boolean} True if current meets condition
  */
 export function compareVersion(current, condition) {
-  if (!condition) {
-    return true;
-  }
-
-  // Parse condition string
-  const match = condition.trim().match(/^(>=|<=|>|<|=)?\s*(\d+(?:\.\d+){0,2})$/);
-  if (!match) {
-    console.error("Invalid version condition: " + condition);
-    return true;
-  }
-
-  const operator = match[1] || "=";
-  const targetVersion = parseVersion(match[2]);
-  const currentVersion = parseVersion(current);
-
-  // Compare versions
-  let cmp = 0;
-  for (let i = 0; i < 3; i++) {
-    if (currentVersion[i] > targetVersion[i]) {
-      cmp = 1;
-      break;
+    if (!condition) {
+        return true;
     }
-    if (currentVersion[i] < targetVersion[i]) {
-      cmp = -1;
-      break;
-    }
-  }
 
-  // Evaluate based on operator
-  switch (operator) {
-    case ">": return cmp > 0;
-    case ">=": return cmp >= 0;
-    case "<": return cmp < 0;
-    case "<=": return cmp <= 0;
-    case "=": return cmp === 0;
-    default:
-     console.log("Unknown operator: " + operator);
-     return true;
-  }
+    // Parse condition string
+    const match = condition.trim().match(/^(>=|<=|>|<|=)?\s*(\d+(?:\.\d+){0,2})$/);
+    if (!match) {
+        console.error("Invalid version condition: " + condition);
+        return true;
+    }
+
+    const operator = match[1] || "=";
+    const targetVersion = parseVersion(match[2]);
+    const currentVersion = parseVersion(current);
+
+    // Compare versions
+    let cmp = 0;
+    for (let i = 0; i < 3; i++) {
+        if (currentVersion[i] > targetVersion[i]) {
+            cmp = 1;
+            break;
+        }
+        if (currentVersion[i] < targetVersion[i]) {
+            cmp = -1;
+            break;
+        }
+    }
+
+    // Evaluate based on operator
+    switch (operator) {
+        case ">": return cmp > 0;
+        case ">=": return cmp >= 0;
+        case "<": return cmp < 0;
+        case "<=": return cmp <= 0;
+        case "=": return cmp === 0;
+        default:
+            console.log("Unknown operator: " + operator);
+            return true;
+    }
 }
 
 /**
@@ -1145,6 +1145,22 @@ export function removeRndFromCtx(ctx, parameters) {
             return val !== '$RND';
         })
     );
+}
+
+/**
+ * Helper to load scripts
+ * @param {import('./plugin').TinyMCE} editor
+ * @param {string} src
+ * @returns {Promise<void>}
+ */
+export function loadScriptAsync(editor, src) {
+    return new Promise((resolve, reject) => {
+        const s = editor.dom.create('script', {src});
+        s.onload = () => resolve();
+        s.onerror = reject;
+        const head = editor.getDoc().querySelector("head");
+        head.appendChild(s);
+    });
 }
 
 /**

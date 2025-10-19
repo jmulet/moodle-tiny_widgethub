@@ -70,6 +70,10 @@ The options available are:
 
   - *jsBaseUrl* - If specified, this **base URL** will be prepended to the `requires` property in the widget definition — *unless* `requires` already starts with `http`, in which case the base URL will be ignored. This feature is useful for dynamically changing the location of the JavaScript assets required by the widgets.
 
+  - *tiny.iframe.jquery.version* The jQuery version that should be injected into the editor's iFrame. It defaults to "3.6.1" for Moodle 4.x and "none" for Moodle 5.x. The dependency is loaded from CDN and it should be available at: `https://code.jquery.com/jquery-${jqVersion}.min.js`
+
+  - *tiny.iframe.jsbootstrap.version* The version of the javascript bundle of Bootstrap that should be injected into the editor's iFrame. It defaults to "4.6.2" for Moodle 4.x and "5.3.8" for Moodle 5.x. Please note that Bootstrap 4.x requires jQuery. The dependency is loaded from CDN and it should be available at: `https://cdn.jsdelivr.net/npm/bootstrap@${bsVersion}/dist/js/bootstrap.bundle.min.js`
+
 **Insert Behavior Configuration**
  This section defines the general behavior configuration for all insert mechanisms in the plugin.
 

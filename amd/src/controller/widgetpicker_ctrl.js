@@ -1,4 +1,3 @@
-/* eslint-disable complexity */
 /* eslint-disable max-len */
 /* eslint-disable no-eq-null */
 /* eslint-disable no-console */
