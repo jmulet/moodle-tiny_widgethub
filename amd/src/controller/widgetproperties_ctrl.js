@@ -157,12 +157,16 @@ export class WidgetPropertiesCtrl {
             this.modal?.destroy();
             this.modal = null;
         });
+        /** @type {import('../service/modal_service').ListenerTracker} */
+        const listenerTracker = (/** @type {Element}*/ el, /** @type {string} */ evType, /** @type {EventListener} */ handler) => {
+            this.modal?.twhRegisterListener(el, evType, handler);
+        };
         const bodyElem = this.modal.body[0];
         const formElem = this.modal.body.find('form')[0];
         // Bind actions on image and color pickers
-        this.formCtrl.attachPickers(bodyElem);
+        this.formCtrl.attachPickers(bodyElem, listenerTracker);
         // Applying watchers to the form elements
-        this.formCtrl.applyFieldWatchers(bodyElem, paramValues, widget, false);
+        this.formCtrl.applyFieldWatchers(bodyElem, paramValues, widget, false, listenerTracker);
 
         // Bind accept action to modal
         this.modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", () => {

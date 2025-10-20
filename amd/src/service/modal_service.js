@@ -27,8 +27,61 @@ import ModalRegistry from 'core/modal_registry';
 import ModalFactory from 'core/modal_factory';
 import ModalEvents from 'core/modal_events';
 
-// @ts-ignore
-class IBPickerModal extends Modal {
+/**
+ * Tracks event listeners for cleanup. Can auto-attach or just register.
+ */
+class ModalTracker extends Modal {
+    /**
+     * @param {HTMLElement} root
+     */
+    constructor(root) {
+        super(root);
+        /** @type {[Element, string, EventListener][]} */
+        this._twhListeners = [];
+    }
+
+    destroy() {
+        this._twhRemoveListeners();
+        super.destroy();
+    }
+
+  /**
+   * Add a listener and optionally attach it immediately.
+   * @param {Element} el The DOM element
+   * @param {string} event The event type
+   * @param {EventListener} handler The listener function
+   */
+  twhRegisterListener(el, event, handler) {
+    // Avoid duplicates
+    if (!this._twhListeners.some(([e, ev, h]) => e === el && ev === event && h === handler)) {
+      this._twhListeners.push([el, event, handler]);
+      el.addEventListener(event, handler);
+    }
+  }
+
+  /**
+   * Add a listener by selector inside a container.
+   * @param {Element} container The parent container
+   * @param {string} selector CSS selector for target element
+   * @param {string} event Event type
+   * @param {EventListener} handler Listener function
+   */
+  twhRegisterListenerBySelector(container, selector, event, handler) {
+    const el = container.querySelector(selector);
+    if (el) {
+        this.twhRegisterListener(el, event, handler);
+    }
+  }
+
+  /** Remove all tracked listeners */
+  _twhRemoveListeners() {
+    this._twhListeners.forEach(([el, event, handler]) => el.removeEventListener(event, handler));
+    this._twhListeners = [];
+  }
+}
+
+
+class IBPickerModal extends ModalTracker {
     static TYPE = 'tiny_widgethub/picker_modal';
     static TEMPLATE = 'tiny_widgethub/picker_modal';
 
@@ -37,12 +90,12 @@ class IBPickerModal extends Modal {
         super.registerEventListeners();
     }
 }
-// @ts-ignore
+
 ModalRegistry.register(IBPickerModal.TYPE, IBPickerModal, IBPickerModal.TEMPLATE);
 
 
-// @ts-ignore
-class IBParamsModal extends Modal {
+
+class IBParamsModal extends ModalTracker {
     static TYPE = 'tiny_widgethub/params_modal';
     static TEMPLATE = 'tiny_widgethub/params_modal';
 
@@ -51,11 +104,11 @@ class IBParamsModal extends Modal {
         super.registerEventListeners();
     }
 }
-// @ts-ignore
+
 ModalRegistry.register(IBParamsModal.TYPE, IBParamsModal, IBParamsModal.TEMPLATE);
 
-// @ts-ignore
-class IBContextModal extends Modal {
+
+class IBContextModal extends ModalTracker {
     static TYPE = 'tiny_widgethub/context_modal';
     static TEMPLATE = 'tiny_widgethub/context_modal';
 
@@ -64,11 +117,12 @@ class IBContextModal extends Modal {
         super.registerEventListeners();
     }
 }
-// @ts-ignore
+
 ModalRegistry.register(IBContextModal.TYPE, IBContextModal, IBContextModal.TEMPLATE);
 
 /**
- * @typedef {JQuery<HTMLElement> & {header: JQuery<HTMLElement>, body: JQuery<HTMLElement>, footer: JQuery<HTMLElement>, destroy: () => void, show: () => void, getRoot: () => {on: () => void}}} ModalDialogue
+ * @typedef {(el: Element, event: string, handler: EventListener) => void} ListenerTracker
+ * @typedef {JQuery<HTMLElement> & {header: JQuery<HTMLElement>, body: JQuery<HTMLElement>, footer: JQuery<HTMLElement>, destroy: () => void, show: () => void, getRoot: () => {on: () => void}, twhRegisterListener: ListenerTracker, twhRegisterListenerBySelector: (container: string, selector: string, event: string, handler: EventListener) => void }} ModalDialogue
  */
 
 /**

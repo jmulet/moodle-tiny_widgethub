@@ -346,8 +346,9 @@ export class FormCtrl {
 
    /**
     * @param {HTMLElement} modalBody - The modal body
+    * @param {import('../service/modal_service').ListenerTracker} listenerTracker
     */
-   attachPickers(modalBody) {
+   attachPickers(modalBody, listenerTracker) {
       // Find all file pickers
       const canShowFilePicker = typeof this.fileSrv.getImagePicker() !== 'undefined';
       if (canShowFilePicker) {
@@ -356,7 +357,7 @@ export class FormCtrl {
          pickers.forEach(picker => {
             picker.disabled = !canShowFilePicker;
             // Attach a click handler to any image-picker buttons
-            picker.addEventListener("click", async(evt) => {
+            const pickerHandler = async(/** @type {Event} */ evt) => {
                evt.preventDefault();
                const parent = /** @type {HTMLElement} */ (evt.currentTarget).parentElement;
                const input = parent?.querySelector('input');
@@ -369,7 +370,8 @@ export class FormCtrl {
                } catch (ex) {
                   console.error(ex);
                }
-            });
+            };
+            listenerTracker(picker, 'click', pickerHandler);
          });
       }
 
@@ -390,10 +392,11 @@ export class FormCtrl {
          const opacity = inputRange.value ?? 1;
          inputColor.style.opacity = '' + opacity;
          // Bind envent change
-         inputRange.addEventListener('change', () => {
+         const inputRangeHandler = () => {
             const opacity = inputRange.value ?? 1;
             inputColor.style.opacity = '' + opacity;
-         });
+         };
+         listenerTracker(inputRange, 'change', inputRangeHandler);
       });
    }
 
@@ -402,8 +405,9 @@ export class FormCtrl {
     * @param {Object.<string, any>} defaultsData
     * @param {import('../options').Widget} widget
     * @param {boolean} selectmode
+    * @param {import('../service/modal_service').ListenerTracker} listenerTracker
     */
-   applyFieldWatchers(formElem, defaultsData, widget, selectmode) {
+   applyFieldWatchers(formElem, defaultsData, widget, selectmode, listenerTracker) {
       /** @type {string[]} */
       const watchedvars = []; // All these variable names must be watched
       /**
@@ -476,9 +480,7 @@ export class FormCtrl {
          if (varobj.type === 'textfield' || varobj.type === 'textarea') {
             evtName = "keyup";
          }
-         control.addEventListener(evtName, () => {
-            doUpdateVisibilities();
-         });
+         listenerTracker(control, evtName, () => doUpdateVisibilities());
       });
 
       // Decide which form elements are visible accoding to the current values of the parameters.

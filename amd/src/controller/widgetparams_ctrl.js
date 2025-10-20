@@ -72,6 +72,10 @@ export class WidgetParamsCtrl {
          this.modal?.destroy();
          this.modal = null;
       });
+      /** @type {import('../service/modal_service').ListenerTracker} */
+      const listenerTracker = (/** @type {Element}*/ el, /** @type {string} */ evType, /** @type {EventListener} */ handler) => {
+         this.modal?.twhRegisterListener(el, evType, handler);
+      };
       this.modal = modal;
       const bodyElem = modal.body[0];
       const formElem = modal.body.find("form")[0];
@@ -81,7 +85,7 @@ export class WidgetParamsCtrl {
          await this.updatePreview(data.idtabpane, ctxFromDialogue);
       });
       this.formCtrl.attachRepeatable(bodyElem, this.widget);
-      this.formCtrl.attachPickers(bodyElem);
+      this.formCtrl.attachPickers(bodyElem, listenerTracker);
       modal.footer.show();
       modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", async() => {
          // Go back to main menú
@@ -101,7 +105,7 @@ export class WidgetParamsCtrl {
 
       // Change input fields visibilities upon conditions
       const selectmode = this.editor.selection.getContent().trim() != '';
-      this.formCtrl.applyFieldWatchers(bodyElem, this.widget.defaults, this.widget, selectmode);
+      this.formCtrl.applyFieldWatchers(bodyElem, this.widget.defaults, this.widget, selectmode, listenerTracker);
 
       // Help circles require popover
       try {

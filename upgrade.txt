@@ -53,3 +53,4 @@ Changes:
 == 1.4.1 ==
   - Issue #39: Migration jQuery to vanilla Javascript. Reduce the quantity of code relying on jQuery.
   - Configure the versions of jQuery and Bootstrap injected into the editor's iFrame.
+  - Hotfix: Activate image pickers on repeatable parameters.
