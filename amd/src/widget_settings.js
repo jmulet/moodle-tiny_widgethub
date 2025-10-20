@@ -388,7 +388,7 @@ export default {
                 ymlArea.value = '';
                 previewPanel.innerHTML = '';
                 // Send form by skipping validation
-                form.dispatchEvent(new Event('submit', {bubbles: true, cancelable: true}));
+                form.requestSubmit();
             });
             target.appendChild(deleteBtn);
         }
@@ -409,7 +409,7 @@ export default {
                     jsonArea.value = (validation.json ?? '') + ' ';
                     jsonArea.dispatchEvent(new Event('change', {bubbles: true}));
                     // Submit form
-                    form.dispatchEvent(new Event('submit', {bubbles: true, cancelable: true}));
+                    form.requestSubmit();
                 }
             });
 

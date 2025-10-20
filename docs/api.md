@@ -39,7 +39,7 @@ The type ContextMenu is defined by
 | **Key**               | **Type**                              | **Description**                                                                                           |
 |-----------------------|---------------------------------------|-----------------------------------------------------------------------------------------------------------|
 | **`predicate`**     | `string`                             | CSS query for elements triggering the context menu.                                                        |
-| **`actions`**       | `string`                             | Space separated actions such as  `moveup`, `movedown`, `moveleft`, `moveright`, `insertafter`, `remove`                          |
+| **`actions`**       | `string`                             | Space separated actions such as  `moveup`, `movedown`, `moveleft`, `moveright`, `insertafter`, `printable`, `remove`. You can also write a vertical bar between actions to insert a separator between items.                          |
 
 ---  
 

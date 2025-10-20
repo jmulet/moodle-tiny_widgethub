@@ -358,15 +358,13 @@ export class FormCtrl {
             // Attach a click handler to any image-picker buttons
             picker.addEventListener("click", async(evt) => {
                evt.preventDefault();
+               const parent = /** @type {HTMLElement} */ (evt.currentTarget).parentElement;
+               const input = parent?.querySelector('input');
                try {
                   /** @type {{url?: string}} */
                   const params = await this.fileSrv.displayImagePicker();
-                  if (params?.url) {
-                     const parent = /** @type {HTMLElement} */ (evt.target).parentElement;
-                     const input = parent?.querySelector('input');
-                     if (input) {
-                        input.value = params.url;
-                     }
+                  if (params?.url && input) {
+                     input.value = params.url;
                   }
                } catch (ex) {
                   console.error(ex);
