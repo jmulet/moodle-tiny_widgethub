@@ -49,3 +49,6 @@ Fixes:
 Changes:
   - Bindings with get/set functions which use jQuery elements are deprecated.
     Please use getValue/setValue instead which use regular DOM elements.
+
+  == 1.4.1 ==
+  Hotfix: Rename to lowercase contextinit.js
