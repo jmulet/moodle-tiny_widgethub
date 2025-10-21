@@ -32,5 +32,5 @@ export default {
     component,
     pluginName: `${component}/plugin`,
     icon: `${component}`,
-    currentRelease: '1.4.0'
+    currentRelease: '1.4.1'
 };
