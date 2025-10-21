@@ -226,8 +226,9 @@ describe('widget_settings', () => {
         mockConfirm.mockReturnValue(false);
         /** @type {HTMLFormElement | null} */
         const form = document.body.querySelector('form');
-        if(form) {
+        if (form) {
             form.dispatchEvent = jest.fn().mockImplementation(e => e?.preventDefault());
+            form.requestSubmit = jest.fn();
         }
         deleteBtn?.click();
         await wait(500);
@@ -235,7 +236,7 @@ describe('widget_settings', () => {
         expect(jsonArea.value).toBeTruthy();
         expect(ymlArea.value).toBeTruthy();
         // Expect $form.trigger not called
-        expect(form?.dispatchEvent).not.toHaveBeenCalled();
+        expect(form?.requestSubmit).not.toHaveBeenCalled();
 
         // Repeat accepting confirm
         mockConfirm.mockClear(); 
@@ -244,7 +245,7 @@ describe('widget_settings', () => {
         await wait(500);
         expect(window.confirm).toHaveBeenCalled();
         // Expect $form.trigger to have been called
-        expect(form?.dispatchEvent).toHaveBeenCalled();
+        expect(form?.requestSubmit).toHaveBeenCalled();
         expect(jsonArea.value).toBeFalsy();
         expect(ymlArea.value).toBeFalsy();
       

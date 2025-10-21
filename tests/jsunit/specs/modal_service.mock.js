@@ -57,6 +57,9 @@ const mockCreate = (name, templateContext, onHidden) => {
         show: jest.fn(),
         hide: jest.fn(),
         destroy: jest.fn(),
+        twhRegisterListener: jest.fn().mockImplementation((e, evType, handler) => {
+           e.addEventListener(evType, handler);
+        })
     };
     modal.setFormValues = setFormValues.bind(modal);
     return Promise.resolve(modal);

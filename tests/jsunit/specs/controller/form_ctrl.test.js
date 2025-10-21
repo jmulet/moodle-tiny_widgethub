@@ -321,7 +321,10 @@ describe("FormCtrl", () => {
         expect(optInput.checked).toBe(false);
         expect(lstInput.value).toBe('spain');
         expect(txtInput.value).toBe('Not editable');
-        formCtrl.applyFieldWatchers(form, widget.defaults, widget, false);
+        const listenerTracker = jest.fn().mockImplementation((e, evType, handler) => {
+            e.addEventListener(evType, handler);
+        });
+        formCtrl.applyFieldWatchers(form, widget.defaults, widget, false, listenerTracker);
         expect(mockUserStorage.setToLocal).not.toHaveBeenCalled();
 
         // Expect only the first element to be visible
@@ -330,7 +333,6 @@ describe("FormCtrl", () => {
         expect(txtControl.style.display).toBe('none');
 
         // Click on the checkbox
-       
         optInput.checked = true;
         optInput.dispatchEvent(new Event("change", { bubbles: true })); // native
         await wait(1000);
@@ -338,12 +340,10 @@ describe("FormCtrl", () => {
         lstControl.removeAttribute("style")
         expect(lstControl.style.display).not.toBe('none');
 
-        // Select the italy option
-        lstControl.value ='italy';
-        lstControl.querySelector('option[value=spain]')?.setAttribute('selected', 'false');
-        lstControl.querySelector('option[value=italy]')?.setAttribute('selected', 'true');
-        lstControl.dispatchEvent(new Event("change", { bubbles: true })); // native
-        optInput.dispatchEvent(new Event("change", { bubbles: true })); // native
+        lstControl.querySelector('option[value="spain"]')?.removeAttribute('selected');
+        lstControl.querySelector('option[value="italy"]')?.setAttribute('selected', '');
+        lstInput.dispatchEvent(new Event("change", { bubbles: true })); // native
+        console.log(form.outerHTML);
         await wait(500);
         expect(lstControl.style.display).not.toBe('none');
         expect(txtControl.style.display).not.toBe('none');
