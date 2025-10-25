@@ -18,8 +18,11 @@ import {getWidgetDict} from './options';
 import {getDomSrv} from './service/dom_service';
 import {getWidgetPropertiesCtrl} from './controller/widgetproperties_ctrl';
 import {getMenuItemProviders, getListeners} from './extension';
+import Common from './common';
 // eslint-disable-next-line camelcase
 import {get_strings} from 'core/str';
+
+const {component, componentName} = Common;
 
 /**
  * Tiny WidgetHub plugin.
@@ -295,7 +298,6 @@ export async function initContextActions(editor) {
     defineIcons(editor);
 
     // Get translations
-    const component = 'tiny_widgethub';
     const [
         strProperties, strUnwrap, strMoveUp, strMoveDown, strMoveAfter, strMoveBefore,
         strInsert, strRemove, strPrintable
@@ -329,12 +331,12 @@ export async function initContextActions(editor) {
     };
 
     // Generic button action for opening the properties modal
-    editor.ui.registry.addButton('widgethub_modal_btn', {
+    editor.ui.registry.addButton(`${componentName}_modal_btn`, {
         icon: ICONS.gear,
         tooltip: strProperties,
         onAction: showPropertiesAction
     });
-    editor.ui.registry.addMenuItem('widgethub_modal_item', {
+    editor.ui.registry.addMenuItem(`${componentName}_modal_item`, {
         icon: ICONS.gear,
         text: strProperties,
         onAction: showPropertiesAction
@@ -362,47 +364,47 @@ export async function initContextActions(editor) {
     }
 
     // Generic button action for unwrapping those widgets that support this feature
-    editor.ui.registry.addButton('widgethub_unwrap_btn', {
+    editor.ui.registry.addButton(`${componentName}_unwrap_btn`, {
         icon: ICONS.arrowUpFromBracket,
         tooltip: strUnwrap,
         onAction: genericAction('unwrap')
     });
-    editor.ui.registry.addMenuItem('widgethub_unwrap_item', {
+    editor.ui.registry.addMenuItem(`${componentName}_unwrap_item`, {
         icon: ICONS.arrowUpFromBracket,
         text: strUnwrap,
         onAction: genericAction('unwrap')
     });
-    editor.ui.registry.addMenuItem('widgethub_moveup_item', {
+    editor.ui.registry.addMenuItem(`${componentName}_moveup_item`, {
         icon: ICONS.arrowUp,
         text: strMoveUp,
         onAction: genericAction('movebefore')
     });
-    editor.ui.registry.addMenuItem('widgethub_movedown_item', {
+    editor.ui.registry.addMenuItem(`${componentName}_movedown_item`, {
         icon: ICONS.arrowDown,
         text: strMoveDown,
         onAction: genericAction('moveafter')
     });
-    editor.ui.registry.addMenuItem('widgethub_moveleft_item', {
+    editor.ui.registry.addMenuItem(`${componentName}_moveleft_item`, {
         icon: ICONS.arrowLeft,
         text: strMoveBefore,
         onAction: genericAction('movebefore')
     });
-    editor.ui.registry.addMenuItem('widgethub_moveright_item', {
+    editor.ui.registry.addMenuItem(`${componentName}_moveright_item`, {
         icon: ICONS.arrowRight,
         text: strMoveAfter,
         onAction: genericAction('moveafter')
     });
-    editor.ui.registry.addMenuItem('widgethub_insertafter_item', {
+    editor.ui.registry.addMenuItem(`${componentName}_insertafter_item`, {
         icon: ICONS.clone,
         text: strInsert,
         onAction: genericAction('insertafter')
     });
-    editor.ui.registry.addMenuItem('widgethub_remove_item', {
+    editor.ui.registry.addMenuItem(`${componentName}_remove_item`, {
         icon: ICONS.remove,
         text: strRemove,
         onAction: genericAction('remove')
     });
-    editor.ui.registry.addToggleMenuItem('widgethub_printable_item', {
+    editor.ui.registry.addToggleMenuItem(`${componentName}_printable_item`, {
         icon: 'print',
         text: strPrintable,
         onAction: genericAction('printable'),
@@ -422,14 +424,14 @@ export async function initContextActions(editor) {
     widgetsWithExtensions.forEach(menuItem => {
         if (menuItem.subMenuItems) {
                 // It is a nested menu.
-                editor.ui.registry.addNestedMenuItem(`widgethub_${menuItem.name}`, {
+                editor.ui.registry.addNestedMenuItem(`${componentName}_${menuItem.name}`, {
                     icon: menuItem.icon,
                     text: menuItem.title,
                     getSubmenuItems: menuItem.subMenuItems
                 });
             } else if (menuItem.onAction) {
                 // It is a simple menu item.
-                editor.ui.registry.addMenuItem(`widgethub_${menuItem.name}`, {
+                editor.ui.registry.addMenuItem(`${componentName}_${menuItem.name}`, {
                     icon: menuItem.icon,
                     text: menuItem.title,
                     onAction: menuItem.onAction
@@ -437,7 +439,7 @@ export async function initContextActions(editor) {
             }
     });
 
-    editor.ui.registry.addContextMenu('tiny_widgethub', {
+    editor.ui.registry.addContextMenu(component, {
         /** @param {HTMLElement} element */
         update: (element) => {
             // Look for a context
@@ -479,16 +481,16 @@ export async function initContextActions(editor) {
                     menuItems.push(...cm.actions.split(' ').map(e => e.trim()));
                 });
             }
-            menuItems = menuItems.map(e => e === '|' ? '|' : `widgethub_${e}_item`);
+            menuItems = menuItems.map(e => e === '|' ? '|' : `${componentName}_${e}_item`);
             // Check if the current widget has any action registered by extensions
             const actionNames = widgetsWithExtensions
                 .filter(e => matchesCondition(e.condition, widget.key))
-                .map(e => `widgethub_${e.name}`);
+                .map(e => `${componentName}_${e.name}`);
             menuItems.push(...actionNames);
 
             // Unwrap action always to the end
             if (widget.unwrap) {
-                menuItems.push('widgethub_unwrap_item');
+                menuItems.push(`${componentName}_unwrap_item`);
             }
             return menuItems.join(' ');
         }
@@ -504,12 +506,12 @@ export async function initContextActions(editor) {
             items.push('unwrap');
         }
         if (widget.prop("contexttoolbar")) {
-            editor.ui.registry.addContextToolbar(`widgethub_ctb_${widget.key}`, {
+            editor.ui.registry.addContextToolbar(`${componentName}_ctb_${widget.key}`, {
                 /** @param {HTMLElement} node */
                 predicate: function(node) {
                     return domSrv.matchesSelectors(node, widget.selectors);
                 },
-                items: items.map(e => `widgethub_${e}_btn`).join(' '),
+                items: items.map(e => `${componentName}_${e}_btn`).join(' '),
                 position: 'node'
             });
         }

@@ -135,7 +135,7 @@ Please refer to the documentation in libs/codemirror.
 This plugin was originally inspired by the plugin [Snippet](https://moodle.org/plugins/atto_snippet) by Justin Hunt.
 
 A version for the editor Atto of this plugin has been used in the institution [https://iedib.net/](IEDIB) since several years ago.
-The modified version of this plugin, with the extensions and widgets used at IEDIB, is available at the the repository [IEDIB/moodle-tiny_widgethub](https://github.com/IEDIB/moodle-tiny_widgethub)
+The modified version of this plugin, with the extensions and widgets used at IEDIB, is available at the the repository [IEDIB/moodle-tiny_ibwidgethub](https://github.com/IEDIB/moodle-tiny_ibwidgethub)
 
 
 Icons by [Fontawesome 6.4](https://fontawesome.com/icons/file-code?f=classic&s=light).

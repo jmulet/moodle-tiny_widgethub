@@ -26,6 +26,8 @@ import Modal from 'core/modal';
 import ModalRegistry from 'core/modal_registry';
 import ModalFactory from 'core/modal_factory';
 import ModalEvents from 'core/modal_events';
+import Common from '../common';
+const {component} = Common;
 
 /**
  * Tracks event listeners for cleanup. Can auto-attach or just register.
@@ -82,8 +84,8 @@ class ModalTracker extends Modal {
 
 
 class IBPickerModal extends ModalTracker {
-    static TYPE = 'tiny_widgethub/picker_modal';
-    static TEMPLATE = 'tiny_widgethub/picker_modal';
+    static TYPE = `${component}/picker_modal`;
+    static TEMPLATE = `${component}/picker_modal`;
 
     registerEventListeners() {
         // Call the parent registration.
@@ -96,8 +98,8 @@ ModalRegistry.register(IBPickerModal.TYPE, IBPickerModal, IBPickerModal.TEMPLATE
 
 
 class IBParamsModal extends ModalTracker {
-    static TYPE = 'tiny_widgethub/params_modal';
-    static TEMPLATE = 'tiny_widgethub/params_modal';
+    static TYPE = `${component}/params_modal`;
+    static TEMPLATE = `${component}/params_modal`;
 
     registerEventListeners() {
         // Call the parent registration.
@@ -109,8 +111,8 @@ ModalRegistry.register(IBParamsModal.TYPE, IBParamsModal, IBParamsModal.TEMPLATE
 
 
 class IBContextModal extends ModalTracker {
-    static TYPE = 'tiny_widgethub/context_modal';
-    static TEMPLATE = 'tiny_widgethub/context_modal';
+    static TYPE = `${component}/context_modal`;
+    static TEMPLATE = `${component}/context_modal`;
 
     registerEventListeners() {
         // Call the parent registration.

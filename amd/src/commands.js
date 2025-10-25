@@ -57,7 +57,7 @@ export const getSetup = async() => {
             .filter(Boolean);
 
         if (disableList.includes(page)) {
-            console.warn("WidgetHub plugin is disabled on this page.");
+            console.warn(`${Common.component} plugin is disabled on this page.`);
             return;
         }
 
@@ -66,7 +66,7 @@ export const getSetup = async() => {
             try {
                 const regex = new RegExp(regexPattern);
                 if (regex.test(page)) {
-                    console.warn("WidgetHub plugin is disabled on this page.");
+                    console.warn(`${Common.component} plugin is disabled on this page.`);
                     return;
                 }
             } catch (/** @type {any} */ ex) {

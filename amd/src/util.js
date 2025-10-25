@@ -25,6 +25,8 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import jQuery from 'jquery';
+import Common from './common';
+const {component} = Common;
 
 /**
  * @returns {string} a randomID
@@ -243,8 +245,8 @@ export function applyWidgetFilterFactory(editor, coreStr) {
      */
     return async(widgetTemplate, silent, mergevars) => {
         const translations = await coreStr.get_strings([
-            {key: 'filterres', component: 'tiny_widgethub'},
-            {key: 'nochanges', component: 'tiny_widgethub'}
+            {key: 'filterres', component},
+            {key: 'nochanges', component}
         ]);
         // Es tracta d'un filtre, no d'un widget i s'ha de tractar de forma diferent
         const userWidgetFilter = createFilterFunction(widgetTemplate);

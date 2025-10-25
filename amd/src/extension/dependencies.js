@@ -25,8 +25,9 @@ import {getGlobalConfig} from "../options";
 import {subscribe} from "../extension";
 import {getWidgetDict} from "../options";
 import {evalInContext, addBaseToUrl} from "../util";
-
-const JSAREACLASSNAME = 'tiny_widgethub-jsarea';
+import Common from '../common';
+const {component} = Common;
+const JSAREACLASSNAME = `${component}-jsarea`;
 /**
 /**
  * Adds the required scripts defined in the list
