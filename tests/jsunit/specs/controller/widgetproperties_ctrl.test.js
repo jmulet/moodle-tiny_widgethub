@@ -1,9 +1,9 @@
 /**
  * @jest-environment jsdom
  */
-import { htmlToElement } from '../../src/util';
-require('../module.mocks')(jest);
 
+require('../module.mocks')(jest);
+const { htmlToElement } = require('../../src/util');
 // Actual form implementation
 const {getFormCtrl} = require('../../src/controller/form_ctrl');
 

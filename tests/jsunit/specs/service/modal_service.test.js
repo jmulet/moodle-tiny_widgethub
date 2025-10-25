@@ -2,51 +2,8 @@
  * @jest-environment jsdom
  */
 require('../module.mocks')(jest);
-import { ModalSrv } from "../../src/service/modal_service";
 
-// Mock virtual modules
-jest.mock("core/modal", () => ({
-    __esModule: true,
-    default: class {
-        registerEventListeners() {}
-    }
-}), { virtual: true });
-
-jest.mock("core/modal_registry", () => ({
-    __esModule: true,
-    default: {
-        register: jest.fn()
-    }
-}), { virtual: true });
-
-jest.mock("core/modal_factory", () => ({
-    __esModule: true,
-    default: {
-        create: () => {
-            const _onFn = jest.fn();
-            return Promise.resolve({                
-                getRoot: () => ({
-                    on: _onFn
-                }),
-                modal: {
-                    css: jest.fn()
-                },
-                header: {
-                    css: jest.fn()
-                },
-                body: jest.fn(),
-                footer: jest.fn()
-            })
-        }
-    }
-}), { virtual: true });
-
-jest.mock("core/modal_events", () => ({
-    __esModule: true,
-    default: {
-        hidden: "hidden"
-    }
-}), { virtual: true });
+const { ModalSrv } = require('../../src/service/modal_service');
 
 /** @type {ModalSrv | undefined} */
 let modalSrv;
