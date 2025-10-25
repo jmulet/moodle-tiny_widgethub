@@ -124,7 +124,7 @@ const matchesCondition = function(condition, key) {
  */
 const predefinedActionsFactory = function(editor, domSrv) {
     /** @type {Record<string, Function>} */
-    return ({
+    const factory = {
         /**
          * Unwraps or destroys the contents of a widget
          * @param {PathResult} context
@@ -272,11 +272,17 @@ const predefinedActionsFactory = function(editor, domSrv) {
             }
             el.classList.toggle('d-print-none');
         }
-    });
+    };
+    factory.moveup = factory.movebefore;
+    factory.movedown = factory.moveafter;
+    // Alias.
+    factory.moveleft = factory.movebefore;
+    factory.moveright = factory.moveafter;
+    return factory;
 };
 
 /**
- * @typedef {{editor: import('./plugin').TinyMCE, path?: PathResult}} ItemMenuContext
+ * @typedef {{editor: import('./plugin').TinyMCE, path?: PathResult, actionPaths: Record<string, PathResult>}} ItemMenuContext
  */
 
 /**
@@ -291,6 +297,7 @@ export async function initContextActions(editor) {
      * @type {ItemMenuContext}
      */
     const ctx = {
+        actionPaths: {},
         editor: editor
     };
 
@@ -384,12 +391,12 @@ export async function initContextActions(editor) {
         text: strMoveDown,
         onAction: genericAction('moveafter')
     });
-    editor.ui.registry.addMenuItem(`${componentName}_moveleft_item`, {
+   editor.ui.registry.addMenuItem('widgethub_movebefore_item', {
         icon: ICONS.arrowLeft,
         text: strMoveBefore,
         onAction: genericAction('movebefore')
     });
-    editor.ui.registry.addMenuItem(`${componentName}_moveright_item`, {
+    editor.ui.registry.addMenuItem('widgethub_moveafter_item', {
         icon: ICONS.arrowRight,
         text: strMoveAfter,
         onAction: genericAction('moveafter')
@@ -449,14 +456,31 @@ export async function initContextActions(editor) {
                 return '';
             }
             const widget = ctx.path.widget;
+            /** @type {string[]} */
             let menuItems = [];
             if (hasBindings(widget)) {
                 menuItems.push('modal');
             }
-            // Now look for contextmenu property in widget definition
-            /** @type {{predicate: string, actions: string}[] | undefined} */
-            let contextmenu = widget.prop("contextmenu");
-            if (contextmenu) {
+            // Does this widget bubble?
+            /** @type {PathResult | null} */
+            let parentPath = null;
+            if (widget.prop('bubbles')) {
+                const parentElem = ctx.path?.elem?.parentElement;
+                if (parentElem) {
+                    const p = domSrv.findWidgetOnEventPath(widgetList, parentElem);
+                    if (p && p.widget?.key === widget.prop('bubbles')) {
+                        parentPath = p;
+                    }
+                }
+            }
+
+            const populateMenuItems = function(/** @type {PathResult} **/ path) {
+                // Now look for contextmenu property in widget definition
+                /** @type {{predicate: string, actions: string}[] | undefined} */
+                let contextmenu = path.widget?.prop('contextmenu');
+                if (!contextmenu) {
+                    return;
+                }
                 if (!Array.isArray(contextmenu)) {
                     contextmenu = [contextmenu];
                 }
@@ -466,7 +490,7 @@ export async function initContextActions(editor) {
                     let targetElem = null;
                     // If predicate is unset then use the widget root elem
                     if (!cm.predicate) {
-                        targetElem = ctx.path?.elem ?? null;
+                        targetElem = path?.elem ?? null;
                     } else if (element.matches(cm.predicate)) {
                         targetElem = element;
                     } else {
@@ -475,12 +499,36 @@ export async function initContextActions(editor) {
                     if (!targetElem) {
                         return;
                     }
-                    if (ctx.path) {
-                        ctx.path.targetElement = targetElem;
-                    }
-                    menuItems.push(...cm.actions.split(' ').map(e => e.trim()));
+                    const newActionsToAdd = cm.actions.split(' ')
+                        .map(e => e.trim())
+                        // Moveleft/right should be mapped into movebefore/moveafter
+                        .map(action => {
+                            if (action === 'moveleft') {
+                                return 'movebefore';
+                            }
+                            if (action === 'moveright') {
+                                return 'moveafter';
+                            }
+                            return action;
+                        })
+                        // Never duplicate actions from different sources.
+                        .filter(e => e === '|' || !menuItems.includes(e));
+                    menuItems.push(...newActionsToAdd);
+
+                    // Register the new paths of every action
+                    newActionsToAdd.filter(e => e !== '|').forEach((/** @type {string} */ e) => {
+                        path.targetElement = targetElem;
+                        ctx.actionPaths[e] = {...path};
+                    });
                 });
+            };
+
+            if (parentPath) {
+                // Give precedence to the parent menus.
+                populateMenuItems(parentPath);
             }
+            populateMenuItems(ctx.path);
+
             menuItems = menuItems.map(e => e === '|' ? '|' : `${componentName}_${e}_item`);
             // Check if the current widget has any action registered by extensions
             const actionNames = widgetsWithExtensions

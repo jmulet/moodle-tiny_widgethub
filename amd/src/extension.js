@@ -26,7 +26,7 @@
  * @typedef {{type: string, text: string, icon?: string, onAction: (api?: *) => void}} MenuItem
  * @typedef {{name: string, title: string, condition?: string | RegExp | (() => boolean), icon?: string, onAction?: ()=> void, subMenuItems?: () => (string | MenuItem[])}} UserDefinedItem
  * @typedef {(ctx: import('./contextinit').ItemMenuContext) => UserDefinedItem[]} Provider
- * @typedef {'onInit' | 'contentSet' | 'widgetInserted' | 'widgetRemoved' | 'ctxAction'} EventName
+ * @typedef {'setup' | 'onInit' | 'contentSet' | 'widgetInserted' | 'widgetRemoved' | 'ctxAction'} EventName
  **/
 
 /** @type {Map<string, ((editor: import('./plugin').TinyMCE, ...args: any[]) => void)[]>}> */

@@ -29,10 +29,13 @@ import Common from './common';
 const {component} = Common;
 
 /**
+ * @param {string} [prefix]
  * @returns {string} a randomID
  */
-export function genID() {
-    return 'g' + Math.random().toString(32).substring(2);
+export function genID(prefix = 'g') {
+    const timePart = Date.now().toString(32);
+    const randPart = Math.floor(Math.random() * 1e6).toString(32);
+    return `${prefix}-${timePart}${randPart}`;
 }
 
 /**

@@ -31,7 +31,9 @@ export default {
     baseUrl: `${Config.wwwroot}/lib/editor/tiny/plugins/${componentName}`,
     component,
     componentName,
+    jsURL: '',
+    jsAreaClassname: `${component}-jsarea`,
     pluginName: `${component}/plugin`,
-    icon: `${component}`,
+    icon: component,
     currentRelease: '1.4.1'
 };

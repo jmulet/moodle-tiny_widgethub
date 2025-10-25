@@ -49,6 +49,8 @@ export const getSetup = async() => {
             return;
         }
 
+        getListeners('setup').forEach(listener => listener(editor));
+
         // Check if there is a config option to disable the plugin for the current page.
         const page = Shared.currentScope;
         const disableList = getGlobalConfig(editor, "disable.plugin.pages", "")
