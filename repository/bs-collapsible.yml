@@ -26,7 +26,7 @@ template: |
   </div>
   <p><br></p>
 selectors: div.collapsible
-unwrap: .card-header span, .card-body
+unwrap: .card-header span, .card-body>*
 parameters:
   - name: id
     title: Element id

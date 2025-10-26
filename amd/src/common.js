@@ -23,14 +23,17 @@
 
 import * as Config from 'core/config';
 
-// @ts-ignore
-const baseUrl = `${Config.wwwroot}/lib/editor/tiny/plugins/widgethub`;
-const component = 'tiny_widgethub';
+const componentName = 'widgethub';
+const component = `tiny_${componentName}`;
 
 export default {
-    baseUrl,
+    // @ts-ignore
+    baseUrl: `${Config.wwwroot}/lib/editor/tiny/plugins/${componentName}`,
     component,
+    componentName,
+    jsURL: '',
+    jsAreaClassname: `${component}-jsarea`,
     pluginName: `${component}/plugin`,
-    icon: `${component}`,
+    icon: component,
     currentRelease: '1.4.1'
 };

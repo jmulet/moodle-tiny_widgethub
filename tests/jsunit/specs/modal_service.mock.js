@@ -1,3 +1,11 @@
+/**
+ * Tiny WidgetHub plugin.
+ *
+ * @module      tiny_widgethub/plugin
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 import jQuery from 'jquery';
 const fs = require("fs");
 const path = require("path");
@@ -57,6 +65,9 @@ const mockCreate = (name, templateContext, onHidden) => {
         show: jest.fn(),
         hide: jest.fn(),
         destroy: jest.fn(),
+        twhRegisterListener: jest.fn().mockImplementation((e, evType, handler) => {
+           e.addEventListener(evType, handler);
+        })
     };
     modal.setFormValues = setFormValues.bind(modal);
     return Promise.resolve(modal);

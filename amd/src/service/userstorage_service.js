@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 import {getEditorOptions} from '../options';
+import Common from '../common';
+const {component} = Common;
 
 /**
  * Tiny WidgetHub plugin.
@@ -41,7 +43,7 @@ export class UserStorageSrv {
         /** @type {number} */
         this._courseId = editorOptions.courseId;
         /** @type {string} */
-        this.STORE_KEY = "tinywidgethub_" + editorOptions.userInfo.id;
+        this.STORE_KEY = `${component}_${editorOptions.userInfo.id}`;
         /**
          * @type {Record<string, any>}
          */

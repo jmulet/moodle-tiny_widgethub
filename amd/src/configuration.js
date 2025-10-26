@@ -23,7 +23,7 @@
 import Common from './common';
 import {addMenubarItem} from 'editor_tiny/utils';
 
-const buttonName = Common.component;
+const {component} = Common;
 
 /**
  * @typedef {Object} Menu
@@ -38,7 +38,7 @@ const configureMenu = (menu) => {
     const inserted = items.some((item, index) => {
         // Append after the link button.
         if (RegExp(/(link)\b/).exec(item)) {
-            items.splice(index + 1, 0, buttonName);
+            items.splice(index + 1, 0, component);
             return true;
         }
         return false;
@@ -47,7 +47,7 @@ const configureMenu = (menu) => {
     if (inserted) {
         menu.insert.items = items.join(' ');
     } else {
-        addMenubarItem(menu, 'insert', buttonName);
+        addMenubarItem(menu, 'insert', component);
     }
 
     return menu;
@@ -69,7 +69,7 @@ const configureToolbar = (toolbar) => {
     return toolbar.map((section) => {
         if (section.name === 'content') {
             // Insert the button at the start of it.
-            section.items.unshift(buttonName);
+            section.items.unshift(component);
         }
         return section;
     });
@@ -81,7 +81,7 @@ const configureToolbar = (toolbar) => {
  * @returns {string}
  */
 const configureContextMenu = (contextmenu) => {
-    return contextmenu + ' ' + buttonName;
+    return contextmenu + ' ' + component;
 };
 
 /**

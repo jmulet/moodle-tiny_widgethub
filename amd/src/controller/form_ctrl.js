@@ -26,7 +26,6 @@ import {getFileSrv} from '../service/file_service';
 import {getTemplateSrv} from '../service/template_service';
 import {getUserStorage} from '../service/userstorage_service';
 import {capitalize, cleanParameterName, evalInContext, genID, stream, toHexAlphaColor, toRgba} from '../util';
-import jquery from "jquery";
 
 const questionPopover = '{{#tooltip}}<a href="javascript:void(0)" data-toggle="popover" data-trigger="hover" data-content="{{tooltip}}" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-content="{{tooltip}}"><i class="fa fas fa-question-circle text-info"></i></a>{{/tooltip}}';
 
@@ -98,9 +97,8 @@ export class FormCtrl {
     * @param {import('../service/userstorage_service').UserStorageSrv} userStorage
     * @param {import('../service/template_service').TemplateSrv} templateSrv
     * @param {import('../service/file_service').FileSrv} fileSrv
-    * @param {JQueryStatic} jQuery
     */
-   constructor(editor, userStorage, templateSrv, fileSrv, jQuery) {
+   constructor(editor, userStorage, templateSrv, fileSrv) {
       /** @type {import('../plugin').TinyMCE} */
       this.editor = editor;
       /** @type {import('../service/userstorage_service').UserStorageSrv} */
@@ -109,8 +107,6 @@ export class FormCtrl {
       this.templateSrv = templateSrv;
       /** @type {import('../service/file_service').FileSrv} */
       this.fileSrv = fileSrv;
-      /** @type {JQueryStatic} */
-      this.jQuery = jQuery;
    }
 
    /**
@@ -249,28 +245,29 @@ export class FormCtrl {
    }
 
    /**
-    * It extracts the value of a single HTML control
-    * @param {JQuery<HTMLElement>} $elem
+    * It extracts the value of a single HTML input control
+    * @param {HTMLInputElement} elem
     * @param {import('../options').Param} param
     */
-   extractControlValue($elem, param) {
-      const type = $elem.attr("type");
-      /** @type {*} */
-      let value = $elem.val() ?? "";
-      if ($elem.prop("tagName") === "INPUT" && type === "checkbox") {
-         value = $elem.is(':checked');
-      } else if ($elem.prop("tagName") === "INPUT" && type === "number") {
+   extractControlValue(elem, param) {
+      const type = elem.getAttribute("type");
+      /** @type {string | number | boolean} */
+      let value = elem.value ?? "";
+      if (elem.tagName === "INPUT" && type === "checkbox") {
+         value = elem.checked;
+      } else if (elem.tagName === "INPUT" && type === "number") {
          if (value.indexOf(".") >= 0) {
             value = parseFloat(value);
          } else {
             value = parseInt(value);
          }
-      } else if ($elem.prop("tagName") === "INPUT" && type === "color") {
+      } else if (elem.tagName === "INPUT" && type === "color") {
          // Must also find the corresponding alpha channel value
          const pname = param.name;
          const cleanPname = cleanParameterName(pname);
-         const $slider = $elem.closest(".form-group").find(`[name="${cleanPname}_alpha"]`);
-         const alpha = $slider.val() ?? 1;
+         /** @type {HTMLInputElement | null | undefined} */
+         const rangeControl = elem.closest(".form-group")?.querySelector(`[name="${cleanPname}_alpha"]`);
+         const alpha = rangeControl?.value ?? 1;
          value = toRgba(value, +alpha);
       }
 
@@ -284,7 +281,7 @@ export class FormCtrl {
     * Obtains the updated parameter values from the modal
     * This is used in insertWidget
     * @param {import('../options').Widget} widget
-    * @param {JQuery<HTMLElement>} form
+    * @param {HTMLElement} form
     * @param {boolean} doStore
     * @returns {Record<string, any>} - The updated parameters dict
     */
@@ -297,29 +294,32 @@ export class FormCtrl {
       widget.parameters.forEach(param => {
          const pname = param.name;
          const cleanParamname = cleanParameterName(pname);
-         const $elem = form.find(`[name="${cleanParamname}"]`);
-         if (!$elem.length) {
+         /** @type {HTMLInputElement | null} */
+         const elem = form.querySelector(`[name="${cleanParamname}"]`);
+         if (!elem) {
             ctx[pname] = defaults[pname];
             return;
          }
-         // $elem might be a div for repeatable inputs
+         // The elem might be a div for repeatable inputs.
          if (param.type === 'repeatable') {
             /** @type {any[]}  */
             const listValue = [];
-            $elem.find(".list-group-item.tiny_widgethub-regularitem").each((i, subform) => {
+            elem.querySelectorAll(".list-group-item.tiny_widgethub-regularitem").forEach(subform => {
                /** @type {Record<string, any>} */
                const itemObj = {};
                param.fields?.forEach(field => {
-                  const $subform = this.jQuery(subform);
                   const cleanFieldname = cleanParameterName(field.name);
-                  const $subelem = $subform.find(`[name="${cleanParamname}_${cleanFieldname}"]`);
-                  itemObj[field.name] = this.extractControlValue($subelem, field);
+                  /** @type {HTMLInputElement | null} */
+                  const subelem = subform.querySelector(`[name="${cleanParamname}_${cleanFieldname}"]`);
+                  if (subelem) {
+                     itemObj[field.name] = this.extractControlValue(subelem, field);
+                  }
                });
                listValue.push(itemObj);
             });
             ctx[pname] = listValue;
          } else {
-            ctx[pname] = this.extractControlValue($elem, param);
+            ctx[pname] = this.extractControlValue(elem, param);
          }
 
          if (pname.trim().startsWith("_")) {
@@ -345,58 +345,76 @@ export class FormCtrl {
    }
 
    /**
-    * @param {JQuery<HTMLElement>} body - The modal body
+    * @param {HTMLElement} modalBody - The modal body
+    * @param {import('../service/modal_service').ListenerTracker} listenerTracker
     */
-   attachPickers(body) {
+   attachPickers(modalBody, listenerTracker) {
       // Find all file pickers
       const canShowFilePicker = typeof this.fileSrv.getImagePicker() !== 'undefined';
-      const picker = body.find('button.whb-image-picker').prop('disabled', !canShowFilePicker);
       if (canShowFilePicker) {
-         // Attach a click handler to any image-picker buttons
-         picker.on("click", /** @param {any} evt */ async(evt) => {
-            evt.preventDefault();
-            try {
-               /** @type {any} */
-               const params = await this.fileSrv.displayImagePicker();
-               if (params?.url) {
-                  this.jQuery(evt.currentTarget).parent().find('input').val(params.url);
+         /** @type {NodeListOf<HTMLButtonElement>} */
+         const pickers = modalBody.querySelectorAll('button.whb-image-picker');
+         pickers.forEach(picker => {
+            picker.disabled = !canShowFilePicker;
+            // Attach a click handler to any image-picker buttons
+            const pickerHandler = async(/** @type {Event} */ evt) => {
+               evt.preventDefault();
+               const parent = /** @type {HTMLElement} */ (evt.currentTarget).parentElement;
+               const input = parent?.querySelector('input');
+               try {
+                  /** @type {{url?: string}} */
+                  const params = await this.fileSrv.displayImagePicker();
+                  if (params?.url && input) {
+                     input.value = params.url;
+                  }
+               } catch (ex) {
+                  console.error(ex);
                }
-            } catch (ex) {
-               console.error(ex);
-            }
+            };
+            listenerTracker(picker, 'click', pickerHandler);
          });
       }
 
       // Find all color pickers
-      body.find('input[type="color"]').each((_, e) => {
-         const $inputColor = this.jQuery(e);
-         const name = ($inputColor.attr('name') ?? '');
+      /** @type {NodeListOf<HTMLInputElement>} */
+      const colorPickers = modalBody.querySelectorAll('input[type="color"]');
+      colorPickers.forEach(inputColor => {
+         const name = inputColor.getAttribute('name');
+         if (!name) {
+            return;
+         }
          // Find corresponding range slider
-         const $inputRange = body.find(`input[name="${name}_alpha"]`);
-         const opacity = $inputRange.val() ?? 1;
-         $inputColor.css('opacity', '' + opacity);
+         /** @type {HTMLInputElement | null} */
+         const inputRange = modalBody.querySelector(`input[name="${name}_alpha"]`);
+         if (!inputRange) {
+            return;
+         }
+         const opacity = inputRange.value ?? 1;
+         inputColor.style.opacity = '' + opacity;
          // Bind envent change
-         $inputRange.on('change', () => {
-            const opacity = $inputRange.val() ?? 1;
-            $inputColor.css('opacity', '' + opacity);
-         });
+         const inputRangeHandler = () => {
+            const opacity = inputRange.value ?? 1;
+            inputColor.style.opacity = '' + opacity;
+         };
+         listenerTracker(inputRange, 'change', inputRangeHandler);
       });
    }
 
    /**
-    * @param {JQuery<HTMLElement>} $formElem
+    * @param {HTMLElement} formElem
     * @param {Object.<string, any>} defaultsData
     * @param {import('../options').Widget} widget
     * @param {boolean} selectmode
+    * @param {import('../service/modal_service').ListenerTracker} listenerTracker
     */
-   applyFieldWatchers($formElem, defaultsData, widget, selectmode) {
+   applyFieldWatchers(formElem, defaultsData, widget, selectmode, listenerTracker) {
       /** @type {string[]} */
       const watchedvars = []; // All these variable names must be watched
       /**
        * all these components must be updated when one watcher changes
        *  @type {{
        *    condition: string,
-       *    component: JQuery<HTMLElement>,
+       *    component: Element,
        *    type: string,
        *    indx: number
        *  }[]}
@@ -411,8 +429,8 @@ export class FormCtrl {
          if (varobj.when) {
             const condition = varobj.when;
             const t = varobj.type;
-            const control = $formElem.find(`[name="${cleanParameterName(varobj.name)}"]`);
-            if (!control.length || !t) {
+            const control = formElem.querySelector(`[name="${cleanParameterName(varobj.name)}"]`);
+            if (!control || !t) {
                continue;
             }
             updatableComponents.push({
@@ -434,23 +452,19 @@ export class FormCtrl {
       }
 
       const doUpdateVisibilities = () => {
-         updatableComponents.forEach(cc => {
+         updatableComponents.forEach(upcomp => {
             // Evaluate condition
-            const newVariables = this.extractFormParameters(widget, $formElem, false);
+            const newVariables = this.extractFormParameters(widget, formElem, false);
             // Add to the new variables the internal variables
             newVariables.SELECT_MODE = selectmode;
             // Eval JS condition for new variables
-            const showme = evalInContext(newVariables, cc.condition);
-            let theComponent = cc.component;
-            if (theComponent) {
-               theComponent = theComponent.closest('.form-group');
+            const showme = evalInContext(newVariables, upcomp.condition);
+            if (upcomp.component) {
+               /** @type {HTMLElement | null} */
+               const theComponent = upcomp.component.closest('.form-group');
                // Only change visibilities of nodes not hidden from user
-               if (!theComponent.attr('data-amagat')) {
-                  if (showme) {
-                     theComponent.show();
-                  } else {
-                     theComponent.hide();
-                  }
+               if (theComponent && !theComponent.getAttribute('data-amagat')) {
+                  theComponent.style.display = showme ? '' : 'none';
                }
             }
          });
@@ -458,17 +472,15 @@ export class FormCtrl {
 
       // Apply the watchers
       widget.parameters.forEach((varobj) => {
-         const control = $formElem.find(`[name="${cleanParameterName(varobj.name)}"]`);
-         if (watchedvars.indexOf(varobj.name) < 0 || !control[0]) {
+         const control = formElem.querySelector(`[name="${cleanParameterName(varobj.name)}"]`);
+         if (watchedvars.indexOf(varobj.name) < 0 || !control) {
             return;
          }
          let evtName = "change";
          if (varobj.type === 'textfield' || varobj.type === 'textarea') {
             evtName = "keyup";
          }
-         control.on(evtName, () => {
-            doUpdateVisibilities();
-         });
+         listenerTracker(control, evtName, () => doUpdateVisibilities());
       });
 
       // Decide which form elements are visible accoding to the current values of the parameters.
@@ -476,18 +488,22 @@ export class FormCtrl {
    }
    /**
     * Create controllers for every repeatable element in form.
-    * @param {JQuery<HTMLElement>} $form
+    * @param {HTMLElement} form
     * @param {import("../options").Widget} widget
     */
-   attachRepeatable($form, widget) {
+   attachRepeatable(form, widget) {
       const that = this;
 
       widget.parameters.filter(p => p.type === 'repeatable').forEach((param) => {
          // Make the parameter do not produce any default
          const cleanParamname = cleanParameterName(param.name);
-         const $subform = $form.find(`div[type="repeatable"][name="${cleanParamname}"]`);
+         /** @type {HTMLElement | null} */
+         const subform = form.querySelector(`div[type="repeatable"][name="${cleanParamname}"]`);
+         if (!subform) {
+            return;
+         }
          if (!param.fields?.length) {
-            $subform.hide();
+            subform.style.display = 'none';
             return;
          }
          /**
@@ -509,7 +525,7 @@ export class FormCtrl {
             div.innerHTML = controls.join(" ");
             return div;
          };
-         new RepeatableCtrl($subform[0], itemBuilder, param);
+         new RepeatableCtrl(subform, itemBuilder, param);
       });
    }
 }
@@ -700,7 +716,7 @@ export function getFormCtrl(editor) {
    let instance = formCtrlInstances.get(editor);
    if (!instance) {
       // @ts-ignore
-      instance = new FormCtrl(editor, getUserStorage(editor), getTemplateSrv(), getFileSrv(editor), jquery);
+      instance = new FormCtrl(editor, getUserStorage(editor), getTemplateSrv(), getFileSrv(editor));
       formCtrlInstances.set(editor, instance);
    }
    return instance;

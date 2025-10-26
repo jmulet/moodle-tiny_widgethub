@@ -24,12 +24,18 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+import jQuery from 'jquery';
+import Common from './common';
+const {component} = Common;
 
 /**
+ * @param {string} [prefix]
  * @returns {string} a randomID
  */
-export function genID() {
-    return 'g' + Math.random().toString(32).substring(2);
+export function genID(prefix = 'g') {
+    const timePart = Date.now().toString(32);
+    const randPart = Math.floor(Math.random() * 1e6).toString(32);
+    return `${prefix}-${timePart}${randPart}`;
 }
 
 /**
@@ -111,7 +117,7 @@ const Transformers = {
     toLowerCase: function(txt) {
         return (txt + "").toLowerCase();
     },
-   /** @param {string} txt */
+    /** @param {string} txt */
     trim: function(txt) {
         return (txt + "").trim();
     },
@@ -156,7 +162,7 @@ const Transformers = {
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
     },
-   /** @param {string} txt */
+    /** @param {string} txt */
     encodeHTML: function(txt) {
         // @ts-ignore
         return encodeURIComponent(txt || "");
@@ -242,8 +248,8 @@ export function applyWidgetFilterFactory(editor, coreStr) {
      */
     return async(widgetTemplate, silent, mergevars) => {
         const translations = await coreStr.get_strings([
-            {key: 'filterres', component: 'tiny_widgethub'},
-            {key: 'nochanges', component: 'tiny_widgethub'}
+            {key: 'filterres', component},
+            {key: 'nochanges', component}
         ]);
         // Es tracta d'un filtre, no d'un widget i s'ha de tractar de forma diferent
         const userWidgetFilter = createFilterFunction(widgetTemplate);
@@ -476,10 +482,10 @@ const getValueFromRegex = function(regexExpr, replacement) {
 };
 
 /**
- * @param {JQuery<HTMLElement>} $e - The target element
+ * @param {Element} el - The target element
  * @returns
  */
-const bindingFactory = function($e) {
+const bindingFactory = function(el) {
     /** @this {Record<string, Function>} */
     const methods = {
         /**
@@ -489,23 +495,23 @@ const bindingFactory = function($e) {
          * @returns {Binding}
          */
         hasClass: (className, query, neg) => {
-            /** @type {JQuery<HTMLElement>} */
-            let elem = $e;
+            /** @type {Element | null} */
+            let elem = el;
             if (query) {
-                elem = $e.find(query);
+                elem = el.querySelector(query);
             }
             return {
                 // @ts-ignore
                 getValue: () => {
-                    const res = xor(neg, elem.hasClass(className));
+                    const res = xor(neg, elem?.classList?.contains(className));
                     return Boolean(res);
                 },
                 // @ts-ignore
                 setValue: (bool) => {
                     if (xor(neg, bool)) {
-                        elem.addClass(className);
+                        elem?.classList.add(className);
                     } else {
-                        elem.removeClass(className);
+                        elem?.classList.remove(className);
                     }
                 }
             };
@@ -525,14 +531,15 @@ const bindingFactory = function($e) {
          * @returns {Binding}
          */
         classRegex: (classExpr, query, castTo) => {
-            let elem = $e;
+            /** @type {Element | null} */
+            let elem = el;
             if (query) {
-                elem = $e.find(query);
+                elem = el.querySelector(query);
             }
             return {
                 getValue: () => {
                     let ret = '';
-                    const classes = (elem.attr('class') ?? '').split(' ');
+                    const classes = Array.from(elem?.classList ?? []);
                     for (const clazz of classes) {
                         const match = new RegExp(classExpr).exec(clazz);
                         if (match?.[1] && typeof (match[1]) === "string") {
@@ -543,7 +550,7 @@ const bindingFactory = function($e) {
                     return performCasting(ret, castTo);
                 },
                 setValue: (val) => {
-                    const cl = elem.attr('class')?.split(/\s+/) ?? [];
+                    const cl = Array.from(elem?.classList ?? []);
                     let found = false;
                     cl.forEach(c => {
                         const match = new RegExp(classExpr, 'd').exec(c);
@@ -551,15 +558,15 @@ const bindingFactory = function($e) {
                             return;
                         }
                         found = true;
-                        elem.removeClass(c);
+                        elem?.classList.remove(c);
                         const newCls = replaceStrPart(c, match, val + '');
-                        elem.addClass(newCls);
+                        elem?.classList.add(newCls);
                     });
                     // If not found, then set the regExp replacing the
                     // first capturing group with val, and removing the remaining groups.
                     if (!found) {
                         const newCls = getValueFromRegex(classExpr, val + '');
-                        elem.addClass(newCls);
+                        elem?.classList.add(newCls);
                     }
                 }
             };
@@ -571,15 +578,16 @@ const bindingFactory = function($e) {
          * @returns {Binding}
          */
         attr: (attrName, query, castTo) => {
-            let elem = $e;
+            /** @type {Element | null} */
+            let elem = el;
             if (query) {
-                elem = $e.find(query);
+                elem = el.querySelector(query);
             }
             return {
                 getValue: () => {
-                    let attrValue = elem.attr(attrName);
+                    let attrValue = elem?.getAttribute(attrName);
                     if (attrName.indexOf('-bs-') > 0) {
-                        attrValue = attrValue ?? elem.attr(attrName.replace('-bs-', '-'));
+                        attrValue = attrValue ?? elem?.getAttribute(attrName.replace('-bs-', '-'));
                     }
                     return performCasting(attrValue, castTo);
                 },
@@ -589,13 +597,13 @@ const bindingFactory = function($e) {
                         val = val ? 1 : 0;
                     }
                     const attrVal = val + '';
-                    elem.attr(attrName, attrVal);
+                    elem?.setAttribute(attrName, attrVal);
                     if (attrName.indexOf('-bs-') > 0) {
                         // Save as old bs
-                        elem.attr(attrName.replace('-bs-', '-'), attrVal);
+                        elem?.setAttribute(attrName.replace('-bs-', '-'), attrVal);
                     }
                     if (attrName === 'href' || attrName === 'src') {
-                        elem.attr('data-mce-' + attrName, attrVal);
+                        elem?.setAttribute('data-mce-' + attrName, attrVal);
                     }
                 }
             };
@@ -609,9 +617,10 @@ const bindingFactory = function($e) {
          * @returns {Binding}
          */
         attrBS: (attrName, query, castTo, version) => {
-            let elem = $e;
+            /** @type {Element | null} */
+            let elem = el;
             if (query) {
-                elem = $e.find(query);
+                elem = el.querySelector(query);
             }
             return {
                 getValue: () => {
@@ -622,9 +631,9 @@ const bindingFactory = function($e) {
                         p1 = p2;
                         p2 = '';
                     }
-                    let value = elem.attr('data-' + p1 + attrName);
+                    let value = elem?.getAttribute('data-' + p1 + attrName);
                     if (value === undefined) {
-                        value = elem.attr('data-' + p2 + attrName);
+                        value = elem?.getAttribute('data-' + p2 + attrName);
                     }
                     return performCasting(value || '', castTo);
                 },
@@ -634,11 +643,11 @@ const bindingFactory = function($e) {
                         val = val ? 1 : 0;
                     }
                     const attrVal = val + '';
-                    elem.attr('data-bs-' + attrName, attrVal);
+                    elem?.setAttribute('data-bs-' + attrName, attrVal);
                     if (version === 5) {
-                        elem.removeAttr('data-' + attrName);
+                        elem?.removeAttribute('data-' + attrName);
                     } else {
-                        elem.attr('data-' + attrName, attrVal);
+                        elem?.setAttribute('data-' + attrName, attrVal);
                     }
                 }
             };
@@ -650,9 +659,10 @@ const bindingFactory = function($e) {
          * @returns {Binding}
          */
         hasAttr: (attr, query, neg) => {
-            let elem = $e;
+            /** @type {Element | null} */
+            let elem = el;
             if (query) {
-                elem = $e.find(query);
+                elem = el.querySelector(query);
             }
             const parts = attr.split("=");
             const attrName = parts[0].trim();
@@ -662,23 +672,23 @@ const bindingFactory = function($e) {
             }
             return {
                 getValue: () => {
-                    let found = elem.attr(attrName) != null;
+                    let found = elem?.getAttribute(attrName) != null;
                     if (attrValue) {
-                        found = found && elem.attr(attrName) === attrValue;
+                        found = found && elem?.getAttribute(attrName) === attrValue;
                     }
                     return xor(neg, found);
                 },
                 // @ts-ignore
                 setValue: (bool) => {
                     if (xor(neg, bool)) {
-                        elem.attr(attrName, attrValue || '');
+                        elem?.setAttribute(attrName, attrValue || '');
                         if (attrName === 'href' || attrName === 'src') {
-                            elem.attr('data-mce-' + attrName, attrValue + '');
+                            elem?.setAttribute('data-mce-' + attrName, attrValue + '');
                         }
                     } else {
-                        elem.removeAttr(attrName);
+                        elem?.removeAttribute(attrName);
                         if (attrName === 'href' || attrName === 'src') {
-                            elem.removeAttr('data-mce-' + attrName);
+                            elem?.removeAttribute('data-mce-' + attrName);
                         }
                     }
                 }
@@ -693,9 +703,10 @@ const bindingFactory = function($e) {
          * @returns {Binding}
          */
         hasAttrBS: (attr, query, neg, version) => {
-            let elem = $e;
+            /** @type {Element | null} */
+            let elem = el;
             if (query) {
-                elem = $e.find(query);
+                elem = el.querySelector(query);
             }
             const parts = attr.split("=");
             const attrName = parts[0].trim();
@@ -704,9 +715,9 @@ const bindingFactory = function($e) {
                 attrValue = parts[1].trim();
             }
             const getValuePrefix = (/** @type{string} **/ prefix) => {
-                let found = elem.attr(prefix + attrName) != null;
+                let found = elem?.getAttribute(prefix + attrName) != null;
                 if (attrValue) {
-                    found = found && elem.attr(prefix + attrName) === attrValue;
+                    found = found && elem?.getAttribute(prefix + attrName) === attrValue;
                 }
                 return xor(neg, found);
             };
@@ -723,15 +734,15 @@ const bindingFactory = function($e) {
                 // @ts-ignore
                 setValue: (bool) => {
                     if (xor(neg, bool)) {
-                        elem.attr('data-bs-' + attrName, attrValue || '');
+                        elem?.setAttribute('data-bs-' + attrName, attrValue || '');
                         if (version === 5) {
-                            elem.removeAttr('data-' + attrName);
+                            elem?.removeAttribute('data-' + attrName);
                         } else {
-                            elem.attr('data-' + attrName, attrValue || '');
+                            elem?.setAttribute('data-' + attrName, attrValue || '');
                         }
                     } else {
-                        elem.removeAttr('data-' + attrName);
-                        elem.removeAttr('data-bs-' + attrName);
+                        elem?.removeAttribute('data-' + attrName);
+                        elem?.removeAttribute('data-bs-' + attrName);
                     }
                 }
             };
@@ -751,9 +762,10 @@ const bindingFactory = function($e) {
          * @returns {Binding}
          */
         attrRegex: function(attr, query, castTo) {
-            let elem = $e;
+            /** @type {Element | null} */
+            let elem = el;
             if (query) {
-                elem = $e.find(query);
+                elem = el.querySelector(query);
             }
             const parts = attr.split("=");
             const attrName = parts[0].trim();
@@ -763,9 +775,9 @@ const bindingFactory = function($e) {
             }
             return {
                 getValue() {
-                    const found = elem.attr(attrName) != null;
+                    const found = elem?.getAttribute(attrName) != null;
                     if (found) {
-                        const match = elem.attr(attrName)?.match(attrValue);
+                        const match = elem?.getAttribute(attrName)?.match(attrValue);
                         if (match?.[1] && typeof (match[1]) === "string") {
                             return performCasting(match[1], castTo);
                         }
@@ -774,7 +786,7 @@ const bindingFactory = function($e) {
                     return null;
                 },
                 setValue(val) {
-                    const oldValue = elem.attr(attrName) ?? '';
+                    const oldValue = elem?.getAttribute(attrName) ?? '';
                     const match = new RegExp(attrValue, 'd').exec(oldValue);
                     let newValue;
                     if (match) {
@@ -782,9 +794,9 @@ const bindingFactory = function($e) {
                     } else {
                         newValue = getValueFromRegex(attrValue, val + '');
                     }
-                    elem.attr(attrName, newValue);
+                    elem?.setAttribute(attrName, newValue);
                     if (attrName === 'href' || attrName === 'src') {
-                        elem.attr('data-mce-' + attrName, newValue + '');
+                        elem?.setAttribute('data-mce-' + attrName, newValue + '');
                     }
                 }
             };
@@ -796,9 +808,10 @@ const bindingFactory = function($e) {
          * @returns {Binding}
          */
         hasStyle: function(sty, query, neg) {
-            let elem = $e;
+            /** @type {Element | null} */
+            let elem = el;
             if (query) {
-                elem = $e.find(query);
+                elem = el.querySelector(query);
             }
             const parts = sty.split(":");
             let styName = parts[0].trim();
@@ -809,21 +822,23 @@ const bindingFactory = function($e) {
             }
             return {
                 getValue() {
-                    const st = elem.prop('style');
+                    // @ts-ignore
+                    const st = elem?.style;
                     const pValue = st.getPropertyValue(styName);
                     const has = styValue === undefined ? pValue !== '' : pValue === styValue;
                     return xor(has, neg);
                 },
                 // @ts-ignore
                 setValue(bool) {
+                    // @ts-ignore
+                    const st = elem?.style;
                     if (xor(bool, neg)) {
-                        elem.css(styName, styValue ?? '');
+                        st?.setProperty(styName, styValue ?? '');
                     } else {
-                        const st = elem.prop('style');
-                        st.removeProperty(styName);
+                        st?.removeProperty(styName);
                     }
                     // TODO: better way to update data-mce-style
-                    elem.attr('data-mce-style', elem[0].style.cssText);
+                    elem?.setAttribute('data-mce-style', st?.cssText ?? '');
                 }
             };
         },
@@ -842,9 +857,10 @@ const bindingFactory = function($e) {
          * @returns {Binding}
          */
         styleRegex: function(attr, query, castTo) {
-            let elem = $e;
+            /** @type {Element | null} */
+            let elem = el;
             if (query) {
-                elem = $e.find(query);
+                elem = el.querySelector(query);
             }
             const parts = attr.split(":");
             const styName = parts[0].trim();
@@ -855,7 +871,8 @@ const bindingFactory = function($e) {
             return {
                 /** @returns {string | null} */
                 getValue() {
-                    const st = elem.prop('style');
+                    // @ts-ignore
+                    const st = elem?.style;
                     const currentVal = st?.getPropertyValue(styName);
                     if (currentVal) {
                         if (styValue) {
@@ -872,12 +889,14 @@ const bindingFactory = function($e) {
                 // @ts-ignore
                 setValue(val) {
                     let newValue;
+                    // @ts-ignore
+                    const st = elem?.style;
                     if (styValue) {
                         // Case val <= 0 && styName contains width or height
                         if ((styName.includes("width") || styName.includes("height")) && (parseFloat(val + '') <= 0)) {
                             newValue = '';
                         } else {
-                            const oldValue = elem.prop('style').getPropertyValue(styName) ?? '';
+                            const oldValue = st?.getPropertyValue(styName) ?? '';
                             if (oldValue) {
                                 const match = new RegExp(styValue, 'd').exec(oldValue);
                                 // @ts-ignore
@@ -889,9 +908,9 @@ const bindingFactory = function($e) {
                     } else {
                         newValue = val + '';
                     }
-                    elem.css(styName, newValue);
+                    st?.setProperty(styName, newValue);
                     // TODO: better way to update data-mce-style
-                    elem.attr('data-mce-style', elem[0].style.cssText);
+                    elem?.setAttribute('data-mce-style', st?.cssText || '');
                 }
             };
         }
@@ -906,7 +925,7 @@ const bindingFactory = function($e) {
  */
 /**
  * @param {string | {get?: string, set?: string, getValue?: string, setValue?: string}} definition
- * @param {JQuery<HTMLElement>} elem  - The root of widget
+ * @param {Element} elem  - The root of widget
  * @param {string=} castTo  - The type that must be returned
  * @returns {Binding | null}
  */
@@ -922,9 +941,10 @@ export const createBinding = (definition, elem, castTo) => {
             getValue: () => {
                 let v;
                 if (definition.getValue) {
-                    v = evalInContext({elem: elem[0]}, `(${definition.getValue})(elem)`);
+                    v = evalInContext({elem}, `(${definition.getValue})(elem)`);
                 } else if (definition.get) {
-                    v = evalInContext({elem}, `(${definition.get})(elem)`);
+                    // @Deprecated. It will be removed in the future.
+                    v = evalInContext({elem: jQuery(elem)}, `(${definition.get})(elem)`);
                 }
                 if (castTo) {
                     v = performCasting(v, castTo);
@@ -933,9 +953,10 @@ export const createBinding = (definition, elem, castTo) => {
             },
             setValue: (v) => {
                 if (definition.setValue) {
-                    evalInContext({elem: elem[0], v}, `(${definition.setValue})(elem, v)`);
+                    evalInContext({elem, v}, `(${definition.setValue})(elem, v)`);
                 } else if (definition.set) {
-                    evalInContext({elem, v}, `(${definition.set})(elem, v)`);
+                    // @Deprecated. It will be removed in the future.
+                    evalInContext({elem: jQuery(elem), v}, `(${definition.set})(elem, v)`);
                 }
             }
         };
@@ -997,9 +1018,9 @@ export function toRgba(hex, alpha) {
         g = 0,
         b = 0;
     if (result) {
-      r = parseInt(result[1], 16);
-      g = parseInt(result[2], 16);
-      b = parseInt(result[3], 16);
+        r = parseInt(result[1], 16);
+        g = parseInt(result[2], 16);
+        b = parseInt(result[3], 16);
     }
     if (alpha === 1) {
         return `rgb(${r},${g},${b})`;
@@ -1026,7 +1047,7 @@ export function debounce(cb, delay = 1000) {
             window.clearTimeout(timeoutId);
         }
         timeoutId = window.setTimeout(() => {
-          cb(...args);
+            cb(...args);
         }, delay);
     };
     debounced.clear = () => {
@@ -1061,10 +1082,10 @@ export function toggleClass(elem, ...classNames) {
  */
 function parseVersion(v) {
     return v
-      .split('.')
-      .map(part => Number(part.trim()))
-      .concat([0, 0])
-      .slice(0, 3);
+        .split('.')
+        .map(part => Number(part.trim()))
+        .concat([0, 0])
+        .slice(0, 3);
 }
 
 /**
@@ -1074,45 +1095,45 @@ function parseVersion(v) {
  * @returns {boolean} True if current meets condition
  */
 export function compareVersion(current, condition) {
-  if (!condition) {
-    return true;
-  }
-
-  // Parse condition string
-  const match = condition.trim().match(/^(>=|<=|>|<|=)?\s*(\d+(?:\.\d+){0,2})$/);
-  if (!match) {
-    console.error("Invalid version condition: " + condition);
-    return true;
-  }
-
-  const operator = match[1] || "=";
-  const targetVersion = parseVersion(match[2]);
-  const currentVersion = parseVersion(current);
-
-  // Compare versions
-  let cmp = 0;
-  for (let i = 0; i < 3; i++) {
-    if (currentVersion[i] > targetVersion[i]) {
-      cmp = 1;
-      break;
+    if (!condition) {
+        return true;
     }
-    if (currentVersion[i] < targetVersion[i]) {
-      cmp = -1;
-      break;
-    }
-  }
 
-  // Evaluate based on operator
-  switch (operator) {
-    case ">": return cmp > 0;
-    case ">=": return cmp >= 0;
-    case "<": return cmp < 0;
-    case "<=": return cmp <= 0;
-    case "=": return cmp === 0;
-    default:
-     console.log("Unknown operator: " + operator);
-     return true;
-  }
+    // Parse condition string
+    const match = condition.trim().match(/^(>=|<=|>|<|=)?\s*(\d+(?:\.\d+){0,2})$/);
+    if (!match) {
+        console.error("Invalid version condition: " + condition);
+        return true;
+    }
+
+    const operator = match[1] || "=";
+    const targetVersion = parseVersion(match[2]);
+    const currentVersion = parseVersion(current);
+
+    // Compare versions
+    let cmp = 0;
+    for (let i = 0; i < 3; i++) {
+        if (currentVersion[i] > targetVersion[i]) {
+            cmp = 1;
+            break;
+        }
+        if (currentVersion[i] < targetVersion[i]) {
+            cmp = -1;
+            break;
+        }
+    }
+
+    // Evaluate based on operator
+    switch (operator) {
+        case ">": return cmp > 0;
+        case ">=": return cmp >= 0;
+        case "<": return cmp < 0;
+        case "<=": return cmp <= 0;
+        case "=": return cmp === 0;
+        default:
+            console.log("Unknown operator: " + operator);
+            return true;
+    }
 }
 
 /**
@@ -1129,4 +1150,62 @@ export function removeRndFromCtx(ctx, parameters) {
             return val !== '$RND';
         })
     );
+}
+
+/**
+ * Helper to load scripts
+ * @param {import('./plugin').TinyMCE} editor
+ * @param {string} src
+ * @returns {Promise<void>}
+ */
+export function loadScriptAsync(editor, src) {
+    return new Promise((resolve, reject) => {
+        const s = editor.dom.create('script', {src});
+        s.onload = () => resolve();
+        s.onerror = reject;
+        const head = editor.getDoc().querySelector("head");
+        head.appendChild(s);
+    });
+}
+
+/**
+ * Convert an HTML string into DOM element(s)
+ * @param {Document} doc - The page document
+ * @param {string} html - HTML string
+ * @returns {HTMLElement} - Returns a single element if one root, or a DocumentFragment if multiple
+ */
+export function htmlToElement(doc, html) {
+    const template = doc.createElement('template');
+    template.innerHTML = html.trim();
+
+    if (template.content.childElementCount === 1) {
+        // @ts-ignore
+        return template.content.firstElementChild;
+    } else {
+        // If multiple root elements, return a fragment
+        // @ts-ignore
+        return template.content;
+    }
+}
+
+/**
+ * @deprecated Use native editor.dom.setStyle instead.
+ * @param {HTMLElement} target
+ * @param {string} propName
+ * @param {string} propValue
+ */
+export function setStyleMCE(target, propName, propValue) {
+    target.style.setProperty(propName, propValue);
+    // Sync data-mce-style
+    target.setAttribute('data-mce-style', target.getAttribute('style') ?? '');
+}
+
+/**
+ * @param {HTMLElement} target
+ * @param {string} propName
+ */
+export function removeStyleMCE(target, propName) {
+    target.style.removeProperty(propName);
+    // Sync data-mce-style
+    target.setAttribute('data-mce-style', target.getAttribute('style') ?? '');
 }

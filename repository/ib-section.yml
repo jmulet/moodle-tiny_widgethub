@@ -1,9 +1,7 @@
 key: ib-section
 name: $string.ibsection_name
 instructions: $string.ibsection_instructions
-template: |
-  <h4 class="twh-subsub"><span class="twh-iq">{{title}}</span></h4>
-  <p><br></p>
+template: <h4 class="twh-subsub"><span class="twh-iq">{{title}}</span></h4>
 selectors: h4.twh-subsub
 insertquery: .twh-iq
 unwrap: .twh-iq
