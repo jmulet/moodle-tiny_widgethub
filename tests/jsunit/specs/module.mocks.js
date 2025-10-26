@@ -1,3 +1,11 @@
+/**
+ * Tiny WidgetHub plugin.
+ *
+ * @module      tiny_widgethub/plugin
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 // @ts-ignore
 /**
  * Mock the window object requirejs
@@ -7,7 +15,7 @@
 // @ts-ignore
 const requirejs = (deps, cb) => {
     // @ts-ignore
-    const resolves = deps.map(d => d.replace("tiny_widgethub", "../src")).map(d => require(d)).map(n => n.default ?? n);
+    const resolves = deps.map(d => d.replace(component, "../src")).map(d => require(d)).map(n => n.default ?? n);
     cb(...resolves);
 };
 // @ts-ignore
@@ -32,10 +40,20 @@ module.exports = function applyMocks(jest) {
             __esModule: true,
             default: Mustache,
         }
-    }, { virtual: true }); 
+    }, { virtual: true });
+    
+    jest.mock("core/config", () => ({
+        __esModule: true,
+        default: {
+            wwwroot: "https://server.com"
+        }
+    }), {virtual: true});
+
+    
     jest.mock("core/str", () => {
         const fs = require('fs');
-        const fileContent = fs.readFileSync("../../lang/en/tiny_widgethub.php", {encoding: "utf8"});
+        const {component} = require('../src/common').default; 
+        const fileContent = fs.readFileSync(`../../lang/en/${component}.php`, {encoding: "utf8"});
         const regex = /\$string\[\s*'(.*)'\s*\]\s*=\s*'\s*(.*)\s*'\s*;\s*/gm;
         const map = new Map();
         let m;
@@ -95,13 +113,7 @@ module.exports = function applyMocks(jest) {
         displayFilepicker: jest.fn()
     }), {virtual: true});
     
-    jest.mock("core/config", () => ({
-        __esModule: true,
-        default: {
-            wwwroot: "https://server.com"
-        }
-    }), {virtual: true});
-  
+
     jest.mock('editor_tiny/utils', () => ({
         __esModule: true,
         displayFilepicker: jest.fn()

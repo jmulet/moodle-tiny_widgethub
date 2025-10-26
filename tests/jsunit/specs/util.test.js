@@ -1,5 +1,11 @@
 /**
  * @jest-environment jsdom
+ *
+ * Tiny WidgetHub plugin.
+ *
+ * @module      tiny_widgethub/plugin
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 require('./module.mocks')(jest);
 const U = require("../src/util");
@@ -333,14 +339,14 @@ describe('utils module tests', () => {
             `<span class="iedib-background-img" style="background-image:url(http://localhost:4545/pluginfile.php/19/mod_page/content/5/icon.png); padding: 10px; min-height: 40px; background-repeat: no-repeat; background-size: cover; background-position: 50% 50%;">
             Quina probabilitat tinc de guanyar els jocs d'atzar?</span>`, 'http://localhost:4545/pluginfile.php/19/mod_page/content/5/icon.png']
     ])('Create GET binding %s on %s returns %s', (bindDef, elemDef, result) => {
-        let elem = U.htmlToElement(elemDef)
+        let elem = U.htmlToElement(document, elemDef)
         // Binding on the same element
         let binding = U.createBinding(bindDef, elem);
         expect(binding).not.toBeNull();
         expect(binding?.getValue()).toBe(result);
 
         // Binding on a child
-        elem = U.htmlToElement(`<div class="container">${elemDef}</div>`);
+        elem = U.htmlToElement(document, `<div class="container">${elemDef}</div>`);
         if (bindDef.indexOf("null") > 0) {
             bindDef = bindDef.replace("null", "'span'");
         } else {
@@ -353,7 +359,7 @@ describe('utils module tests', () => {
 
     test('Testing class regex', () => {
         let [bindDef, elemDef, result] = ["classRegex('alert-(.*)')", `<div class="m-2 alert alert-secondary fade show" role="alert"><div class="alert-content"><p>Lorem ipsum.</p></div></div>`, 'secondary'];
-        let elem = U.htmlToElement(elemDef);
+        let elem = U.htmlToElement(document, elemDef);
         expect(elem).toBeTruthy();
         // Binding on the same element
         let binding = U.createBinding(bindDef, elem);
@@ -367,7 +373,10 @@ describe('utils module tests', () => {
      * @returns {string}
      */
     function normalizeStyle(html) {
-       return html?.replace(/\s*:\s*/g, ':').replace(/\s*;\s*/g, ';') || '';
+       return html?.replace(/\s*:\s*/g, ':')
+        .replace(/\s*;\s*/g, ';')
+        .replace(/&quot;/g, '"')
+        .replace(/url\((['"]?)(.*?)\1\)/g, 'url($2)') || '';
     }
 
     test.each([
@@ -430,7 +439,7 @@ describe('utils module tests', () => {
               
 
     ])('Create SET binding %s on %s. If sets value %s yields %s', (bindDef, elemDef, value, result) => {
-        let elem = U.htmlToElement(elemDef)
+        let elem = U.htmlToElement(document, elemDef)
         // Binding on the same element
         let binding = U.createBinding(bindDef, elem);
         expect(binding).not.toBeNull();
@@ -438,7 +447,7 @@ describe('utils module tests', () => {
         expect(normalizeStyle(elem.outerHTML)).toBe(normalizeStyle(result));
 
         // Binding on a child
-        const e = U.htmlToElement(`<div class="container">${elemDef}</div>`);
+        const e = U.htmlToElement(document, `<div class="container">${elemDef}</div>`);
         if (bindDef.indexOf("null") > 0) {
             bindDef = bindDef.replace("null", "'span'");
         } else {

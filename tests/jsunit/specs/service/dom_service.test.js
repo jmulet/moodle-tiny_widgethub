@@ -1,5 +1,11 @@
 /**
  * @jest-environment jsdom
+ *
+ * Tiny WidgetHub plugin.
+ *
+ * @module      tiny_widgethub/plugin
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 require('../module.mocks')(jest);
 const { htmlToElement } = require('../../src/util');
@@ -22,7 +28,7 @@ describe("DomSrv", () => {
     });
 
     test('The html node must be cloned', () => {
-        const elem = htmlToElement('<div id="id1" data-target="#t1"><div id="t1"></div></div>');
+        const elem = htmlToElement(document, '<div id="id1" data-target="#t1"><div id="t1"></div></div>');
         /** @type {Record<string, string>} */
         const idMap = {};
         const cloned = domSrv.smartClone(elem, elem, idMap);
@@ -30,7 +36,7 @@ describe("DomSrv", () => {
     });
 
     test('Real case 1', () => {
-        const elem = htmlToElement(` 
+        const elem = htmlToElement(document, ` 
         <div class="whb-tabmenu">
         <ul class="nav nav-tabs" role="tablist">
             <li class="nav-item">
@@ -71,7 +77,7 @@ describe("DomSrv", () => {
     });
 
     test('find references', () => {
-        const root = htmlToElement(`
+        const root = htmlToElement(document, `
             <div id="root">
                 <div id="controls">
                     <ul>

@@ -1,5 +1,11 @@
 /**
  * @jest-environment jsdom
+ * 
+ * Tiny WidgetHub plugin.
+ *
+ * @module      tiny_widgethub/plugin
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 require('../module.mocks')(jest);
 const { getTemplateSrv } = require('../../src/service/template_service');
@@ -142,7 +148,7 @@ describe("FormCtrl", () => {
             ],
             isFilter: () => false
         };
-        const form = util.htmlToElement(`
+        const form = util.htmlToElement(document, `
             <div>
                 <input type="text" name="p1" value="Example">
                 <textarea name="p2">A long text in the area</textarea>    
@@ -178,7 +184,7 @@ describe("FormCtrl", () => {
             ],
             isFilter: () => false
         };
-        const form = util.htmlToElement(`
+        const form = util.htmlToElement(document, `
             <div>
                 <input type="text" name="p1" value="   Example  ">
                 <textarea name="p2"> A long text in the area   </textarea>    
@@ -223,11 +229,11 @@ describe("FormCtrl", () => {
         expect(ctx.controls).toHaveLength(2);
         expect(ctx.controls[0]).toBeTruthy();
         expect(typeof ctx.controls[0]).toBe('string');
-        const control0 = util.htmlToElement(ctx.controls[0]).querySelector('input');
+        const control0 = util.htmlToElement(document, ctx.controls[0]).querySelector('input');
         if (!control0) throw new Error("controls[0] input not found");
         expect(control0.value).toBe("The new value");
         expect(control0.getAttribute('type')).toBe('text');
-        const control1 = util.htmlToElement(ctx.controls[1]).querySelector('input');
+        const control1 = util.htmlToElement(document, ctx.controls[1]).querySelector('input');
         if (!control1) throw new Error("controls[1] input not found");
         expect(control1.getAttribute('min')).toBe('1');
         expect(control1.getAttribute('type')).toBe('number');
@@ -268,11 +274,11 @@ describe("FormCtrl", () => {
         expect(ctx.filter).toBe(false);
         expect(ctx.controls).toHaveLength(2);
         expect(ctx.controls[0]).toBeTruthy();
-        const control0 = util.htmlToElement(ctx.controls[0]).querySelector('input');
+        const control0 = util.htmlToElement(document, ctx.controls[0]).querySelector('input');
         if (!control0) throw new Error('control[0] input not found');
         expect(control0.value).toBe("The new value 22");
         expect(control0.getAttribute('type')).toBe('text');
-        const control1 = util.htmlToElement(ctx.controls[1]).querySelector('input');
+        const control1 = util.htmlToElement(document, ctx.controls[1]).querySelector('input');
         if (!control1) throw new Error('control[1] input not found');
         expect(control1.getAttribute('min')).toBe('1');
         expect(control1.getAttribute('type')).toBe('number');
@@ -298,7 +304,7 @@ describe("FormCtrl", () => {
         };
         const ctx = formCtrl.createContext(widget);
         expect(ctx.controls).toHaveLength(3);
-        const form = util.htmlToElement(`<div>${ctx.controls.join('\n')}</div>`);
+        const form = util.htmlToElement(document, `<div>${ctx.controls.join('\n')}</div>`);
         /** @type {HTMLInputElement | null} */
         const optInput = form.querySelector('[name="opt"]');
         if (!optInput) throw new Error('cannot find optInput');

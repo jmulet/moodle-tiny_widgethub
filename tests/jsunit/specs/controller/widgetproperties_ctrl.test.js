@@ -1,5 +1,11 @@
 /**
  * @jest-environment jsdom
+ *
+ * Tiny WidgetHub plugin.
+ *
+ * @module      tiny_widgethub/plugin
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require('../module.mocks')(jest);
@@ -96,7 +102,7 @@ describe("WidgetPickerCtrl", () => {
             widget: {
                 hasBindings: () => false
             },
-            elem: htmlToElement('<span></span>')
+            elem: htmlToElement(document, '<span></span>')
         };
         widgetPropertiesCtrl.show(currentContext);
         expect(consoleSpy).toHaveBeenCalledWith("Invalid widget definition ", currentContext.widget);
@@ -104,7 +110,7 @@ describe("WidgetPickerCtrl", () => {
 
         consoleSpy.mockClear();
 
-        const elem = htmlToElement('<span></span>');
+        const elem = htmlToElement(document, '<span></span>');
         currentContext = {
             widget,
             elem
@@ -137,7 +143,7 @@ describe("WidgetPickerCtrl", () => {
         const consoleSpy = jest.spyOn(global.console, 'error');
         mockEditor.setDirty.mockReset();
        
-        const elem = htmlToElement('<span title="none"></span>');
+        const elem = htmlToElement(document, '<span title="none"></span>');
         currentContext = {
             widget,
             elem,

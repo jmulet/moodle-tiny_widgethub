@@ -1,14 +1,37 @@
 /**
  * @jest-environment jsdom
+ *
+ * Tiny WidgetHub plugin.
+ *
+ * @module      tiny_widgethub/plugin
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 // Mock virtual modules
 require('../module.mocks')(jest);
-
+const Common = require('../../src/common');
 const { addRequires, cleanUnusedRequires } = require('../../src/extension/dependencies');
-const JSAREACLASSNAME = 'tiny_widgethub-jsarea';
+const editorFactory = require('../editor.mock');
+const JSAREACLASSNAME = Common.default.jsAreaClassname;
 const jsareaSelector = `div.${JSAREACLASSNAME}`;
-/** @type {*} */
-let mockEditor;
+
+
+const widget1 = {
+    key: 'w1',
+    selectors: '.w1',
+    requires: "https://site.org/w1.js"
+};
+const widget2 = {
+    key: 'w2',
+    selectors: ['[role="img"]', 'img'],
+    requires: " https://s3.site.org/assets/w2.js  "
+};
+const widget3 = {
+    key: 'w3',
+    selectors: ['div[data-prop="w3"]'],
+    requires: "http://google.net/w3.min.js"
+};
+const rawWidgets = [widget1, widget2, widget3];
 
 /**
  * 
@@ -16,63 +39,15 @@ let mockEditor;
  * @returns {*}
  */
 const createEditor = (html) => {
-    const body = document.createElement('DIV');
-    body.innerHTML = html;
-    return {
-        ...mockEditor,
-        getBody: () => body
-    };
+    const editor = editorFactory();
+    editor.setContent(html);
+    editor.options.get = jest.fn().mockReturnValue(rawWidgets)
+    return editor;
 };
 
 describe('dependencies', () => {
-    /** @type {any} */
-    let widget1;
-    /** @type {any} */
-    let widget2;
-    /** @type {any} */
-    let widget3;
     beforeAll(() => {
         jest.clearAllMocks();
-        widget1 = {
-            key: 'w1',
-            selectors: '.w1',
-            requires: "https://site.org/w1.js"
-        };
-        widget2 = {
-            key: 'w2',
-            selectors: ['[role="img"]', 'img'],
-            requires: " https://s3.site.org/assets/w2.js  "
-        };
-        widget3 = {
-            key: 'w3',
-            selectors: ['div[data-prop="w3"]'],
-            requires: "http://google.net/w3.min.js"
-        };
-        const rawWidgets = [widget1, widget2, widget3];
-        mockEditor = {
-            options: {
-                get: (/** @type {any} */ opt) => {
-                    return rawWidgets;
-                }
-            },
-            dom: {
-                create: jest.fn().mockImplementation((elemTag, props, inner) => {
-                    const elem = document.createElement(elemTag);
-                    if (props) {
-                        Object.keys(props).forEach(key => {
-                            elem.setAttribute(key, props[key]);
-                        });
-                    }
-                    if (inner) {
-                        elem.innerHTML = inner;
-                    }
-                    return elem;
-                })
-            },
-            notificationManager: {
-                open: jest.fn()
-            }
-        }
     });
 
     it('addRequires on empty document does not modify it', () => {
@@ -107,7 +82,7 @@ describe('dependencies', () => {
     });
 
     it('addRequires on document, includes the area and script', () => {
-        const editor = createEditor('<div role="img"><img src="https::/site.es/img.png"/></div>');
+        const editor = createEditor('<div role="img"><img src="https://site.es/img.png"/></div>');
         expect(addRequires(editor, undefined)).not.toBe(0);
         expect(editor.getBody().querySelector(jsareaSelector)).toBeTruthy();
         expect(editor.dom.create).toHaveBeenCalledTimes(3);
@@ -250,7 +225,7 @@ describe('dependencies', () => {
         const badWidget = { key: 'w4', requires: 'https://p.es/q.js' };
         const editor = createEditor('<div class="w1"></div><div class="w4"></div>');
 
-        mockEditor.options.get = () => [widget1, badWidget];
+        editor.options.get = jest.fn().mockReturnValue([widget1, badWidget]);
 
         const added = addRequires(editor, undefined);
         expect(added).toBe(1);

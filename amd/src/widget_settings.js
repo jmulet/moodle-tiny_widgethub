@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 
 /* eslint-disable no-console */
 /* eslint-disable no-alert */
@@ -341,16 +342,16 @@ export default {
             elem.style.display = 'none';
         });
         // Add submit buttons and manually trigger form submit.
-        const formButtons = htmlToElement(`<div class="row"><div class="form-buttons offset-sm-3 col-sm-3">
+        const formButtons = htmlToElement(document, `<div class="row"><div class="form-buttons offset-sm-3 col-sm-3">
             <button type="button" class="btn btn-primary form-submit">${savechangesStr}</button></div></div>`);
         form.appendChild(formButtons);
         const saveBtn = formButtons.querySelector("button");
 
         // Create a preview panel
-        const previewPanel = htmlToElement(`<div id="${component}_pp_${opts.id}" class="${component}-previewpanel d-none"></div>`);
+        const previewPanel = htmlToElement(document, `<div id="${component}_pp_${opts.id}" class="${component}-previewpanel d-none"></div>`);
         target.appendChild(previewPanel);
 
-        const previewBtn = htmlToElement(`<button type="button" class="btn btn-secondary m-1">
+        const previewBtn = htmlToElement(document, `<button type="button" class="btn btn-secondary m-1">
             <i class="fas fa fa-magnifying-glass"></i> ${previewStr}</button>`);
         previewBtn.addEventListener('click', async() => {
             const yml = ymleditor.getValue();
@@ -373,7 +374,7 @@ export default {
 
         if (opts.id > 0) {
             // Only show delete button on saved widgets (id=0 is reserved for new ones)
-            const deleteBtn = htmlToElement(`<button type="button" class="btn btn-outline-danger m-1">
+            const deleteBtn = htmlToElement(document, `<button type="button" class="btn btn-outline-danger m-1">
                 <i class="fas fa fa-trash"></i> ${deleteStr}</button>`);
             deleteBtn.addEventListener('click', async() => {
                 // Ask confirmation

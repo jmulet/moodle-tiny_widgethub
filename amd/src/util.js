@@ -1170,11 +1170,12 @@ export function loadScriptAsync(editor, src) {
 
 /**
  * Convert an HTML string into DOM element(s)
+ * @param {Document} doc - The page document
  * @param {string} html - HTML string
  * @returns {HTMLElement} - Returns a single element if one root, or a DocumentFragment if multiple
  */
-export function htmlToElement(html) {
-    const template = document.createElement('template');
+export function htmlToElement(doc, html) {
+    const template = doc.createElement('template');
     template.innerHTML = html.trim();
 
     if (template.content.childElementCount === 1) {
@@ -1185,4 +1186,26 @@ export function htmlToElement(html) {
         // @ts-ignore
         return template.content;
     }
+}
+
+/**
+ * @deprecated Use native editor.dom.setStyle instead.
+ * @param {HTMLElement} target
+ * @param {string} propName
+ * @param {string} propValue
+ */
+export function setStyleMCE(target, propName, propValue) {
+    target.style.setProperty(propName, propValue);
+    // Sync data-mce-style
+    target.setAttribute('data-mce-style', target.getAttribute('style') ?? '');
+}
+
+/**
+ * @param {HTMLElement} target
+ * @param {string} propName
+ */
+export function removeStyleMCE(target, propName) {
+    target.style.removeProperty(propName);
+    // Sync data-mce-style
+    target.setAttribute('data-mce-style', target.getAttribute('style') ?? '');
 }

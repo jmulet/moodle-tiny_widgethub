@@ -1,5 +1,11 @@
 /**
  * @jest-environment jsdom
+ *
+ * Tiny WidgetHub plugin.
+ *
+ * @module      ${component}/plugin
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 // Mock alert and confirm methods
 window.alert = jest.fn();
@@ -17,6 +23,7 @@ const wait = function(delay) {
 }
 
 require('./module.mocks')(jest);
+const {component} = require('../src/common').default;
 /** Mock the YmlEditor dependency */
 const mockSetValue = jest.fn();
 const mockGetValue = jest.fn();
@@ -46,9 +53,9 @@ const settingsModule = require('../src/widget_settings').default;
 function createBody(id, partials) {
     document.body.innerHTML = `
     <form>
-    <textarea id="id_s_tiny_widgethub_defyml_${id}"></textarea>
-    <textarea id="id_s_tiny_widgethub_def_${id}"></textarea>
-    <input id="id_s_tiny_widgethub_partials_${id}" value='${JSON.stringify(partials ?? {})}' type="hidden">
+    <textarea id="id_s_${component}_defyml_${id}"></textarea>
+    <textarea id="id_s_${component}_def_${id}"></textarea>
+    <input id="id_s_${component}_partials_${id}" value='${JSON.stringify(partials ?? {})}' type="hidden">
     </form>
     `;
 }
@@ -72,9 +79,9 @@ describe('widget_settings', () => {
        };
        createBody(id, partials);
        const {ymlArea, jsonArea, partialInput} = settingsModule.getAreas(id);
-       expect(ymlArea.id).toBe(`id_s_tiny_widgethub_defyml_${id}`);
-       expect(jsonArea.id).toBe(`id_s_tiny_widgethub_def_${id}`);
-       expect(partialInput.id).toBe(`id_s_tiny_widgethub_partials_${id}`);
+       expect(ymlArea.id).toBe(`id_s_${component}_defyml_${id}`);
+       expect(jsonArea.id).toBe(`id_s_${component}_def_${id}`);
+       expect(partialInput.id).toBe(`id_s_${component}_partials_${id}`);
        expect(partialInput.value).toBe(JSON.stringify(partials));
     });
 
@@ -122,7 +129,7 @@ describe('widget_settings', () => {
         expect(mockGetValue).toHaveBeenCalled();
         // Check if the preview panel is visible and contains text
         /** @type {HTMLDivElement | null} */
-        const previewpanel = document.body.querySelector(`#tiny_widgethub_pp_${id}`);
+        const previewpanel = document.body.querySelector(`#${component}_pp_${id}`);
         expect(previewpanel).toBeTruthy();
         expect(previewpanel?.classList?.contains('d-none')).toBe(false);
         expect(previewpanel?.innerHTML).toBeTruthy();
@@ -179,7 +186,7 @@ describe('widget_settings', () => {
         expect(mockGetValue).toHaveBeenCalled();
         // Check if the preview panel is visible and contains text
         /** @type {HTMLDivElement | null} */
-        const previewpanel = document.body.querySelector(`#tiny_widgethub_pp_${id}`);
+        const previewpanel = document.body.querySelector(`#${component}_pp_${id}`);
         expect(previewpanel).toBeTruthy();
         expect(previewpanel?.classList?.contains('d-none')).toBe(false);
         expect(previewpanel?.innerHTML).toContain('Widget2');
