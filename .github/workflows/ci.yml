@@ -93,7 +93,7 @@ jobs:
           nvm install 22
           nvm use 22
           cd plugin/tests/jsunit
-          npm ci
+          npm install
           npm run test
 
       - name: PHP Lint
