@@ -330,7 +330,7 @@ export function applyPartials(widget, partials) {
  */
 /**
  * @typedef {Object} Action
- * @property {string} predicate
+ * @property {string} [predicate]
  * @property {string} actions
  */
 /**

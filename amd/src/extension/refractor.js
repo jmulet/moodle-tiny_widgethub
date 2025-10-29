@@ -10,6 +10,9 @@ const bs4DataAttributeSuffixes = [
     'toggle',
     'target',
     'parent',
+    'ride',
+    'slide',
+    'slide-to',
     // Options and configurations
     'placement',
     'trigger',

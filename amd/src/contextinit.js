@@ -60,7 +60,9 @@ const ICONS = {
     arrowLeft: 'arrow-left',
     arrowRight: 'arrow-right',
     remove: 'remove',
-    clone: 'clone'
+    clone: 'clone',
+    cut: 'cut',
+    paste: 'paste'
 };
 
 /**
@@ -76,6 +78,8 @@ const defineIcons = function(editor) {
     editor.ui.registry.addIcon(ICONS.arrowLeft, '<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 448 512"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>');
     editor.ui.registry.addIcon(ICONS.arrowRight, '<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 448 512"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg>');
     editor.ui.registry.addIcon(ICONS.clone, '<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 512 512"><path d="M64 464l224 0c8.8 0 16-7.2 16-16l0-64 48 0 0 64c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64L0 224c0-35.3 28.7-64 64-64l64 0 0 48-64 0c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16zM224 304l224 0c8.8 0 16-7.2 16-16l0-224c0-8.8-7.2-16-16-16L224 48c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16zm-64-16l0-224c0-35.3 28.7-64 64-64L448 0c35.3 0 64 28.7 64 64l0 224c0 35.3-28.7 64-64 64l-224 0c-35.3 0-64-28.7-64-64z"/></svg>');
+    editor.ui.registry.addIcon(ICONS.cut, '<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 640 640"><path d="M256 320L216.5 359.5C203.9 354.6 190.3 352 176 352C114.1 352 64 402.1 64 464C64 525.9 114.1 576 176 576C237.9 576 288 525.9 288 464C288 449.7 285.3 436.1 280.5 423.5L563.2 140.8C570.3 133.7 570.3 122.3 563.2 115.2C534.9 86.9 489.1 86.9 460.8 115.2L320 256L280.5 216.5C285.4 203.9 288 190.3 288 176C288 114.1 237.9 64 176 64C114.1 64 64 114.1 64 176C64 237.9 114.1 288 176 288C190.3 288 203.9 285.3 216.5 280.5L256 320zM353.9 417.9L460.8 524.8C489.1 553.1 534.9 553.1 563.2 524.8C570.3 517.7 570.3 506.3 563.2 499.2L417.9 353.9L353.9 417.9zM128 176C128 149.5 149.5 128 176 128C202.5 128 224 149.5 224 176C224 202.5 202.5 224 176 224C149.5 224 128 202.5 128 176zM176 416C202.5 416 224 437.5 224 464C224 490.5 202.5 512 176 512C149.5 512 128 490.5 128 464C128 437.5 149.5 416 176 416z"/></svg>');
+    editor.ui.registry.addIcon(ICONS.paste, '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M128 64C92.7 64 64 92.7 64 128L64 448C64 483.3 92.7 512 128 512L240 512L240 288C240 226.1 290.1 176 352 176L416 176L416 128C416 92.7 387.3 64 352 64L128 64zM312 176L168 176C154.7 176 144 165.3 144 152C144 138.7 154.7 128 168 128L312 128C325.3 128 336 138.7 336 152C336 165.3 325.3 176 312 176zM352 224C316.7 224 288 252.7 288 288L288 512C288 547.3 316.7 576 352 576L512 576C547.3 576 576 547.3 576 512L576 346.5C576 329.5 569.3 313.2 557.3 301.2L498.8 242.7C486.8 230.7 470.5 224 453.5 224L352 224z"/></svg>');
 };
 
 /**
@@ -117,6 +121,11 @@ const matchesCondition = function(condition, key) {
     }
     return false;
 };
+
+/**
+ * @type {string[]}
+ */
+const widgetCutClipboard = [];
 
 /**
  * @param {import('./plugin').TinyMCE} editor
@@ -271,6 +280,22 @@ const predefinedActionsFactory = function(editor, domSrv) {
                 return;
             }
             el.classList.toggle('d-print-none');
+        },
+        /**
+         * Removes the widget from DOM and stores HTML in the clipboard
+         * @param {PathResult} context
+         */
+        cut: (context) => {
+            const el = context?.elem;
+            if (!el) {
+                return;
+            }
+            widgetCutClipboard.push(el.outerHTML);
+            el.remove();
+
+            // Update TinyMCE content and selection
+            editor.nodeChanged();
+            editor.undoManager.add();
         }
     };
     factory.moveup = factory.movebefore;
@@ -307,7 +332,7 @@ export async function initContextActions(editor) {
     // Get translations
     const [
         strProperties, strUnwrap, strMoveUp, strMoveDown, strMoveAfter, strMoveBefore,
-        strInsert, strRemove, strPrintable
+        strInsert, strRemove, strPrintable, strCut, strPaste
     ] = await get_strings([
         {key: 'properties', component},
         {key: 'unwrap', component},
@@ -317,7 +342,9 @@ export async function initContextActions(editor) {
         {key: 'movebefore', component},
         {key: 'insert', component},
         {key: 'remove', component},
-        {key: 'printable', component}
+        {key: 'printable', component},
+        {key: 'cut', component},
+        {key: 'paste', component}
     ]);
 
     const widgetList = Object.values(getWidgetDict(editor));
@@ -347,6 +374,21 @@ export async function initContextActions(editor) {
         icon: ICONS.gear,
         text: strProperties,
         onAction: showPropertiesAction
+    });
+    editor.ui.registry.addMenuItem(`${componentName}_paste_item`, {
+        icon: ICONS.paste,
+        text: strPaste,
+        onAction: () => {
+            const html = widgetCutClipboard[0];
+            if (!html) {
+                return;
+            }
+            // Insert HTML at current position
+            editor.insertContent(html);
+            editor.undoManager.add();
+            editor.nodeChanged();
+            widgetCutClipboard.splice(0, 1);
+        }
     });
 
     /**
@@ -411,6 +453,11 @@ export async function initContextActions(editor) {
         text: strRemove,
         onAction: genericAction('remove')
     });
+    editor.ui.registry.addMenuItem(`${componentName}_cut_item`, {
+        icon: ICONS.cut,
+        text: strCut,
+        onAction: genericAction('cut')
+    });
     editor.ui.registry.addToggleMenuItem(`${componentName}_printable_item`, {
         icon: 'print',
         text: strPrintable,
@@ -451,15 +498,20 @@ export async function initContextActions(editor) {
     editor.ui.registry.addContextMenu(component, {
         /** @param {HTMLElement} element */
         update: (element) => {
+            /** @type {string[]} */
+            let menuItems = [];
+
+            // Is there anything in widget Node clipboard?
+            if (widgetCutClipboard.length) {
+                menuItems.push('paste');
+            }
             // Look for a context
             ctx.path = domSrv.findWidgetOnEventPath(widgetList, element);
             if (!ctx.path?.widget || ctx.path.widget.prop("contexttoolbar")) {
                 // Widget not found in the searchPath or it must be displayed as toolbar
-                return '';
+                return menuItems.map(e => e === '|' ? '|' : `${componentName}_${e}_item`).join(' ');
             }
             const widget = ctx.path.widget;
-            /** @type {string[]} */
-            let menuItems = [];
             if (hasBindings(widget)) {
                 menuItems.push('modal');
             }
@@ -478,7 +530,7 @@ export async function initContextActions(editor) {
 
             const populateMenuItems = function(/** @type {PathResult} **/ path) {
                 // Now look for contextmenu property in widget definition
-                /** @type {{predicate: string, actions: string}[] | undefined} */
+                /** @type {import('./options').Action[] | undefined} */
                 let contextmenu = path.widget?.prop('contextmenu');
                 if (!contextmenu) {
                     return;

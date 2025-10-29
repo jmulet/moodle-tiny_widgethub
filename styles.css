@@ -657,3 +657,13 @@ i.fad.fa-stopwatch::before {
 div.notranslate, span.notranslate {
     border: 1px dotted orange;
 }
+
+/** Compatibility carousel in bs 4 and 5 */
+div[data-widget="bs-carousel"] .carousel-indicators {
+  list-style: none;
+  padding: 0;
+}
+
+div[data-widget="bs-carousel"] .carousel-indicators li::marker {
+  content: none;
+}

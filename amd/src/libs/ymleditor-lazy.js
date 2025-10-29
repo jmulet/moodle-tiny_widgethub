@@ -39285,7 +39285,7 @@ var z = /*#__PURE__*/Object.freeze({
 
 /**
  * @typedef {Object} Action
- * @property {string} predicate
+ * @property {string} [predicate]
  * @property {string} actions
  */
 
@@ -39318,13 +39318,13 @@ const BindObjectSchema = z.object({
     set: z.string().optional().describe('[DEPRECATED] Use `setValue` instead. How to set the variable value v to jQuery<HTMLElement> e. E.g., set: function(e, value){···}')
 }).superRefine((data, ctx) => {
     if (data.get !== undefined && data.getValue == undefined) {
-        ctx.addIssue({code: 'custom', message: '[DEPRECATED] Use `getValue` instead.', path: ['get']});
+        ctx.addIssue({code: 'custom', message: '[DEPRECATED] Use `getValue` instead. getValue: (el: HTMLElement) => any', path: ['get']});
     }
     if (data.get === undefined && data.getValue == undefined) {
         ctx.addIssue({code: 'custom', message: "The 'bind' object must have a 'get/getValue' property.", path: ['getValue']});
     }
     if (data.set !== undefined && data.setValue == undefined) {
-        ctx.addIssue({code: 'custom', message: '[DEPRECATED] Use `setValue` instead.', path: ['set']});
+        ctx.addIssue({code: 'custom', message: '[DEPRECATED] Use `setValue` instead. setValue: (el: HTMLElement, v: any) => void', path: ['set']});
     }
     if (data.set === undefined && data.setValue === undefined) {
         ctx.addIssue({code: 'custom', message: "The 'bind' object must have a 'set/setValue' property.", path: ['setValue']});
@@ -39464,9 +39464,6 @@ const ActionSchema = z.object({
     predicate: z.string().optional(),
     actions: z.string().optional(),
 }).superRefine((data, ctx) => {
-    if (data.predicate === undefined) {
-        ctx.addIssue({code: 'custom', message: "The 'predicate' property is required for each action.", path: ['predicate']});
-    }
     if (data.actions === undefined) {
         ctx.addIssue({code: 'custom', message: "The 'actions' property is required for each action.", path: ['actions']});
     }

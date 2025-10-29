@@ -60,7 +60,7 @@ import z from 'zod';
 
 /**
  * @typedef {Object} Action
- * @property {string} predicate
+ * @property {string} [predicate]
  * @property {string} actions
  */
 
@@ -239,9 +239,6 @@ const ActionSchema = z.object({
     predicate: z.string().optional(),
     actions: z.string().optional(),
 }).superRefine((data, ctx) => {
-    if (data.predicate === undefined) {
-        ctx.addIssue({code: 'custom', message: "The 'predicate' property is required for each action.", path: ['predicate']});
-    }
     if (data.actions === undefined) {
         ctx.addIssue({code: 'custom', message: "The 'actions' property is required for each action.", path: ['actions']});
     }
