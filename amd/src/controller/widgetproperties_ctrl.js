@@ -24,7 +24,7 @@
 
 import {getFormCtrl} from '../controller/form_ctrl';
 import {getModalSrv} from '../service/modal_service';
-import {createBinding} from '../util';
+import {createBinding} from '../bindings';
 
 /**
  * @typedef {JQuery<HTMLElement>} ModalDialogue
@@ -106,7 +106,7 @@ export class WidgetPropertiesCtrl {
                 if (typeof param.item_selector === 'string') {
                     /** @type {any[]} */
                     const lstValues = [];
-                    /** @type {Record<string, import('../util').Binding>[]} */
+                    /** @type {Record<string, import('../bindings').Binding>[]} */
                     const lstBindings = [];
                     paramValues[param.name] = lstValues;
                     bindingsDOM[param.name] = lstBindings;
@@ -116,7 +116,7 @@ export class WidgetPropertiesCtrl {
                         // For every field in parameter which has binding, create it
                         /** @type {Record<string, any>} */
                         const objValue = {};
-                        /** @type {Record<string, import('../util').Binding>} */
+                        /** @type {Record<string, import('../bindings').Binding>} */
                         const objBinding = {};
                         param.fields?.filter(f => f.bind !== undefined).forEach(f => {
                             // @ts-ignore

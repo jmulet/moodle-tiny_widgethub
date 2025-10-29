@@ -427,7 +427,9 @@ export async function initContextActions(editor) {
 
     // Let extensions to register additional menuItem and nestedMenuItem
     /** @type {import('./extension').UserDefinedItem[]} */
-    const widgetsWithExtensions = getMenuItemProviders().flatMap(provider => provider(ctx));
+    const widgetsWithExtensions = (
+        await Promise.all(getMenuItemProviders().map(provider => provider(ctx)))
+    ).flat();
     widgetsWithExtensions.forEach(menuItem => {
         if (menuItem.subMenuItems) {
                 // It is a nested menu.
