@@ -1,0 +1,9 @@
+{
+    "key": "ib-filter-cleanfont",
+    "name": "$string.ibfiltercleanfont_name",
+    "category": "$string.ibfiltercleanfont_category",
+    "instructions": "$string.ibfiltercleanfont_instructions",
+    "filter": "/* The variable editor is passed into the body function. */ var elements = editor.getBody().querySelectorAll('*[style]'); var totalRemoved = 0;\nelements.forEach(function(el) {\n  var style = el.style;\n  var hadFontFamily = !!style.fontFamily;\n  var hadFontSize = !!style.fontSize;\n  var removed = 0;\n  if (hadFontFamily) {\n    style.removeProperty('font-family');\n    removed++;\n  }\n  if (hadFontSize) {\n    style.removeProperty('font-size');\n    removed++;\n  }\n  /* When dealing with styles, must update TinyMCE cache property. */\n  if (removed > 0) {\n    el.setAttribute('data-mce-style', el.getAttribute('style'));\n    totalRemoved += 1;\n  }\n}); var hasChanges = totalRemoved > 0; var msgStats = \"$string.ibfiltercleanfont_stats\".replace('{$a}', totalRemoved); /* You must return an array. */ return [hasChanges, msgStats];\n",
+    "author": "Josep Mulet <pep.mulet@gmail.com>",
+    "version": "1.0.0"
+}

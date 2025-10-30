@@ -540,3 +540,58 @@ version: 1.0.0
 **Note 1:** For the sake of simplicity, the conditional `when` has no effect in the fields of a repeatable parameter.
 
 **Note 2:** Due to TinyMCE’s internal logic, when programmatically changing `src` or `href` attributes of a DOM element, you must also update the corresponding `data-mce-src` or `data-mce-href` attributes accordingly.
+
+
+### Example 8. Creating filters
+
+A **filter** is a JavaScript function that performs DOM manipulations within the editor’s iFrame.  
+It returns an array with two elements:
+
+1. **Boolean** — Indicates whether any changes were applied (`true` if changes were made, `false` otherwise).  
+2. **String** — A message describing the modifications applied, intended for user feedback.
+
+The filter operates on the TinyMCE editor instance, accessed through the global `editor` object — the JavaScript API interface for TinyMCE.  
+
+In particular, the method `editor.getBody()` returns the body element of the iFrame that contains the editor’s content.
+This allows the filter function to inspect and modify the editor’s DOM directly.
+
+Below you will find a very basic example of a filter that removes the font-size and font-family styles of all elements in the editor.
+Please note that the property `filter` only defines the body of the function. Therefore, you must not write any 
+`function` keyword nor any lambda like `(editor) => { ... }`.
+
+````yml
+key: ib-filter-cleanfont
+name: Clean font styles
+category: Filters
+instructions: This filter removes font-size and font-family styles.
+filter: >
+  /* The variable editor is passed into the body function. */
+  var elements = editor.getBody().querySelectorAll('*[style]');
+  var totalRemoved = 0;
+  elements.forEach(function(el) {
+    var style = el.style;
+    var hadFontFamily = !!style.fontFamily;
+    var hadFontSize = !!style.fontSize;
+    var removed = 0;
+    if (hadFontFamily) {
+      style.removeProperty('font-family');
+      removed++;
+    }
+    if (hadFontSize) {
+      style.removeProperty('font-size');
+      removed++;
+    }
+    /* When dealing with styles, must update TinyMCE cache property. */
+    if (removed > 0) {
+      el.setAttribute('data-mce-style', el.getAttribute('style'));
+      totalRemoved += 1;
+    }
+  });
+  var hasChanges = totalRemoved > 0;
+  var msgStats = "{$a} styles have been removed.".replace('{$a}', totalRemoved);
+  /* You must return an array. */
+  return [hasChanges, msgStats];
+
+author: Josep Mulet <pep.mulet@gmail.com>
+version: 1.0.0
+````

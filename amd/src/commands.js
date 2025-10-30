@@ -162,7 +162,7 @@ export const getSetup = async() => {
         });
 
         const getMatchedWidgets = (/** @type {string} */ pattern) => {
-            return Object.values(widgetsDict).filter((w) => searchComp(w.name, pattern));
+            return Object.values(widgetsDict).filter((w) => !w.isFilter() && searchComp(w.name, pattern));
         };
 
         // Add an Autocompleter @<search widget name>.

@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 /* eslint-disable max-len */
 // This file is part of Moodle - http://moodle.org/
 //
@@ -19,7 +20,6 @@ import {getDomSrv} from './service/dom_service';
 import {getWidgetPropertiesCtrl} from './controller/widgetproperties_ctrl';
 import {getMenuItemProviders, getListeners} from './extension';
 import Common from './common';
-// eslint-disable-next-line camelcase
 import {get_strings} from 'core/str';
 
 const {component, componentName} = Common;
@@ -41,17 +41,6 @@ const {component, componentName} = Common;
  * @property {import('./options').Widget=} widget - The current widget definition associated with the elem
  */
 
-/**
- * @typedef {Object} ICONS
- * @property {string} gear
- * @property {string} arrowUpFromBracket
- * @property {string} arrowUp
- * @property {string} arrowDown
- * @property {string} arrowLeft
- * @property {string} arrowRight
- * @property {string} remove
- * @property {string} clone
- */
 const ICONS = {
     gear: 'gear',
     arrowUpFromBracket: 'arrow-up-from-bracket',
@@ -83,6 +72,7 @@ const defineIcons = function(editor) {
 };
 
 /**
+ * Determine if a widget contains bindings
  * @param {import('./options').Widget} widget
  * @returns {boolean}
  */
@@ -90,7 +80,8 @@ function hasBindings(widget) {
     return widget.parameters?.some(param => {
         if (param.type === 'repeatable') {
             const hasFieldBindings = param.fields?.some(f => f.bind !== undefined);
-            return typeof param.bind === 'object' || (hasFieldBindings && typeof param.item_selector === 'string');
+            return (typeof param.bind === 'object') ||
+                (hasFieldBindings && typeof param.item_selector === 'string');
         } else {
             return param.bind !== undefined;
         }
@@ -107,6 +98,8 @@ const needsContextMenu = function(widget) {
 };
 
 /**
+ * Each MenuAction includes a condition property that is evaluated against
+ * the current widget key to decide if the action should be executed.
  * @param {string | RegExp | (() => boolean) | undefined} condition
  * @param {string} key
  * @returns {boolean}
@@ -123,11 +116,12 @@ const matchesCondition = function(condition, key) {
 };
 
 /**
- * @type {string[]}
+ * @type {{widget: import("./options").Widget, html: string} | null}
  */
-const widgetCutClipboard = [];
+let widgetCutClipboard = null;
 
 /**
+ * Common actions used in context menus
  * @param {import('./plugin').TinyMCE} editor
  * @param {import('./service/dom_service').DomSrv} domSrv
  */
@@ -254,7 +248,14 @@ const predefinedActionsFactory = function(editor, domSrv) {
         remove: (context) => {
             const el = context?.targetElement;
             const root = context?.elem;
-            if (!el || !root) {
+            const widget = context?.widget;
+            if (!el || !root || !widget) {
+                return;
+            }
+            // Is it removing the entire widget?
+            if (el === root) {
+                root.remove();
+                getListeners('widgetRemoved').forEach(listener => listener(editor, widget));
                 return;
             }
 
@@ -268,6 +269,7 @@ const predefinedActionsFactory = function(editor, domSrv) {
             // If parent is now empty, remove the root widget
             if (parent && parent.children.length === 0) {
                 root.remove();
+                getListeners('widgetRemoved').forEach(listener => listener(editor, widget));
             }
         },
         /**
@@ -287,22 +289,29 @@ const predefinedActionsFactory = function(editor, domSrv) {
          */
         cut: (context) => {
             const el = context?.elem;
-            if (!el) {
+            if (!el || !context?.widget) {
                 return;
             }
-            widgetCutClipboard.push(el.outerHTML);
+            widgetCutClipboard = {
+                widget: context.widget,
+                html: el.outerHTML
+            };
             el.remove();
 
             // Update TinyMCE content and selection
             editor.nodeChanged();
             editor.undoManager.add();
+
+            // Call any subscribers
+            getListeners('widgetRemoved').forEach(listener => listener(editor, context.widget));
         }
     };
+    // Alias.
     factory.moveup = factory.movebefore;
     factory.movedown = factory.moveafter;
-    // Alias.
     factory.moveleft = factory.movebefore;
     factory.moveright = factory.moveafter;
+    factory.insert = factory.insertafter;
     return factory;
 };
 
@@ -379,15 +388,18 @@ export async function initContextActions(editor) {
         icon: ICONS.paste,
         text: strPaste,
         onAction: () => {
-            const html = widgetCutClipboard[0];
-            if (!html) {
+            const html = widgetCutClipboard?.html;
+            const widget = widgetCutClipboard?.html;
+            if (!html || !widget) {
                 return;
             }
             // Insert HTML at current position
             editor.insertContent(html);
             editor.undoManager.add();
             editor.nodeChanged();
-            widgetCutClipboard.splice(0, 1);
+            // Call any subscribers
+            getListeners('widgetInserted').forEach(listener => listener(editor, widget));
+            widgetCutClipboard = null;
         }
     });
 
@@ -495,6 +507,14 @@ export async function initContextActions(editor) {
             }
     });
 
+    /**
+     * Any menu item, different from |, is prefixed by componentName_ and ended with _item.
+     * @param {string[]} menuItems
+     * @returns {string[]}
+     */
+    const prefixMenuItems = (menuItems) => menuItems.map(e => e === '|' ? '|' : `${componentName}_${e}_item`);
+
+    // Creates the actual context menu items.
     editor.ui.registry.addContextMenu(component, {
         /** @param {HTMLElement} element */
         update: (element) => {
@@ -502,14 +522,14 @@ export async function initContextActions(editor) {
             let menuItems = [];
 
             // Is there anything in widget Node clipboard?
-            if (widgetCutClipboard.length) {
+            if (widgetCutClipboard) {
                 menuItems.push('paste');
             }
             // Look for a context
             ctx.path = domSrv.findWidgetOnEventPath(widgetList, element);
             if (!ctx.path?.widget || ctx.path.widget.prop("contexttoolbar")) {
                 // Widget not found in the searchPath or it must be displayed as toolbar
-                return menuItems.map(e => e === '|' ? '|' : `${componentName}_${e}_item`).join(' ');
+                return prefixMenuItems(menuItems).join(' ');
             }
             const widget = ctx.path.widget;
             if (hasBindings(widget)) {
@@ -556,12 +576,14 @@ export async function initContextActions(editor) {
                     const newActionsToAdd = cm.actions.split(' ')
                         .map(e => e.trim())
                         // Moveleft/right should be mapped into movebefore/moveafter
+                        // insert should be mapped into insertafter
                         .map(action => {
                             if (action === 'moveleft') {
                                 return 'movebefore';
-                            }
-                            if (action === 'moveright') {
+                            } else if (action === 'moveright') {
                                 return 'moveafter';
+                            } else if (action === 'insert') {
+                                return 'insertafter';
                             }
                             return action;
                         })
@@ -583,7 +605,7 @@ export async function initContextActions(editor) {
             }
             populateMenuItems(ctx.path);
 
-            menuItems = menuItems.map(e => e === '|' ? '|' : `${componentName}_${e}_item`);
+            menuItems = prefixMenuItems(menuItems);
             // Check if the current widget has any action registered by extensions
             const actionNames = widgetsWithExtensions
                 .filter(e => matchesCondition(e.condition, widget.key))

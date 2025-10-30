@@ -53,4 +53,4 @@ autocomplete: severity
 contextmenu:
   - actions: printable | cut
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 2.1.0
+version: 2.2.0
