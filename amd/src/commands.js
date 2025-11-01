@@ -27,7 +27,7 @@ import {getButtonImage} from 'editor_tiny/utils';
 import * as coreStr from 'core/str';
 import Common from './common';
 import * as cfg from 'core/config';
-import {initContextActions} from './contextinit';
+import {getContextMenuManager} from './contextactions';
 import {getAdditionalCss, getGlobalConfig, getWidgetDict, isPluginVisible, Shared, getEditorOptions, isShareCss} from './options';
 import {getWidgetPickCtrl} from './controller/widgetpicker_ctrl';
 import {getListeners} from './extension';
@@ -309,7 +309,7 @@ function initializeEditor(editor) {
 
         if (parseInt(getGlobalConfig(editor, 'enable.contextmenu.level', '1')) > 0) {
             // Initialize context toolbars and menus
-            initContextActions(editor);
+            await getContextMenuManager(editor).init();
         }
 
         // Detect jQuery and Boostrap versions.

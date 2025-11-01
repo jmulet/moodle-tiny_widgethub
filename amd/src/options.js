@@ -330,8 +330,9 @@ export function applyPartials(widget, partials) {
  */
 /**
  * @typedef {Object} Action
- * @property {string} [predicate]
- * @property {string} actions
+ * @property {string} [predicate] - If predicate is absent, it assumes the element holding the widget root.
+ * @property {string} actions - Space separated and use | to define a separator.
+ * @property {string} [description] - Description is used in context menus and context toolbars.
  */
 /**
  * @typedef {Object} RawWidget
