@@ -18,5 +18,6 @@ module.exports = {
       "!<rootDir>/src/plugin.js",
       "!<rootDir>/src/commands.js"
     ],
-    testEnvironment: 'node',    
+    setupFilesAfterEnv: ['./jest.setup.js'],
+    testEnvironment: 'jsdom',    
   }

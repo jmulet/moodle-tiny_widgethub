@@ -21,6 +21,7 @@ import {getWidgetPropertiesCtrl} from './controller/widgetproperties_ctrl';
 import {getMenuItemProviders, getListeners} from './extension';
 import {get_strings} from 'core/str';
 import Common from './common';
+import {prefixItemsWith} from './util';
 
 const {component, componentName} = Common;
 
@@ -73,37 +74,13 @@ function registerIcons(editor) {
 }
 
 /**
- * Determine if a widget contains bindings
- * @param {import('./options').Widget} widget
- * @returns {boolean}
- */
-function hasBindings(widget) {
-    return widget.parameters?.some(param => {
-        if (param.type === 'repeatable') {
-            const hasFieldBindings = param.fields?.some(f => f.bind !== undefined);
-            return (typeof param.bind === 'object') ||
-                (hasFieldBindings && typeof param.item_selector === 'string');
-        } else {
-            return param.bind !== undefined;
-        }
-    });
-}
-
-/**
- * Any menu item, different from |, is prefixed by componentName_ and ended with _item.
- * @param {string[]} menuItems
- * @returns {string[]}
- */
-const prefixMenuItems = (menuItems) => menuItems.map(e => e === '|' ? '|' : `${componentName}_${e}`);
-
-/**
  * Each MenuAction includes a condition property that is evaluated against
  * the current widget key to decide if the action should be executed.
  * @param {string | RegExp | (() => boolean) | undefined} condition
  * @param {string} value
  * @returns {boolean}
  */
-const matchesCondition = function(condition, value) {
+export function matchesCondition(condition, value) {
     if (typeof condition === 'string') {
         return condition.split(',').map(e => e.trim()).includes(value);
     } else if (condition instanceof RegExp) {
@@ -112,17 +89,17 @@ const matchesCondition = function(condition, value) {
         return condition();
     }
     return false;
-};
-
+}
 
 /**
  * Common actions used in context menus
  * @param {import('./plugin').TinyMCE} editor
  * @param {import('./service/dom_service').DomSrv} domSrv
  * @param {{widget: import('./options').Widget | undefined, html: string | undefined}} widgetCutClipboard
+ * @param {(name: import('./extension').EventName) => ((editor: import('./plugin').TinyMCE, ...args: any[]) => void)[]} getListenersFn
  * @const widgetCutClipboard
  */
-const predefinedActionsFactory = function(editor, domSrv, widgetCutClipboard) {
+export const predefinedActionsFactory = function(editor, domSrv, widgetCutClipboard, getListenersFn) {
     /** @type {Record<string, Function>} */
     const factory = {
         /**
@@ -156,7 +133,7 @@ const predefinedActionsFactory = function(editor, domSrv, widgetCutClipboard) {
             }
 
             // Call any subscribers
-            getListeners('widgetRemoved').forEach(listener => listener(editor, path.widget));
+            getListenersFn('widgetRemoved').forEach(listener => listener(editor, path.widget));
         },
         /**
          * Moves the selected element above in the parent container
@@ -252,7 +229,7 @@ const predefinedActionsFactory = function(editor, domSrv, widgetCutClipboard) {
             // Is it removing the entire widget?
             if (el === root) {
                 root.remove();
-                getListeners('widgetRemoved').forEach(listener => listener(editor, widget));
+                getListenersFn('widgetRemoved').forEach(listener => listener(editor, widget));
                 return;
             }
 
@@ -266,7 +243,7 @@ const predefinedActionsFactory = function(editor, domSrv, widgetCutClipboard) {
             // If parent is now empty, remove the root widget
             if (parent && parent.children.length === 0) {
                 root.remove();
-                getListeners('widgetRemoved').forEach(listener => listener(editor, widget));
+                getListenersFn('widgetRemoved').forEach(listener => listener(editor, widget));
             }
         },
         /**
@@ -298,7 +275,23 @@ const predefinedActionsFactory = function(editor, domSrv, widgetCutClipboard) {
             editor.undoManager.add();
 
             // Call any subscribers
-            getListeners('widgetRemoved').forEach(listener => listener(editor, path.widget));
+            getListenersFn('widgetRemoved').forEach(listener => listener(editor, path.widget));
+        },
+
+        paste: () => {
+            const html = widgetCutClipboard?.html;
+            const widget = widgetCutClipboard?.widget;
+            if (!html || !widget) {
+                return;
+            }
+            // Insert HTML at current position
+            editor.insertContent(html);
+            editor.undoManager.add();
+            editor.nodeChanged();
+            // Call any subscribers
+            getListenersFn('widgetInserted').forEach(listener => listener(editor, widget));
+            widgetCutClipboard.widget = undefined;
+            widgetCutClipboard.html = undefined;
         }
     };
     // Alias.
@@ -375,7 +368,7 @@ export class ContextActionsManager {
 
     async init() {
         this.i18n = await this.loadStrings();
-        this.predefinedActions = predefinedActionsFactory(this.editor, this.domSrv, this.widgetCutClipboard);
+        this.predefinedActions = predefinedActionsFactory(this.editor, this.domSrv, this.widgetCutClipboard, getListeners);
         registerIcons(this.editor);
         this.registerUI();
         await this.registerExtensionMenus();
@@ -406,22 +399,6 @@ export class ContextActionsManager {
         const widgetPropertiesCtrl = getWidgetPropertiesCtrl(this.editor);
         await widgetPropertiesCtrl.show(path);
     };
-
-    pasteAction() {
-        const html = this.widgetCutClipboard?.html;
-        const widget = this.widgetCutClipboard?.widget;
-        if (!html || !widget) {
-            return;
-        }
-        // Insert HTML at current position
-        this.editor.insertContent(html);
-        this.editor.undoManager.add();
-        this.editor.nodeChanged();
-        // Call any subscribers
-        getListeners('widgetInserted').forEach(listener => listener(this.editor, widget));
-        this.widgetCutClipboard.widget = undefined;
-        this.widgetCutClipboard.html = undefined;
-    }
 
     /**
      * It creates menuItem, nestedMenuItem, Button and SplitButton to handle
@@ -496,7 +473,7 @@ export class ContextActionsManager {
         this.editor.ui.registry.addMenuItem(`${componentName}_paste_item`, {
             icon: ICONS.paste,
             text: this.i18n.paste,
-            onAction: this.pasteAction
+            onAction: this.predefinedActions?.paste
         });
         // Generic button action for unwrapping those widgets that support this feature
         this.registerUIElement({
@@ -601,7 +578,7 @@ export class ContextActionsManager {
         if (!path.widget) {
             return menuItems;
         }
-        if (hasBindings(path.widget)) {
+        if (path.widget.hasBindings()) {
             this.ctx.actionPaths.modal.push({...path});
         }
         // Unwrap action always to the end
@@ -684,7 +661,7 @@ export class ContextActionsManager {
         const widget = this.ctx.path.widget;
         if (!widget) {
             // Widget not found in the searchPath.
-            return prefixMenuItems(menuItems);
+            return prefixItemsWith(menuItems, componentName, ['|']);
         }
 
         // Does this widget bubble? Look for a parent widget named widget.bubbles
@@ -727,7 +704,7 @@ export class ContextActionsManager {
             .map(e => e.name) ?? [];
         menuItems.push(...actionNames);
 
-        return prefixMenuItems(menuItems);
+        return prefixItemsWith(menuItems, componentName, ['|']);
     }
 
 
@@ -743,7 +720,7 @@ export class ContextActionsManager {
         // Look for widgets that need a context toolbar
         this.widgetList.filter(widget => widget.prop('contexttoolbar') && !widget.isFilter()).forEach(widget => {
             const items = [];
-            if (hasBindings(widget)) {
+            if (widget.hasBindings()) {
                 items.push('modal');
             }
             /** @type {import('./options').Action[]} */

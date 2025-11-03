@@ -1,5 +1,4 @@
 /**
- * @jest-environment jsdom
  *
  * Tiny WidgetHub plugin.
  *
@@ -7,11 +6,9 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-// Mock virtual modules
-require('../module.mocks')(jest);
+// Mock virtual modules 
 const Common = require('../../src/common');
 const { addRequires, cleanUnusedRequires } = require('../../src/extension/dependencies');
-const editorFactory = require('../editor.mock');
 const JSAREACLASSNAME = Common.default.jsAreaClassname;
 const jsareaSelector = `div.${JSAREACLASSNAME}`;
 
@@ -39,7 +36,7 @@ const rawWidgets = [widget1, widget2, widget3];
  * @returns {*}
  */
 const createEditor = (html) => {
-    const editor = editorFactory();
+    const editor = Mocks.editorFactory();
     editor.setContent(html);
     editor.options.get = jest.fn().mockReturnValue(rawWidgets)
     return editor;

@@ -26,7 +26,7 @@ global.window["require"] = requirejs;
 global.requirejs = requirejs;
 
 // @ts-ignore
-module.exports = function applyMocks(jest) { 
+module.exports = function applyMocks() { 
     jest.mock("jquery", () => {
         const $ = require('../node_modules/jquery/dist/jquery.js');
         return {

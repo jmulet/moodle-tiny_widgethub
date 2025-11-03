@@ -634,3 +634,17 @@ export function removeStyleMCE(target, propName) {
     // Sync data-mce-style
     target.setAttribute('data-mce-style', target.getAttribute('style') ?? '');
 }
+
+
+/**
+ * Any menu item, different from |, is prefixed by componentName_ and ended with _item.
+ * @param {string[]} items
+ * @param {string} prefix
+ * @param {string[]} [skipItems]
+ * @param {string} [separator]
+ * @returns {string[]}
+ */
+export function prefixItemsWith(items, prefix, skipItems = [], separator = '_') {
+    return items.map(e => skipItems.includes(e) ? e : `${prefix}${separator}${e}`);
+}
+

@@ -1,5 +1,4 @@
 /**
- * @jest-environment jsdom
  *
  * Tiny WidgetHub plugin.
  *
@@ -8,7 +7,6 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require('../module.mocks')(jest);
 const { htmlToElement } = require('../../src/util');
 // Actual form implementation
 const {getFormCtrl} = require('../../src/controller/form_ctrl');
@@ -58,18 +56,15 @@ const widget = {
     isFilter: () => false,
     hasBindings: () => true
 };
-
-/** @type {*} */
-const mockModalSrv = require('../modal_service.mock');
-
-
+ 
 /** @type {WidgetPropertiesCtrl} */
 let widgetPropertiesCtrl;
+const mockModalSrv = Mocks.modalSrv;
 
 describe("WidgetPickerCtrl", () => {
 
     beforeEach(() => {
-        mockEditor = require('../editor.mock')();
+        mockEditor = Mocks.editorFactory();
         // Use the real formCtrl
         const formCtrl = getFormCtrl(mockEditor);
         widgetPropertiesCtrl = new WidgetPropertiesCtrl(mockEditor, formCtrl, mockModalSrv);
@@ -138,7 +133,7 @@ describe("WidgetPickerCtrl", () => {
     });
 
     it("Must show the dialog for the current context and cancel changes", async() => {
-        /** @type {import('../../src/contextinit').PathResult} */
+        /** @type {import('../../src/contextactions').PathResult} */
         let currentContext;
         const consoleSpy = jest.spyOn(global.console, 'error');
         mockEditor.setDirty.mockReset();

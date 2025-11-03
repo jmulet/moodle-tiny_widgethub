@@ -1,5 +1,4 @@
 /**
- * @jest-environment jsdom
  *
  * Tiny WidgetHub plugin.
  *
@@ -7,7 +6,6 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-require('./module.mocks')(jest);
 const U = require("../src/util");
 
 /**
@@ -146,7 +144,7 @@ describe('utils module tests', () => {
 
     it("It applies widgetFilter", async() => {
         /** @type {*} */
-        const editor = require('./editor.mock')();
+        const editor = Mocks.editorFactory();
         editor.getContent.mockReturnValue("<p>This is the editor's content</p>");
         const coreStr = {
             get_strings: (/** @type {any[]} **/ lst) => {

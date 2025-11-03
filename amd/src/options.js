@@ -337,7 +337,7 @@ export function applyPartials(widget, partials) {
 /**
  * @typedef {Object} RawWidget
  * @property {string} [plugin_release]
- * @property {number} id
+ * @property {number} [id]
  * @property {string} key
  * @property {string} name
  * @property {string} category
@@ -392,7 +392,7 @@ export class Widget {
      * @returns {number}
      */
      get id() {
-        return this._widget.id;
+        return this._widget.id ?? 0;
     }
     /**
      * @returns {string}
@@ -567,15 +567,22 @@ export class Widget {
         return this._widget.selectors !== undefined && this._widget.insertquery !== undefined;
     }
     /**
+     * Determine if a widget contains bindings
      * @returns {boolean}
-     */
+    */
     hasBindings() {
         const parameters = this._widget.parameters ?? [];
-        const repeatable = parameters.filter(param => param.type === 'repeatable')
-            .map(rep => (rep.fields || []).some(field => field.bind !== undefined));
-        return parameters.some(param => param.bind !== undefined) ||
-            repeatable.some(rep => rep);
+        return parameters.some(param => {
+            if (param.type === 'repeatable') {
+                const hasFieldBindings = param.fields?.some(f => f.bind !== undefined);
+                return (typeof param.bind === 'object') ||
+                    (hasFieldBindings && typeof param.item_selector === 'string');
+            } else {
+                return param.bind !== undefined;
+            }
+        });
     }
+
     /**
      * Recovers the property value named name of the original definition
      * @param {string} name

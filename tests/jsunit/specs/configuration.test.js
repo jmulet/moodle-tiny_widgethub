@@ -6,7 +6,6 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require('./module.mocks')(jest);
 const Common = require('../src/common').default;
 const {component} = Common;
 const cfg = require('../src/configuration');

@@ -1,5 +1,4 @@
 /**
- * @jest-environment jsdom
  *
  * Tiny WidgetHub plugin.
  *
@@ -7,7 +6,6 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-require('../module.mocks')(jest);
 
 const { ModalSrv } = require('../../src/service/modal_service');
 

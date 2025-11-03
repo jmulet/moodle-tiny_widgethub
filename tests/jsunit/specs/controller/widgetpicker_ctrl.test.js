@@ -1,5 +1,4 @@
 /*
- * @jest-environment jsdom
  *
  * Tiny WidgetHub plugin.
  *
@@ -8,7 +7,6 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import jQuery from 'jquery';
-require('../module.mocks')(jest);
 const util = require('../../src/util');
 util.genID = jest.fn().mockReturnValue("a12345");
 
@@ -98,7 +96,7 @@ describe("WidgetPickerCtrl", () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        mockEditor = require('../editor.mock')();
+        mockEditor = Mocks.editorFactory();
 
         widgetPickCtrl = new WidgetPickerCtrl(mockEditor, mockEditorOptions,
             mockWidgetParamsFactory, mockModalSrv, mockTemplateSrv, mockUserStorage);
@@ -328,12 +326,11 @@ describe("WidgetPickerCtrl", () => {
     });
 
     test("handlePickModalClick", async () => {
-        /** @type {*} */
-        const modalSrv = require('../modal_service.mock');
+        /** @type {*} */ 
         const templateSrv = getTemplateSrv();
         // Create a more realistic instance, with less mocks
         widgetPickCtrl = new WidgetPickerCtrl(mockEditor, mockEditorOptions,
-            mockWidgetParamsFactory, modalSrv, templateSrv, mockUserStorage);
+            mockWidgetParamsFactory, Mocks.modalSrv, templateSrv, mockUserStorage);
 
         const spyHandlePickModalAction = jest.spyOn(widgetPickCtrl, 'handlePickModalAction');
         mockEditor.selection.getContent.mockReset().mockReturnValue('');

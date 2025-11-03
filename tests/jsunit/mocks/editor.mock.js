@@ -55,6 +55,11 @@ module.exports = function editorFactory(editorId=1, userInfo={id:1, username: 'j
         getBody: jest.fn().mockReturnValue(doc.body),
         getContent: jest.fn().mockImplementation(t => doc.body.innerHTML),
         setContent: jest.fn().mockImplementation(t => {doc.body.innerHTML = t; }),
+        insertContent: jest.fn().mockImplementation(html => {
+            const template = doc.createElement('TEMPLATE');
+            template.innerHTML = html;
+            template.content.childNodes.forEach(node => doc.body.appendChild(node));
+        }),
         getDoc: jest.fn().mockReturnValue(doc),
         ui: {
                 registry: {
@@ -70,5 +75,9 @@ module.exports = function editorFactory(editorId=1, userInfo={id:1, username: 'j
                     getAll: jest.fn().mockReturnValue("")
                 }
             },
+            nodeChanged: jest.fn(),
+            undoManager: {
+                add: jest.fn()
+            }
     }
 };

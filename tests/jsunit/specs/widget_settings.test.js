@@ -1,5 +1,4 @@
 /**
- * @jest-environment jsdom
  *
  * Tiny WidgetHub plugin.
  *
@@ -22,7 +21,6 @@ const wait = function(delay) {
     });
 }
 
-require('./module.mocks')(jest);
 const {component} = require('../src/common').default;
 /** Mock the YmlEditor dependency */
 const mockSetValue = jest.fn();

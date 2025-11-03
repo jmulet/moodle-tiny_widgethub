@@ -1,5 +1,4 @@
 /**
- * @jest-environment jsdom
  * 
  * Tiny WidgetHub plugin.
  *
@@ -7,7 +6,6 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-require('../module.mocks')(jest);
 const { getTemplateSrv } = require('../../src/service/template_service');
 
 const wait = (/** @type{number} */ delay) => {
@@ -56,7 +54,7 @@ describe("FormCtrl", () => {
             _id += 1;
             return (_id) + "";
         };
-        mockEditor = require('../editor.mock')(12345, {id: 0, username: 'joe', roles: ['student'] }, "text selected");
+        mockEditor = Mocks.editorFactory(12345, {id: 0, username: 'joe', roles: ['student'] }, "text selected");
         formCtrl = new FormCtrl(mockEditor, mockUserStorage, mockTemplateSrv, mockFileSrv);
     })
 
