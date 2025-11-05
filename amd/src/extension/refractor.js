@@ -22,14 +22,14 @@ const bs4DataAttributeSuffixes = [
     'html',
 ];
 
- // Create a CSS selector string to find elements with any of the BS4 data attributes
- const bs5Selectors = bs4DataAttributeSuffixes.map(suffix => `[data-${suffix}]`).join(',');
+// Create a CSS selector string to find elements with any of the BS4 data attributes
+const bs5Selectors = bs4DataAttributeSuffixes.map(suffix => `[data-${suffix}]`).join(',');
 
 /**
  * @param {import("../plugin").TinyMCE} editor
  * @returns {boolean}
  */
-function bs5Refractor(editor) {
+export function bs5Refractor(editor) {
     const body = editor.getBody();
     let changes = 0;
 
@@ -68,7 +68,9 @@ function bs5Refractor(editor) {
 /**
  * @param {import("../plugin").TinyMCE} editor
  */
-async function refractoring(editor) {
+export async function refractoring(editor) {
+    // eslint-disable-next-line no-console
+    console.log(getGlobalConfig, bs5Refractor);
     try {
         const refractoringActive = getGlobalConfig(editor, 'oninit.refractor.bs5', '0');
         let changes = false;

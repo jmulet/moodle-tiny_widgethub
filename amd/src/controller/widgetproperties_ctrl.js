@@ -60,7 +60,7 @@ export class WidgetPropertiesCtrl {
     /**
      * Displays a modal dialog for editing the currentContext
      * based on contextual
-     * @param {import('../contextinit').PathResult} currentContext
+     * @param {import('../contextactions').PathResult} currentContext
      * @returns
      */
     async show(currentContext) {

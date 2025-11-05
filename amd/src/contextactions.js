@@ -96,10 +96,9 @@ export function matchesCondition(condition, value) {
  * @param {import('./plugin').TinyMCE} editor
  * @param {import('./service/dom_service').DomSrv} domSrv
  * @param {{widget: import('./options').Widget | undefined, html: string | undefined}} widgetCutClipboard
- * @param {(name: import('./extension').EventName) => ((editor: import('./plugin').TinyMCE, ...args: any[]) => void)[]} getListenersFn
  * @const widgetCutClipboard
  */
-export const predefinedActionsFactory = function(editor, domSrv, widgetCutClipboard, getListenersFn) {
+export const predefinedActionsFactory = function(editor, domSrv, widgetCutClipboard) {
     /** @type {Record<string, Function>} */
     const factory = {
         /**
@@ -133,7 +132,7 @@ export const predefinedActionsFactory = function(editor, domSrv, widgetCutClipbo
             }
 
             // Call any subscribers
-            getListenersFn('widgetRemoved').forEach(listener => listener(editor, path.widget));
+            getListeners('widgetRemoved').forEach(listener => listener(editor, path.widget));
         },
         /**
          * Moves the selected element above in the parent container
@@ -229,7 +228,7 @@ export const predefinedActionsFactory = function(editor, domSrv, widgetCutClipbo
             // Is it removing the entire widget?
             if (el === root) {
                 root.remove();
-                getListenersFn('widgetRemoved').forEach(listener => listener(editor, widget));
+                getListeners('widgetRemoved').forEach(listener => listener(editor, widget));
                 return;
             }
 
@@ -243,7 +242,7 @@ export const predefinedActionsFactory = function(editor, domSrv, widgetCutClipbo
             // If parent is now empty, remove the root widget
             if (parent && parent.children.length === 0) {
                 root.remove();
-                getListenersFn('widgetRemoved').forEach(listener => listener(editor, widget));
+                getListeners('widgetRemoved').forEach(listener => listener(editor, widget));
             }
         },
         /**
@@ -275,7 +274,7 @@ export const predefinedActionsFactory = function(editor, domSrv, widgetCutClipbo
             editor.undoManager.add();
 
             // Call any subscribers
-            getListenersFn('widgetRemoved').forEach(listener => listener(editor, path.widget));
+            getListeners('widgetRemoved').forEach(listener => listener(editor, path.widget));
         },
 
         paste: () => {
@@ -289,7 +288,7 @@ export const predefinedActionsFactory = function(editor, domSrv, widgetCutClipbo
             editor.undoManager.add();
             editor.nodeChanged();
             // Call any subscribers
-            getListenersFn('widgetInserted').forEach(listener => listener(editor, widget));
+            getListeners('widgetInserted').forEach(listener => listener(editor, widget));
             widgetCutClipboard.widget = undefined;
             widgetCutClipboard.html = undefined;
         }
@@ -368,7 +367,7 @@ export class ContextActionsManager {
 
     async init() {
         this.i18n = await this.loadStrings();
-        this.predefinedActions = predefinedActionsFactory(this.editor, this.domSrv, this.widgetCutClipboard, getListeners);
+        this.predefinedActions = predefinedActionsFactory(this.editor, this.domSrv, this.widgetCutClipboard);
         registerIcons(this.editor);
         this.registerUI();
         await this.registerExtensionMenus();
@@ -389,7 +388,7 @@ export class ContextActionsManager {
         return Object.fromEntries(keys.map((k, i) => [k, values[i]]));
     }
 
-    showPropertiesAction = async() => {
+    async showPropertiesAction() {
         const path = this.domSrv.findWidgetOnEventPath(this.widgetList, this.editor.selection.getNode());
         this.ctx.path = path;
         if (!path.widget) {
@@ -398,7 +397,7 @@ export class ContextActionsManager {
         // Display modal dialog on this context
         const widgetPropertiesCtrl = getWidgetPropertiesCtrl(this.editor);
         await widgetPropertiesCtrl.show(path);
-    };
+    }
 
     /**
      * It creates menuItem, nestedMenuItem, Button and SplitButton to handle

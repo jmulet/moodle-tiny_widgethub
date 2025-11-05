@@ -3,10 +3,21 @@
     "name": "$string.ibwc_name",
     "category": "misc",
     "instructions": "$string.ibwc_instructions",
-    "template": "<p><br></p>\n<div data-widget=\"ib-wordcounter\">\n    <p>__LOREM__</p>\n</div>\n<p><br></p>\n",
+    "template": "<p><br></p>\n<div data-widget=\"ib-wordcounter\" class=\"{{#toggle}}active{{/toggle}}\">\n    <p>__LOREM__</p>\n</div>\n<p><br></p>\n",
+    "parameters": [
+        {
+            "name": "toggle",
+            "title": "Activate counter script",
+            "value": true,
+            "bind": "hasClass('active')"
+        }
+    ],
     "selectors": "div[data-widget=\"ib-wordcounter\"]",
     "insertquery": "div[data-widget=\"ib-wordcounter\"]",
-    "requires": "https://raw.githubusercontent.com/jmulet/moodle-tiny_widgethub/refs/heads/develop/repository/ib-wordcounter.js",
+    "requires": {
+        "url": "https://raw.githubusercontent.com/jmulet/moodle-tiny_widgethub/refs/heads/develop/repository/ib-wordcounter.js",
+        "query": "div[data-widget=\"ib-wordcounter\"].active"
+    },
     "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
     "version": "2.0.0"
 }

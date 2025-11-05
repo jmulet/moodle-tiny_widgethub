@@ -39480,6 +39480,11 @@ const partialsWidgetSchema = z.object({
     key: z.literal('partials'),
 }).describe("Special case: disables all normal rules when key = 'partials'");
 
+const RequiresSpec = z.object({
+    url: z.string().describe('The src of the js script to load'),
+    query: z.string().optional().describe('A css query relative to the editor\'s body. The script will be inserted only if this query returns some element')
+});
+
 // Schema for the main RawWidget type
 const normalWidgetSchema = z.object({
     plugin_release: z.string().regex(/^(?:>=|>|=)?\d+\.\d+(?:\.\d+)?$/, {message: "Minimum plugin version required must follow the [ >, >=, =, ] xx.yy.zz pattern (e.g., >=1.4)."})
@@ -39501,7 +39506,7 @@ const normalWidgetSchema = z.object({
     insertquery: z.string().optional().describe("Optional. CSS selector where to insert content in SELECTION mode"),
     unwrap: z.string().optional().describe("Optional. CSS selectors of template content to extract on unwrap."),
     parameters: z.array(z.union([PartialStringSchema, PartialSchema, ParamSchema])).optional().describe("Optional. A list of parameters of the snippet"),
-    requires: z.string().optional().describe("Optional. JS dependencies of the widget."),
+    requires: z.union([z.string(), RequiresSpec]).optional().describe("Optional. JS dependencies of the widget."),
     I18n: z.record(z.string(), z.record(z.string(), z.string())).optional().describe("Optional. Translation map."),
     'for': z.string().optional().describe("Optional. A list of user ids allowed to use this widget"),
     hidden: z.boolean().optional().describe("Optional. Set to true to hide this widget"),

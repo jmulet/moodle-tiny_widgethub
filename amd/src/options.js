@@ -335,6 +335,11 @@ export function applyPartials(widget, partials) {
  * @property {string} [description] - Description is used in context menus and context toolbars.
  */
 /**
+ * @typedef {Object} RequiresSpec
+ * @property {string} url - The url of the js dependency to be included along with the widget.
+ * @property {string} [query] - Condition in the form of a css query relative to editor's body. The dependency will be added if the query returns some node.
+ */
+/**
  * @typedef {Object} RawWidget
  * @property {string} [plugin_release]
  * @property {number} [id]
@@ -359,7 +364,7 @@ export function applyPartials(widget, partials) {
  * @property {string} [autocomplete]
  * @property {string} version
  * @property {string} author
- * @property {string} [requires]
+ * @property {string | RequiresSpec} [requires]
  * @property {boolean} [hidden]
  * @property {number} [stars]
  * @property {Action[]} [contextmenu]
@@ -463,6 +468,21 @@ export class Widget {
      */
     get parameters() {
         return this._widget.parameters ?? [];
+    }
+    /**
+     * @returns {RequiresSpec | null}
+     */
+    get requires() {
+        if (typeof this._widget.requires === 'object' && this._widget.requires.url) {
+            return {
+                url: this._widget.requires.url.trim(),
+                query: this._widget.requires.query?.trim()
+            };
+        } else if (typeof this._widget.requires === 'string') {
+            const [url, query] = this._widget.requires.split('|').map(e => e.trim());
+            return {url, query};
+        }
+        return null;
     }
     /**
      * @returns {Object.<string, any>}
@@ -569,7 +589,7 @@ export class Widget {
     /**
      * Determine if a widget contains bindings
      * @returns {boolean}
-    */
+     */
     hasBindings() {
         const parameters = this._widget.parameters ?? [];
         return parameters.some(param => {

@@ -64,24 +64,23 @@ module.exports = function applyMocks() {
             }
             // The result can be accessed through the `m`-variable.
             map.set(m[1], m[2]);
-        }
-        /** @param {{key: string, component: string}[]} kps */
-        const get_strings = function(kps) {
+        } 
+        const get_strings = jest.fn().mockImplementation(function(/** @type {{key: string, component: string}[]}*/ kps) {
             return Promise.resolve(kps.map(kp => map.get(kp.key) ?? kp.key));
-        };
+        });
         const coreStr = {
             /** 
              * @param  {string} key 
              * @param  {string} component
              * @param  {string} [placeholder]
              */
-            get_string: (key, component, placeholder) => {
+            get_string: jest.fn().mockImplementation((key, component, placeholder) => {
                 let str = map.get(key) ?? key;
                 if (placeholder) {
                     str = str.replace('{$a}', placeholder);
                 }
                 return Promise.resolve(str)
-            },
+            }),
             get_strings
         };
         return {

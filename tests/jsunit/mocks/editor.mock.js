@@ -58,6 +58,7 @@ module.exports = function editorFactory(editorId=1, userInfo={id:1, username: 'j
         insertContent: jest.fn().mockImplementation(html => {
             const template = doc.createElement('TEMPLATE');
             template.innerHTML = html;
+            // @ts-ignore
             template.content.childNodes.forEach(node => doc.body.appendChild(node));
         }),
         getDoc: jest.fn().mockReturnValue(doc),
