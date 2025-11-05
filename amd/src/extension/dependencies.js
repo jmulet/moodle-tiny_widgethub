@@ -48,40 +48,33 @@ export function addRequires(editor, requireList) {
 
         // If no requireList is passed, then analyze the page and add requires that must be there!
         if (!requireList) {
-            requireList = [];
-            affectedWidgets.forEach(w => {
-                if (anyMatchesSelectors(tiny, w.selectors || [])) {
-                    // @ts-ignore
-                    requireList?.push(w.requires);
-                }
-            });
+            requireList = affectedWidgets
+                .filter(w => anyMatchesSelectors(tiny, w.selectors || []))
+                .map(w => w.requires ?? {url: ''});
         }
 
         // Clear unused requires first
         cleanUnusedRequires(editor, affectedWidgets);
-        jsArea = tiny.querySelector(jsareaSelector);
+
+        // Check which scripts must be created
+        const scriptsToInsert = requireList.filter((req) => {
+            if (!req.url?.endsWith(".js") ||
+                // Check conditional insert
+                (req.query && !tiny.querySelector(req.query))) {
+                return false;
+            }
+            // Does the page already contain this dependency?
+            const realSrc = addBaseToUrl(jsBaseUrl, req.url);
+            return !jsArea?.querySelector(`script[src="${realSrc}"]`);
+        });
 
         // Check the existence of script area
-        if (!jsArea && requireList.length > 0) {
+        if (!jsArea && scriptsToInsert.length > 0) {
             const spacer = editor.dom.create('p', {}, '<br>');
             jsArea = editor.dom.create('div', {"class": jsAreaClassname});
             tiny.append(spacer);
             tiny.append(jsArea);
         }
-
-        // Check which scripts must be created
-        const scriptsToInsert = requireList.filter((req) => {
-            if (!req.url?.endsWith(".js")) {
-                return false;
-            }
-            // Check conditional insert
-            if (req.query && !tiny.querySelector(req.query)) {
-                return false;
-            }
-            // Does the page already contain this dependency?
-            const realSrc = addBaseToUrl(jsBaseUrl, req.url);
-            return jsArea?.querySelector(`script[src="${realSrc}"]`) === null;
-        });
 
         if (jsArea && scriptsToInsert.length > 0) {
             // Insert the scripts in the area
