@@ -447,7 +447,7 @@ export function toRgba(hex, alpha) {
         g = parseInt(result[2], 16);
         b = parseInt(result[3], 16);
     }
-    if (alpha === 1) {
+    if (alpha2 === 1) {
         return `rgb(${r},${g},${b})`;
     }
     return `rgba(${r},${g},${b},${alpha2})`;

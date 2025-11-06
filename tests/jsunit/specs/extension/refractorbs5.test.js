@@ -1,4 +1,11 @@
-// __tests__/refractor.test.js
+/**
+ *
+ * Tiny WidgetHub plugin.
+ *
+ * @module      tiny_widgethub/plugin
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 jest.mock('../../src/options', () => ({
   getGlobalConfig: jest.fn(),
 }));
@@ -6,7 +13,7 @@ jest.mock('../../src/extension', () => ({
   subscribe: jest.fn(),
 }));
 
-const refractor = require('../../src/extension/refractor');
+const refractor = require('../../src/extension/refractorbs5');
 /** @type {any} */
 const { getGlobalConfig } = require('../../src/options');
 

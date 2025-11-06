@@ -30,7 +30,8 @@ module.exports = function editorFactory(editorId=1, userInfo={id:1, username: 'j
             register: jest.fn()
         },
         windowManager: {
-            confirm: jest.fn()
+            confirm: jest.fn(),
+            open: jest.fn()
         },
         notificationManager: {
             open: jest.fn(),
@@ -50,11 +51,17 @@ module.exports = function editorFactory(editorId=1, userInfo={id:1, username: 'j
                     elem.innerHTML = inner;
                 }
                 return elem;
+            }),
+            setStyle: jest.fn().mockImplementation((el, name, value) => {
+                // Mock internal TinyMCE setStyle behaviour.
+                el.style.setProperty(name, value);
+                el.setAttribute('data-mce-style', el.getAttribute('style'));
             })
         },
         getBody: jest.fn().mockReturnValue(doc.body),
         getContent: jest.fn().mockImplementation(t => doc.body.innerHTML),
         setContent: jest.fn().mockImplementation(t => {doc.body.innerHTML = t; }),
+        getParam: jest.fn(),
         insertContent: jest.fn().mockImplementation(html => {
             const template = doc.createElement('TEMPLATE');
             template.innerHTML = html;

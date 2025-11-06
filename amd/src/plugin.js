@@ -34,7 +34,7 @@ import {getSetup as getCommandSetup} from './commands';
 import * as Configuration from './configuration';
 
 // Register extensions
-import './extension/refractor';
+import './extension/refractorbs5';
 import './extension/dependencies';
 
 const documentationUrl = 'https://github.com/jmulet/moodle-tiny_widgethub';
