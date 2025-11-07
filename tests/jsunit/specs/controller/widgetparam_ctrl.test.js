@@ -70,7 +70,7 @@ describe("WidgetParamsCtrl", () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        mockEditor = Mocks.editorFactory();
+        mockEditor = global.Mocks.editorFactory();
 
         docSpy = jest.spyOn(document, 'createElement');
         widgetParamsCtrl = new WidgetParamsCtrl(mockEditor, mockUserStorage, mockTemplateSrv, mockFileSrv, mockFormCtrl, mockApplyWidgetFilter, widget);

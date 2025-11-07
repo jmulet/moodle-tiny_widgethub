@@ -21,6 +21,38 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+/**
+ * Treats clicks on iframes
+ * @param {HTMLElement} selectedElement
+ * @param {Document} editorDoc
+ * @returns {Element} - The selectedElement or the iframe element if the click is in some embeded iframe like
+ * Youtube, Vimeo, etc.
+ */
+export function normalizeSelectedElement(selectedElement, editorDoc) {
+    try {
+       const ownerDoc = selectedElement.ownerDocument;
+
+        // If selectedElement is inside TinyMCE content → return as-is
+        if (ownerDoc === editorDoc || editorDoc.contains(selectedElement)) {
+            return selectedElement;
+        }
+
+        // If selectedElement is inside an embedded iframe
+        if (ownerDoc && ownerDoc.defaultView && ownerDoc.defaultView.frameElement) {
+            const iframeInEditor = ownerDoc.defaultView.frameElement;
+
+            // Only map if iframe is inside TinyMCE document
+            if (editorDoc.contains(iframeInEditor)) {
+                return iframeInEditor;
+            }
+        }
+    } catch (e) {
+        // Cross-origin iframe access throws → fallback
+    }
+
+    return selectedElement;
+}
+
 export class DomSrv {
     /**
      * When creating a clone of an element must update all its id's
@@ -142,7 +174,7 @@ export class DomSrv {
     }
 
     /**
-     * @param {HTMLElement} elem
+     * @param {Element} elem
      * @param {string | string[]} [selectors]
      * @returns {boolean}
      */
@@ -185,8 +217,10 @@ export class DomSrv {
      * Walks the DOM tree up from the selectedElement and tries
      * to find the first element that matches the selector of
      * some widget.
+     * It should be called together with normalizeSelectedElement
+     * in order to detect correctly widgets clicked inside embeded iframes.
      * @param {import('../options').Widget[]} widgetList - The list of widgets
-     * @param {HTMLElement} selectedElement - The starting element in the search
+     * @param {Element} selectedElement - The starting element in the search
      * @returns {PathResult} The element and widget found in the search.
      */
     findWidgetOnEventPath(widgetList, selectedElement) {
@@ -194,7 +228,7 @@ export class DomSrv {
         const res = {
             selectedElement
         };
-        /** @type {HTMLElement | null} */
+        /** @type {Element | null} */
         let elem = selectedElement;
         const n = widgetList.length;
         while (elem !== null && elem !== undefined && elem !== null &&

@@ -32,10 +32,12 @@ import Common from './common';
 import {register as registerOptions} from './options';
 import {getSetup as getCommandSetup} from './commands';
 import * as Configuration from './configuration';
+import {subscribe} from './extension';
 
 // Register extensions
-import './extension/refractorbs5';
 import './extension/dependencies';
+import {refractorListener} from './extension/refractorbs5';
+subscribe('onInit', refractorListener);
 
 const documentationUrl = 'https://github.com/jmulet/moodle-tiny_widgethub';
 const {component, pluginName} = Common;

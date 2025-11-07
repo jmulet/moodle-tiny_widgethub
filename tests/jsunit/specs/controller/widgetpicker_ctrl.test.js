@@ -96,7 +96,7 @@ describe("WidgetPickerCtrl", () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        mockEditor = Mocks.editorFactory();
+        mockEditor = global.Mocks.editorFactory();
 
         widgetPickCtrl = new WidgetPickerCtrl(mockEditor, mockEditorOptions,
             mockWidgetParamsFactory, mockModalSrv, mockTemplateSrv, mockUserStorage);
@@ -330,7 +330,7 @@ describe("WidgetPickerCtrl", () => {
         const templateSrv = getTemplateSrv();
         // Create a more realistic instance, with less mocks
         widgetPickCtrl = new WidgetPickerCtrl(mockEditor, mockEditorOptions,
-            mockWidgetParamsFactory, Mocks.modalSrv, templateSrv, mockUserStorage);
+            mockWidgetParamsFactory, global.Mocks.modalSrv, templateSrv, mockUserStorage);
 
         const spyHandlePickModalAction = jest.spyOn(widgetPickCtrl, 'handlePickModalAction');
         mockEditor.selection.getContent.mockReset().mockReturnValue('');

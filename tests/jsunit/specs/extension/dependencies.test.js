@@ -48,7 +48,7 @@ const rawWidgets = [widget1, widget2, widget3, widget4, widget5];
  * @returns {*}
  */
 const createEditor = (html) => {
-    const editor = Mocks.editorFactory();
+    const editor = global.Mocks.editorFactory();
     editor.setContent(html);
     editor.options.get = jest.fn().mockReturnValue(rawWidgets)
     return editor;

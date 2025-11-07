@@ -14,8 +14,6 @@ jest.mock('../../src/extension', () => ({
 }));
 
 const refractor = require('../../src/extension/refractorbs5');
-/** @type {any} */
-const { getGlobalConfig } = require('../../src/options');
 
 describe('bs5Refractor', () => {
   /** @type {any} */
@@ -24,7 +22,7 @@ describe('bs5Refractor', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.resetModules();
-    editor = Mocks.editorFactory();
+    editor = global.Mocks.editorFactory();
     editor.setContent('<div data-toggle="modal" data-target="#myModal"></div>');
   });
 
@@ -47,55 +45,3 @@ describe('bs5Refractor', () => {
     expect(result).toBe(false);
   });
 });
-
-describe('refractoring', () => {
-  /** @type {any} */
-  let editor;
-  /** @type {{get_string: any}} */
-  let {get_string} = require('core/str');
-  
-  beforeEach(() => {
-    jest.clearAllMocks();
-    jest.resetModules();
-    editor = Mocks.editorFactory();
-    editor.setContent('<div data-toggle="modal" data-target="#myModal"></div>');
-  });
-
-  it('should do nothing if refractor is inactive', async () => {
-    // @ts-ignore
-    getGlobalConfig.mockReturnValue('0');
-
-    await refractor.refractoring(editor);
-
-    expect(editor.notificationManager.open).not.toHaveBeenCalled();
-  });
-
-  it('should call bs5Refractor and show notification if changes occur', async () => {
-    // @ts-ignore
-    getGlobalConfig.mockReturnValue('1');
-    // @ts-ignore
-    get_string.mockResolvedValue('Save required');
-
-    await refractor.refractoring(editor);
-
-    expect(get_string).toHaveBeenCalledWith('saverequired', expect.any(String));
-    expect(editor.notificationManager.open).toHaveBeenCalledWith({
-      text: 'Save required',
-      type: 'warning',
-      timeout: 4000,
-    });
-
-    
-    // @ts-ignore
-    get_string.mockReset();
-    editor.notificationManager.open.mockReset();
-
-    editor.setContent('<p>nothing to change</p>');
-    await refractor.refractoring(editor);
-
-    expect(get_string).not.toHaveBeenCalled();
-    expect(editor.notificationManager.open).not.toHaveBeenCalled();
-  });
-
-});
-

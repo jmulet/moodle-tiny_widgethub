@@ -54,7 +54,7 @@ describe("FormCtrl", () => {
             _id += 1;
             return (_id) + "";
         };
-        mockEditor = Mocks.editorFactory(12345, {id: 0, username: 'joe', roles: ['student'] }, "text selected");
+        mockEditor = global.Mocks.editorFactory(12345, {id: 0, username: 'joe', roles: ['student'] }, "text selected");
         formCtrl = new FormCtrl(mockEditor, mockUserStorage, mockTemplateSrv, mockFileSrv);
     })
 

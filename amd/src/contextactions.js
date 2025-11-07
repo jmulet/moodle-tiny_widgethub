@@ -16,7 +16,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 import {getWidgetDict} from './options';
-import {getDomSrv} from './service/dom_service';
+import {getDomSrv, normalizeSelectedElement} from './service/dom_service';
 import {getWidgetPropertiesCtrl} from './controller/widgetproperties_ctrl';
 import {getMenuItemProviders, getListeners} from './extension';
 import {get_strings} from 'core/str';
@@ -389,7 +389,9 @@ export class ContextActionsManager {
     }
 
     async showPropertiesAction() {
-        const path = this.domSrv.findWidgetOnEventPath(this.widgetList, this.editor.selection.getNode());
+        // Brings the selection to the Tiny's iframe if it is embeded inside inner iframes.
+        const normSelectedElement = normalizeSelectedElement(this.editor.selection.getNode(), this.editor.getDoc());
+        const path = this.domSrv.findWidgetOnEventPath(this.widgetList, normSelectedElement);
         this.ctx.path = path;
         if (!path.widget) {
             return;
@@ -412,7 +414,7 @@ export class ContextActionsManager {
         });
         this.editor.ui.registry.addMenuItem(`${componentName}_${spec.name}_item`, {
             icon: spec.icon,
-            tooltip: spec.tooltip,
+            text: spec.tooltip,
             onAction: spec.onAction
         });
         this.editor.ui.registry.addNestedMenuItem(`${componentName}_${spec.name}_nesteditem`, {
@@ -446,7 +448,9 @@ export class ContextActionsManager {
         return (path) => {
             path = path ?? this.ctx.path;
             if (!path?.widget) {
-                path = this.domSrv.findWidgetOnEventPath(this.widgetList, this.editor.selection.getNode());
+                // Brings the selection to the Tiny's iframe if it is embeded inside inner iframes.
+                const normSelectedElement = normalizeSelectedElement(this.editor.selection.getNode(), this.editor.getDoc());
+                path = this.domSrv.findWidgetOnEventPath(this.widgetList, normSelectedElement);
                 if (!path?.widget) {
                     return;
                 }
@@ -466,7 +470,7 @@ export class ContextActionsManager {
             name: 'modal',
             icon: ICONS.gear,
             tooltip: this.i18n.properties,
-            onAction: this.showPropertiesAction
+            onAction: this.showPropertiesAction.bind(this)
         });
         // Only one instance allowed for paste.
         this.editor.ui.registry.addMenuItem(`${componentName}_paste_item`, {
@@ -579,6 +583,7 @@ export class ContextActionsManager {
         }
         if (path.widget.hasBindings()) {
             this.ctx.actionPaths.modal.push({...path});
+            menuItems.push('modal');
         }
         // Unwrap action always to the end
         if (path.widget.unwrap) {
@@ -645,22 +650,27 @@ export class ContextActionsManager {
      * @returns {string[]}
      */
     contextMenuUpdate(element) {
-        /** @type {string[]} */
-        let menuItems = [];
+        /** @type {Set<string>} */
+        const menuItems = new Set();
 
         // Is there anything in widget Node clipboard?
         if (this.widgetCutClipboard.widget) {
-            menuItems.push('paste_item');
+            menuItems.add('paste_item');
         }
         // Look for a context
-        this.ctx.path = this.domSrv.findWidgetOnEventPath(this.widgetList, element);
+        // Brings the selection to the Tiny's iframe if it is embeded inside inner iframes.
+        const normSelectedElement = normalizeSelectedElement(this.editor.selection.getNode(), this.editor.getDoc());
+        if (!normSelectedElement) {
+            return [...menuItems];
+        }
+        this.ctx.path = this.domSrv.findWidgetOnEventPath(this.widgetList, normSelectedElement);
         this.ctx.actionPaths = {
             modal: []
         };
         const widget = this.ctx.path.widget;
         if (!widget) {
             // Widget not found in the searchPath.
-            return prefixItemsWith(menuItems, componentName, ['|']);
+            return prefixItemsWith([...menuItems], componentName, ['|']);
         }
 
         // Does this widget bubble? Look for a parent widget named widget.bubbles
@@ -678,13 +688,13 @@ export class ContextActionsManager {
 
         if (parentPath) {
             // Give precedence to the parent menus.
-            menuItems.push(...this.populateMenuItems(element, parentPath));
+            this.populateMenuItems(element, parentPath).forEach(item => menuItems.add(item));
         }
         // Populate with selected widget.
-        menuItems.push(...this.populateMenuItems(element, this.ctx.path));
+        this.populateMenuItems(element, this.ctx.path).forEach(item => menuItems.add(item));
 
         // Deal with repeated menu items. Add suffix _item or _nesteditem.
-        menuItems = menuItems.map(e => {
+        const menuItemsList = [...menuItems].map(e => {
             if (e === '|') {
                 return e;
             } else if (['cut', 'paste'].includes(e)) {
@@ -701,15 +711,15 @@ export class ContextActionsManager {
         const actionNames = this.widgetsWithExtensions
             ?.filter(e => matchesCondition(e.condition, widget.key))
             .map(e => e.name) ?? [];
-        menuItems.push(...actionNames);
+        menuItemsList.push(...actionNames);
 
-        return prefixItemsWith(menuItems, componentName, ['|']);
+        return prefixItemsWith(menuItemsList, componentName, ['|']);
     }
 
 
     registerContextMenus() {
         // Creates the actual context menu items.
-        this.editor.ui.registry.addContextMenu(`${componentName}_cm`, {
+        this.editor.ui.registry.addContextMenu(component, {
             /** @param {HTMLElement} element */
             update: (element) => this.contextMenuUpdate(element).join(' ')
         });

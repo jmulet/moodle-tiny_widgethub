@@ -15,7 +15,7 @@ let editor;
 
 describe('FileSrv', () => {
     beforeEach(() => {
-        editor = Mocks.editorFactory();
+        editor = global.Mocks.editorFactory();
         fileSrv = new FileSrv(editor);
     });
 

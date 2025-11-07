@@ -20,7 +20,6 @@
  * @copyright   2025 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {subscribe} from "../extension";
 import {getGlobalConfig} from "../options";
 import Common from '../common';
 import * as coreStr from "core/str";
@@ -90,7 +89,7 @@ export function bs5Refractor(editor) {
 /**
  * @param {import("../plugin").TinyMCE} editor
  */
-export async function refractoring(editor) {
+export async function refractorListener(editor) {
     try {
         const refractoringActive = getGlobalConfig(editor, 'oninit.refractor.bs5', '0');
         let changes = false;
@@ -104,11 +103,10 @@ export async function refractoring(editor) {
                 type: 'warning',
                 timeout: 4000
             });
+            editor.setDirty(true);
         }
     } catch (ex) {
         // eslint-disable-next-line no-console
         console.error("Error while applying bs5 refractor:", ex);
     }
 }
-
-subscribe('onInit', refractoring);

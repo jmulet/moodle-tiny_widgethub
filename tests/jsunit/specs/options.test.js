@@ -93,7 +93,7 @@ let fakeEditor;
 describe('Options', () => {
 
     beforeEach(() => {
-        fakeEditor = Mocks.editorFactory();
+        fakeEditor = global.Mocks.editorFactory();
     });
 
     test('must register options', () => {

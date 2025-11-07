@@ -23,13 +23,13 @@ const getListeners = require('../src/extension').getListeners;
 
 const { predefinedActionsFactory, matchesCondition, ContextActionsManager } = require('../src/contextactions');
 const { getDomSrv } = require('../src/service/dom_service');
-const { componentName } = require('../src/common').default;
+const { component, componentName } = require('../src/common').default;
 
 /** @type {import('../src/options').RawWidget} */
-const rawSnpt1 = Mocks.loadWidget('bs-badge');
+const rawSnpt1 = global.Mocks.loadWidget('bs-badge');
 
 /** @type {import('../src/options').RawWidget} */
-const rawSnpt2 = Mocks.loadWidget('bs-alert');
+const rawSnpt2 = global.Mocks.loadWidget('bs-alert');
 
 
 describe('matchesCondition', () => {
@@ -92,13 +92,13 @@ describe('Context Actions Manager', () => {
 
     it('It creates a context menu with only unwrap item', async () => {
         // @ts-ignore
-        const editor = Mocks.editorFactory();
+        const editor = global.Mocks.editorFactory();
         editor.options.get = jest.fn().mockImplementation(() => [rawSnpt1]);
         const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), mockTranslateSrv);
         await contextActionsManager.init();
         expect(editor.ui.registry.addIcon).toHaveBeenCalled();
         // Test context menus
-        expect(editor.ui.registry.addContextMenu).toHaveBeenCalledWith(`${componentName}_cm`, expect.any(Object));
+        expect(editor.ui.registry.addContextMenu).toHaveBeenCalledWith(component, expect.any(Object));
         const contextMenuUpdate = editor.ui.registry.addContextMenu.mock.calls[0][1].update;
         expect(typeof contextMenuUpdate).toBe('function');
 
@@ -110,6 +110,7 @@ describe('Context Actions Manager', () => {
                 </div>
             </div>`);
         let nodeSelected = editor.getBody().querySelector('p');
+        editor.selection.getNode = jest.fn().mockReturnValue(nodeSelected);
         let menuItems = contextMenuUpdate(nodeSelected);
         expect(menuItems).toBe('');
         const ctx = contextActionsManager.ctx;
@@ -118,6 +119,7 @@ describe('Context Actions Manager', () => {
         expect(ctx.path?.elem).toBeFalsy();
 
         nodeSelected = editor.getBody().querySelector('span');
+        editor.selection.getNode = jest.fn().mockReturnValue(nodeSelected);
         menuItems = contextMenuUpdate(nodeSelected);
         expect(menuItems).toBe(`${componentName}_unwrap_item`);
         expect(ctx.path?.selectedElement).toBe(nodeSelected);
@@ -130,13 +132,13 @@ describe('Context Actions Manager', () => {
 
     it('It creates a context menu with only unwrap, cut, printable item', async () => {
         // @ts-ignore
-        const editor = Mocks.editorFactory();
+        const editor = global.Mocks.editorFactory();
         editor.options.get = jest.fn().mockImplementation(() => [rawSnpt2]);
         const  {ContextActionsManager } = require('../src/contextactions');
         const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), mockTranslateSrv);
         await contextActionsManager.init();
         // Test context menus
-        expect(editor.ui.registry.addContextMenu).toHaveBeenCalledWith(`${componentName}_cm`, expect.any(Object));
+        expect(editor.ui.registry.addContextMenu).toHaveBeenCalledWith(component, expect.any(Object));
         const contextMenuUpdate = editor.ui.registry.addContextMenu.mock.calls[0][1].update;
         expect(typeof contextMenuUpdate).toBe('function');
 
@@ -147,6 +149,7 @@ describe('Context Actions Manager', () => {
                 </div>
             </div>`);
         let nodeSelected = editor.getBody().querySelector('p');
+        editor.selection.getNode = jest.fn().mockReturnValue(nodeSelected);
         let menuItems = contextMenuUpdate(nodeSelected);
         expect(menuItems).toBe('');
         const ctx = contextActionsManager.ctx;
@@ -155,6 +158,7 @@ describe('Context Actions Manager', () => {
         expect(ctx.path?.elem).toBeFalsy();
 
         nodeSelected = editor.getBody().querySelector('.iedib-central');
+        editor.selection.getNode = jest.fn().mockReturnValue(nodeSelected);
         menuItems = contextMenuUpdate(nodeSelected);
         expect(menuItems).toContain(`${componentName}_unwrap_item`);
         expect(menuItems).toContain(`${componentName}_printable_item`);
@@ -168,7 +172,7 @@ describe('Context Actions Manager', () => {
     });
 
     it('unwrap should replace element content or call widgetRemoved', () => {
-        const editor = Mocks.editorFactory();
+        const editor = global.Mocks.editorFactory();
         editor.setContent('<div class="w1"><p><span>Hello</span></p></div>')
         const widgetRoot = editor.getBody().querySelector('div.w1');
 
@@ -185,7 +189,7 @@ describe('Context Actions Manager', () => {
     });
 
     it('movebefore should reorder elements and references', () => {
-        const editor = Mocks.editorFactory();
+        const editor = global.Mocks.editorFactory();
         editor.setContent('<div class="w1"><p data-c="1">1</p><p data-c="2">2</p><p data-c="3">3</p></div>')
         const widget = { unwrap: 'div.w1>*', key: 'w1' };
         const widgetRoot = editor.getBody().querySelector('div.w1');
@@ -202,7 +206,7 @@ describe('Context Actions Manager', () => {
     });
 
     it('moveafter should reorder elements and references', () => {
-        const editor = Mocks.editorFactory();
+        const editor = global.Mocks.editorFactory();
         editor.setContent('<div class="w1"><p data-c="1">1</p><p data-c="2">2</p><p data-c="3">3</p></div>')
         const widget = { unwrap: 'div.w1>*', key: 'w1' };
         const widgetRoot = editor.getBody().querySelector('div.w1');
@@ -219,7 +223,7 @@ describe('Context Actions Manager', () => {
     });
 
     it('insertafter should clone element and remove active/show classes', () => {
-        const editor = Mocks.editorFactory();
+        const editor = global.Mocks.editorFactory();
         editor.setContent('<div class="w1"><p data-c="1" class="active show">1</p><p data-c="3">3</p></div>')
         const widget = { unwrap: 'div.w1>*', key: 'w1' };
         const widgetRoot = editor.getBody().querySelector('div.w1');
@@ -234,7 +238,7 @@ describe('Context Actions Manager', () => {
     });
 
     it('remove should delete element and call widgetRemoved listeners', () => {
-        const editor = Mocks.editorFactory();
+        const editor = global.Mocks.editorFactory();
         editor.setContent('<div class="w1"><p data-c="1" class="active show">1</p><p data-c="2">1</p><p data-c="3">3</p></div>')
         const widget = { unwrap: 'div.w1>*', key: 'w1' };
         const widgetRoot = editor.getBody().querySelector('div.w1');
@@ -251,7 +255,7 @@ describe('Context Actions Manager', () => {
     });
 
     it('cut should fill clipboard and call widgetRemoved listeners', () => {
-        const editor = Mocks.editorFactory();
+        const editor = global.Mocks.editorFactory();
         editor.setContent('<p>before</p><div class="w1"><p data-c="1" class="active show">1</p><p data-c="2">1</p><p data-c="3">3</p></div>')
         const widget = { unwrap: 'div.w1>*', key: 'w1' };
         const widgetRoot = editor.getBody().querySelector('div.w1');
@@ -271,7 +275,7 @@ describe('Context Actions Manager', () => {
     });
 
     it('paste should include the widget back and call widgetAdded listeners', () => {
-        const editor = Mocks.editorFactory();
+        const editor = global.Mocks.editorFactory();
         editor.setContent('<p>before</p>');
         const widget = { unwrap: 'div.w1>*', key: 'w1' };
         widgetCutClipboard.widget = widget;
@@ -290,7 +294,7 @@ describe('Context Actions Manager', () => {
     });
 
     it('showProperties action should identify the correct widget from selected editor node and open dialog', async () => {
-        const editor = Mocks.editorFactory();
+        const editor = global.Mocks.editorFactory();
         editor.setContent('<div class="alert alert-danger" role="alert"><p data-c="1" class="active show">1</p></div>');
         const selection = editor.getBody().querySelector('[data-c="1"]');
         editor.options.get = jest.fn().mockImplementation(() => [rawSnpt2]);
@@ -310,7 +314,7 @@ describe('Context Actions Manager', () => {
 
 
     it('Generic Action should return an action which determines path if not in current context. It should also call listeners.', async() => {
-        const editor = Mocks.editorFactory();
+        const editor = global.Mocks.editorFactory();
         editor.setContent('<div class="alert alert-danger" role="alert"><p data-c="1" class="active show">1</p></div>');
         const selection = editor.getBody().querySelector('[data-c="1"]');
         editor.options.get = jest.fn().mockImplementation(() => [rawSnpt2]);

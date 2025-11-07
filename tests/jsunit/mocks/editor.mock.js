@@ -19,7 +19,8 @@ module.exports = function editorFactory(editorId=1, userInfo={id:1, username: 'j
         id: editorId, 
         selection: {
             getContent: jest.fn().mockImplementation(() => selection),
-            setContent: jest.fn()
+            setContent: jest.fn(),
+            getNode: jest.fn().mockImplementation(() => selection)
         },
         options: {
             get: jest.fn().mockImplementation((key) => {
@@ -36,7 +37,6 @@ module.exports = function editorFactory(editorId=1, userInfo={id:1, username: 'j
         notificationManager: {
             open: jest.fn(),
         },
-        setDirty: jest.fn(),
         focus: jest.fn(),
         dom: {
             window: dom.window,
@@ -61,6 +61,8 @@ module.exports = function editorFactory(editorId=1, userInfo={id:1, username: 'j
         getBody: jest.fn().mockReturnValue(doc.body),
         getContent: jest.fn().mockImplementation(t => doc.body.innerHTML),
         setContent: jest.fn().mockImplementation(t => {doc.body.innerHTML = t; }),
+        setDirty: jest.fn(),
+        isDirty: jest.fn(),
         getParam: jest.fn(),
         insertContent: jest.fn().mockImplementation(html => {
             const template = doc.createElement('TEMPLATE');

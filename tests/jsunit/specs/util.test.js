@@ -144,7 +144,7 @@ describe('utils module tests', () => {
 
     it("It applies widgetFilter", async() => {
         /** @type {*} */
-        const editor = Mocks.editorFactory();
+        const editor = global.Mocks.editorFactory();
         editor.getContent.mockReturnValue("<p>This is the editor's content</p>");
         const coreStr = {
             get_strings: (/** @type {any[]} **/ lst) => {

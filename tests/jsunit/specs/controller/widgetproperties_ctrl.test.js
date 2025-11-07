@@ -59,12 +59,12 @@ const widget = {
  
 /** @type {WidgetPropertiesCtrl} */
 let widgetPropertiesCtrl;
-const mockModalSrv = Mocks.modalSrv;
+const mockModalSrv = global.Mocks.modalSrv;
 
 describe("WidgetPickerCtrl", () => {
 
     beforeEach(() => {
-        mockEditor = Mocks.editorFactory();
+        mockEditor = global.Mocks.editorFactory();
         // Use the real formCtrl
         const formCtrl = getFormCtrl(mockEditor);
         widgetPropertiesCtrl = new WidgetPropertiesCtrl(mockEditor, formCtrl, mockModalSrv);
