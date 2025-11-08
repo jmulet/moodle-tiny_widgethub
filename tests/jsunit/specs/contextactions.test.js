@@ -90,7 +90,7 @@ describe('Context Actions Manager', () => {
         widgetCutClipboard = { widget: undefined, html: undefined };
     });
 
-    it('It creates a context menu with only unwrap item', async () => {
+    it('It creates a context menu with only modal and unwrap item', async () => {
         // @ts-ignore
         const editor = global.Mocks.editorFactory();
         editor.options.get = jest.fn().mockImplementation(() => [rawSnpt1]);
@@ -121,7 +121,8 @@ describe('Context Actions Manager', () => {
         nodeSelected = editor.getBody().querySelector('span');
         editor.selection.getNode = jest.fn().mockReturnValue(nodeSelected);
         menuItems = contextMenuUpdate(nodeSelected);
-        expect(menuItems).toBe(`${componentName}_unwrap_item`);
+        expect(menuItems).toContain(`${componentName}_unwrap_item`);
+        expect(menuItems).toContain(`${componentName}_modal_item`);
         expect(ctx.path?.selectedElement).toBe(nodeSelected);
         expect(ctx.path?.elem).toBe(editor.getBody().querySelector('span.badge'));
         expect(ctx.path?.widget?.key).toBe('bs-badge');

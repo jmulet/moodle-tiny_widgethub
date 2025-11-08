@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable camelcase */
 /* eslint-disable max-len */
 // This file is part of Moodle - http://moodle.org/
@@ -410,12 +411,12 @@ export class ContextActionsManager {
         this.editor.ui.registry.addButton(`${componentName}_${spec.name}_btn`, {
             icon: spec.icon,
             tooltip: spec.tooltip,
-            onAction: spec.onAction
+            onAction: () => spec.onAction()
         });
         this.editor.ui.registry.addMenuItem(`${componentName}_${spec.name}_item`, {
             icon: spec.icon,
             text: spec.tooltip,
-            onAction: spec.onAction
+            onAction: () => spec.onAction()
         });
         this.editor.ui.registry.addNestedMenuItem(`${componentName}_${spec.name}_nesteditem`, {
             icon: spec.icon,
@@ -442,6 +443,7 @@ export class ContextActionsManager {
      * @returns {(path?: PathResult) => void}
      */
     genericAction(name) {
+        const action = this.predefinedActions?.[name];
         /**
          * @param {PathResult} [path]
          */
@@ -455,11 +457,12 @@ export class ContextActionsManager {
                     return;
                 }
             }
-            const action = this.predefinedActions?.[name];
             if (action) {
                 action(path);
                 // Call any subscriber
                 getListeners('ctxAction').forEach(listener => listener(this.editor, path?.widget));
+            } else {
+                console.error("Cannot find action", name);
             }
         };
     }
