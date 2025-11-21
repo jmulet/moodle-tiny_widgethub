@@ -33,6 +33,7 @@ import {getWidgetPickCtrl} from './controller/widgetpicker_ctrl';
 import {getListeners} from './extension';
 import {getUserStorage} from './service/userstorage_service';
 import {applyWidgetFilterFactory, findVariableByName, loadScriptAsync, removeRndFromCtx, searchComp} from './util';
+import {enableIframeBubble} from './extension/iframebubble';
 
 export const getSetup = async() => {
     // Get some translations
@@ -366,6 +367,11 @@ function initializeEditor(editor) {
             }
         } catch (ex) {
             console.error("Error loading scripts into editor's iframe: ", ex);
+        }
+
+        //  If feature is active, treat iframes so they can be selected as widgets
+        if (getGlobalConfig(editor, 'tiny.contextmenu.iframes', '1') === '1') {
+            enableIframeBubble(editor);
         }
 
         // Run all subscribers

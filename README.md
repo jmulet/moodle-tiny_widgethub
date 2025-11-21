@@ -74,6 +74,8 @@ The options available are:
 
   - *tiny.iframe.jsbootstrap.version* The version of the javascript bundle of Bootstrap that should be injected into the editor's iFrame. It defaults to "4.6.2" for Moodle 4.x and "5.3.8" for Moodle 5.x. Please note that Bootstrap 4.x requires jQuery. The dependency is loaded from CDN and it should be available at: `https://cdn.jsdelivr.net/npm/bootstrap@${bsVersion}/dist/js/bootstrap.bundle.min.js`
 
+  - *tiny.contextmenu.iframes=1* Enable (`1`) or disable (`0`) right clicks on iFrames that trigger context menus. Interaction with iframes, like YouTube videos, can be temporary enabled by clicking on the iframe while holding Alt/Option key.
+
 **Insert Behavior Configuration**
  This section defines the general behavior configuration for all insert mechanisms in the plugin.
 

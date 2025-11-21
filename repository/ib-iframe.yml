@@ -2,7 +2,6 @@ key: ib-iframe
 name: $string.ibiframe_name
 instructions: $string.ibiframe_instructions
 template: '{{{code}}}'
-selectors: iframe
 parameters:
   - name: code
     value: '<b>$string.ibcolors_sample</b>'

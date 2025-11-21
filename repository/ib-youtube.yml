@@ -11,6 +11,7 @@ template: |
      <span class="twh-caption-counter">$string.ibvgdrive_category</span><span class="twh-caption-title">: {{title}}</span></div>
   </div>
   <p><br></p>
+selectors: div.twh-video-container
 parameters:
   - name: youtubeId
     value: ypR0y7GVMAQ
@@ -34,6 +35,8 @@ parameters:
     title: $string.ibyoutube_endsec
     min: 0
     tip: $string.ibyoutube_endsec_tip
+contextmenu:
+  - actions: cut printable
 scope: ^page-mod-(book|page|assign|quizz)-
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 2.0.0

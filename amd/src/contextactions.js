@@ -17,7 +17,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 import {getWidgetDict} from './options';
-import {getDomSrv, normalizeSelectedElement} from './service/dom_service';
+import {getDomSrv} from './service/dom_service';
 import {getWidgetPropertiesCtrl} from './controller/widgetproperties_ctrl';
 import {getMenuItemProviders, getListeners} from './extension';
 import {get_strings} from 'core/str';
@@ -391,7 +391,7 @@ export class ContextActionsManager {
 
     async showPropertiesAction() {
         // Brings the selection to the Tiny's iframe if it is embeded inside inner iframes.
-        const normSelectedElement = normalizeSelectedElement(this.editor.selection.getNode(), this.editor.getDoc());
+        const normSelectedElement = this.editor.selection.getNode();
         const path = this.domSrv.findWidgetOnEventPath(this.widgetList, normSelectedElement);
         this.ctx.path = path;
         if (!path.widget) {
@@ -451,7 +451,7 @@ export class ContextActionsManager {
             path = path ?? this.ctx.path;
             if (!path?.widget) {
                 // Brings the selection to the Tiny's iframe if it is embeded inside inner iframes.
-                const normSelectedElement = normalizeSelectedElement(this.editor.selection.getNode(), this.editor.getDoc());
+                const normSelectedElement = this.editor.selection.getNode();
                 path = this.domSrv.findWidgetOnEventPath(this.widgetList, normSelectedElement);
                 if (!path?.widget) {
                     return;
@@ -661,8 +661,7 @@ export class ContextActionsManager {
             menuItems.add('paste_item');
         }
         // Look for a context
-        // Brings the selection to the Tiny's iframe if it is embeded inside inner iframes.
-        const normSelectedElement = normalizeSelectedElement(this.editor.selection.getNode(), this.editor.getDoc());
+        const normSelectedElement = this.editor.selection.getNode();
         if (!normSelectedElement) {
             return [...menuItems];
         }
