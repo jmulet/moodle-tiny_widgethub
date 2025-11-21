@@ -16,7 +16,7 @@ parameters:
 selectors: div[data-widget="ib-wordcounter"]
 insertquery: div[data-widget="ib-wordcounter"]
 requires: 
-  url: https://raw.githubusercontent.com/jmulet/moodle-tiny_widgethub/refs/heads/develop/repository/ib-wordcounter.js
+  url: https://cdn.jsdelivr.net/gh/jmulet/moodle-tiny_widgethub/repository/ib-wordcounter.js
   query: div[data-widget="ib-wordcounter"].active
 author: Josep Mulet Pol <pep.mulet@gmail.com>
 version: 2.0.0
