@@ -94,7 +94,7 @@ describe('Context Actions Manager', () => {
         // @ts-ignore
         const editor = global.Mocks.editorFactory();
         editor.options.get = jest.fn().mockImplementation(() => [rawSnpt1]);
-        const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), mockTranslateSrv);
+        const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), mockTranslateSrv, widgetCutClipboard);
         await contextActionsManager.init();
         expect(editor.ui.registry.addIcon).toHaveBeenCalled();
         // Test context menus
@@ -136,7 +136,7 @@ describe('Context Actions Manager', () => {
         const editor = global.Mocks.editorFactory();
         editor.options.get = jest.fn().mockImplementation(() => [rawSnpt2]);
         const  {ContextActionsManager } = require('../src/contextactions');
-        const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), mockTranslateSrv);
+        const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), mockTranslateSrv, widgetCutClipboard);
         await contextActionsManager.init();
         // Test context menus
         expect(editor.ui.registry.addContextMenu).toHaveBeenCalledWith(component, expect.any(Object));
@@ -303,7 +303,7 @@ describe('Context Actions Manager', () => {
         const { getWidgetPropertiesCtrl } = require('../src/controller/widgetproperties_ctrl');
         const widgetPropertiesCtrl = getWidgetPropertiesCtrl(editor);
         const  {ContextActionsManager } = require('../src/contextactions');
-        const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), mockTranslateSrv);
+        const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), mockTranslateSrv, widgetCutClipboard);
         expect(contextActionsManager.ctx.path).toBeFalsy();
 
         await contextActionsManager.showPropertiesAction();
@@ -321,7 +321,7 @@ describe('Context Actions Manager', () => {
         editor.options.get = jest.fn().mockImplementation(() => [rawSnpt2]);
         editor.selection.getNode = jest.fn().mockReturnValue(selection);
         const  {ContextActionsManager } = require('../src/contextactions');
-        const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), mockTranslateSrv);
+        const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), mockTranslateSrv, widgetCutClipboard);
         await contextActionsManager.init();
         expect(contextActionsManager.ctx.path).toBeFalsy();
         const spyFindWidgetOnEventPath = jest.spyOn(domSrv, 'findWidgetOnEventPath');

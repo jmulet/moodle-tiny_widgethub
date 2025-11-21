@@ -342,11 +342,13 @@ export class ContextActionsManager {
      * @param {import('./plugin').TinyMCE} editor
      * @param {import('./service/dom_service').DomSrv} domSrv
      * @param {{get_strings: (arg: {key: string, component: string}[]) => Promise<string[]> }} translateSrv
+     * @param {{widget: import('./options').Widget | undefined, html: string | undefined}} widgetCutClipboard
      */
-    constructor(editor, domSrv, translateSrv) {
+    constructor(editor, domSrv, translateSrv, widgetCutClipboard) {
         this.editor = editor;
         this.domSrv = domSrv;
         this.translateSrv = translateSrv;
+        this.widgetCutClipboard = widgetCutClipboard;
         /**
          * Keep track of the last context found
          * @type {ItemMenuContext}
@@ -354,13 +356,6 @@ export class ContextActionsManager {
         this.ctx = {
             actionPaths: {},
             editor: editor
-        };
-        /**
-         * @type {{widget: import('./options').Widget | undefined, html: string | undefined}}
-         */
-        this.widgetCutClipboard = {
-            widget: undefined,
-            html: undefined
         };
         this.widgetList = Object.values(getWidgetDict(editor));
         this.i18n = Object.create(null);
@@ -761,6 +756,16 @@ export class ContextActionsManager {
 }
 
 
+// Share widgetCutClipboard among serveral editors
+ /**
+  * @type {{widget: import('./options').Widget | undefined, html: string | undefined}}
+  */
+const widgetCutClipboard = {
+    widget: undefined,
+    html: undefined
+};
+
+
 const contextMenuManagerInstances = new Map();
 /**
  * @param {import('./plugin').TinyMCE} editor
@@ -770,7 +775,7 @@ export function getContextMenuManager(editor) {
    let instance = contextMenuManagerInstances.get(editor);
    if (!instance) {
       // @ts-ignore
-      instance = new ContextActionsManager(editor, getDomSrv(), {get_strings});
+      instance = new ContextActionsManager(editor, getDomSrv(), {get_strings}, widgetCutClipboard);
       contextMenuManagerInstances.set(editor, instance);
    }
    return instance;
