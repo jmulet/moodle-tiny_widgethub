@@ -1,6 +1,7 @@
 key: bs-card-group
 name: $string.bscardgroup_name
 category: bootstrap
+icon: fa fa-th-large
 instructions: $string.bscardgroup_instructions
 engine: ejs
 template: |
@@ -28,4 +29,4 @@ parameters:
     title: $string.bscardgroup_number
     value: 3
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 2.0.0
+version: 2.0.1

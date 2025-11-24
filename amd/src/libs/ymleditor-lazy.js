@@ -39303,10 +39303,10 @@ const ParamOptionSchema = z.object({
     }).optional().describe('An option defined as label and value'),
 }).superRefine((data, ctx) => {
     if (data.l === undefined) {
-        ctx.addIssue({code: 'custom', message: "Property 'l' in ParamOption is required.", path: ['l']});
+        ctx.addIssue({ code: 'custom', message: "Property 'l' in ParamOption is required.", path: ['l'] });
     }
     if (data.v === undefined) {
-        ctx.addIssue({code: 'custom', message: "Property 'v' in ParamOption is required.", path: ['v']});
+        ctx.addIssue({ code: 'custom', message: "Property 'v' in ParamOption is required.", path: ['v'] });
     }
 });
 
@@ -39318,16 +39318,16 @@ const BindObjectSchema = z.object({
     set: z.string().optional().describe('[DEPRECATED] Use `setValue` instead. How to set the variable value v to jQuery<HTMLElement> e. E.g., set: function(e, value){···}')
 }).superRefine((data, ctx) => {
     if (data.get !== undefined && data.getValue == undefined) {
-        ctx.addIssue({code: 'custom', message: '[DEPRECATED] Use `getValue` instead. getValue: (el: HTMLElement) => any', path: ['get']});
+        ctx.addIssue({ code: 'custom', message: '[DEPRECATED] Use `getValue` instead. getValue: (el: HTMLElement) => any', path: ['get'] });
     }
     if (data.get === undefined && data.getValue == undefined) {
-        ctx.addIssue({code: 'custom', message: "The 'bind' object must have a 'get/getValue' property.", path: ['getValue']});
+        ctx.addIssue({ code: 'custom', message: "The 'bind' object must have a 'get/getValue' property.", path: ['getValue'] });
     }
     if (data.set !== undefined && data.setValue == undefined) {
-        ctx.addIssue({code: 'custom', message: '[DEPRECATED] Use `setValue` instead. setValue: (el: HTMLElement, v: any) => void', path: ['set']});
+        ctx.addIssue({ code: 'custom', message: '[DEPRECATED] Use `setValue` instead. setValue: (el: HTMLElement, v: any) => void', path: ['set'] });
     }
     if (data.set === undefined && data.setValue === undefined) {
-        ctx.addIssue({code: 'custom', message: "The 'bind' object must have a 'set/setValue' property.", path: ['setValue']});
+        ctx.addIssue({ code: 'custom', message: "The 'bind' object must have a 'set/setValue' property.", path: ['setValue'] });
     }
 });
 
@@ -39360,13 +39360,13 @@ const commonParamSchema = {
 function validateCommonParam(data, ctx, params) {
     // Required fields
     if (data.name === undefined) {
-        ctx.addIssue({code: 'custom', message: "The parameter 'name' is required.", path: ['name']});
+        ctx.addIssue({ code: 'custom', message: "The parameter 'name' is required.", path: ['name'] });
     }
     if (data.title === undefined) {
-        ctx.addIssue({code: 'custom', message: "The parameter 'title' is required.", path: ['title']});
+        ctx.addIssue({ code: 'custom', message: "The parameter 'title' is required.", path: ['title'] });
     }
     if (!params.allowRepeatable && data.value === undefined) {
-        ctx.addIssue({code: 'custom', message: "The 'value' property is required for each parameter.", path: ['value']});
+        ctx.addIssue({ code: 'custom', message: "The 'value' property is required for each parameter.", path: ['value'] });
     }
 
     // Conditional validation
@@ -39376,27 +39376,27 @@ function validateCommonParam(data, ctx, params) {
     if (['autocomplete', 'select'].includes(type)) {
         const plainOptions = data.options?.map((/** @type {any} */ e) => (e.v !== undefined ? e.v : e)) ?? [];
         if (!hasOptions) {
-            ctx.addIssue({code: 'custom', message: "Options are required when type is 'autocomplete' or 'select'.", path: ['options']});
+            ctx.addIssue({ code: 'custom', message: "Options are required when type is 'autocomplete' or 'select'.", path: ['options'] });
         } else if (!plainOptions.includes(data.value)) {
-            ctx.addIssue({code: 'custom', message: "Value of a select parameter must be one of the items in options.", path: ['value']});
+            ctx.addIssue({ code: 'custom', message: "Value of a select parameter must be one of the items in options.", path: ['value'] });
         }
     }
 
     if (hasOptions && type && !['select', 'autocomplete'].includes(type)) {
-        ctx.addIssue({code: 'custom', message: "Options are only allowed when type is 'select' or 'autocomplete'.", path: ['options']});
+        ctx.addIssue({ code: 'custom', message: "Options are only allowed when type is 'select' or 'autocomplete'.", path: ['options'] });
     }
 
     const isImplicitNumeric = data.type === undefined && typeof (data.value) === 'number';
     if (!isImplicitNumeric && !['numeric', 'repeatable'].includes(type) && (data.min !== undefined || data.max !== undefined)) {
-        ctx.addIssue({code: 'custom', message: "Min/Max are only allowed when type is 'numeric' or 'repeatable'", path: ['min']});
+        ctx.addIssue({ code: 'custom', message: "Min/Max are only allowed when type is 'numeric' or 'repeatable'", path: ['min'] });
     }
 
     if (type === 'numeric' && data.value !== undefined && typeof data.value !== 'number') {
-        ctx.addIssue({code: 'custom', message: "The value of type 'numeric' must be a number", path: ['value']});
+        ctx.addIssue({ code: 'custom', message: "The value of type 'numeric' must be a number", path: ['value'] });
     }
 
     if (type === 'checkbox' && data.value !== undefined && typeof data.value !== 'boolean') {
-        ctx.addIssue({code: 'custom', message: "The value of type 'checkbox' must be true or false", path: ['value']});
+        ctx.addIssue({ code: 'custom', message: "The value of type 'checkbox' must be true or false", path: ['value'] });
     }
 }
 
@@ -39406,7 +39406,7 @@ const NonRepeatableParamSchema = z.object({
     ...commonParamSchema,
     'type': z.enum(['textfield', 'numeric', 'checkbox', 'select', 'autocomplete', 'textarea', 'image', 'color']).optional(),
 }).superRefine((data, ctx) => {
-    validateCommonParam(data, ctx, {allowRepeatable: false});
+    validateCommonParam(data, ctx, { allowRepeatable: false });
 });
 
 
@@ -39417,12 +39417,12 @@ const ParamSchema = z.object({
     item_selector: z.string().optional().describe('A css query that provides the DOM elements; one per item'),
     fields: z.array(z.lazy(() => NonRepeatableParamSchema)).optional().describe('A list of parameters that define the repeatable object'),
 }).superRefine((data, ctx) => {
-    validateCommonParam(data, ctx, {allowRepeatable: true});
+    validateCommonParam(data, ctx, { allowRepeatable: true });
     const isRepeatable = data.type === 'repeatable';
 
     if (!isRepeatable) {
         if (data.fields !== undefined) {
-            ctx.addIssue({code: 'custom', message: "Fields are only allowed when type is 'repeatable'", path: ['fields']});
+            ctx.addIssue({ code: 'custom', message: "Fields are only allowed when type is 'repeatable'", path: ['fields'] });
         }
         return;
     }
@@ -39430,7 +39430,7 @@ const ParamSchema = z.object({
     // Only conditions affecting repeatable fields
 
     if (data.fields === undefined) {
-        ctx.addIssue({code: 'custom', message: "Fields are required when type is 'repeatable'", path: ['type']});
+        ctx.addIssue({ code: 'custom', message: "Fields are required when type is 'repeatable'", path: ['type'] });
     }
     // Repeatable parameter with bindings in field, require a bind parameter that specifies a query for getting the items
     if (data.fields?.some(f => f.bind !== 'undefined')) {
@@ -39465,7 +39465,7 @@ const ActionSchema = z.object({
     actions: z.string().optional(),
 }).superRefine((data, ctx) => {
     if (data.actions === undefined) {
-        ctx.addIssue({code: 'custom', message: "The 'actions' property is required for each action.", path: ['actions']});
+        ctx.addIssue({ code: 'custom', message: "The 'actions' property is required for each action.", path: ['actions'] });
     }
 });
 
@@ -39487,25 +39487,26 @@ const RequiresSpec = z.object({
 
 // Schema for the main RawWidget type
 const normalWidgetSchema = z.object({
-    plugin_release: z.string().regex(/^(?:>=|>|=)?\d+\.\d+(?:\.\d+)?$/, {message: "Minimum plugin version required must follow the [ >, >=, =, ] xx.yy.zz pattern (e.g., >=1.4)."})
+    plugin_release: z.string().regex(/^(?:>=|>|=)?\d+\.\d+(?:\.\d+)?$/, { message: "Minimum plugin version required must follow the [ >, >=, =, ] xx.yy.zz pattern (e.g., >=1.4)." })
         .optional().describe("Minimum plugin version required, '>=1.4' or '>1.4'."),
-    key: z.string().optional().describe("*The key of the snippet"),
-    name: z.string().optional().describe("*The name of the snippet"),
-    category: z.string().optional().describe("Optional. The category of the snippet (defaults to MISC)"),
+    key: z.string().optional().describe("*The key of the widget"),
+    name: z.string().optional().describe("*The name of the widget"),
+    icon: z.string().optional().describe("Optional. The icon of the widget"),
+    category: z.string().optional().describe("Optional. The category of the widget (defaults to MISC)"),
     version: z.string()
-        .regex(/^\d+\.\d+\.\d+$/, {message: "Version must follow the xx.yy.zz pattern (e.g., 1.0.0)."})
+        .regex(/^\d+\.\d+\.\d+$/, { message: "Version must follow the xx.yy.zz pattern (e.g., 1.0.0)." })
         .optional()
-        .describe("*The version of the snippet"),
-    author: z.string().optional().describe("*The author of the snippet"),
+        .describe("*The version of the widget"),
+    author: z.string().optional().describe("*The author of the widget"),
     scope: z.string().optional().describe("Regex for identifying allowed body ids"),
     instructions: z.string().optional().describe("Optional. Instructions to the end user"),
     engine: z.enum(['mustache', 'ejs']).optional().describe("Optional. It can either be mustache or ejs. Defaults to mustache."),
-    template: z.string().optional().describe("*The template of the snippet. Cannot be used with filter."),
+    template: z.string().optional().describe("*The template of the widget. Cannot be used with filter."),
     filter: z.string().optional().describe("*The template of the filter. Cannot be used with template."),
     selectors: z.union([z.string(), z.array(z.string())]).optional().describe("Optional. CSS selectors to identify the widget."),
     insertquery: z.string().optional().describe("Optional. CSS selector where to insert content in SELECTION mode"),
     unwrap: z.string().optional().describe("Optional. CSS selectors of template content to extract on unwrap."),
-    parameters: z.array(z.union([PartialStringSchema, PartialSchema, ParamSchema])).optional().describe("Optional. A list of parameters of the snippet"),
+    parameters: z.array(z.union([PartialStringSchema, PartialSchema, ParamSchema])).optional().describe("Optional. A list of parameters of the widget"),
     requires: z.union([z.string(), RequiresSpec]).optional().describe("Optional. JS dependencies of the widget."),
     I18n: z.record(z.string(), z.record(z.string(), z.string())).optional().describe("Optional. Translation map."),
     'for': z.string().optional().describe("Optional. A list of user ids allowed to use this widget"),
@@ -39516,16 +39517,16 @@ const normalWidgetSchema = z.object({
 }).superRefine((data, ctx) => {
     // Manually check for required fields
     if (data.key === undefined) {
-        ctx.addIssue({code: 'custom', message: "The 'key' property is required.", path: ['key']});
+        ctx.addIssue({ code: 'custom', message: "The 'key' property is required.", path: ['key'] });
     }
     if (data.name === undefined) {
-        ctx.addIssue({code: 'custom', message: "The 'name' property is required.", path: ['name']});
+        ctx.addIssue({ code: 'custom', message: "The 'name' property is required.", path: ['name'] });
     }
     if (data.version === undefined) {
-        ctx.addIssue({code: 'custom', message: "The 'version' property is required.", path: ['version']});
+        ctx.addIssue({ code: 'custom', message: "The 'version' property is required.", path: ['version'] });
     }
     if (data.author === undefined) {
-        ctx.addIssue({code: 'custom', message: "The 'author' property is required.", path: ['author']});
+        ctx.addIssue({ code: 'custom', message: "The 'author' property is required.", path: ['author'] });
     }
 
     // Cross-field validation

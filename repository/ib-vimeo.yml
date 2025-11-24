@@ -1,6 +1,7 @@
 key: ib-vimeo
 name: Vimeo
 category: $string.ibvgdrive_category
+icon: fa fa-vimeo
 template: |
   <div class="twh-video-container" {{#if}}[maxWidth>100]style="max-width:{{maxWidth}}px"{{/if}}>
     <div class="twh-videoWrapper">
@@ -32,4 +33,4 @@ parameters:
     min: 0
 scope: ^page-mod-(book|page|assign|quizz)-
 author: Josep Mulet Pol <pep.mulet@gmail.com>
-version: 2.0.0
+version: 2.0.1

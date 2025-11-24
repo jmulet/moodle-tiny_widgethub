@@ -24,22 +24,22 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 // eslint-disable-next-line camelcase
-import {get_string} from 'core/str';
+import { get_string } from 'core/str';
 import Common from '../common';
-import {getWidgetParamsFactory} from '../controller/widgetparams_ctrl';
-import {getEditorOptions, getGlobalConfig} from '../options';
-import {getModalSrv} from '../service/modal_service';
-import {getTemplateSrv} from '../service/template_service';
-import {getUserStorage} from '../service/userstorage_service';
-import {debounce, genID, hashCode, removeRndFromCtx, searchComp, toggleClass} from '../util';
+import { getWidgetParamsFactory } from '../controller/widgetparams_ctrl';
+import { getEditorOptions, getGlobalConfig } from '../options';
+import { getModalSrv } from '../service/modal_service';
+import { getTemplateSrv } from '../service/template_service';
+import { getUserStorage } from '../service/userstorage_service';
+import { debounce, genID, hashCode, removeRndFromCtx, searchComp, toggleClass } from '../util';
 
-const {component} = Common;
+const { component } = Common;
 
 /**
  * @param {HTMLElement} el
  * @param {boolean} visible
  */
-export const setVisibility = function(el, visible) {
+export const setVisibility = function (el, visible) {
     if (!el) {
         return;
     }
@@ -158,9 +158,11 @@ export class WidgetPickerCtrl {
     async createModal() {
         /** @type {string} */
         const searchtext = this.storage.getFromSession("searchtext", "");
+        const defaultViewMode = getGlobalConfig(this.editor, 'widgetpicker.viewmode', 'grid');
+        const viewMode = this.storage.getFromLocal('widgethub_view_mode', defaultViewMode);
         const miscStr = await get_string('misc', component);
         const data = {
-            ...this.getPickTemplateContext({misc: miscStr}),
+            ...this.getPickTemplateContext({ misc: miscStr }),
             searchtext
         };
 
@@ -206,6 +208,15 @@ export class WidgetPickerCtrl {
             widgetSearchElem.trigger("focus");
             this.onSearchKeyup();
         });
+
+        // Toggle view button
+        this.updateView(viewMode, data.rid);
+        this.modal.body.find(`#widget-view-toggle-btn${data.rid}`).on('click', () => {
+            const currentMode = this.storage.getFromLocal('widgethub_view_mode', 'list');
+            const newMode = currentMode === 'list' ? 'grid' : 'list';
+            this.updateView(newMode, data.rid);
+        });
+
         // Click on any widget button (bubbles)
         this.modal.body.find('div.tiny_widgethub-categorycontainer, div.tiny_widgethub-recent').on('click',
             /** @param {JQuery.ClickEvent} event */
@@ -243,8 +254,8 @@ export class WidgetPickerCtrl {
             timerEnter = null;
             timerOut = setTimeout(() => {
                 this.modal.body.find("div.tiny_widgethub-preview")
-                .html('')
-                .css("display", "none");
+                    .html('')
+                    .css("display", "none");
             }, 500);
         };
 
@@ -314,11 +325,31 @@ export class WidgetPickerCtrl {
     }
 
     /**
+     * @param {string} mode
+     * @param {string} rid
+     */
+    updateView(mode, rid) {
+        const container = this.modal.body.find('.tiny_widgethub-categorycontainer');
+        const btn = this.modal.body.find(`#widget-view-toggle-btn${rid}`);
+
+        if (mode === 'grid') {
+            container.addClass('tiny_widgethub-view-grid').removeClass('tiny_widgethub-view-list');
+            // Set icon to List (to switch back)
+            btn.find('.twh-icon').html('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M40 48C26.7 48 16 58.7 16 72v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V72c0-13.3-10.7-24-24-24H40zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zM16 232v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V232c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24zM40 368c-13.3 0-24 10.7-24 24v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V392c0-13.3-10.7-24-24-24H40z"/></svg>');
+        } else {
+            container.addClass('tiny_widgethub-view-list').removeClass('tiny_widgethub-view-grid');
+            // Set icon to Grid (to switch to grid)
+            btn.find('.twh-icon').html('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M0 72C0 49.9 17.9 32 40 32H88c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H40c-22.1 0-40-17.9-40-40V72zM0 232c0-22.1 17.9-40 40-40H88c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H40c-22.1 0-40-17.9-40-40V232zM128 392c0-22.1-17.9-40-40-40H40c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40V392zM160 72c0-22.1 17.9-32 40-32H248c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H200c-22.1 0-40-17.9-40-40V72zM160 232c0-22.1 17.9-40 40-40H248c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H200c-22.1 0-40-17.9-40-40V232zM288 392c0-22.1-17.9-40-40-40H200c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H248c22.1 0 40-17.9 40-40V392zM320 72c0-22.1 17.9-32 40-32H408c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H360c-22.1 0-40-17.9-40-40V72zM320 232c0-22.1 17.9-40 40-40H408c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H360c-22.1 0-40-17.9-40-40V232zM448 392c0-22.1-17.9-40-40-40H360c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H408c22.1 0 40-17.9 40-40V392z"/></svg>');
+        }
+        this.storage.setToLocal('widgethub_view_mode', mode);
+    }
+
+    /**
      * @param {import('../options').Widget} widget
      * @returns {Promise<string>}
      */
     generatePreview(widget) {
-        const toInterpolate = {...widget.defaultsWithRepeatable(true)};
+        const toInterpolate = { ...widget.defaultsWithRepeatable(true) };
         // Decide which template engine to use
         const engine = widget.prop('engine');
         return this.templateSrv.render(widget.template ?? "", toInterpolate, widget.I18n, engine);
@@ -334,6 +365,7 @@ export class WidgetPickerCtrl {
      * @property {string} widgetorder
      * @property {string} widgettitle
      * @property {string} iconname
+     * @property {string} iconHtml
      * @property {boolean} disabled
      * @property {boolean} selectable
      * @property {boolean} isfilter
@@ -402,6 +434,27 @@ export class WidgetPickerCtrl {
                 categories[catName] = found;
             }
             const colwidth = (quickbuttonBehavior === 'none' ? 12 : 10) - (isFilter ? 2 : 0);
+
+            let icon = btn.prop('icon');
+            const image = btn.prop('image');
+            let iconHtml = '';
+
+            if (image) {
+                iconHtml = `<img src="${image}" alt="" style="width:100%;height:100%;object-fit:contain;">`;
+            } else if (icon) {
+                if (icon.trim().startsWith('<svg')) {
+                    iconHtml = icon;
+                } else if (icon.trim().startsWith('http') || icon.trim().startsWith('/')) {
+                    iconHtml = `<img src="${icon}" alt="" style="width:100%;height:100%;object-fit:contain;">`;
+                } else {
+                    // Assume class
+                    iconHtml = `<i class="${icon}"></i>`;
+                }
+            } else {
+                // Default icon (puzzle piece)
+                iconHtml = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M264.5 5.2c14.9-6.9 32.1-6.9 47 0l218.6 101c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 149.8C37.4 145.8 32 137.3 32 128s5.4-17.9 13.9-21.8L264.5 5.2zM476.9 209.6l53.2 24.6c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 277.6c-8.5-3.9-13.9-12.4-13.9-21.8s5.4-17.9 13.9-21.8l53.2-24.6 152 70.2c23.4 10.8 50.4 10.8 73.8 0l152-70.2zm-152 198.2l152-70.2 53.2 24.6c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 405.6c-8.5-3.9-13.9-12.4-13.9-21.8s5.4-17.9 13.9-21.8l53.2-24.6 152 70.2c23.4 10.8 50.4 10.8 73.8 0z"/></svg>';
+            }
+
             found.buttons.push({
                 hidden: false,
                 category: catName,
@@ -411,6 +464,7 @@ export class WidgetPickerCtrl {
                 widgetorder: btn.prop('order') ?? btn.name ?? btn.key ?? '',
                 widgettitle: btn.name + " " + catName,
                 iconname: "fa fas fa-eye",
+                iconHtml: iconHtml,
                 disabled: !btn.isUsableInScope(),
                 selectable: btn.insertquery != null,
                 isfilter: isFilter,
@@ -431,7 +485,7 @@ export class WidgetPickerCtrl {
 
         const recentlyUsedBehavior = getGlobalConfig(this.editor, 'insert.recentlyused.behavior', 'lastused');
         if (recentlyUsedBehavior !== 'none') {
-        // Update the list of recently used widgets
+            // Update the list of recently used widgets
             recentList = this.storage.getRecentUsed().filter((/** @type {any} **/ recent) => {
                 const key = recent.key;
                 const widget = snptDict[key];
@@ -443,19 +497,19 @@ export class WidgetPickerCtrl {
                 const isSelection = this.isSelectMode();
                 return key.length > 0 && (!isSelection || (isSelection && selectable));
             }).map((/** @type {any} **/ recent) => {
-                    const key = recent.key;
-                    const snpt = snptDict[key];
-                    if (snpt) {
-                        return {
-                            key: key,
-                            name: snpt.name
-                        };
-                    } else {
-                        return {
-                            key: key,
-                            name: ""
-                        };
-                    }
+                const key = recent.key;
+                const snpt = snptDict[key];
+                if (snpt) {
+                    return {
+                        key: key,
+                        name: snpt.name
+                    };
+                } else {
+                    return {
+                        key: key,
+                        name: ""
+                    };
+                }
             });
         }
 
@@ -541,7 +595,7 @@ export class WidgetPickerCtrl {
                 (isRayButton && isBehaviourLastUsed('quickbutton', 'ctrlclick'));
             if (shouldLoadRecentValues) {
                 const stored = this.storage.getRecentUsed().find(e => e.key === widget.key)?.p || {};
-                ctx = {...ctx, ...removeRndFromCtx(stored, widget.parameters)};
+                ctx = { ...ctx, ...removeRndFromCtx(stored, widget.parameters) };
             }
         } else {
             // Normal insert

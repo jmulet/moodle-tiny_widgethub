@@ -1,6 +1,7 @@
 key: ib-youtube
 name: YouTube
 category: $string.ibvgdrive_category
+icon: fa fa-youtube
 instructions: $string.ibyoutube_instructions
 template: |
   <div class="twh-video-container" {{#maxWidth}}style="max-width:{{maxWidth}}px"{{/maxWidth}}>
@@ -39,4 +40,4 @@ contextmenu:
   - actions: cut printable
 scope: ^page-mod-(book|page|assign|quizz)-
 author: Josep Mulet Pol <pep.mulet@gmail.com>
-version: 2.0.0
+version: 2.0.1

@@ -106,7 +106,8 @@
     border-radius: 6px 0 6px 6px;
 }
 
-#tiny_widgethub-popup a, #tiny_widgethub-popup span {
+#tiny_widgethub-popup a,
+#tiny_widgethub-popup span {
     font-size: 90%;
 }
 
@@ -135,9 +136,12 @@ div.tiny_widgethub-growl {
 }
 
 .tiny_widgethub-category {
-    margin: 2px auto;
-    width: 99%;
-    display: table;
+    margin: 4px auto;
+    width: 98%;
+    border-radius: 10px;
+    border: 1px solid lightgray;
+    display: block;
+    overflow: hidden;
 }
 
 .tiny_widgethub-category button {
@@ -151,30 +155,13 @@ div.tiny_widgethub-growl {
     opacity: 60%;
 }
 
-.tiny_widgethub-lateral {
-    display: table-cell;
-    position: relative;
-    width: 20px;
-    max-width: 20px;
-    height: 100px;
-    color: white;
-    vertical-align: bottom;
-    font-size: 80%;
-    font-weight: bold;
-    text-transform: uppercase;
-    overflow: hidden;
-}
-
 .tiny_widgethub-title {
-    padding-left: 5px;
-    -webkit-transform: rotate(-90deg);
-    -moz-transform: rotate(-90deg);
-    -ms-transform: rotate(-90deg);
-    -o-transform: rotate(-90deg);
-    transform: rotate(-90deg);
+    padding: 5px 10px;
     font-size: 12px;
     white-space: nowrap;
-    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+    text-overflow: ellipsis;
+    font-weight: bold;
+    height: 28px;
 }
 
 .tiny_widgethub-instructionstext {
@@ -246,19 +233,22 @@ h4.tiny_widgethub-headertext {
     background-color: #999;
     box-shadow: 32px 0 #999, -32px 0 #999;
     animation: tiny_widgethub-flash 0.5s ease-out infinite alternate;
-  }
+}
+
 @keyframes tiny_widgethub-flash {
     0% {
-      background-color: #FFF2;
-      box-shadow: 32px 0 #FFF2, -32px 0 #999;
+        background-color: #FFF2;
+        box-shadow: 32px 0 #FFF2, -32px 0 #999;
     }
+
     50% {
-      background-color: #999;
-      box-shadow: 32px 0 #FFF2, -32px 0 #FFF2;
+        background-color: #999;
+        box-shadow: 32px 0 #FFF2, -32px 0 #FFF2;
     }
+
     100% {
-      background-color: #FFF2;
-      box-shadow: 32px 0 #999, -32px 0 #FFF2;
+        background-color: #FFF2;
+        box-shadow: 32px 0 #999, -32px 0 #FFF2;
     }
 }
 
@@ -281,11 +271,6 @@ h4.tiny_widgethub-headertext {
     transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
-.tiny_widgethub-btn:hover {
-    color: #1d2125;
-    text-decoration: none;
-}
-
 .tiny_widgethub-btn-group {
     position: relative;
     display: inline-flex;
@@ -293,14 +278,16 @@ h4.tiny_widgethub-headertext {
     flex-wrap: wrap;
     margin-right: -15px;
     margin-left: -15px;
+    background-color: white;
+    border-radius: 10px;
 }
 
-.tiny_widgethub-btn-group > .tiny_widgethub-btn:not(:last-child) {
+.tiny_widgethub-btn-group>.tiny_widgethub-btn:not(:last-child) {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
 }
 
-.tiny_widgethub-btn-group > .tiny_widgethub-btn:not(:first-child) {
+.tiny_widgethub-btn-group>.tiny_widgethub-btn:not(:first-child) {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
 }
@@ -309,7 +296,7 @@ h4.tiny_widgethub-headertext {
     cursor: pointer;
 }
 
-.tiny_widgethub-btn-group > .tiny_widgethub-btn {
+.tiny_widgethub-btn-group>.tiny_widgethub-btn {
     position: relative;
     flex: 1 1 auto;
 }
@@ -319,6 +306,7 @@ h4.tiny_widgethub-headertext {
     background-color: #0f6cbf;
     border-color: #0f6cbf;
 }
+
 .tiny_widgethub-btn-primary:hover {
     color: #fff;
     background-color: #0c589c;
@@ -331,12 +319,11 @@ h4.tiny_widgethub-headertext {
 }
 
 .tiny_widgethub-btn-outline-primary:hover {
-    color: #fff;
-    background-color: #0f6cbf;
+    color: #0c589c;
 }
 
 .tiny_widgethub-btn-sm,
-.tiny_widgethub-btn-group-sm > .tiny_widgethub-btn {
+.tiny_widgethub-btn-group-sm>.tiny_widgethub-btn {
     padding: .25rem .5rem;
     font-size: .8203125rem;
     line-height: 1.5;
@@ -366,49 +353,64 @@ h4.tiny_widgethub-headertext {
     display: inline-block;
     pointer-events: none;
 }
+
 .twh-icon svg {
     pointer-events: none;
 }
+
 .tiny_widgethub-btn-primary .twh-icon path {
     fill: #fff;
 }
+
 .tiny_widgethub-btn-secondary .twh-icon path {
     fill: #474747;
 }
+
 .tiny_widgethub-btn-outline-primary .twh-icon path {
     fill: #0f6cbf;
 }
+
 .tiny_widgethub-btn-outline-primary:hover .twh-icon path {
-    fill: #fff;
+    fill: #0c589c;
 }
+
+.tiny_widgethub-view-grid .tiny_widgethub-btn-primary:hover .twh-icon path {
+    fill: #0c589c;
+}
+
 
 /********************************** Repeatable list **/
 .tiny_widgethub-regularitem {
     background: whitesmoke;
 }
+
 .tiny_widgethub-additem {
-  height: 25px;
-  padding: 0!important;
-  z-index: 2;
-  border-left: none; 
-  border-right: none; 
+    height: 25px;
+    padding: 0 !important;
+    z-index: 2;
+    border-left: none;
+    border-right: none;
 }
+
 .list-group .tiny_widgethub-additem:first-child {
-  border-top-color: transparent;
+    border-top-color: transparent;
 }
+
 .list-group .tiny_widgethub-additem:last-child {
-  border-bottom-color: transparent;
+    border-bottom-color: transparent;
 }
-.tiny_widgethub-additem > hr {
-  z-index: 0;
+
+.tiny_widgethub-additem>hr {
+    z-index: 0;
 }
-.tiny_widgethub-additem > button {
-  z-index: 1;
-  padding: 0;
-  font-size: 12px;
-  line-height: 1;
-  width: 24px; 
-  height: 24px;
+
+.tiny_widgethub-additem>button {
+    z-index: 1;
+    padding: 0;
+    font-size: 12px;
+    line-height: 1;
+    width: 24px;
+    height: 24px;
 }
 
 /********************************** Specific Widget definitions styles */
@@ -522,7 +524,8 @@ h4.twh-subsub::before {
     opacity: 0.8;
 }
 
-.twh-fragment:before, .twh-fragment:after {
+.twh-fragment:before,
+.twh-fragment:after {
     content: "";
     height: 98%;
     position: absolute;
@@ -654,16 +657,179 @@ i.fad.fa-stopwatch::before {
     font-style: normal;
 }
 
-div.notranslate, span.notranslate {
+div.notranslate,
+span.notranslate {
     border: 1px dotted orange;
 }
 
 /** Compatibility carousel in bs 4 and 5 */
 div[data-widget="bs-carousel"] .carousel-indicators {
-  list-style: none;
-  padding: 0;
+    list-style: none;
+    padding: 0;
 }
 
 div[data-widget="bs-carousel"] .carousel-indicators li::marker {
-  content: none;
+    content: none;
+}
+
+/********************************** Grid View Styles */
+.tiny_widgethub-view-grid .tiny_widgethub-category>div.d-flex {
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    align-items: stretch;
+    /* Ensure items stretch to fill row */
+    padding: 5px !important;
+    /* Reduce padding to give more space to cards */
+}
+
+/* Override table display for category in grid view to avoid layout issues */
+/* Reverted to table display to fix lateral bar issue, but ensure content wraps */
+.tiny_widgethub-view-grid .tiny_widgethub-category {
+    display: table;
+}
+
+/* Ensure hidden categories remain hidden in grid view */
+.tiny_widgethub-view-grid .tiny_widgethub-category.d-none {
+    display: none !important;
+}
+
+.tiny_widgethub-view-grid .tiny_widgethub-lateral {
+    display: table-cell;
+    height: 100px;
+}
+
+.tiny_widgethub-view-grid .tiny_widgethub-btn-group {
+    width: 32%;
+    flex: 0 0 32%;
+    /* Force width */
+    margin: 0.5%;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    /* Softer corners */
+    background-color: #fff;
+    box-shadow: none;
+    /* Remove default shadow for cleaner look */
+    height: 140px;
+    /* Increased height for better spacing */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+}
+
+.tiny_widgethub-btn-group:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: scale(1.02);
+    transition: all 0.2s ease-in-out;
+    z-index: 5;
+}
+
+/* Main button styling in grid */
+.tiny_widgethub-view-grid .tiny_widgethub-btn-group>button:not([data-insert="true"]):not([data-auto]) {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+    color: #0f6cbf;
+    padding: 0;
+}
+
+.tiny_widgethub-view-grid .tiny_widgethub-btn-group>button:not([data-insert="true"]):not([data-auto]) .twh-label {
+    overflow: hidden;
+    line-height: 1.2;
+    max-height: 2.4em;
+    width: 100%;
+    margin-top: 4px;
+    font-size: 80%;
+    text-overflow: ellipsis;
+}
+
+.tiny_widgethub-view-grid .tiny_widgethub-btn-group>button:not([data-insert="true"]):not([data-auto]) .twh-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin-bottom: 4px;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 30px;
+}
+
+.tiny_widgethub-view-grid .tiny_widgethub-btn-group>button:not([data-insert="true"]):not([data-auto]) .twh-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* Quick insert button (Ray) */
+.tiny_widgethub-view-grid .tiny_widgethub-btn-group>button[data-insert="true"] {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent !important;
+    color: #0f6cbf !important;
+    border-color: #0f6cbf !important;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.tiny_widgethub-view-grid .tiny_widgethub-btn-group:hover>button[data-insert="true"] {
+    opacity: 1;
+}
+
+.tiny_widgethub-view-grid .tiny_widgethub-btn-group:hover>button[data-insert="false"] {
+    color: #0c589c;
+    font-weight: 500;
+}
+
+/* Auto filter button */
+.tiny_widgethub-view-grid .tiny_widgethub-btn-group>button[data-auto] {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s ease-in-out;
+}
+
+/* Hide disabled icon in grid view if it's just an overlay, or style it differently */
+.tiny_widgethub-view-grid .tiny_widgethub-disabled {
+    opacity: 0.6;
+    background-color: #f8f9fa;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .tiny_widgethub-view-grid .tiny_widgethub-btn-group {
+        width: 48%;
+    }
+}
+
+@media (max-width: 480px) {
+    .tiny_widgethub-view-grid .tiny_widgethub-btn-group {
+        width: 98%;
+    }
 }

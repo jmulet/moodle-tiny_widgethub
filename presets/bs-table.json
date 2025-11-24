@@ -2,6 +2,7 @@
     "key": "bs-table",
     "name": "$string.bstable_name",
     "category": "bootstrap",
+    "icon": "fa fa-table",
     "instructions": "$string.bstable_instructions",
     "template": "{{#responsive}}<div class=\"table-responsive\">{{/responsive}}\n<table class=\"table{{#stripes}} table-striped{{/stripes}}{{#borders}} table-bordered{{/borders}}{{#hover}} table-hover{{/hover}} whb-bstable\">\n{{#desc}}\n<caption class=\"caption-top\">$string.bstable_table: {{desc}}</caption>\n{{/desc}}\n{{#headers}}\n  <thead>\n    <tr>{{#each}}[j=ncols]<th role=\"col\">$string.bstable_title {{j}}</th>{{/each}}</tr>\n  </thead>\n{{/headers}}\n<tbody class=\"table-group-divider\">\n  {{#each}}[i=nrows]<tr>{{#each}}[j=ncols]<td>$string.bstable_cell {{i}}{{j}}</td>{{/each}}</tr>{{/each}}\n</tbody>\n{{#footer}}\n  <tfoot class=\"table-group-divider\">\n    <tr>{{#each}}[j=ncols]<th>$string.bstable_foot{{j}}</th>{{/each}}</tr>\n  </tfoot>\n{{/footer}}\n</table> \n{{#responsive}}</div>{{/responsive}}\n<p><br></p>\n",
     "selectors": "table.whb-bstable",
@@ -60,5 +61,5 @@
         }
     ],
     "author": "Josep Mulet <pep.mulet@gmail.com>",
-    "version": "2.0.0"
+    "version": "2.0.1"
 }

@@ -1,6 +1,7 @@
 {
     "key": "ib-iframe",
     "name": "$string.ibiframe_name",
+    "icon": "fa fa-window-maximize",
     "instructions": "$string.ibiframe_instructions",
     "template": "{{{code}}}",
     "parameters": [
@@ -13,5 +14,5 @@
     ],
     "scope": "^page-mod-(book|page|assign|quiz)-",
     "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
-    "version": "2.0.0"
+    "version": "2.0.1"
 }

@@ -62,7 +62,8 @@
                         "widgetname": "widget name",
                         "isfilter": false,
                         "filterset": false,
-                        "maincolclass": "col-10"
+                        "maincolclass": "col-10",
+                        "iconHtml": "icon html"
                     }
                 ]
             }
@@ -77,10 +78,15 @@
     {{$body}}
         <div class="tiny_widgethub-container">
            <div class="tiny_widgethub-top input-group">
-                <input type="text" name="widgethub_search_textfield" class="form-control" placeholder="{{#str}} wsearch, tiny_widgethub {{/str}}" style="width:80%" value="{{searchText}}">
+                <input type="text" name="widgethub_search_textfield" class="form-control w-50" placeholder="{{#str}} wsearch, tiny_widgethub {{/str}}" value="{{searchText}}">
                 <button id="widget-clearfilter-btn{{rid}}" class="ml-1 tiny_widgethub-btn tiny_widgethub-btn-sm tiny_widgethub-btn-secondary" title="{{#str}} rmfilter, tiny_widgethub {{/str}}">
                     <span class="twh-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
+                    </span>
+                </button>
+                <button id="widget-view-toggle-btn{{rid}}" class="ml-1 tiny_widgethub-btn tiny_widgethub-btn-sm tiny_widgethub-btn-secondary" title="{{#str}} toggleview, tiny_widgethub {{/str}}">
+                    <span class="twh-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M0 72C0 49.9 17.9 32 40 32H88c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H40c-22.1 0-40-17.9-40-40V72zM0 232c0-22.1 17.9-40 40-40H88c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H40c-22.1 0-40-17.9-40-40V232zM128 392c0-22.1-17.9-40-40-40H40c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40V392zM160 72c0-22.1 17.9-32 40-32H248c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H200c-22.1 0-40-17.9-40-40V72zM160 232c0-22.1 17.9-40 40-40H248c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H200c-22.1 0-40-17.9-40-40V232zM288 392c0-22.1-17.9-40-40-40H200c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H248c22.1 0 40-17.9 40-40V392zM320 72c0-22.1 17.9-32 40-32H408c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H360c-22.1 0-40-17.9-40-40V72zM320 232c0-22.1 17.9-40 40-40H408c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H360c-22.1 0-40-17.9-40-40V232zM448 392c0-22.1-17.9-40-40-40H360c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H408c22.1 0 40-17.9 40-40V392z"/></svg>
                     </span>
                 </button>
                 <div class="tiny_widgethub-recent p-2">
@@ -106,13 +112,13 @@
                     <div class="tiny_widgethub-emptylist d-none"><span>{{#str}} emptylist, tiny_widgethub {{/str}}</span></div>
                     {{#categories}}
                     <div class="tiny_widgethub-category{{#hidden}} d-none{{/hidden}}"
-                        style="border: 2px solid hsl({{color}}, 40%);background: hsl({{color}}, 96%);" id="{{rid}}_{{name}}">
-                        <div class="tiny_widgethub-lateral" style="background: hsl({{color}}, 40%);">
-                            <p class="tiny_widgethub-title">{{name}}</p>
-                        </div>
+                        style="border-left: 5px solid hsl({{color}}, 40%);background: hsl({{color}}, 90%);" id="{{rid}}_{{name}}">
+                      
+                        <div class="tiny_widgethub-title" style="background: hsl({{color}}, 40%);color: hsl({{color}}, 90%);">{{name}}</div>
+                      
                         <div class="d-flex flex-column px-4 py-2">
                            {{#buttons}}
-                                <div style="align-items: flex-end;" data-key="{{widgetkey}}"
+                                <div data-key="{{widgetkey}}"
                                     class="mb-1 tiny_widgethub-btn-group{{#hidden}} d-none{{/hidden}}{{#disabled}} tiny_widgethub-disabled{{/disabled}}"
                                     {{#selectable}} data-selectable="true"{{/selectable}}>
                                 {{#isfilter}}
@@ -126,7 +132,9 @@
                                     class="{{maincolclass}} tiny_widgethub-btn tiny_widgethub-btn-outline-primary" data-insert="false"> 
                                         {{#disabled}}<span class="twh-icon">
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M367.2 412.5L99.5 144.8C77.1 176.1 64 214.5 64 256c0 106 86 192 192 192c41.5 0 79.9-13.1 111.2-35.5zm45.3-45.3C434.9 335.9 448 297.5 448 256c0-106-86-192-192-192c-41.5 0-79.9 13.1-111.2 35.5L412.5 367.2zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256z"/></svg>
-                                        </span>{{/disabled}} {{widgetname}}
+                                        </span>{{/disabled}}
+                                        <span class="twh-icon twh-widget-icon">{{{iconHtml}}}</span>
+                                        <span class="twh-label px-3" title="{{widgetname}}">{{widgetname}}</span>
                                 </button>
                                 {{#showquickbuttons}}
                                 <button class="col-2 tiny_widgethub-btn tiny_widgethub-btn-outline-primary" data-insert="true" title="{{#str}} directinsert, tiny_widgethub {{/str}}">

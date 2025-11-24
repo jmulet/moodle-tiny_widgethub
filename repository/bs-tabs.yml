@@ -1,6 +1,7 @@
 key: bs-tabs
 name: $string.bstabs_name
 category: bootstrap
+icon: fa fa-folder
 instructions: $string.bstabs_instructions
 engine: ejs
 template: |
@@ -57,4 +58,4 @@ contextmenu:
   - predicate: li.nav-item
     actions: moveleft moveright insertafter | remove
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 2.1.0
+version: 2.1.1

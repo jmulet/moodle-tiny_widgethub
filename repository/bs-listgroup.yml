@@ -1,6 +1,7 @@
 key: bs-listgroup
 name: $string.bslistgroup_name
 category: bootstrap
+icon: fa fa-list
 instructions: $string.bslistgroup_instructions
 engine: ejs
 template: |
@@ -26,4 +27,4 @@ contextmenu:
   - predicate: li.list-group-item
     actions: moveup movedown insertafter | remove
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 2.0.0
+version: 2.0.1

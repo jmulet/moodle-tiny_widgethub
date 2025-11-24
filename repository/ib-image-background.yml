@@ -1,6 +1,7 @@
 key: ib-image-background
 name: $string.ibimgbg_name
 category: $string.ibimgbg_category
+icon: fa fa-image
 instructions: $string.ibimgbg_instructions
 template: |
   <div class="twh-background-img" style="background-image: url('{{url}}'); padding:10px; min-height:40px; background-repeat: no-repeat; -webkit-background-size: cover; background-size: cover; background-position: 50% 50%;">
@@ -18,4 +19,4 @@ parameters:
     bind: | 
       styleRegex("background-image:url\\(['\"]?([^'\")]*)['\"]?\\)")
 author: Josep Mulet Pol <pep.mulet@gmail.com>
-version: 2.0.0
+version: 2.0.1

@@ -1,6 +1,7 @@
 key: ib-wordcounter
 name: $string.ibwc_name
 category: misc
+icon: fa fa-calculator
 instructions: $string.ibwc_instructions
 template: |
   <p><br></p>
@@ -19,4 +20,4 @@ requires:
   url: https://cdn.jsdelivr.net/gh/jmulet/moodle-tiny_widgethub/repository/ib-wordcounter.js
   query: div[data-widget="ib-wordcounter"].active
 author: Josep Mulet Pol <pep.mulet@gmail.com>
-version: 2.0.0
+version: 2.2.1

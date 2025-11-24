@@ -1,6 +1,7 @@
 key: ib-filter-cleanfont
 name: $string.ibfiltercleanfont_name
 category: $string.ibfiltercleanfont_category
+icon: fa fa-eraser
 instructions: $string.ibfiltercleanfont_instructions
 filter: >
   /* The variable editor is passed into the body function. */
@@ -31,4 +32,4 @@ filter: >
   /* You must return an array. */
   return [hasChanges, msgStats];
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 1.0.0
+version: 1.0.1

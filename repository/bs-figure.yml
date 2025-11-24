@@ -1,6 +1,7 @@
 key: bs-figure
 name: $string.bsfigure_name
 category: bootstrap
+icon: fa fa-image
 instructions: $string.bsfigure_instructions
 template: |
   <figure class="figure">
@@ -8,4 +9,4 @@ template: |
     <figcaption class="figure-caption">$string.bsfigure_caption</figcaption>
   </figure>
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 2.0.0
+version: 2.0.1

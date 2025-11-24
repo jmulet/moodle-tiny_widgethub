@@ -1,6 +1,7 @@
 key: bs-table
 name: $string.bstable_name
 category: bootstrap
+icon: fa fa-table
 instructions: $string.bstable_instructions
 template: |
   {{#responsive}}<div class="table-responsive">{{/responsive}}
@@ -61,4 +62,4 @@ parameters:
     title: $string.bstable_responsive
     value: false
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 2.0.0
+version: 2.0.1

@@ -1,6 +1,7 @@
 key: bs-alert
 name: $string.bsalert_name
 category: bootstrap
+icon: fa fa-exclamation-triangle
 template: |
   <div class="m-2 alert alert-{{severity}}{{#closable}} alert-dismissible{{/closable}} fade show" role="alert">
     {{#closable}}
@@ -53,4 +54,4 @@ autocomplete: severity
 contextmenu:
   - actions: printable | cut
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 2.2.0
+version: 2.2.1

@@ -1,6 +1,7 @@
 key: bs-jumbotron
 name: Jumbotron
 category: bootstrap
+icon: fa fa-bullhorn
 template: |
   <div class="p-5 mb-4 bg-light rounded-3">
   <div class="container-fluid py-5">
@@ -9,4 +10,4 @@ template: |
     </div>
   </div>
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 2.0.0
+version: 2.0.1

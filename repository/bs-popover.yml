@@ -1,6 +1,7 @@
 key: bs-popover
 name: Popover
 category: bootstrap
+icon: fa fa-comment
 instructions: $string.bspopover_instructions
 template: |
   <a href="javascript:void(0)" data-toggle="popover" data-bs-toggle="popover" data-trigger="click" data-bs-trigger="click" 
@@ -41,4 +42,4 @@ parameters:
     tip: $string.bspopover_anotation_tip
     bind: attrBS('content')
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 2.0.0
+version: 2.0.1

@@ -2,6 +2,7 @@
     "key": "bs-badge",
     "name": "$string.bsbadge_name",
     "category": "bootstrap",
+    "icon": "fa fa-tag",
     "template": "<span class=\"badge badge-{{severity}}{{#pill}} badge-pill{{/pill}}\">Lorem ipsum</span>\n",
     "selectors": "span.badge",
     "unwrap": "*",
@@ -31,5 +32,5 @@
         }
     ],
     "author": "Josep Mulet <pep.mulet@gmail.com>",
-    "version": "2.0.0"
+    "version": "2.0.1"
 }
