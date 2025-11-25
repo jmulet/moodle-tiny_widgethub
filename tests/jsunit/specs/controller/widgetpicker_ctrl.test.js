@@ -16,7 +16,7 @@ const { getTemplateSrv } = require('../../src/service/template_service');
 /**
  * @param {number} delay 
  */
-const wait = function(delay) {
+const wait = function (delay) {
     return new Promise((resolve) => {
         setTimeout(resolve, delay);
     })
@@ -30,6 +30,7 @@ const mockUserStorage = {
     getFromLocal: jest.fn().mockReturnValue(""),
     getFromSession: jest.fn().mockReturnValue(""),
     setToSession: jest.fn(),
+    setToLocal: jest.fn(),
     getRecentUsed: jest.fn().mockReturnValue([
         { key: 'unk', p: {} },
         { key: 'k1', p: { p1: 'a', p2: 'b', p3: 4, p5: '#ffaabb', p6: 'c' } }
@@ -326,7 +327,7 @@ describe("WidgetPickerCtrl", () => {
     });
 
     test("handlePickModalClick", async () => {
-        /** @type {*} */ 
+        /** @type {*} */
         const templateSrv = getTemplateSrv();
         // Create a more realistic instance, with less mocks
         widgetPickCtrl = new WidgetPickerCtrl(mockEditor, mockEditorOptions,
@@ -355,7 +356,7 @@ describe("WidgetPickerCtrl", () => {
         expect(modal.destroy).not.toHaveBeenCalled();
         expect(mockEditor.windowManager.confirm).toHaveBeenCalled();
         expect(spyHandlePickModalAction).not.toHaveBeenCalled()
-        
+
         // It is usable in scope
         widget1.isUsableInScope = () => true;
         mockEditor.windowManager.confirm.mockReset();
@@ -363,8 +364,8 @@ describe("WidgetPickerCtrl", () => {
         expect(modal.hide).toHaveBeenCalled();
         expect(modal.destroy).not.toHaveBeenCalled();
         expect(mockEditor.windowManager.confirm).not.toHaveBeenCalled();
-        expect(spyHandlePickModalAction).toHaveBeenCalled();       
-       
+        expect(spyHandlePickModalAction).toHaveBeenCalled();
+
     });
 
 });

@@ -9,7 +9,7 @@
 const { getTemplateSrv } = require('../../src/service/template_service');
 
 const wait = (/** @type{number} */ delay) => {
-    return new Promise( (resolve) => {
+    return new Promise((resolve) => {
         setTimeout(resolve, delay);
     });
 };
@@ -17,8 +17,8 @@ const wait = (/** @type{number} */ delay) => {
 // Make test reproducible
 const util = require("../../src/util");
 
-const {FormCtrl, getFormCtrl, Templates} = require("../../src/controller/form_ctrl");
- 
+import { FormCtrl, getFormCtrl, Templates } from "../../src/controller/form_ctrl";
+
 /** @type {*} */
 let mockEditor;
 
@@ -54,7 +54,7 @@ describe("FormCtrl", () => {
             _id += 1;
             return (_id) + "";
         };
-        mockEditor = global.Mocks.editorFactory(12345, {id: 0, username: 'joe', roles: ['student'] }, "text selected");
+        mockEditor = global.Mocks.editorFactory(12345, { id: 0, username: 'joe', roles: ['student'] }, "text selected");
         formCtrl = new FormCtrl(mockEditor, mockUserStorage, mockTemplateSrv, mockFileSrv);
     })
 
@@ -67,7 +67,7 @@ describe("FormCtrl", () => {
         const f2 = getFormCtrl(mockEditor);
         expect(f1).toBeTruthy();
         expect(Object.is(f1, f2)).toBe(true);
-        const f3 = getFormCtrl({...mockEditor, id: 123456});
+        const f3 = getFormCtrl({ ...mockEditor, id: 123456 });
         expect(f3).toBeTruthy();
         expect(Object.is(f1, f3)).toBe(false);
     });
@@ -80,10 +80,10 @@ describe("FormCtrl", () => {
         /** @type {*} */
         const widget = {
             name: "widget-name",
-            defaults: {p1: "a", p2: 11},
+            defaults: { p1: "a", p2: 11 },
             parameters: [
-                {name: "p1", value: "a"},
-                {name: "p2", value: 11}
+                { name: "p1", value: "a" },
+                { name: "p2", value: 11 }
             ],
             isFilter: () => false
         }
@@ -135,14 +135,14 @@ describe("FormCtrl", () => {
         /** @type {*} */
         const widget = {
             name: "widget-name",
-            defaults: {p1: "a", p2: 11},
+            defaults: { p1: "a", p2: 11 },
             parameters: [
-                {name: "p1", value: "", type: "textfield"},
-                {name: "p2", value: "", type: "textarea"},
-                {name: "p3", value: 0, type: "numeric"},
-                {name: "p4", value: false, type: "checkbox"},
-                {name: "p5", value: "#000000", type: "color"},
-                {name: "p6", value: "", type: "select", options: ["a", "b", "c"]},
+                { name: "p1", value: "", type: "textfield" },
+                { name: "p2", value: "", type: "textarea" },
+                { name: "p3", value: 0, type: "numeric" },
+                { name: "p4", value: false, type: "checkbox" },
+                { name: "p5", value: "#000000", type: "color" },
+                { name: "p6", value: "", type: "select", options: ["a", "b", "c"] },
             ],
             isFilter: () => false
         };
@@ -175,10 +175,10 @@ describe("FormCtrl", () => {
         /** @type {*} */
         const widget = {
             name: "widget-name",
-            defaults: {p1: "a", p2: 11},
+            defaults: { p1: "a", p2: 11 },
             parameters: [
-                {name: "p1", value: "", type: "textfield", transform: "trim"},
-                {name: "p2", value: "", type: "textarea", transform: "trim | toUpperCase"},                
+                { name: "p1", value: "", type: "textfield", transform: "trim" },
+                { name: "p2", value: "", type: "textarea", transform: "trim | toUpperCase" },
             ],
             isFilter: () => false
         };
@@ -200,7 +200,7 @@ describe("FormCtrl", () => {
         formCtrl = new FormCtrl(mockEditor, mockUserStorage, getTemplateSrv(), mockFileSrv);
         mockUserStorage.getFromLocal = jest.fn().mockImplementation((key, def) => {
             if (key === 'values') {
-                return {_saved: 'The new value'};
+                return { _saved: 'The new value' };
             } else if (key === 'saveall') {
                 return false;
             } else if (key === 'saveall_data') {
@@ -211,10 +211,10 @@ describe("FormCtrl", () => {
         /** @type {any} */
         const widget = {
             name: "widget-name",
-            defaults: {_saved: "old", age: 18},
+            defaults: { _saved: "old", age: 18 },
             parameters: [
-                {name: "_saved", value: "old", type: "textfield"},
-                {name: "age", value: 18, min: 1, max: 110, type: "numeric"}
+                { name: "_saved", value: "old", type: "textfield" },
+                { name: "age", value: 18, min: 1, max: 110, type: "numeric" }
             ],
             isFilter: () => false
         };
@@ -245,11 +245,11 @@ describe("FormCtrl", () => {
         formCtrl = new FormCtrl(mockEditor, mockUserStorage, getTemplateSrv(), mockFileSrv);
         mockUserStorage.getFromLocal = jest.fn().mockImplementation((key, def) => {
             if (key === 'values') {
-                return {_saved: 'The new value'};
+                return { _saved: 'The new value' };
             } else if (key === 'saveall') {
                 return true;
             } else if (key === 'saveall_data') {
-                return {wk111: {_saved: 'The new value 22', age: 49}};
+                return { wk111: { _saved: 'The new value 22', age: 49 } };
             }
             return def;
         });
@@ -257,10 +257,10 @@ describe("FormCtrl", () => {
         const widget = {
             key: "wk111",
             name: "widget-name",
-            defaults: {_saved: "old", age: 18},
+            defaults: { _saved: "old", age: 18 },
             parameters: [
-                {name: "_saved", value: "old", type: "textfield"},
-                {name: "age", value: 18, min: 1, max: 110, type: "numeric"}
+                { name: "_saved", value: "old", type: "textfield" },
+                { name: "age", value: 18, min: 1, max: 110, type: "numeric" }
             ],
             isFilter: () => false
         };
@@ -285,18 +285,18 @@ describe("FormCtrl", () => {
     });
 
 
-    it('Applies field watchers showing and hidding controls depending on input', async() => {
+    it('Applies field watchers showing and hidding controls depending on input', async () => {
         // Use the real templateSrv
         formCtrl = new FormCtrl(mockEditor, mockUserStorage, getTemplateSrv(), mockFileSrv);
         /** @type {any} */
         const widget = {
             key: "wk111",
             name: "widget-name",
-            defaults: {opt: false, lst: 'spain', txt: 'Not editable'},
+            defaults: { opt: false, lst: 'spain', txt: 'Not editable' },
             parameters: [
-                {name: "opt", value: false, type: "checkbox"},
-                {name: "lst", value: 'spain', type: "select", options: ['france', 'spain', 'italy', 'germany'], when: 'opt'},
-                {name: "txt", value: 'Not editable', type: "textfield", when: "opt && lst==='italy'", disabled: true}
+                { name: "opt", value: false, type: "checkbox" },
+                { name: "lst", value: 'spain', type: "select", options: ['france', 'spain', 'italy', 'germany'], when: 'opt' },
+                { name: "txt", value: 'Not editable', type: "textfield", when: "opt && lst==='italy'", disabled: true }
             ],
             isFilter: () => false
         };
@@ -360,5 +360,127 @@ describe("FormCtrl", () => {
         expect(optControl.style.display).toBe('');
         expect(lstControl.style.display).toBe('none');
         expect(txtControl.style.display).toBe('none');
+    });
+
+
+    describe("attachPickers", () => {
+        it("should attach click listeners to image pickers", () => {
+            const modalBody = document.createElement('div');
+            modalBody.innerHTML = `<div class="form-group"><button class="whb-image-picker"></button><input type="text"></div>`;
+            const listenerTracker = jest.fn();
+            mockFileSrv.getImagePicker.mockReturnValue(true);
+            mockFileSrv.displayImagePicker.mockResolvedValue({ url: 'http://example.com/image.png' });
+
+            formCtrl.attachPickers(modalBody, listenerTracker);
+
+            expect(listenerTracker).toHaveBeenCalledWith(
+                expect.any(HTMLElement),
+                'click',
+                expect.any(Function)
+            );
+
+            // Simulate click
+            const clickHandler = listenerTracker.mock.calls[0][2];
+            const btn = modalBody.querySelector('button');
+            const evt = { preventDefault: jest.fn(), currentTarget: btn };
+            clickHandler(evt);
+
+            expect(mockFileSrv.displayImagePicker).toHaveBeenCalled();
+        });
+
+        it("should attach change listeners to color pickers", () => {
+            const modalBody = document.createElement('div');
+            modalBody.innerHTML = `
+                <div class="form-group">
+                    <input type="color" name="p_color">
+                    <input type="range" name="p_color_alpha" value="0.5">
+                </div>`;
+            const listenerTracker = jest.fn();
+
+            formCtrl.attachPickers(modalBody, listenerTracker);
+
+            expect(listenerTracker).toHaveBeenCalledWith(
+                expect.any(HTMLElement), // range input
+                'change',
+                expect.any(Function)
+            );
+        });
+    });
+
+    describe("Repeatable Fields", () => {
+        it("createControlHTML should render repeatable template", () => {
+            /** @type {*} */
+            const param = {
+                name: 'rep',
+                type: 'repeatable',
+                fields: [{ name: 'f1', type: 'textfield' }]
+            };
+            const defaultValue = [{ f1: 'val1' }];
+
+            // Mock renderMustache to return something we can check
+            mockTemplateSrv.renderMustache.mockImplementation((/** @type {string} */ tmpl, /** @type {*} */ ctx) => {
+                if (tmpl === Templates.REPEATABLE) {
+                    return `<div class="repeatable-mock">${ctx.itemControls}</div>`;
+                }
+                return 'control-mock';
+            });
+
+            const markup = formCtrl.createControlHTML('editor1', param, defaultValue);
+            expect(markup).toContain('repeatable-mock');
+        });
+
+        it("extractFormParameters should extract repeatable values", () => {
+            /** @type {*} */
+            const widget = {
+                defaults: { rep: [] },
+                parameters: [
+                    {
+                        name: 'rep',
+                        type: 'repeatable',
+                        fields: [{ name: 'f1', type: 'textfield' }]
+                    }
+                ]
+            };
+
+            const form = document.createElement('form');
+            form.innerHTML = `
+                <div name="rep" type="repeatable">
+                    <div class="list-group-item tiny_widgethub-regularitem">
+                        <input name="rep_f1" value="item1">
+                    </div>
+                    <div class="list-group-item tiny_widgethub-regularitem">
+                        <input name="rep_f1" value="item2">
+                    </div>
+                </div>
+            `;
+
+            const params = formCtrl.extractFormParameters(widget, form, false);
+            expect(params.rep).toHaveLength(2);
+            expect(params.rep[0].f1).toBe('item1');
+            expect(params.rep[1].f1).toBe('item2');
+        });
+
+        it("attachRepeatable should initialize RepeatableCtrl", () => {
+            /** @type {*} */
+            const widget = {
+                parameters: [
+                    {
+                        name: 'rep',
+                        type: 'repeatable',
+                        fields: [{ name: 'f1', type: 'textfield' }]
+                    }
+                ]
+            };
+            const form = document.createElement('form');
+            form.innerHTML = `<div name="rep" type="repeatable"></div>`;
+
+            // We can't easily check if RepeatableCtrl was newed up because it's private/internal.
+            // But we can check if the DOM was modified (RepeatableCtrl adds a UL).
+
+            formCtrl.attachRepeatable(form, widget);
+
+            expect(form.querySelector('ul.list-group')).not.toBeNull();
+            expect(form.querySelector('.tiny_widgethub-additem')).not.toBeNull();
+        });
     });
 });

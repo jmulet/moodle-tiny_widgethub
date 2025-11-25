@@ -67,8 +67,6 @@
     left: 100%;
     margin-top: -6px;
     margin-left: -1px;
-    -webkit-border-radius: 0 6px 6px 6px;
-    -moz-border-radius: 0 6px 6px;
     border-radius: 0 6px 6px 6px;
 }
 
@@ -101,8 +99,6 @@
 .tiny_widgethub-dropdownsub.pull-left>.tiny_widgethub-dropdown {
     left: -100%;
     margin-left: 10px;
-    -webkit-border-radius: 6px 0 6px 6px;
-    -moz-border-radius: 6px 0 6px 6px;
     border-radius: 6px 0 6px 6px;
 }
 
@@ -254,8 +250,6 @@ h4.tiny_widgethub-headertext {
 
 /** Custom bootstrap buttons **/
 .tiny_widgethub-btn {
-    -webkit-user-select: none;
-    -ms-user-select: none;
     display: inline-block;
     font-weight: 400;
     color: #1d2125;
@@ -268,7 +262,6 @@ h4.tiny_widgethub-headertext {
     font-size: .9375rem;
     line-height: 1.5;
     border-radius: .5rem;
-    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 .tiny_widgethub-btn-group {
@@ -316,6 +309,10 @@ h4.tiny_widgethub-headertext {
 .tiny_widgethub-btn-outline-primary {
     color: #0f6cbf;
     border-color: #0f6cbf;
+}
+
+.tiny_widgethub-btn-group .tiny_widgethub-btn-outline-primary {
+    border-color: lightgray;
 }
 
 .tiny_widgethub-btn-outline-primary:hover {
@@ -682,20 +679,9 @@ div[data-widget="bs-carousel"] .carousel-indicators li::marker {
     /* Reduce padding to give more space to cards */
 }
 
-/* Override table display for category in grid view to avoid layout issues */
-/* Reverted to table display to fix lateral bar issue, but ensure content wraps */
-.tiny_widgethub-view-grid .tiny_widgethub-category {
-    display: table;
-}
-
 /* Ensure hidden categories remain hidden in grid view */
 .tiny_widgethub-view-grid .tiny_widgethub-category.d-none {
     display: none !important;
-}
-
-.tiny_widgethub-view-grid .tiny_widgethub-lateral {
-    display: table-cell;
-    height: 100px;
 }
 
 .tiny_widgethub-view-grid .tiny_widgethub-btn-group {
@@ -717,13 +703,6 @@ div[data-widget="bs-carousel"] .carousel-indicators li::marker {
     align-items: center;
     justify-content: center;
     padding: 10px;
-}
-
-.tiny_widgethub-btn-group:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transform: scale(1.02);
-    transition: all 0.2s ease-in-out;
-    z-index: 5;
 }
 
 /* Main button styling in grid */
@@ -787,17 +766,30 @@ div[data-widget="bs-carousel"] .carousel-indicators li::marker {
     border-color: #0f6cbf !important;
     z-index: 10;
     opacity: 0;
-    transition: opacity 0.2s ease-in-out;
 }
 
-.tiny_widgethub-view-grid .tiny_widgethub-btn-group:hover>button[data-insert="true"] {
-    opacity: 1;
+.tiny_widgethub-btn-group:hover {
+    border-color: rgba(119, 170, 255, 0.8);
+    box-shadow: 0 0 0 3px rgba(119, 170, 255, 0.35);
+    transition: all 0.2s ease-in-out;
+    z-index: 5;
 }
 
 .tiny_widgethub-view-grid .tiny_widgethub-btn-group:hover>button[data-insert="false"] {
     color: #0c589c;
     font-weight: 500;
 }
+
+.tiny_widgethub-view-grid .tiny_widgethub-btn-group:hover>button[data-insert="true"] {
+    opacity: 1;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.tiny_widgethub-btn-group>button[data-insert="true"]:hover {
+    color: #fff !important;
+    background-color: #0f6cbf !important;
+}
+
 
 /* Auto filter button */
 .tiny_widgethub-view-grid .tiny_widgethub-btn-group>button[data-auto] {
@@ -812,13 +804,16 @@ div[data-widget="bs-carousel"] .carousel-indicators li::marker {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.2s ease-in-out;
 }
 
-/* Hide disabled icon in grid view if it's just an overlay, or style it differently */
-.tiny_widgethub-view-grid .tiny_widgethub-disabled {
-    opacity: 0.6;
-    background-color: #f8f9fa;
+.tiny_widgethub-btn-group>button[data-auto]:hover {
+    color: #fff !important;
+    background-color: #0f6cbf !important;
+}
+
+.tiny_widgethub-btn-group>button[data-insert="true"]:hover .twh-icon path,
+.tiny_widgethub-btn-group>button[data-auto]:hover .twh-icon path {
+    fill: #fff !important;
 }
 
 /* Responsive adjustments */
