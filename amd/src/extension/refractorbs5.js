@@ -20,7 +20,7 @@
  * @copyright   2025 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {getGlobalConfig} from "../options";
+import { getGlobalConfig } from "../options";
 import Common from '../common';
 import * as coreStr from "core/str";
 
@@ -70,13 +70,8 @@ export function bs5Refractor(editor) {
                 // Add or update the new Bootstrap 5 attribute if it's not already set to the correct value.
                 // This "duplicates" by ensuring the data-bs-xxx attribute exists with the same value.
                 // It does not remove the old data-xxx attribute in this refactor.
-                if (attrValue !== null) {
-                    if (element.getAttribute(newAttrName) !== attrValue) {
-                        element.setAttribute(newAttrName, attrValue);
-                        changes++;
-                    }
-                } else {
-                    element.removeAttribute(newAttrName);
+                if (attrValue !== null && element.getAttribute(newAttrName) !== attrValue) {
+                    element.setAttribute(newAttrName, attrValue);
                     changes++;
                 }
             }

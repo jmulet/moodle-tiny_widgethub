@@ -1,159 +1,219 @@
 
-import { WidgetParamsCtrl } from "../../../../amd/src/controller/widgetparams_ctrl";
+/**
+ *
+ * Tiny WidgetHub plugin.
+ *
+ * @module      tiny_widgethub/plugin
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+import jQuery from 'jquery';
 
-describe("WidgetParamsCtrl", () => {
-    let editor;
-    let userStorage;
-    let templateSrv;
-    let modalSrv;
-    let formCtrl;
-    let applyWidgetFilter;
-    let widget;
-    let widgetParamsCtrl;
-    let mockModal;
+const { WidgetParamsCtrl, getWidgetParamsFactory } = require("../../src/controller/widgetparams_ctrl");
+
+/** @type {*} */
+let mockEditor;
+
+/** @type {*} */
+const mockUserStorage = {
+    getFromLocal: jest.fn(),
+    getFromSession: jest.fn(),
+    getRecentUsed: jest.fn(),
+    setToSession: jest.fn()
+};
+
+/** @type {*} */
+const mockTemplateSrv = {
+    render: jest.fn(),
+    renderMustache: jest.fn(),
+    renderEJS: jest.fn()
+};
+
+/** @type {*} */
+const mockFileSrv = {
+    getImagePicker: jest.fn(),
+    displayImagePicker: jest.fn()
+};
+
+/** @type {*} */
+const mockFormCtrl = {};
+
+
+/** @type {*} */
+const widget = {
+    key: 'k1',
+    name: "widget-name",
+    defaults: { p1: "a", p2: 11 },
+    insertquery: ".ins-point",
+    parameters: [
+        { name: "p1", value: "", type: "textfield" },
+        { name: "p2", value: "", type: "textarea" },
+        { name: "p3", value: 0, type: "numeric" },
+        { name: "p4", value: false, type: "checkbox" },
+        { name: "p5", value: "#000000", type: "color" },
+        { name: "p6", value: "", type: "select", options: ["a", "b", "c"] },
+    ],
+    isFilter: () => false,
+    prop: () => undefined
+};
+
+const mockApplyWidgetFilter = jest.fn();
+
+/** @type {WidgetParamsCtrl} */
+let widgetParamsCtrl;
+
+/** @type {*} */
+let docSpy;
+
+describe("WidgetParamsCtrl Suite I", () => {
 
     beforeEach(() => {
-        editor = global.Mocks.editorFactory();
-        userStorage = {
-            getRecentUsed: jest.fn().mockReturnValue([]),
-            setToSession: jest.fn(),
-        };
-        templateSrv = {
-            render: jest.fn().mockResolvedValue('rendered_template'),
-        };
-        mockModal = {
-            body: Object.assign([], {
-                find: jest.fn().mockReturnValue({
-                    on: jest.fn(),
-                    html: jest.fn()
-                }),
-                popover: jest.fn()
-            }),
-            footer: {
-                show: jest.fn(),
-                find: jest.fn().mockReturnValue({
-                    on: jest.fn()
-                })
-            },
-            show: jest.fn(),
-            hide: jest.fn(),
-            destroy: jest.fn(),
-            twhRegisterListener: jest.fn()
-        };
-        modalSrv = {
-            create: jest.fn().mockResolvedValue(mockModal),
-        };
-        formCtrl = {
-            createContext: jest.fn().mockReturnValue({ idtabpane: 'tab1' }),
-            extractFormParameters: jest.fn().mockReturnValue({ p1: 'val1' }),
-            attachRepeatable: jest.fn(),
-            attachPickers: jest.fn(),
-            applyFieldWatchers: jest.fn(),
-        };
-        applyWidgetFilter = jest.fn();
-        widget = {
-            key: 'w1',
-            name: 'Widget 1',
-            defaults: { p1: 'def1' },
-            parameters: [],
-            prop: jest.fn(),
-            isFilter: jest.fn().mockReturnValue(false),
-            template: 'template_string'
-        };
+        jest.clearAllMocks();
 
-        widgetParamsCtrl = new WidgetParamsCtrl(
-            editor,
-            userStorage,
-            templateSrv,
-            modalSrv,
-            formCtrl,
-            applyWidgetFilter,
-            widget
-        );
+        mockEditor = global.Mocks.editorFactory();
+
+        docSpy = jest.spyOn(document, 'createElement');
+        widgetParamsCtrl = new WidgetParamsCtrl(mockEditor, mockUserStorage, mockTemplateSrv, mockFileSrv, mockFormCtrl, mockApplyWidgetFilter, widget);
+    })
+
+    it("It must create", () => {
+        expect(widgetParamsCtrl).toBeTruthy();
     });
 
-    describe("handleAction", () => {
-        it("should create and show modal", async () => {
-            await widgetParamsCtrl.handleAction();
+    it("It must create every time, no cache here", () => {
+        const c1 = getWidgetParamsFactory(mockEditor);
+        const c2 = getWidgetParamsFactory(mockEditor);
+        expect(c1).toBeTruthy();
+        expect(typeof c1).toBe("function");
+        expect(Object.is(c1, c2)).toBe(false);
 
-            expect(modalSrv.create).toHaveBeenCalledWith('params', expect.any(Object), expect.any(Function));
-            expect(formCtrl.createContext).toHaveBeenCalledWith(widget);
-            expect(formCtrl.attachRepeatable).toHaveBeenCalled();
-            expect(formCtrl.attachPickers).toHaveBeenCalled();
-            expect(formCtrl.applyFieldWatchers).toHaveBeenCalled();
-            expect(mockModal.show).toHaveBeenCalled();
-        });
-
-        it("should attach listeners to modal buttons", async () => {
-            await widgetParamsCtrl.handleAction();
-
-            // Verify footer buttons listeners
-            expect(mockModal.footer.find).toHaveBeenCalledWith("button.tiny_widgethub-btn-secondary");
-            expect(mockModal.footer.find).toHaveBeenCalledWith("button.tiny_widgethub-btn-primary");
-        });
+        // The factory always creates new objects
+        const inst1 = c1(widget);
+        const inst2 = c1(widget);
+        expect(inst1).toBeTruthy();
+        expect(Object.is(inst1, inst2)).toBe(false);
     });
 
-    describe("generateInterpolatedCode", () => {
-        it("should render template with context", async () => {
-            const ctx = { p1: 'newval' };
-            const code = await widgetParamsCtrl.generateInterpolatedCode(ctx);
-
-            expect(templateSrv.render).toHaveBeenCalledWith(
-                widget.template,
-                expect.objectContaining({ p1: 'newval' }),
-                undefined,
-                undefined
-            );
-            expect(code).toBe('rendered_template');
+    it("It must insert the widget given the context from the form", async () => {
+        // Set a mock for the recently used widgets
+        mockUserStorage.getRecentUsed = jest.fn().mockImplementation(() => {
+            return [{ key: "awesome", p: { bar: 'some' } }]
         });
 
-        it("should handle insertion query with replace mode", async () => {
-            widget.insertquery = "r! .target";
-            editor.selection.getContent.mockReturnValue("Selected Text");
-            templateSrv.render.mockResolvedValue('<div class="wrapper"><div class="target">Replace Me</div></div>');
+        const ctx = {
+            p1: 'P1',
+            p2: false,
+            p3: '#FF00AA'
+        };
 
-            const code = await widgetParamsCtrl.generateInterpolatedCode({});
+        const json = JSON.stringify([
+            { key: 'k1', p: { ...ctx } },
+            { key: "awesome", p: { bar: 'some' } }
+        ]);
 
-            expect(code).toContain('Selected Text');
-            expect(code).not.toContain('Replace Me');
-        });
+        // Mock the generateInterpolated function
+        const spy = jest.spyOn(widgetParamsCtrl, 'generateInterpolatedCode');
+        spy.mockResolvedValue("<p>...</p>");
 
-        it("should handle insertion query with insert mode", async () => {
-            widget.insertquery = ".target";
-            editor.selection.getContent.mockReturnValue("Selected Text");
-            templateSrv.render.mockResolvedValue('<div class="wrapper"><div class="target"></div></div>');
-
-            const code = await widgetParamsCtrl.generateInterpolatedCode({});
-
-            expect(code).toContain('<div class="target">Selected Text</div>');
-        });
+        await widgetParamsCtrl.insertWidget(ctx);
+        expect(spy).toHaveBeenCalledWith(ctx);
+        expect(mockUserStorage.setToSession).toHaveBeenCalledWith('recent', json, true);
+        expect(mockEditor.selection.setContent).toHaveBeenCalledWith('<p>...</p>');
+        expect(mockEditor.focus).toHaveBeenCalled();
     });
 
-    describe("insertWidget", () => {
-        it("should insert content into editor", async () => {
-            await widgetParamsCtrl.insertWidget({ p1: 'val' });
-
-            expect(editor.selection.setContent).toHaveBeenCalledWith('rendered_template');
-            expect(editor.focus).toHaveBeenCalled();
+    it("It must apply the widget filter given the context from the form", async () => {
+        // Set a mock for the recently used widgets
+        mockUserStorage.getRecentUsed = jest.fn().mockImplementation(() => {
+            return [{ key: "k1", p: {} }]
         });
 
-        it("should update recent used list", async () => {
-            await widgetParamsCtrl.insertWidget({ p1: 'val' });
+        const ctx = {};
 
-            expect(userStorage.setToSession).toHaveBeenCalledWith(
-                "recent",
-                expect.stringContaining(widget.key),
-                true
-            );
-        });
+        // Redefine the widget to be a filter
+        widget.template = 'return "Here there!"';
+        widget.isFilter = () => true;
+        widget.parameters = undefined;
+        widgetParamsCtrl = new WidgetParamsCtrl(mockEditor, mockUserStorage, mockTemplateSrv, mockFileSrv, mockFormCtrl, mockApplyWidgetFilter, widget);
 
-        it("should apply filter if widget is a filter", async () => {
-            widget.isFilter.mockReturnValue(true);
+        const json = JSON.stringify([
+            { key: 'k1', p: { ...ctx } },
+        ]);
 
-            await widgetParamsCtrl.insertWidget({ p1: 'val' });
+        // Mock the generateInterpolated function
+        const spy = jest.spyOn(widgetParamsCtrl, 'applyWidgetFilter');
 
-            expect(applyWidgetFilter).toHaveBeenCalled();
-            expect(editor.selection.setContent).not.toHaveBeenCalled();
-        });
+        await widgetParamsCtrl.insertWidget(ctx);
+        expect(spy).toHaveBeenCalledWith(widget.template, false, ctx);
+        expect(mockUserStorage.setToSession).toHaveBeenCalledWith('recent', json, true);
+        expect(mockEditor.selection.setContent).not.toHaveBeenCalled();
+        expect(mockEditor.focus).toHaveBeenCalled();
     });
+
+    it('Must geenrate the preview', async () => {
+        const body = jQuery('<div><div id="tab_0"></div><div id="tab_1"></div></div>');
+        // @ts-ignore
+        widgetParamsCtrl.modal = {
+            body
+        };
+        widgetParamsCtrl.generateInterpolatedCode = jest.fn().mockResolvedValue("<p>The content goes here!</p>");
+        const ctxFromDialogue = { p: 123, k: 'ku1' };
+
+        await widgetParamsCtrl.updatePreview('tab', ctxFromDialogue);
+        expect(widgetParamsCtrl.generateInterpolatedCode).toHaveBeenCalledWith(ctxFromDialogue);
+        expect(body.find('#tab_1').html()).toContain('The content goes here!');
+    });
+
+    it('Must generate the interpolated code (without selection) from the form context', async () => {
+        // Without any selection
+        widgetParamsCtrl.render = jest.fn().mockResolvedValue('<div class="alert"><div class="ins-point">1234-a</div></div>');
+        const ctx = { p: 1234, a: 'a' };
+
+        const txt = await widgetParamsCtrl.generateInterpolatedCode(ctx);
+        expect(mockEditor.selection.getContent).toHaveBeenCalled();
+        expect(docSpy).not.toHaveBeenCalled();
+        expect(txt).toBe('<div class="alert"><div class="ins-point">1234-a</div></div>');
+    });
+
+    it('Must generate the interpolated code (with selection) from the form context', async () => {
+        // With a selection
+        mockEditor.selection.getContent = jest.fn().mockReturnValue('<p>Hi there!</p>');
+        widgetParamsCtrl.render = jest.fn().mockResolvedValue('<div class="alert"><div class="ins-point"></div></div>');
+        const ctx = { p: 1234, a: 'a' };
+
+        const txt = await widgetParamsCtrl.generateInterpolatedCode(ctx);
+
+        expect(mockEditor.selection.getContent).toHaveBeenCalled();
+        expect(docSpy).toHaveBeenCalled();
+        expect(txt).toBe('<div class="alert"><div class="ins-point"><p>Hi there!</p></div></div>')
+    });
+
+    it('Must generate the interpolated code (with selection & replacement) from the form context', async () => {
+        // With a selection & replacement of node
+        widget.insertquery = 'r!.ins-point';
+
+        mockEditor.selection.getContent = jest.fn().mockReturnValue('<p>Hi there!</p>');
+        const ctx = { p: 1234, a: 'a' };
+
+        widgetParamsCtrl = new WidgetParamsCtrl(mockEditor, mockUserStorage, mockTemplateSrv, mockFileSrv, mockFormCtrl, mockApplyWidgetFilter, widget);
+        widgetParamsCtrl.render = jest.fn().mockResolvedValue('<div class="alert"><div class="ins-point"></div></div>');
+
+        const txt = await widgetParamsCtrl.generateInterpolatedCode(ctx);
+
+        expect(docSpy).toHaveBeenCalled();
+        expect(mockEditor.selection.getContent).toHaveBeenCalled();
+        expect(txt).toBe('<div class="alert"><p>Hi there!</p></div>')
+    });
+
+    it('Must render a template given a context', async () => {
+
+        mockTemplateSrv.render = jest.fn().mockResolvedValue("template");
+
+        const ctx = { a: 'abc' };
+        const txt = await widgetParamsCtrl.render(ctx);
+        expect(mockTemplateSrv.render).toHaveBeenCalledWith(widgetParamsCtrl.widget.template, expect.any(Object), undefined, undefined);
+        expect(txt).toBe('template');
+    });
+
+
 });

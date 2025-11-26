@@ -26,14 +26,14 @@ global.window["require"] = requirejs;
 global.requirejs = requirejs;
 
 // @ts-ignore
-module.exports = function applyMocks() { 
+module.exports = function applyMocks() {
     jest.mock("jquery", () => {
         const $ = require('../node_modules/jquery/dist/jquery.js');
         return {
             __esModule: true,
             default: $,
         }
-    }, { virtual: true }); 
+    }, { virtual: true });
     jest.mock("core/mustache", () => {
         const Mustache = require('mustache');
         return {
@@ -41,19 +41,19 @@ module.exports = function applyMocks() {
             default: Mustache,
         }
     }, { virtual: true });
-    
+
     jest.mock("core/config", () => ({
         __esModule: true,
         default: {
             wwwroot: "https://server.com"
         }
-    }), {virtual: true});
+    }), { virtual: true });
 
-    
+
     jest.mock("core/str", () => {
         const fs = require('fs');
-        const {component} = require('../src/common').default; 
-        const fileContent = fs.readFileSync(`../../lang/en/${component}.php`, {encoding: "utf8"});
+        const { component } = require('../src/common').default;
+        const fileContent = fs.readFileSync(`../../lang/en/${component}.php`, { encoding: "utf8" });
         const regex = /\$string\[\s*'(.*)'\s*\]\s*=\s*'\s*(.*)\s*'\s*;\s*/gm;
         const map = new Map();
         let m;
@@ -64,8 +64,8 @@ module.exports = function applyMocks() {
             }
             // The result can be accessed through the `m`-variable.
             map.set(m[1], m[2]);
-        } 
-        const get_strings = jest.fn().mockImplementation(function(/** @type {{key: string, component: string}[]}*/ kps) {
+        }
+        const get_strings = jest.fn().mockImplementation(function (/** @type {{key: string, component: string}[]}*/ kps) {
             return Promise.resolve(kps.map(kp => map.get(kp.key) ?? kp.key));
         });
         const coreStr = {
@@ -89,7 +89,7 @@ module.exports = function applyMocks() {
             get_string: coreStr.get_string,
             get_strings
         };
-    }, { virtual: true }); 
+    }, { virtual: true });
     jest.mock("core/log", () => {
         return {
             __esModule: true,
@@ -105,25 +105,25 @@ module.exports = function applyMocks() {
         getFilePicker: jest.fn(),
         /* @ts-ignore */
         getPluginOptionName: jest.fn().mockImplementation((_, key) => key)
-    }), {virtual: true});
-    
+    }), { virtual: true });
+
     jest.mock("editor_tiny/utils", () => ({
         __esModule: true,
         displayFilepicker: jest.fn()
-    }), {virtual: true});
-    
+    }), { virtual: true });
+
 
     jest.mock('editor_tiny/utils', () => ({
         __esModule: true,
         displayFilepicker: jest.fn()
-    }), {virtual: true});
+    }), { virtual: true });
 
 
     // Modal mock virtual modules
     jest.mock("core/modal", () => ({
         __esModule: true,
         default: class {
-            registerEventListeners() {}
+            registerEventListeners() { }
         }
     }), { virtual: true });
 
@@ -139,7 +139,8 @@ module.exports = function applyMocks() {
         default: {
             create: () => {
                 const _onFn = jest.fn();
-                return Promise.resolve({                
+                const registeredListeners = new Map();
+                return Promise.resolve({
                     getRoot: () => ({
                         on: _onFn
                     }),
@@ -150,7 +151,31 @@ module.exports = function applyMocks() {
                         css: jest.fn()
                     },
                     body: jest.fn(),
-                    footer: jest.fn()
+                    footer: jest.fn(),
+                    twhRegisterListener: jest.fn().mockImplementation((/** @type {any} */ element, /** @type {any} */ eventName, /** @type {any} */ handler) => {
+                        if (registeredListeners.has(element)) {
+                            return;
+                        }
+                        registeredListeners.set(element, { eventName, handler });
+                        element.addEventListener(eventName, handler);
+                    }),
+                    twhRegisterListenerBySelector: jest.fn().mockImplementation((/** @type {any} */ container, /** @type {any} */ selector, /** @type {any} */ eventName, /** @type {any} */ handler) => {
+                        const element = container.querySelector(selector);
+                        if (!element) {
+                            return;
+                        }
+                        if (registeredListeners.has(element)) {
+                            return;
+                        }
+                        registeredListeners.set(element, { eventName, handler });
+                        element.addEventListener(eventName, handler);
+                    }),
+                    destroy: jest.fn().mockImplementation(() => {
+                        registeredListeners.forEach((value, key) => {
+                            key.removeEventListener(value.eventName, value.handler);
+                        });
+                        registeredListeners.clear();
+                    })
                 })
             }
         }
