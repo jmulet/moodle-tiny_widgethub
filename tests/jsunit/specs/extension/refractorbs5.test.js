@@ -21,6 +21,7 @@ const refractor = require('../../src/extension/refractorbs5');
 const getGlobalConfig = require('../../src/options').getGlobalConfig;
 /** @type {any} */
 const coreStr = require('core/str');
+const { component } = require('../../src/common').default;
 
 
 describe('bs5Refractor', () => {
@@ -99,7 +100,7 @@ describe('refractorListener', () => {
     await refractor.refractorListener(editor);
 
     expect(getGlobalConfig).toHaveBeenCalledWith(editor, 'oninit.refractor.bs5', '0');
-    expect(coreStr.get_string).toHaveBeenCalledWith('saverequired', 'tiny_widgethub');
+    expect(coreStr.get_string).toHaveBeenCalledWith('saverequired', component);
     expect(notificationManagerOpen).toHaveBeenCalledWith({
       text: 'Save required',
       type: 'warning',
