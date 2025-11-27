@@ -1,19 +1,68 @@
 /********************************** Specific Widget definitions styles */
 
-// Variables
+// =========================================
+// 1. Variables
+// =========================================
+
+// Colors
 $subsub-marker-bg: #bed0f6;
 $quote-bg: #f6f6ff;
 $quote-color: #222222;
-$quote-shadow: rgba(34, 34, 34, 0.12);
+$quote-shadow-color: rgba(34, 34, 34, 0.12);
 $quote-mark-color: rgba(91, 88, 241, .3);
+
 $fragment-bg: #fff;
-$fragment-shadow: rgba(0, 0, 0, 0.5);
+$fragment-shadow-color: rgba(0, 0, 0, 0.5);
 $fragment-pseudo-bg: #f6f6f6;
 $fragment-pseudo-shadow: rgba(0, 0, 0, 0.6);
+
 $ctx-bg: rgb(31, 106, 219);
 $ctx-color: rgb(241, 245, 254);
 $time-bg: rgb(241, 245, 254);
 $time-color: rgb(31, 106, 219);
+$debug-border-color: orange; // For .notranslate
+
+// Fonts
+$font-family-serif: Georgia, serif;
+$font-family-icon: "Font Awesome 6 Free", "FontAwesome";
+
+// Z-Indexes (Layer Management)
+$z-index-fragment-pseudo: -1;
+$z-index-fragment: 1;
+
+// Breakpoints
+$bp-mobile-sm: 480px;
+$bp-mobile: 640px;
+$bp-tablet: 767px;
+$bp-desktop: 1200px;
+$bp-desktop-lg: 1281px;
+
+// =========================================
+// 2. Mixins
+// =========================================
+
+// Media Query Manager
+@mixin respond-to($breakpoint) {
+    @media (max-width: $breakpoint) {
+        @content;
+    }
+}
+
+@mixin respond-from($breakpoint) {
+    @media (min-width: $breakpoint) {
+        @content;
+    }
+}
+
+// Pseudo-element Generator (reduces boilerplate)
+@mixin pseudo($pos: absolute, $content: '') {
+    content: $content;
+    position: $pos;
+}
+
+// =========================================
+// 3. Styles
+// =========================================
 
 /** subsection **/
 h4.twh-subsub {
@@ -23,13 +72,12 @@ h4.twh-subsub {
     font-style: italic;
     font-weight: bold;
 
-    @media(max-width: 1200px) {
+    @include respond-to($bp-desktop) {
         font-size: calc(0.87625rem + 0.6075vw);
     }
 
     &::before {
-        content: '';
-        position: absolute;
+        @include pseudo;
         left: 0;
         top: 6px;
         width: 10px;
@@ -43,10 +91,9 @@ h4.twh-subsub {
 .twh-quote {
     background: $quote-bg;
     color: $quote-color;
-    padding: 20px;
-    padding-left: 50px;
+    padding: 20px 20px 20px 50px; // Shorthand
     box-sizing: border-box;
-    box-shadow: 0 2px 4px $quote-shadow;
+    box-shadow: 0 2px 4px $quote-shadow-color;
     position: relative;
     overflow: hidden;
     min-height: 120px;
@@ -66,29 +113,30 @@ h4.twh-subsub {
         opacity: 0.9;
     }
 
-    &:before {
-        font-family: Georgia, serif;
-        content: "“";
+    // Shared styles for quotes marks
+    &:before,
+    &:after {
+        font-family: $font-family-serif;
         position: absolute;
-        top: 10px;
-        left: 10px;
-        font-size: 5em;
         color: $quote-mark-color;
         font-weight: normal;
     }
 
+    &:before {
+        content: "“";
+        top: 10px;
+        left: 10px;
+        font-size: 5em;
+    }
+
     &:after {
-        font-family: Georgia, serif;
         content: "”";
-        position: absolute;
         bottom: -110px;
         line-height: 100px;
         right: -32px;
         font-size: 20em;
-        color: $quote-mark-color;
-        font-weight: normal;
 
-        @media (max-width: 640px) {
+        @include respond-to($bp-mobile) {
             font-size: 18em;
             right: -25px;
         }
@@ -99,13 +147,13 @@ h4.twh-subsub {
 /** Component text fragment **/
 .twh-fragment {
     background: $fragment-bg;
-    box-shadow: 0 0 10px $fragment-shadow;
+    box-shadow: 0 0 10px $fragment-shadow-color;
     margin: 35px auto;
     min-height: 300px;
-    padding: 24px 24px 24px 24px;
+    padding: 24px;
     position: relative;
     width: 92%;
-    z-index: 1;
+    z-index: $z-index-fragment;
 
     >h4:first-of-type {
         margin-bottom: 20px;
@@ -120,17 +168,17 @@ h4.twh-subsub {
         opacity: 0.8;
     }
 
+    // Combined pseudo styles
     &:before,
     &:after {
-        content: "";
+        @include pseudo;
         height: 98%;
-        position: absolute;
         width: 100%;
-        z-index: -1;
+        z-index: $z-index-fragment-pseudo;
+        background: $fragment-pseudo-bg;
     }
 
     &:before {
-        background: $fragment-pseudo-bg;
         box-shadow: 0 0 8px $fragment-pseudo-shadow;
         left: -5px;
         top: 4px;
@@ -138,7 +186,6 @@ h4.twh-subsub {
     }
 
     &:after {
-        background: $fragment-pseudo-bg;
         box-shadow: 0 0 3px $fragment-pseudo-shadow;
         right: -3px;
         top: 1px;
@@ -152,22 +199,14 @@ h4.twh-subsub {
     margin: auto;
     overflow: hidden;
 
-    /* 
-     ##Device = Most of the Smartphones Mobiles (Portrait)
-     ##Screen = B/w 320px to 479px
-    */
-    @media (max-width: 480px) {
+    // Mobile (Portrait)
+    @include respond-to($bp-mobile-sm) {
         width: 95%;
-        margin: auto;
     }
 
-    /* 
-    ##Device = Desktops
-    ##Screen = 1281px to higher resolution desktops
-    */
-    @media (min-width: 1281px) {
+    // Desktops
+    @include respond-from($bp-desktop-lg) {
         width: 75%;
-        margin: auto;
     }
 }
 
@@ -178,12 +217,13 @@ h4.twh-subsub {
     padding-top: 25px;
     height: 0;
 
+    // Modern selector - ensure browser support or use JS fallback
     &:has(.h5p-placeholder) {
         margin-bottom: 18px;
     }
 
     iframe {
-        position: absolute;
+        @include pseudo;
         top: 0;
         left: 0;
         width: 100%;
@@ -198,13 +238,9 @@ h4.twh-subsub {
 }
 
 /** Medias and responsivity **/
-/* 
-     ##Device = Low Resolution Tablets, Mobiles (Landscape)
-     ##Screen = B/w 481px to 767px
-    */
-@media (max-width: 767px) {
+@include respond-to($bp-tablet) {
     .tiny_widgethub-preview {
-        display: none !important
+        display: none !important;
     }
 }
 
@@ -217,7 +253,7 @@ h4.twh-subsub {
 
 i.fad.fa-stopwatch::before {
     content: "\f017";
-    font-family: "Font Awesome 6 Free", "FontAwesome";
+    font-family: $font-family-icon;
     font-style: normal;
     font-weight: 900;
 }
@@ -252,7 +288,7 @@ i.fad.fa-stopwatch::before {
 
 div.notranslate,
 span.notranslate {
-    border: 1px dotted orange;
+    border: 1px dotted $debug-border-color;
 }
 
 /** Compatibility carousel in bs 4 and 5 */

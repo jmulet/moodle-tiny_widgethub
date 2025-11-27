@@ -441,7 +441,21 @@ h4.tiny_widgethub-headertext {
 }
 
 /********************************** Grid View Styles */
+.twh-widget-icon {
+    display: none;
+}
+
 .tiny_widgethub-view-grid {
+    .tiny_widgethub-disabled {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    .twh-widget-icon {
+        display: block;
+    }
+
     .tiny_widgethub-category {
         >div.d-flex {
             flex-direction: row !important;
