@@ -87,16 +87,16 @@ export class WidgetPickerCtrl {
     /**
      * Shows or hides buttons according to the search text condition
      * When text == '', all non-hidden buttons should be displayed
-     * @param {JQuery<HTMLElement>} bodyForm
+     * @param {HTMLElement} bodyForm
      * @param {string} searchtext
      * @returns {number}
      */
     setWidgetButtonsVisibility(bodyForm, searchtext) {
         let numshown = 0;
         const selectmode = this.isSelectMode();
-        /** @type {JQuery<HTMLDivElement>} */
-        const allbtns = bodyForm.find(".tiny_widgethub-btn-group");
-        allbtns.each((i, el) => {
+        /** @type {NodeListOf<HTMLDivElement>} */
+        const allbtns = bodyForm.querySelectorAll(".tiny_widgethub-btn-group");
+        allbtns.forEach(el => {
             // Is supported in select mode?
             let visible = !selectmode || (selectmode && el.dataset.selectable === "true");
             const el2 = el.querySelector('button');
@@ -112,32 +112,52 @@ export class WidgetPickerCtrl {
     }
 
     /**
-     * Callback on keyup event
+     * Callback on keyup event. Updates the visibility of the widgets and the empty list message.
+     * @returns {void}
      */
     onSearchKeyup() {
-        const searchtext = this.modal.body.find("input").val() ?? '';
+        if (!this.body) {
+            return;
+        }
+        const searchtext = this.body.querySelector("input")?.value ?? '';
         this.storage.setToSession('searchtext', searchtext, true);
 
         // Are we in selectmode, does the widget support it? insertquery
-        const numshown = this.setWidgetButtonsVisibility(this.modal.body, searchtext);
+        const numshown = this.setWidgetButtonsVisibility(this.body, searchtext);
         // If no button visible, show emptyList message
-        setVisibility(this.modal.body.find(".tiny_widgethub-emptylist")[0], numshown == 0);
+        /** @type {HTMLElement | null} */
+        const emptyListElem = this.body.querySelector(".tiny_widgethub-emptylist");
+        if (emptyListElem) {
+            setVisibility(emptyListElem, numshown == 0);
+        }
 
         // Hide categories without any button visible
-        /** @type {JQuery<HTMLElement>} */
-        const allcatgs = this.modal.body.find(".tiny_widgethub-category");
-        allcatgs.each((_, el) => {
+        /** @type {NodeListOf<HTMLDivElement>} */
+        const allcatgs = this.body.querySelectorAll(".tiny_widgethub-category");
+        allcatgs.forEach(el => {
             const count = el.querySelectorAll(".tiny_widgethub-btn-group:not(.d-none)").length;
             setVisibility(el, count > 0);
         });
     }
 
     /**
-     * @param {*} evt
+     * @param {MouseEvent} evt
      */
     async onMouseEnterButton(evt) {
         const widgetTable = this.editorOptions.widgetDict;
-        const key = evt.target?.closest('.tiny_widgethub-btn-group')?.dataset?.key ?? '';
+        const target = evt.target;
+        /** @type {Element | null | undefined} */
+        let el = null;
+        if (target instanceof Element) {
+            el = target;
+        } else if (target instanceof Node && target.parentElement) {
+            el = target.parentElement;
+        }
+
+        /** @type {HTMLElement | null | undefined} */
+        const group = el?.closest('.tiny_widgethub-btn-group');
+        const key = group?.dataset?.key ?? '';
+
         const widget = widgetTable[key];
         if (!widget || widget.isFilter()) {
             // Filters do not offer preview
@@ -150,9 +170,12 @@ export class WidgetPickerCtrl {
             html = await this.generatePreview(widget);
             widget._preview = html;
         }
-        this.modal.body.find("div.tiny_widgethub-preview")
-            .html(html)
-            .css("display", "block");
+        /** @type {HTMLDivElement | null | undefined} */
+        const previewElem = this.body?.querySelector("div.tiny_widgethub-preview");
+        if (previewElem) {
+            previewElem.innerHTML = html;
+            previewElem.style.display = "block";
+        }
     }
 
     async createModal() {
@@ -167,6 +190,8 @@ export class WidgetPickerCtrl {
         };
 
         this.modal = await this.modalSrv.create('picker', data);
+        this.body = this.modal.body[0];
+        this.header = this.modal.header[0];
 
         // Add select mode identifier to the header
         const blinkElem = document.createElement("SPAN");
@@ -175,12 +200,26 @@ export class WidgetPickerCtrl {
         blinkElem.innerHTML = `<span class="twh-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M48 115.8C38.2 107 32 94.2 32 80c0-26.5 21.5-48 48-48c14.2 0 27 6.2 35.8 16l344.4 0c8.8-9.8 21.6-16 35.8-16c26.5 0 48 21.5 48 48c0 14.2-6.2 27-16 35.8l0 280.4c9.8 8.8 16 21.6 16 35.8c0 26.5-21.5 48-48 48c-14.2 0-27-6.2-35.8-16l-344.4 0c-8.8 9.8-21.6 16-35.8 16c-26.5 0-48-21.5-48-48c0-14.2 6.2-27 16-35.8l0-280.4zM125.3 96c-4.8 13.6-15.6 24.4-29.3 29.3l0 261.5c13.6 4.8 24.4 15.6 29.3 29.3l325.5 0c4.8-13.6 15.6-24.4 29.3-29.3l0-261.5c-13.6-4.8-24.4-15.6-29.3-29.3L125.3 96zm2.7 64c0-17.7 14.3-32 32-32l128 0c17.7 0 32 14.3 32 32l0 96c0 17.7-14.3 32-32 32l-128 0c-17.7 0-32-14.3-32-32l0-96zM256 320l32 0c35.3 0 64-28.7 64-64l0-32 64 0c17.7 0 32 14.3 32 32l0 96c0 17.7-14.3 32-32 32l-128 0c-17.7 0-32-14.3-32-32l0-32z"/></svg>
         </span> ${selectModeStr}`;
-        this.modal.header[0]?.append(blinkElem);
+        this.header?.appendChild(blinkElem);
 
         try {
-            this.modal.body.find(".tiny_widgethub-categorycontainer")
-                // @ts-ignore
-                .scrollspy('refresh');
+            /** @type {any} */
+            // @ts-ignore
+            const bs = window.bootstrap;
+            // Bootstrap 5 ? (no jQuery plugins, uses JS class)
+            if (bs && bs.ScrollSpy) {
+                const el = this.body.querySelector(".tiny_widgethub-categorycontainer");
+                if (el) {
+                    const instance = bs.ScrollSpy.getInstance(el)
+                        || new bs.ScrollSpy(el, {});
+                    instance.refresh();
+                }
+            } else {
+                // Bootstrap 4 ? (jQuery plugin exists)
+                /** @type {any} */
+                const $el = this.modal.body.find(".tiny_widgethub-categorycontainer");
+                $el.scrollspy('refresh');
+            }
         } catch (ex) {
             console.error("Problem setting scrollspy", ex);
         }
@@ -197,38 +236,48 @@ export class WidgetPickerCtrl {
 
         // Event listeners.
         // Click on clear text
-        const widgetSearchElem = this.modal.body.find("input");
-        widgetSearchElem.val(searchtext);
-        const debouncedKeyup = debounce(this.onSearchKeyup.bind(this), 800);
-        widgetSearchElem.on('keyup', debouncedKeyup);
+        const widgetSearchElem = this.body.querySelector("input");
+        if (widgetSearchElem) {
+            widgetSearchElem.value = searchtext;
+            const debouncedKeyup = debounce(this.onSearchKeyup.bind(this), 800);
+            widgetSearchElem.addEventListener('keyup', debouncedKeyup);
 
-        this.modal.body.find(`#widget-clearfilter-btn${data.rid}`).on('click', () => {
-            debouncedKeyup.clear();
-            widgetSearchElem.val("");
-            widgetSearchElem.trigger("focus");
-            this.onSearchKeyup();
-        });
+            this.body.querySelector(`#widget-clearfilter-btn${data.rid}`)?.addEventListener('click', () => {
+                debouncedKeyup.clear();
+                widgetSearchElem.value = "";
+                widgetSearchElem.focus();
+                widgetSearchElem.dispatchEvent(new Event("focus"));
+                this.onSearchKeyup();
+            });
+        }
 
         // Toggle view button
         this.updateView(viewMode, data.rid);
-        this.modal.body.find(`#widget-view-toggle-btn${data.rid}`).on('click', () => {
+        this.body.querySelector(`#widget-view-toggle-btn${data.rid}`)?.addEventListener('click', () => {
             const currentMode = this.storage.getFromLocal('widgethub_view_mode', 'list');
             const newMode = currentMode === 'list' ? 'grid' : 'list';
             this.updateView(newMode, data.rid);
         });
 
         // Click on any widget button (bubbles)
-        this.modal.body.find('div.tiny_widgethub-categorycontainer, div.tiny_widgethub-recent').on('click',
-            /** @param {JQuery.ClickEvent} event */
-            (event) => {
-                if (timerEnter) {
-                    clearTimeout(timerEnter);
-                    timerEnter = null;
-                }
-                this.modal.body.find("div.tiny_widgethub-preview")
-                    .css("display", "none");
-                this.handlePickModalClick(event);
-            });
+        /** @type {NodeListOf<HTMLElement>} */
+        const allWidgetDivs = this.body.querySelectorAll('div.tiny_widgethub-categorycontainer, div.tiny_widgethub-recent');
+        allWidgetDivs.forEach((divElem) => {
+            divElem.addEventListener('click',
+                /** @param {MouseEvent} event */
+                (event) => {
+                    if (timerEnter) {
+                        clearTimeout(timerEnter);
+                        timerEnter = null;
+                    }
+                    /** @type {HTMLElement | undefined | null}   */
+                    const previewEl = this.body?.querySelector("div.tiny_widgethub-preview");
+                    if (previewEl) {
+                        previewEl.style.display = "none";
+                    }
+                    this.handlePickModalClick(event);
+                });
+        });
 
 
         const funEnter = (/** @type {any} */ evt) => {
@@ -253,21 +302,29 @@ export class WidgetPickerCtrl {
             clearTimeout(timerEnter);
             timerEnter = null;
             timerOut = setTimeout(() => {
-                this.modal.body.find("div.tiny_widgethub-preview")
-                    .html('')
-                    .css("display", "none");
+                /** @type {HTMLDivElement | undefined | null} */
+                const previewEl = this.body?.querySelector("div.tiny_widgethub-preview");
+                if (previewEl) {
+                    previewEl.innerHTML = '';
+                    previewEl.style.display = "none";
+                }
             }, 500);
         };
 
         // Preview panel
-        this.modal.body.find(".tiny_widgethub-btn-group > button")
-            .on("mouseenter", funEnter)
-            .on("mouseout", funOut);
+        const widgetButtons = this.body.querySelectorAll(".tiny_widgethub-btn-group > button");
+        widgetButtons.forEach(btn => {
+            btn.addEventListener("mouseenter", funEnter);
+            btn.addEventListener("mouseout", funOut);
+        });
 
         // Store current scroll
-        const scrollPane = this.modal.body.find('.tiny_widgethub-categorycontainer');
-        scrollPane.on('scroll', debounce(() => {
-            this.scrollPos = Math.round(scrollPane.scrollTop() ?? 0);
+        // Get the element
+        const scrollPane = this.body.querySelector('.tiny_widgethub-categorycontainer');
+
+        // Add scroll listener with debounce
+        scrollPane?.addEventListener('scroll', debounce(() => {
+            this.scrollPos = Math.round(scrollPane.scrollTop || 0);
         }, 100));
     }
 
@@ -295,27 +352,35 @@ export class WidgetPickerCtrl {
                     <span class="badge badge-secondary text-truncate d-inline-block" style="max-width: 120px;" title="${widgetDict[r.key].name}">
                     ${widgetDict[r.key].name}</span></a>`)
                 .join('\n');
-            this.modal.body.find('.tiny_widgethub-recent').html(html);
+            const recentDiv = this.body?.querySelector('.tiny_widgethub-recent');
+            if (recentDiv) {
+                recentDiv.innerHTML = html;
+            }
         }
         // Call filter function to make sure the list is updated.
         this.onSearchKeyup();
 
-        if (selectmode) {
-            this.modal.header.find("span.tiny_widgethub-blink").removeClass("d-none");
-        } else {
-            this.modal.header.find("span.tiny_widgethub-blink").addClass("d-none");
+        const spanBlink = this.header?.querySelector("span.tiny_widgethub-blink");
+        if (spanBlink) {
+            if (selectmode) {
+                spanBlink.classList.remove("d-none");
+            } else {
+                spanBlink.classList.add("d-none");
+            }
         }
 
         this.modal.show();
 
         setTimeout(() => {
-            if (!this.modal?.body) {
+            if (!this.body) {
                 return;
             }
-            if (this.scrollPos > 0) {
-                this.modal.body.find('.tiny_widgethub-categorycontainer').scrollTop(this.scrollPos);
+            const scrollPane = this.body.querySelector('.tiny_widgethub-categorycontainer');
+            if (scrollPane && this.scrollPos > 0) {
+                scrollPane.scrollTop = this.scrollPos;
             }
-            this.modal.body.find("input").trigger('focus');
+            // Focus the first input inside the modal body
+            this.body.querySelector('input')?.focus();
         }, 200);
     }
 
@@ -325,21 +390,28 @@ export class WidgetPickerCtrl {
     }
 
     /**
-     * @param {string} mode
-     * @param {string} rid
+     * Handles the view toggle button click event.
+     * @param {string} mode 'grid' or 'list'
+     * @param {string} rid The id of the widget picker.
      */
     updateView(mode, rid) {
-        const container = this.modal.body.find('.tiny_widgethub-categorycontainer');
-        const btn = this.modal.body.find(`#widget-view-toggle-btn${rid}`);
+        const categoryContainer = this.body?.querySelector('.tiny_widgethub-categorycontainer');
+        const btnIcon = this.body?.querySelector(`#widget-view-toggle-btn${rid} .twh-icon`);
 
         if (mode === 'grid') {
-            container.addClass('tiny_widgethub-view-grid').removeClass('tiny_widgethub-view-list');
+            categoryContainer?.classList?.add('tiny_widgethub-view-grid');
+            categoryContainer?.classList?.remove('tiny_widgethub-view-list');
             // Set icon to List (to switch back)
-            btn.find('.twh-icon').html('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M40 48C26.7 48 16 58.7 16 72v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V72c0-13.3-10.7-24-24-24H40zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zM16 232v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V232c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24zM40 368c-13.3 0-24 10.7-24 24v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V392c0-13.3-10.7-24-24-24H40z"/></svg>');
+            if (btnIcon) {
+                btnIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M40 48C26.7 48 16 58.7 16 72v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V72c0-13.3-10.7-24-24-24H40zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zM16 232v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V232c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24zM40 368c-13.3 0-24 10.7-24 24v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V392c0-13.3-10.7-24-24-24H40z"/></svg>';
+            }
         } else {
-            container.addClass('tiny_widgethub-view-list').removeClass('tiny_widgethub-view-grid');
+            categoryContainer?.classList?.remove('tiny_widgethub-view-grid');
+            categoryContainer?.classList?.add('tiny_widgethub-view-list');
             // Set icon to Grid (to switch to grid)
-            btn.find('.twh-icon').html('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M0 72C0 49.9 17.9 32 40 32H88c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H40c-22.1 0-40-17.9-40-40V72zM0 232c0-22.1 17.9-40 40-40H88c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H40c-22.1 0-40-17.9-40-40V232zM128 392c0-22.1-17.9-40-40-40H40c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40V392zM160 72c0-22.1 17.9-32 40-32H248c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H200c-22.1 0-40-17.9-40-40V72zM160 232c0-22.1 17.9-40 40-40H248c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H200c-22.1 0-40-17.9-40-40V232zM288 392c0-22.1-17.9-40-40-40H200c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H248c22.1 0 40-17.9 40-40V392zM320 72c0-22.1 17.9-32 40-32H408c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H360c-22.1 0-40-17.9-40-40V72zM320 232c0-22.1 17.9-40 40-40H408c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H360c-22.1 0-40-17.9-40-40V232zM448 392c0-22.1-17.9-40-40-40H360c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H408c22.1 0 40-17.9 40-40V392z"/></svg>');
+            if (btnIcon) {
+                btnIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M0 72C0 49.9 17.9 32 40 32H88c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H40c-22.1 0-40-17.9-40-40V72zM0 232c0-22.1 17.9-40 40-40H88c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H40c-22.1 0-40-17.9-40-40V232zM128 392c0-22.1-17.9-40-40-40H40c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40V392zM160 72c0-22.1 17.9-32 40-32H248c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H200c-22.1 0-40-17.9-40-40V72zM160 232c0-22.1 17.9-40 40-40H248c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H200c-22.1 0-40-17.9-40-40V232zM288 392c0-22.1-17.9-40-40-40H200c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H248c22.1 0 40-17.9 40-40V392zM320 72c0-22.1 17.9-32 40-32H408c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H360c-22.1 0-40-17.9-40-40V72zM320 232c0-22.1 17.9-40 40-40H408c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H360c-22.1 0-40-17.9-40-40V232zM448 392c0-22.1-17.9-40-40-40H360c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H408c22.1 0 40-17.9 40-40V392z"/></svg>';
+            }
         }
         this.storage.setToLocal('widgethub_view_mode', mode);
     }
@@ -526,7 +598,7 @@ export class WidgetPickerCtrl {
     /**
      * Handle a click within the Modal.
      *
-     * @param {JQuery.ClickEvent} event The click event
+     * @param {MouseEvent} event The click event
      */
     async handlePickModalClick(event) {
         /** @type {any} */

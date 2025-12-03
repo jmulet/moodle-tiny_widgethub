@@ -25,7 +25,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import Common from './common';
-const {component} = Common;
+const { component } = Common;
 
 /**
  * @param {string} [prefix]
@@ -64,7 +64,7 @@ export function evalInContext(ctx, expr, keepFns) {
 }
 
 /**
- * @param {string} s - string to the hashed
+ * @param {string} s - string to be hashed
  * @returns {number}
  */
 export function hashCode(s) {
@@ -87,41 +87,29 @@ export function hashCode(s) {
  * @returns {boolean} Whether str1 contains needle or not
  */
 export function searchComp(str1, needle) {
-    str1 = (str1 || '').trim().toLowerCase();
-    needle = (needle || '').trim().toLowerCase();
-    str1 = str1.replace(/[àáâãäå]/, "a")
-        .replace(/[èéêë]/, "e")
-        .replace(/[ìíîï]/, "i")
-        .replace(/[òóôö]/, "o")
-        .replace(/[ùúüû]/, "u")
-        .replace(/ç/, "c")
-        .replace(/·/, "");
-    needle = needle.replace(/[àáâãäå]/, "a")
-        .replace(/[èéêë]/, "e")
-        .replace(/[ìíîï]/, "i")
-        .replace(/[òóôö]/, "o")
-        .replace(/[ùúüû]/, "u")
-        .replace(/ç/, "c")
-        .replace(/·/, "");
-    return str1.indexOf(needle) >= 0;
+    /** @param {string} str */
+    const normalize = (str) => {
+        return (str || '').trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    };
+    return normalize(str1).includes(normalize(needle));
 }
 
 /** Default transformers */
 const Transformers = {
     /** @param {string} txt */
-    toUpperCase: function(txt) {
+    toUpperCase: function (txt) {
         return (txt + "").toUpperCase();
     },
     /** @param {string} txt */
-    toLowerCase: function(txt) {
+    toLowerCase: function (txt) {
         return (txt + "").toLowerCase();
     },
     /** @param {string} txt */
-    trim: function(txt) {
+    trim: function (txt) {
         return (txt + "").trim();
     },
     /** @param {string} txt */
-    ytId: function(txt) {
+    ytId: function (txt) {
         // Finds the youtubeId in a text
         const rx = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/;
         const r = (txt || '').match(rx);
@@ -131,7 +119,7 @@ const Transformers = {
         return txt;
     },
     /** @param {string} txt */
-    vimeoId: function(txt) {
+    vimeoId: function (txt) {
         const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?(\d+)/;
         const match = new RegExp(regExp).exec(txt || "");
         if (match?.[5]) {
@@ -140,7 +128,7 @@ const Transformers = {
         return txt;
     },
     /** @param {string} txt */
-    serveGDrive: function(txt) {
+    serveGDrive: function (txt) {
         // Expecting https://drive.google.com/file/d/1DDUzcFrOlzWb3CBdFPJ1NCNXClvPbm5B/preview
         const res = (txt + "").match(/https:\/\/drive.google.com\/file\/d\/([a-zA-Z0-9_]+)\//);
         if (res?.length) {
@@ -150,11 +138,11 @@ const Transformers = {
         return txt;
     },
     /** @param {string} txt */
-    removeHTML: function(txt) {
+    removeHTML: function (txt) {
         return (txt || '').replace(/<[^>]*>?/gm, '');
     },
     /** @param {string} txt */
-    escapeHTML: function(txt) {
+    escapeHTML: function (txt) {
         return (txt || '').replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
@@ -162,12 +150,12 @@ const Transformers = {
             .replace(/'/g, "&#039;");
     },
     /** @param {string} txt */
-    encodeHTML: function(txt) {
+    encodeHTML: function (txt) {
         // @ts-ignore
         return encodeURIComponent(txt || "");
     },
     /** @param {string} txt */
-    escapeQuotes: function(txt) {
+    escapeQuotes: function (txt) {
         return (txt || '').replace(/"/gm, "'");
     }
 };
@@ -245,10 +233,10 @@ export function applyWidgetFilterFactory(editor, coreStr) {
      * @param {object?} mergevars
      * @returns {Promise<boolean>} - True if the filter can be compiled
      */
-    return async(widgetTemplate, silent, mergevars) => {
+    return async (widgetTemplate, silent, mergevars) => {
         const translations = await coreStr.get_strings([
-            {key: 'filterres', component},
-            {key: 'nochanges', component}
+            { key: 'filterres', component },
+            { key: 'nochanges', component }
         ]);
         // Es tracta d'un filtre, no d'un widget i s'ha de tractar de forma diferent
         const userWidgetFilter = createFilterFunction(widgetTemplate);
@@ -262,7 +250,7 @@ export function applyWidgetFilterFactory(editor, coreStr) {
             return false;
         }
         // @ts-ignore
-        const handleFilterResult = function(res) {
+        const handleFilterResult = function (res) {
             const out = res[0];
             let msg = res[1];
             if (out != null) {
@@ -585,7 +573,7 @@ export function removeRndFromCtx(ctx, parameters) {
  */
 export function loadScriptAsync(editor, src) {
     return new Promise((resolve, reject) => {
-        const s = editor.dom.create('script', {src});
+        const s = editor.dom.create('script', { src });
         s.onload = () => resolve();
         s.onerror = reject;
         const head = editor.getDoc().querySelector("head");
