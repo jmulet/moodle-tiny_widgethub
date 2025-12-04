@@ -21,6 +21,8 @@
   overflow: hidden;
   background: white;
   z-index: 1000;
+  pointer-events: none;
+  user-select: none;
 }
 .tiny_widgethub-preview > * {
   margin: auto;
@@ -378,6 +380,18 @@ h4.tiny_widgethub-headertext {
 }
 
 /********************************** Grid View Styles */
+.twh-widget-icon {
+  display: none;
+}
+
+.tiny_widgethub-view-grid .tiny_widgethub-disabled {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.tiny_widgethub-view-grid .twh-widget-icon {
+  display: block;
+}
 .tiny_widgethub-view-grid .tiny_widgethub-category > div.d-flex {
   flex-direction: row !important;
   flex-wrap: wrap;
@@ -502,14 +516,16 @@ h4.tiny_widgethub-headertext {
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
-  .tiny_widgethub-view-grid .tiny_widgethub-btn-group {
-    width: 48%;
-  }
-}
 @media (max-width: 480px) {
   .tiny_widgethub-view-grid .tiny_widgethub-btn-group {
+    width: 48%;
+    flex: 0 0 48%;
+  }
+}
+@media (max-width: 350px) {
+  .tiny_widgethub-view-grid .tiny_widgethub-btn-group {
     width: 98%;
+    flex: 0 0 98%;
   }
 }
 /********************************** Specific Widget definitions styles */
@@ -541,8 +557,7 @@ h4.twh-subsub::before {
 .twh-quote {
   background: #f6f6ff;
   color: #222222;
-  padding: 20px;
-  padding-left: 50px;
+  padding: 20px 20px 20px 50px;
   box-sizing: border-box;
   box-shadow: 0 2px 4px rgba(34, 34, 34, 0.12);
   position: relative;
@@ -562,26 +577,24 @@ h4.twh-subsub::before {
   font-weight: 200;
   opacity: 0.9;
 }
-.twh-quote:before {
+.twh-quote:before, .twh-quote:after {
   font-family: Georgia, serif;
-  content: "“";
   position: absolute;
-  top: 10px;
-  left: 10px;
-  font-size: 5em;
   color: rgba(91, 88, 241, 0.3);
   font-weight: normal;
 }
+.twh-quote:before {
+  content: "“";
+  top: 10px;
+  left: 10px;
+  font-size: 5em;
+}
 .twh-quote:after {
-  font-family: Georgia, serif;
   content: "”";
-  position: absolute;
   bottom: -110px;
   line-height: 100px;
   right: -32px;
   font-size: 20em;
-  color: rgba(91, 88, 241, 0.3);
-  font-weight: normal;
 }
 @media (max-width: 640px) {
   .twh-quote:after {
@@ -596,7 +609,7 @@ h4.twh-subsub::before {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   margin: 35px auto;
   min-height: 300px;
-  padding: 24px 24px 24px 24px;
+  padding: 24px;
   position: relative;
   width: 92%;
   z-index: 1;
@@ -613,20 +626,19 @@ h4.twh-subsub::before {
 }
 .twh-fragment:before, .twh-fragment:after {
   content: "";
-  height: 98%;
   position: absolute;
+  height: 98%;
   width: 100%;
   z-index: -1;
+  background: #f6f6f6;
 }
 .twh-fragment:before {
-  background: #f6f6f6;
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
   left: -5px;
   top: 4px;
   transform: rotate(-1deg);
 }
 .twh-fragment:after {
-  background: #f6f6f6;
   box-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
   right: -3px;
   top: 1px;
@@ -638,27 +650,15 @@ h4.twh-subsub::before {
   width: 80%;
   margin: auto;
   overflow: hidden;
-  /* 
-   ##Device = Most of the Smartphones Mobiles (Portrait)
-   ##Screen = B/w 320px to 479px
-  */
 }
 @media (max-width: 480px) {
   .twh-video-container {
     width: 95%;
-    margin: auto;
   }
-}
-.twh-video-container {
-  /* 
-  ##Device = Desktops
-  ##Screen = 1281px to higher resolution desktops
-  */
 }
 @media (min-width: 1281px) {
   .twh-video-container {
     width: 75%;
-    margin: auto;
   }
 }
 
@@ -673,6 +673,7 @@ h4.twh-subsub::before {
   margin-bottom: 18px;
 }
 .twh-videoWrapper iframe {
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -687,10 +688,6 @@ h4.twh-subsub::before {
 }
 
 /** Medias and responsivity **/
-/* 
-     ##Device = Low Resolution Tablets, Mobiles (Landscape)
-     ##Screen = B/w 481px to 767px
-    */
 @media (max-width: 767px) {
   .tiny_widgethub-preview {
     display: none !important;

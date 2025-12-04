@@ -22,10 +22,10 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {getFileSrv} from '../service/file_service';
-import {getTemplateSrv} from '../service/template_service';
-import {getUserStorage} from '../service/userstorage_service';
-import {capitalize, cleanParameterName, evalInContext, genID, stream, toHexAlphaColor, toRgba} from '../util';
+import { getFileSrv } from '../service/file_service';
+import { getTemplateSrv } from '../service/template_service';
+import { getUserStorage } from '../service/userstorage_service';
+import { capitalize, cleanParameterName, evalInContext, genID, stream, toHexAlphaColor, toRgba } from '../util';
 
 const questionPopover = '{{#tooltip}}<a href="javascript:void(0)" data-toggle="popover" data-trigger="hover" data-content="{{tooltip}}" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-content="{{tooltip}}"><i class="fa fas fa-question-circle text-info"></i></a>{{/tooltip}}';
 
@@ -188,7 +188,7 @@ export class FormCtrl {
          if (param.max) {
             minMax += ` max="${param.max}"`;
          }
-         markup = this.templateSrv.renderMustache(Templates.NUMERICTEMPLATE, {minMax: minMax, ...generalCtx});
+         markup = this.templateSrv.renderMustache(Templates.NUMERICTEMPLATE, { minMax: minMax, ...generalCtx });
       } else if (param.type === 'checkbox') {
          markup = this.templateSrv.renderMustache(Templates.CHECKBOXTEMPLATE, generalCtx);
       } else if (param.type === 'select' || param.type === 'autocomplete') {
@@ -202,10 +202,10 @@ export class FormCtrl {
                label = opt.l;
                value = opt.v;
             }
-            return {optionLabel: label, optionValue: value, selected: value === defaultValue};
+            return { optionLabel: label, optionValue: value, selected: value === defaultValue };
          });
          const tmpl = param.type === 'select' ? Templates.SELECTTEMPLATE : Templates.AUTOCOMPLETETEMPLATE;
-         markup = this.templateSrv.renderMustache(tmpl, {options, ...generalCtx});
+         markup = this.templateSrv.renderMustache(tmpl, { options, ...generalCtx });
       } else if (param.type === 'color') {
          // Value must be in hex form and must find alpha (0-1)
          const [hex, alpha] = toHexAlphaColor(generalCtx.defaultvalue);
@@ -232,11 +232,11 @@ export class FormCtrl {
                      tmpDiv.innerHTML = this.createControlHTML(hostId, field, obj[key], pname, index);
                   }
                });
-               ul.append(RepeatableCtrl.createRegularItem(tmpDiv, false));
+               ul.appendChild(RepeatableCtrl.createRegularItem(tmpDiv, false));
             });
             itemControls = ul.outerHTML;
          }
-         markup = this.templateSrv.renderMustache(Templates.REPEATABLE, {...generalCtx, itemControls});
+         markup = this.templateSrv.renderMustache(Templates.REPEATABLE, { ...generalCtx, itemControls });
       } else {
          // Assume textfield
          markup = this.templateSrv.renderMustache(Templates.TEXTFIELDTEMPLATE, generalCtx);
@@ -337,7 +337,7 @@ export class FormCtrl {
          if (mustSaveAll) {
             /** @type {Object.<string, any>}  */
             const previousAllData = this.storage.getFromLocal('saveall_data', {});
-            previousAllData[widget.name] = {...ctx};
+            previousAllData[widget.name] = { ...ctx };
             this.storage.setToLocal('saveall_data', previousAllData, true);
          }
       }
@@ -357,7 +357,7 @@ export class FormCtrl {
          pickers.forEach(picker => {
             picker.disabled = !canShowFilePicker;
             // Attach a click handler to any image-picker buttons
-            const pickerHandler = async(/** @type {Event} */ evt) => {
+            const pickerHandler = async (/** @type {Event} */ evt) => {
                evt.preventDefault();
                const parent = /** @type {HTMLElement} */ (evt.currentTarget).parentElement;
                const input = parent?.querySelector('input');
@@ -516,7 +516,7 @@ export class FormCtrl {
                // Field value must be interpolated with the {{i}} placeholder
                let value = field.value;
                if (typeof (value) === 'string' && value.indexOf("{{i}}") >= 0) {
-                  value = that.templateSrv.renderMustache(value, {i: i});
+                  value = that.templateSrv.renderMustache(value, { i: i });
                }
                return that.createControlHTML(that.editor.id, field, value, cleanParamname, i);
             });
@@ -560,7 +560,7 @@ class RepeatableCtrl {
       /** @private */
       this._itemBuilder = itemBuilder;
       /** @private */
-      this._opts = {min: 1, ...opts};
+      this._opts = { min: 1, ...opts };
       /** @private */
       /** @type {HTMLUListElement} */
       this._ul = document.createElement('ul');
@@ -578,18 +578,18 @@ class RepeatableCtrl {
    _init() {
       this._ul.classList.add('list-group', 'list-group-flush', 'w-100', 'ml-5');
 
-      this._ul.append(RepeatableCtrl.createAddItem());
+      this._ul.appendChild(RepeatableCtrl.createAddItem());
 
       const initialCount = this._opts.min;
       for (let i = 0; i < initialCount; i++) {
          // Generate the content
          this._itemCount += 1;
          const content = this._itemBuilder(this._itemCount);
-         this._ul.append(RepeatableCtrl.createRegularItem(content, true));
-         this._ul.append(RepeatableCtrl.createAddItem());
+         this._ul.appendChild(RepeatableCtrl.createRegularItem(content, true));
+         this._ul.appendChild(RepeatableCtrl.createAddItem());
       }
 
-      this._form.append(this._ul);
+      this._form.appendChild(this._ul);
       this._updateButtonStates();
       this._ul.addEventListener('click', this._boundOnClick);
    }
@@ -619,8 +619,8 @@ class RepeatableCtrl {
       const icon = document.createElement('i');
       icon.className = 'fa fa-plus';
 
-      button.append(icon);
-      li.append(button);
+      button.appendChild(icon);
+      li.appendChild(button);
       return li;
    }
 
@@ -642,8 +642,8 @@ class RepeatableCtrl {
          const icon = document.createElement('i');
          icon.className = 'fa fa-trash';
 
-         button.append(icon);
-         li.append(button);
+         button.appendChild(icon);
+         li.appendChild(button);
       }
       return li;
    }

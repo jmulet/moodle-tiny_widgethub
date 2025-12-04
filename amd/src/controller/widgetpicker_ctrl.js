@@ -315,7 +315,7 @@ export class WidgetPickerCtrl {
         const widgetButtons = this.body.querySelectorAll(".tiny_widgethub-btn-group > button");
         widgetButtons.forEach(btn => {
             btn.addEventListener("mouseenter", funEnter);
-            btn.addEventListener("mouseout", funOut);
+            btn.addEventListener("mouseleave", funOut);
         });
 
         // Store current scroll
@@ -413,7 +413,7 @@ export class WidgetPickerCtrl {
                 btnIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M0 72C0 49.9 17.9 32 40 32H88c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H40c-22.1 0-40-17.9-40-40V72zM0 232c0-22.1 17.9-40 40-40H88c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H40c-22.1 0-40-17.9-40-40V232zM128 392c0-22.1-17.9-40-40-40H40c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40V392zM160 72c0-22.1 17.9-32 40-32H248c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H200c-22.1 0-40-17.9-40-40V72zM160 232c0-22.1 17.9-40 40-40H248c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H200c-22.1 0-40-17.9-40-40V232zM288 392c0-22.1-17.9-40-40-40H200c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H248c22.1 0 40-17.9 40-40V392zM320 72c0-22.1 17.9-32 40-32H408c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H360c-22.1 0-40-17.9-40-40V72zM320 232c0-22.1 17.9-40 40-40H408c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H360c-22.1 0-40-17.9-40-40V232zM448 392c0-22.1-17.9-40-40-40H360c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H408c22.1 0 40-17.9 40-40V392z"/></svg>';
             }
         }
-        this.storage.setToLocal('widgethub_view_mode', mode);
+        this.storage.setToLocal('widgethub_view_mode', mode, true);
     }
 
     /**

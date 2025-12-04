@@ -54,8 +54,12 @@ Changes:
   Hotfix: Rename to lowercase contextinit.js
 
 == 1.4.2 ==
+  - Issue #23 Suggestion to Enhance the Widget Modal Layout. Implementation of grid view.
+  - Implementation of the widgethub_view_mode option to switch between grid and list views.
+  - Updated YML API to support icon property.
   - Issue #39: Migration jQuery to vanilla Javascript. Reduce the quantity of code relying on jQuery.
-  - Configure the versions of jQuery and Bootstrap injected into the editor's iFrame.
+  - Make the versions of jQuery and Bootstrap injected into the editor's iFrame configurable.
   - Hotfix: Activate image pickers on repeatable parameters.
+  - Improved mouse leave detection on widget preview.
   - Detect context actions on widgets that include iframe, like YouTube or Vimeo.
 

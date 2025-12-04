@@ -29,6 +29,19 @@ Later, at any time, the component can be reconfigured using context menus provid
 <img src="./img/widgethub_usage.gif" width="400" style="margin:auto;max-width:400px">
 
 
+### New Grid View
+
+The widget picker now features a **Grid View** mode, offering a more visual and compact way to browse available widgets.
+
+<img src="./img/gridview.png" width="400" style="margin:auto;max-width:400px">
+
+- **Toggle View**: Users can easily switch between the traditional List View and the new Grid View using the toggle button in the modal header.
+- **Visual Icons**: In Grid View, widgets are represented by their icons, making it easier to identify them at a glance. Icons are defined in the widget's YAML file through the `icon` property.
+- **Persistent Preference**: The selected view mode is saved in the user's local storage, so it remembers your preference for future sessions.
+- **Default Configuration**: Administrators can set the default view mode via the `widgetpicker.viewmode` configuration option.
+
+
+
 ## Learn more
 
 - [Examples: Learn how to customize and create widgets.](docs/examples.md)
@@ -75,6 +88,8 @@ The options available are:
   - *tiny.iframe.jsbootstrap.version* The version of the javascript bundle of Bootstrap that should be injected into the editor's iFrame. It defaults to "4.6.2" for Moodle 4.x and "5.3.8" for Moodle 5.x. Please note that Bootstrap 4.x requires jQuery. The dependency is loaded from CDN and it should be available at: `https://cdn.jsdelivr.net/npm/bootstrap@${bsVersion}/dist/js/bootstrap.bundle.min.js`
 
   - *tiny.contextmenu.iframes=1* Enable (`1`) or disable (`0`) right clicks on iFrames that trigger context menus. Interaction with iframes, like YouTube videos, can be temporary enabled by clicking on the iframe while holding Alt/Option key.
+
+  - *widgetpicker.viewmode=grid* Set the default view mode for the widget picker. Can be `grid` or `list`. Default: `grid`.
 
 **Insert Behavior Configuration**
  This section defines the general behavior configuration for all insert mechanisms in the plugin.

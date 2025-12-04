@@ -46,6 +46,8 @@ $btn-border-radius: .5rem;
     overflow: hidden;
     background: $white;
     z-index: 1000;
+    pointer-events: none;
+    user-select: none;
 
     >* {
         margin: auto;
@@ -598,14 +600,16 @@ h4.tiny_widgethub-headertext {
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (max-width: 480px) {
     .tiny_widgethub-view-grid .tiny_widgethub-btn-group {
         width: 48%;
+        flex: 0 0 48%;
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 350px) {
     .tiny_widgethub-view-grid .tiny_widgethub-btn-group {
         width: 98%;
+        flex: 0 0 98%;
     }
 }

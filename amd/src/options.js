@@ -23,10 +23,10 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {getPluginOptionName} from 'editor_tiny/options';
+import { getPluginOptionName } from 'editor_tiny/options';
 import Common from './common';
-import {compareVersion, genID} from './util';
-import {createDefaultsForParam} from './service/template_service';
+import { compareVersion, genID } from './util';
+import { createDefaultsForParam } from './service/template_service';
 const pluginName = Common.pluginName;
 
 const showPlugin = getPluginOptionName(pluginName, 'showplugin');
@@ -182,7 +182,7 @@ export class EditorOptions {
      * @returns {Object.<string, Widget>} - a dictionary of "usable" widgets for the current userId
      */
     get widgetDict() {
-       return getWidgetDict(this.editor);
+        return getWidgetDict(this.editor);
     }
 }
 
@@ -257,7 +257,7 @@ export function expandPartial(obj, partials) {
             console.error(`Cannot find partial for ${partialKey}`);
         } else {
             // Override with passed properties.
-            obj = {...partials[partialKey], ...obj};
+            obj = { ...partials[partialKey], ...obj };
         }
     }
     return obj;
@@ -396,7 +396,7 @@ export class Widget {
     /**
      * @returns {number}
      */
-     get id() {
+    get id() {
         return this._widget.id ?? 0;
     }
     /**
@@ -480,7 +480,7 @@ export class Widget {
             };
         } else if (typeof this._widget.requires === 'string') {
             const [url, query] = this._widget.requires.split('|').map(e => e.trim());
-            return {url, query};
+            return { url, query };
         }
         return null;
     }
