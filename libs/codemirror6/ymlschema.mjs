@@ -327,7 +327,25 @@ const normalWidgetSchema = z.object({
     }
 });
 
-export const widgetSchema = z.union([partialsWidgetSchema, normalWidgetSchema]);
+// A "Smart" schema that routes to the correct validator based on the 'key'
+export const widgetSchema = z.any().superRefine((val, ctx) => {
+    // 1. Check if it's the 'partials' case
+    if (val && typeof val === 'object' && val.key === 'partials') {
+        const result = partialsWidgetSchema.safeParse(val);
+        if (!result.success) {
+            // Forward specific errors from partialsWidgetSchema
+            result.error.issues.forEach((/** @type any} */ issue) => ctx.addIssue(issue));
+        }
+        return;
+    }
+
+    // 2. Default to normalWidgetSchema for everything else
+    const result = normalWidgetSchema.safeParse(val);
+    if (!result.success) {
+        // Forward specific errors (e.g., "icon expected string")
+        result.error.issues.forEach((/** @type any */ issue) => ctx.addIssue(issue));
+    }
+});
 
 // Options for autocompletion
 // Generated from zod schema

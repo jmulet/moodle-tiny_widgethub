@@ -137,4 +137,26 @@ class settingsutil {
         );
         return $settingspage;
     }
+
+    /**
+     * Delete widgets from the database.
+     *
+     * @param array $ids Array of widget IDs to delete.
+     * @return array Array of deleted widget IDs.
+     */
+    public static function delete_widgets($ids) {
+        $deletedids = [];
+        $conf = get_config('tiny_widgethub');
+        $widgetindex = \tiny_widgethub\plugininfo::get_widget_index($conf);
+        foreach ($ids as $id) {
+            if (isset($widgetindex[$id])) {
+                $deletedids[] = $id;
+                unset($widgetindex[$id]);
+            }
+        }
+        if (!empty($deletedids)) {
+            set_config('index', json_encode($widgetindex), 'tiny_widgethub');
+        }
+        return $deletedids;
+    }
 }

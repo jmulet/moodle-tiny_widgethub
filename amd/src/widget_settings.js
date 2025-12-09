@@ -1,7 +1,5 @@
 /* eslint-disable max-len */
-
 /* eslint-disable no-console */
-/* eslint-disable no-alert */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -24,13 +22,14 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {YmlEditor, YAML} from './libs/ymleditor-lazy';
+import { YmlEditor, YAML } from './libs/ymleditor-lazy';
 // eslint-disable-next-line camelcase
-import {get_strings as getStrings, get_string} from 'core/str';
-import {getTemplateSrv, createDefaultsForParam} from './service/template_service';
-import {applyPartials} from './options';
+import { get_strings as getStrings, get_string } from 'core/str';
+import Notification from 'core/notification';
+import { getTemplateSrv, createDefaultsForParam } from './service/template_service';
+import { applyPartials } from './options';
 import common from './common';
-import {compareVersion, htmlToElement} from './util';
+import { compareVersion, htmlToElement } from './util';
 
 /**
  * Does a key name of the yaml file requires a block format?
@@ -38,10 +37,10 @@ import {compareVersion, htmlToElement} from './util';
  * @returns {boolean}
  */
 function needsBlock(str) {
-  return typeof str === 'string' && str.includes('\n');
+    return typeof str === 'string' && str.includes('\n');
 }
 
-const {component} = common;
+const { component } = common;
 const templateSrv = getTemplateSrv();
 const DEFAULT_DOC =
     `key: username_sample-key
@@ -53,6 +52,7 @@ template: |
   <p><br></p>
 parameters:
   - name: greeting
+    title: Greeting message
     value: Hello world!
 author: Your name <email@site.com>
 version: 1.0.0`;
@@ -126,7 +126,7 @@ export default {
      *     partialInput: HTMLInputElement,
      * }}
      */
-    getAreas: function(id) {
+    getAreas: function (id) {
         /** @type {*} */
         const ymlArea = document.querySelector(`#id_s_${component}_defyml_${id}`);
         /** @type {*} */
@@ -142,8 +142,8 @@ export default {
      * @param {*} codeProEditor
      * @returns
      */
-    updateYaml: function(id, codeProEditor) {
-        const {jsonArea} = this.getAreas(id);
+    updateYaml: function (id, codeProEditor) {
+        const { jsonArea } = this.getAreas(id);
         const json = ((jsonArea.value ?? '') + '').trim();
         if (!json) {
             if (id) {
@@ -175,16 +175,16 @@ export default {
             if (Array.isArray(_obj.parameters)) {
                 for (const param of _obj.parameters) {
                     if (param.bind && typeof param.bind === 'object') {
-                    ['get', 'set'].forEach(key => {
-                        if (needsBlock(param.bind[key])) {
-                            param.bind[key] = new YAML.Scalar(param.bind[key]);
-                            param.bind[key].type = 'BLOCK_LITERAL';
-                        }
-                    });
+                        ['get', 'set'].forEach(key => {
+                            if (needsBlock(param.bind[key])) {
+                                param.bind[key] = new YAML.Scalar(param.bind[key]);
+                                param.bind[key].type = 'BLOCK_LITERAL';
+                            }
+                        });
                     }
                 }
             }
-            const yml = YAML.stringify(_obj, {indent: 2});
+            const yml = YAML.stringify(_obj, { indent: 2 });
             codeProEditor.setValue(yml);
         } catch (ex) {
             console.error(ex);
@@ -199,7 +199,7 @@ export default {
      * @returns {Promise<{msg: string, json?: string, html?: string}>}
      */
     // eslint-disable-next-line complexity
-    validate: async function(yml, opts, partials) {
+    validate: async function (yml, opts, partials) {
         /**
          * @type {{
          *     msg: string,
@@ -207,7 +207,7 @@ export default {
          *     json: string | undefined
          * }}
          * */
-        const validation = {msg: '', html: '', json: undefined};
+        const validation = { msg: '', html: '', json: undefined };
         try {
             // Check if the code is a valid Yaml
             /** @type {import('./options').RawWidget} */
@@ -311,17 +311,17 @@ export default {
      * @param {{id: number, keys: string[]}} opts
      * @returns
      */
-    init: async function(opts) {
-        const {ymlArea, jsonArea, partialInput} = this.getAreas(opts.id);
+    init: async function (opts) {
+        const { ymlArea, jsonArea, partialInput } = this.getAreas(opts.id);
         ymlArea.style.border = '1px solid gray';
         ymlArea.classList.add(component + '-loader');
         const i18n = await getStrings([
-            {key: 'confirmdelete', component: component},
-            {key: 'delete', component: component},
-            {key: 'preview', component: component},
-            {key: 'savechanges', component: component}
+            { key: 'cancel', component: component },
+            { key: 'errunexpected', component: component },
+            { key: 'preview', component: component },
+            { key: 'savechanges', component: component }
         ]);
-        const [confirmdeleteStr, deleteStr, previewStr, savechangesStr] = i18n;
+        const [cancelStr, errunexpectedStr, previewStr, savechangesStr] = i18n;
 
         // Partials are passed through a hidden input element
         const partials = JSON.parse(partialInput.value || '{}');
@@ -329,12 +329,15 @@ export default {
         // Hide the control that handles JSON and it is actually saved
         jsonArea.style.display = 'none';
         // Immediate parent
-        const target = jsonArea.parentNode;
+        const target = jsonArea.parentElement?.parentElement;
         // Closest ancestor matching selector
         const form = jsonArea.closest("form");
         if (!form || !target) {
             return;
         }
+        // Hide default info div
+        form.querySelector('div.form-defaultinfo')?.classList?.add('d-none');
+
         // Hide any submit button if found
         /** @type {NodeListOf<HTMLElement>} */
         const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
@@ -353,7 +356,7 @@ export default {
 
         const previewBtn = htmlToElement(document, `<button type="button" class="btn btn-secondary m-1">
             <i class="fas fa fa-magnifying-glass"></i> ${previewStr}</button>`);
-        previewBtn.addEventListener('click', async() => {
+        previewBtn.addEventListener('click', async () => {
             const yml = ymleditor.getValue();
             const validation = await this.validate(yml, opts, partials);
             if (validation.json && JSON.parse(validation.json).key === 'partials') {
@@ -361,58 +364,36 @@ export default {
                 return;
             }
             if (validation.msg) {
-                alert(validation.msg);
+                Notification.alert(errunexpectedStr, validation.msg, cancelStr);
             } else if (validation.html) {
                 previewPanel.classList.remove('d-none');
-                jsonArea.dispatchEvent(new Event('focusin', {bubbles: true}));
+                jsonArea.dispatchEvent(new Event('focusin', { bubbles: true }));
                 jsonArea.value = validation.json ?? '';
-                jsonArea.dispatchEvent(new Event('change', {bubbles: true}));
+                jsonArea.dispatchEvent(new Event('change', { bubbles: true }));
                 previewPanel.innerHTML = validation.html;
             }
         });
         target.appendChild(previewBtn);
 
-        if (opts.id > 0) {
-            // Only show delete button on saved widgets (id=0 is reserved for new ones)
-            const deleteBtn = htmlToElement(document, `<button type="button" class="btn btn-outline-danger m-1">
-                <i class="fas fa fa-trash"></i> ${deleteStr}</button>`);
-            deleteBtn.addEventListener('click', async() => {
-                // Ask confirmation
-                const answer = confirm(confirmdeleteStr);
-                if (!answer) {
-                    return;
-                }
-                // Clear all the controls
-                jsonArea.dispatchEvent(new Event('focusin', {bubbles: true}));
-                jsonArea.value = '';
-                jsonArea.dispatchEvent(new Event('change', {bubbles: true}));
-                ymlArea.value = '';
-                previewPanel.innerHTML = '';
-                // Send form by skipping validation
-                form.requestSubmit();
-            });
-            target.appendChild(deleteBtn);
-        }
-
         const ymleditor = new YmlEditor(ymlArea);
 
-        saveBtn?.addEventListener("click", async() => {
-                // Must update the content from the Yaml control
-                const yml = ymleditor.getValue();
-                // First validate the definition of the widget
-                const validation = await this.validate(yml, opts, partials);
-                if (validation.msg) {
-                    alert(validation.msg);
-                } else {
-                    // Ensure that there is a change in the form value to force
-                    // the set_updatedcallback to be called
-                    jsonArea.dispatchEvent(new Event('focusin', {bubbles: true}));
-                    jsonArea.value = (validation.json ?? '') + ' ';
-                    jsonArea.dispatchEvent(new Event('change', {bubbles: true}));
-                    // Submit form
-                    form.requestSubmit();
-                }
-            });
+        saveBtn?.addEventListener("click", async () => {
+            // Must update the content from the Yaml control
+            const yml = ymleditor.getValue();
+            // First validate the definition of the widget
+            const validation = await this.validate(yml, opts, partials);
+            if (validation.msg) {
+                Notification.alert(errunexpectedStr, validation.msg, cancelStr);
+            } else {
+                // Ensure that there is a change in the form value to force
+                // the set_updatedcallback to be called
+                jsonArea.dispatchEvent(new Event('focusin', { bubbles: true }));
+                jsonArea.value = (validation.json ?? '') + ' ';
+                jsonArea.dispatchEvent(new Event('change', { bubbles: true }));
+                // Submit form
+                form.requestSubmit();
+            }
+        });
 
         this.updateYaml(opts.id, ymleditor);
         ymlArea.classList.remove(component + '-loader');

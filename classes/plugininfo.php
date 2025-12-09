@@ -175,9 +175,14 @@ class plugininfo extends plugin implements
             if (!isset($conf->{'def_' . $id})) {
                 unset($widgetindex[strval($id)]);
                 $nerrs++;
+            } else if (!isset($widgetindex[strval($id)]['category'])) {
+                // Rebuild the index to include the category.
+                $tmpwidget = json_decode($conf->{'def_' . $id}, false);
+                $widgetindex[strval($id)]['category'] = isset($tmpwidget->category) ? $tmpwidget->category : '';
+                $nerrs++;
             }
         }
-        unset($widgetindex[0]); // Remove the temporal entry.
+        unset($widgetindex[0]); // Remove any temporal entry.
         if ($nerrs > 0) {
             // Store the ammended index.
             set_config('index', json_encode($widgetindex), 'tiny_widgethub');
@@ -214,17 +219,19 @@ class plugininfo extends plugin implements
                 // Add the widget to the index.
                 $widgetindex[strval($id)] = [
                     'key' => $tmpwidget->key,
-                    'name' => $tmpwidget->name,
+                    'name' => isset($tmpwidget->name) ? $tmpwidget->name : $tmpwidget->key,
+                    'category' => isset($tmpwidget->category) ? $tmpwidget->category : get_string('misc', 'tiny_widgethub'),
                 ];
                 set_config('def_' . $id, $conf->def_0, 'tiny_widgethub');
                 // Remove the temporal widget.
                 unset_config('def_0', 'tiny_widgethub');
             }
         } else {
-            // Update its key and name.
+            // Update its key, name and category.
             $widgetindex[$id] = [
                 'key' => $widget->key,
                 'name' => isset($widget->name) ? $widget->name : $widget->key,
+                'category' => isset($widget->category) ? $widget->category : get_string('misc', 'tiny_widgethub'),
             ];
         }
         set_config('index', json_encode($widgetindex), 'tiny_widgethub');

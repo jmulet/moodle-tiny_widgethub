@@ -493,7 +493,7 @@ export class WidgetPickerCtrl {
             if (!found) {
                 const color = hashCode(catName) % 360;
                 let sat = '30%';
-                if (catName.toLowerCase().startsWith('obsolet')) {
+                if (catName.toLowerCase().startsWith('obsolet') || catName.toLowerCase().startsWith('deprecated')) {
                     sat = '0%'; // Gray
                 }
                 found = {

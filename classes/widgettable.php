@@ -89,29 +89,44 @@ class widgettable extends \admin_setting {
      * @return string Returns an HTML string
      */
     public function output_html($data, $query = '') {
+        global $PAGE;
         $tinycategory = 'tiny_widgethub';
         $conf = get_config($tinycategory);
         $listwidgetconfig = self::get_list_widgets_config($conf);
 
+        $tableid = 'tiny_widgethub_widgetlist';
+        $selectallid = 'tiny_selectall';
+        $deletebtnid = 'tiny_deletebtn';
+
         $table = new \html_table();
-        $table->id = 'tiny_widgethub_widgetlist';
+        $table->id = $tableid;
+        $table->attributes['class'] = 'generaltable table table-hover';
+        $thstyle = 'cursor: pointer; user-select: none; white-space: nowrap;';
+        $sorticon = \html_writer::tag('i', '', ['class' => 'fa fa-sort m-1']);
         $table->head = [
-            get_string('key', $tinycategory),
-            get_string('name', $tinycategory),
+            \html_writer::checkbox('', 1, false, '', ['id' => $selectallid, 'class' => 'text-center']),
+            \html_writer::span(get_string('category', $tinycategory) . $sorticon, '', ['style' => $thstyle, 'data-sort' => '1']),
+            \html_writer::span(get_string('key', $tinycategory) . $sorticon, '', ['style' => $thstyle, 'data-sort' => '2']),
+            \html_writer::span(get_string('name', $tinycategory) . $sorticon, '', ['style' => $thstyle, 'data-sort' => '3']),
             get_string('edit', $tinycategory),
         ];
-        $table->headspan = [1, 1, 1];
+        $table->headspan = [1, 1, 1, 1, 1];
 
         foreach ($listwidgetconfig as $item) {
             $row = new \html_table_row();
+            $checkbox = \html_writer::checkbox('', $item->id, false, '', ['class' => 'tiny_widgethub-check']);
+            $checktd = new \html_table_cell($checkbox);
+            $checktd->attributes = ['class' => 'text-center', 'style' => 'width: 40px;'];
+            $categorytd = new \html_table_cell($item->category);
             $keytd = new \html_table_cell($item->key);
             $nametd = new \html_table_cell($item->name);
-            $newlinktext = \html_writer::tag('i', '', ['class' => 'fa fa-pencil'])
-                . ' ' . get_string('edit', $tinycategory);
+            $newlinktext = \html_writer::tag('i', '', ['class' => 'fa fa-pencil']);
             $editlink = \html_writer::link($item->url, $newlinktext);
             $edittd = new \html_table_cell($editlink);
             $edittd->attributes = ['title' => 'Internal id=' . $item->id, 'class' => ''];
             $row->cells = [
+                $checktd,
+                $categorytd,
                 $keytd,
                 $nametd,
                 $edittd,
@@ -119,8 +134,16 @@ class widgettable extends \admin_setting {
             $table->data[] = $row;
         }
 
-        // Add an additional row for adding a new widget.
-        $row = new \html_table_row();
+        // Delete button.
+        $deletestr = get_string('delete', $tinycategory);
+        $delbtn = \html_writer::tag('button', 
+            \html_writer::tag('i', '', ['class' => 'fa fa-trash']) . ' ' . $deletestr, 
+            ['class' => 'btn btn-outline-danger', 'id' => $deletebtnid, 'disabled' => true, 'type' => 'button']
+        );
+        $deltd = new \html_table_cell($delbtn);
+        $deltd->attributes = ['class' => 'text-center', 'style' => 'width: 40px;'];
+
+        // New widget button.
         $newurl = new \moodle_url(
             '/admin/settings.php',
             ['section' => 'tiny_widgethub_spage_0']
@@ -128,17 +151,31 @@ class widgettable extends \admin_setting {
         $newlinktext = \html_writer::tag('i', '', ['class' => 'fa fa-plus-circle'])
             . ' ' . get_string('createwidget', $tinycategory);
         $newlink = \html_writer::link($newurl, $newlinktext);
-        $newtd = new \html_table_cell($newlink);
-        $newtd->colspan = 3;
-        $row->cells = [$newtd];
-        $table->data[] = $row;
+        
+        $footer = \html_writer::div(
+            $delbtn . $newlink, 
+            'd-flex justify-content-between mt-1 mb-6 align-items-center'
+        );
 
-        $snippettable = \html_writer::table($table);
+        $finalhtml = \html_writer::table($table) . $footer;
+
+        $jsParams = [
+            'tableId' => $tableid,
+            'selectAllId' => $selectallid,
+            'deleteBtnId' => $deletebtnid,
+            'baseUrl' => $PAGE->url->out(false),
+            'sesskey' => sesskey(),
+            'confirmTitle' => $deletestr,
+            'confirmMessage' => get_string('confirmdelete', $tinycategory),
+            'confirmBtn' => $deletestr,
+        ];
+
+        $PAGE->requires->js_call_amd('tiny_widgethub/widgettable', 'init', [$jsParams]);
 
         return format_admin_setting(
             $this,
             $this->visiblename,
-            $snippettable,
+            $finalhtml,
             $this->information,
             true,
             '',
@@ -163,15 +200,20 @@ class widgettable extends \admin_setting {
             $cfg->id = $id;
             $cfg->key = $tindex['key'];
             $cfg->name = $tindex['name'];
+            $cfg->category = $tindex['category'] ?? '';
             $cfg->url = new \moodle_url(
                 '/admin/settings.php',
                 ['section' => 'tiny_widgethub_spage_' . $id]
             );
             $ret[] = $cfg;
         }
-        // Sort the array by the 'name' property.
+        // Sort the array first by 'category' and then by 'name' property.
         usort($ret, function ($a, $b) {
-            return strcmp($a->name, $b->name);
+            $cmp = strcmp($a->category, $b->category);
+            if ($cmp == 0) {
+                return strcmp($a->name, $b->name);
+            }
+            return $cmp;
         });
         return $ret;
     }

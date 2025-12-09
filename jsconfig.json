@@ -11,18 +11,48 @@
         ],
         "esModuleInterop": true,
         "paths": {
-            "editor_tiny/utils": ["../../amd/src/utils"],
-            "editor_tiny/loader": ["../../amd/src/loader"],
-            "editor_tiny/options": ["../../amd/src/options"],
-            "core/str": ["../../../../amd/src/str.js"],
-            "core/config": ["../../../../amd/src/config.js"],
-            "core/mustache": ["../../../../amd/src/mustache.js"],
-            "core/modal_factory": ["../../../../amd/src/modal_factory.js"],
-            "core/modal_events": ["../../../../amd/src/modal_events.js"],
-            "core/modal": ["../../../../amd/src/modal.js"],
-            "core/modal_registry": ["../../../../amd/src/modal_registry.js"],
-            "core/templates": ["../../../../amd/src/templates.js"],
-            "jquery": ["./tests/jsunit/node_modules/jquery/dist/jquery.js"]
+            "editor_tiny/utils": [
+                "../../amd/src/utils"
+            ],
+            "editor_tiny/loader": [
+                "../../amd/src/loader"
+            ],
+            "editor_tiny/options": [
+                "../../amd/src/options"
+            ],
+            "core/ajax": [
+                "../../../../amd/src/ajax.js"
+            ],
+            "core/str": [
+                "../../../../amd/src/str.js"
+            ],
+            "core/config": [
+                "../../../../amd/src/config.js"
+            ],
+            "core/mustache": [
+                "../../../../amd/src/mustache.js"
+            ],
+            "core/modal_factory": [
+                "../../../../amd/src/modal_factory.js"
+            ],
+            "core/modal_events": [
+                "../../../../amd/src/modal_events.js"
+            ],
+            "core/modal": [
+                "../../../../amd/src/modal.js"
+            ],
+            "core/modal_registry": [
+                "../../../../amd/src/modal_registry.js"
+            ],
+            "core/notification": [
+                "../../../../amd/src/notification.js"
+            ],
+            "core/templates": [
+                "../../../../amd/src/templates.js"
+            ],
+            "jquery": [
+                "./tests/jsunit/node_modules/jquery/dist/jquery.js"
+            ]
         }
-    }, 
-  }
+    },
+}
