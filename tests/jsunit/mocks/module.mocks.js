@@ -100,6 +100,25 @@ module.exports = function applyMocks() {
         };
     }, { virtual: true });
 
+    jest.mock("core/notification", () => {
+        return {
+            __esModule: true,
+            default: {
+                addNotification: jest.fn(),
+                alert: jest.fn(),
+            }
+        };
+    }, { virtual: true });
+
+    jest.mock("core/ajax", () => {
+        return {
+            __esModule: true,
+            default: {
+                call: jest.fn(),
+            }
+        };
+    }, { virtual: true });
+
     jest.mock("editor_tiny/options", () => ({
         __esModule: true,
         getFilePicker: jest.fn(),

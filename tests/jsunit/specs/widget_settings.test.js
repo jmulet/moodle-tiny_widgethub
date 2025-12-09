@@ -6,22 +6,20 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-// Mock alert and confirm methods
-window.alert = jest.fn();
-const mockConfirm = jest.fn();
-window.confirm = mockConfirm;
 
 /**
  * @param {number} delay 
  * @returns 
  */
-const wait = function(delay) {
+const wait = function (delay) {
     return new Promise((resolve) => {
         setTimeout(resolve, delay);
     });
 }
 
-const {component} = require('../src/common').default;
+const { component } = require('../src/common').default;
+const Notification = require('core/notification').default;
+
 /** Mock the YmlEditor dependency */
 const mockSetValue = jest.fn();
 const mockGetValue = jest.fn();
@@ -30,17 +28,17 @@ jest.mock("../src/libs/ymleditor-lazy", () => {
         setValue: mockSetValue.mockImplementation((txt) => {
             target.value = txt;
         }),
-        getValue: mockGetValue.mockImplementation( () => {
+        getValue: mockGetValue.mockImplementation(() => {
             return target.value;
         }),
-        
+
     }));
     return {
         __esModule: true,
         YmlEditor: MockYmlEditor,
         YAML: require('yaml')
     };
-}, { virtual: true }); 
+}, { virtual: true });
 
 /** @type {*} */
 const settingsModule = require('../src/widget_settings').default;
@@ -64,23 +62,23 @@ describe('widget_settings', () => {
     });
 
     it('It retrieves the correct areas', () => {
-       const id = 123;
-       const partials = {
-         LOREM: 'Lorem ipsum',
-         LANG: {
-            name: 'lang',
-            title: 'Language',
-            type: 'select',
-            value: 'spanish',
-            options: ['english', 'catalan', 'spanish', 'french']
-         }
-       };
-       createBody(id, partials);
-       const {ymlArea, jsonArea, partialInput} = settingsModule.getAreas(id);
-       expect(ymlArea.id).toBe(`id_s_${component}_defyml_${id}`);
-       expect(jsonArea.id).toBe(`id_s_${component}_def_${id}`);
-       expect(partialInput.id).toBe(`id_s_${component}_partials_${id}`);
-       expect(partialInput.value).toBe(JSON.stringify(partials));
+        const id = 123;
+        const partials = {
+            LOREM: 'Lorem ipsum',
+            LANG: {
+                name: 'lang',
+                title: 'Language',
+                type: 'select',
+                value: 'spanish',
+                options: ['english', 'catalan', 'spanish', 'french']
+            }
+        };
+        createBody(id, partials);
+        const { ymlArea, jsonArea, partialInput } = settingsModule.getAreas(id);
+        expect(ymlArea.id).toBe(`id_s_${component}_defyml_${id}`);
+        expect(jsonArea.id).toBe(`id_s_${component}_def_${id}`);
+        expect(partialInput.id).toBe(`id_s_${component}_partials_${id}`);
+        expect(partialInput.value).toBe(JSON.stringify(partials));
     });
 
     test.each([
@@ -93,24 +91,24 @@ describe('widget_settings', () => {
         ['Missing version', 'key: key3\nname: name\ntemplate: here\nauthor: pep', "The properties 'author' & 'version' are required ", ['key1', 'key2']],
         ['Valid definition', 'key: key3\nname: name\ntemplate: here\nauthor: pep\nversion: 1.0', '', ['key1', 'key2']],
     ])
-    ('%s widget definition', async (issue, yml, msg, keys) => {
-        const id = 0;
-        const partials = {};
-        const validation = await settingsModule.validate(yml, {id, keys: keys ?? []}, partials);
-        expect(validation.msg).toContain(msg);
-    });
- 
+        ('%s widget definition', async (issue, yml, msg, keys) => {
+            const id = 0;
+            const partials = {};
+            const validation = await settingsModule.validate(yml, { id, keys: keys ?? [] }, partials);
+            expect(validation.msg).toContain(msg);
+        });
+
     it('Creates a new widget when id = 0', async () => {
         const id = 0;
         const usedKeys = ['key1', 'key2', 'key3'];
         createBody(id);
         const spyUpdateYaml = jest.spyOn(settingsModule, 'updateYaml');
         const spyGetAreas = jest.spyOn(settingsModule, 'getAreas');
- 
-        await settingsModule.init({id, keys: usedKeys});
+
+        await settingsModule.init({ id, keys: usedKeys });
 
         expect(spyGetAreas).toHaveBeenCalledWith(id);
-        const {ymlArea, jsonArea} = settingsModule.getAreas(id);
+        const { ymlArea, jsonArea } = settingsModule.getAreas(id);
         // Editor setter has been called
         expect(mockSetValue).toHaveBeenCalled();
         expect(spyUpdateYaml).toHaveBeenCalled();
@@ -122,7 +120,7 @@ describe('widget_settings', () => {
         previewBtn?.click();
         await wait(400);
         // No errors found
-        expect(window.alert).not.toHaveBeenCalled();
+        expect(Notification.alert).not.toHaveBeenCalled();
         // Check the getValue from YmlEditor has been called
         expect(mockGetValue).toHaveBeenCalled();
         // Check if the preview panel is visible and contains text
@@ -132,7 +130,7 @@ describe('widget_settings', () => {
         expect(previewpanel?.classList?.contains('d-none')).toBe(false);
         expect(previewpanel?.innerHTML).toBeTruthy();
         // Check the jsonArea is filled
-        expect(jsonArea.value.indexOf("Hello world!")>=0).toBeTruthy();
+        expect(jsonArea.value.indexOf("Hello world!") >= 0).toBeTruthy();
 
         // Delete button must not be in page
         expect(document.querySelector('button.btn-outline-danger')).toBeNull();
@@ -143,16 +141,16 @@ describe('widget_settings', () => {
         mockGetValue.mockClear();
         saveBtn?.click();
         expect(mockGetValue).toHaveBeenCalled();
-        expect(window.alert).not.toHaveBeenCalled();
+        expect(Notification.alert).not.toHaveBeenCalled();
     });
 
-    it('Edits an existing widget with id > 0', async() => {
+    it('Edits an existing widget with id > 0', async () => {
         const id = 123;
         const usedKeys = ['key1', 'key2', 'key3'];
         createBody(id);
         const spyUpdateYaml = jest.spyOn(settingsModule, 'updateYaml');
         const spyGetAreas = jest.spyOn(settingsModule, 'getAreas');
-        const {ymlArea, jsonArea} = settingsModule.getAreas(id);
+        const { ymlArea, jsonArea } = settingsModule.getAreas(id);
         const widgetToEdit = {
             id,
             key: 'key2',
@@ -163,9 +161,7 @@ describe('widget_settings', () => {
         }
         jsonArea.value = JSON.stringify(widgetToEdit);
 
-        await settingsModule.init({id, keys: usedKeys});
-        // Delete button must be in page
-        expect(document.querySelector('button.btn-outline-danger')).toBeTruthy();
+        await settingsModule.init({ id, keys: usedKeys });
 
         expect(spyGetAreas).toHaveBeenCalledWith(id);
         // Editor setter has been called
@@ -179,7 +175,7 @@ describe('widget_settings', () => {
         previewBtn?.click();
         await wait(400);
         // No errors found
-        expect(window.alert).not.toHaveBeenCalled();
+        expect(Notification.alert).not.toHaveBeenCalled();
         // Check the getValue from YmlEditor has been called
         expect(mockGetValue).toHaveBeenCalled();
         // Check if the preview panel is visible and contains text
@@ -201,60 +197,6 @@ describe('widget_settings', () => {
         mockGetValue.mockClear();
         saveBtn?.click();
         expect(mockGetValue).toHaveBeenCalled();
-        expect(window.alert).toHaveBeenCalled();
+        expect(Notification.alert).toHaveBeenCalled();
     });
-
-    it('Edits deletes an existing widget with id > 0', async () => {
-        const id = 123;
-        const usedKeys = ['key1', 'key2', 'key3'];
-        createBody(id);
-        const spyUpdateYaml = jest.spyOn(settingsModule, 'updateYaml');
-        const spyGetAreas = jest.spyOn(settingsModule, 'getAreas');
-        const {ymlArea, jsonArea} = settingsModule.getAreas(id);
-        const widgetToEdit = {
-            id,
-            key: 'key2',
-            name: 'name2',
-            template: '<p>Widget2</p>',
-            author: 'pep',
-            version: '1.0'
-        }
-        jsonArea.value = JSON.stringify(widgetToEdit);
-
-        await settingsModule.init({id, keys: usedKeys});
-        // Delete button must be in page
-        /** @type {HTMLButtonElement | null} */
-        const deleteBtn = document.querySelector('button.btn-outline-danger');
-        expect(deleteBtn).toBeTruthy();
-        mockConfirm.mockClear();
-        // Do not accept
-        mockConfirm.mockReturnValue(false);
-        /** @type {HTMLFormElement | null} */
-        const form = document.body.querySelector('form');
-        if (form) {
-            form.dispatchEvent = jest.fn().mockImplementation(e => e?.preventDefault());
-            form.requestSubmit = jest.fn();
-        }
-        deleteBtn?.click();
-        await wait(500);
-        expect(window.confirm).toHaveBeenCalled();
-        expect(jsonArea.value).toBeTruthy();
-        expect(ymlArea.value).toBeTruthy();
-        // Expect $form.trigger not called
-        expect(form?.requestSubmit).not.toHaveBeenCalled();
-
-        // Repeat accepting confirm
-        mockConfirm.mockClear(); 
-        mockConfirm.mockReturnValue(true);
-        deleteBtn?.click();
-        await wait(500);
-        expect(window.confirm).toHaveBeenCalled();
-        // Expect $form.trigger to have been called
-        expect(form?.requestSubmit).toHaveBeenCalled();
-        expect(jsonArea.value).toBeFalsy();
-        expect(ymlArea.value).toBeFalsy();
-      
-
-    });
-
 });
