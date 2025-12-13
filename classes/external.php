@@ -28,8 +28,10 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once("$CFG->libdir/externallib.php");
 
+/**
+ * External API for Tiny WidgetHub plugin.
+ */
 class external extends \external_api {
-
     /**
      * Defineix els paràmetres d'entrada (els arguments que rebràs del JS).
      * @return \external_function_parameters
@@ -39,7 +41,7 @@ class external extends \external_api {
             // Rebrem una llista d'IDs numèrics.
             'ids' => new \external_multiple_structure(
                 new \external_value(PARAM_INT, 'Widget ID to delete')
-            )
+            ),
         ]);
     }
 
@@ -51,15 +53,16 @@ class external extends \external_api {
     public static function delete_widgets($ids) {
         global $CFG;
 
-        // 1. Validació de paràmetres.
+        // Validate parameters.
         $params = self::validate_parameters(self::delete_widgets_parameters(), ['ids' => $ids]);
         
-        // 2. Comprovacions de seguretat (Context i Permisos).
+        // Security checks.
         $context = \context_system::instance();
         self::validate_context($context);
-        require_capability('moodle/site:config', $context); // Només admins
+        // Only admins can delete widgets.
+        require_capability('moodle/site:config', $context);
 
-        // 3. Executar l'esborrat.
+        // Execute deletion.
         $deletedids = \tiny_widgethub\settingsutil::delete_widgets($params['ids']);
 
         return [
@@ -68,14 +71,14 @@ class external extends \external_api {
     }
 
     /**
-     * Defineix què retorna la funció al JS.
+     * Define the return value structure.
      * @return \external_single_structure
      */
     public static function delete_widgets_returns() {
         return new \external_single_structure([
             'ids' => new \external_multiple_structure(
                 new \external_value(PARAM_INT, 'Deleted widget ID')
-            )
+            ),
         ]);
     }
 }

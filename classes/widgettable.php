@@ -136,8 +136,9 @@ class widgettable extends \admin_setting {
 
         // Delete button.
         $deletestr = get_string('delete', $tinycategory);
-        $delbtn = \html_writer::tag('button', 
-            \html_writer::tag('i', '', ['class' => 'fa fa-trash']) . ' ' . $deletestr, 
+        $delbtn = \html_writer::tag(
+            'button',
+            \html_writer::tag('i', '', ['class' => 'fa fa-trash']) . ' ' . $deletestr,
             ['class' => 'btn btn-outline-danger', 'id' => $deletebtnid, 'disabled' => true, 'type' => 'button']
         );
         $deltd = new \html_table_cell($delbtn);
@@ -153,13 +154,13 @@ class widgettable extends \admin_setting {
         $newlink = \html_writer::link($newurl, $newlinktext);
         
         $footer = \html_writer::div(
-            $delbtn . $newlink, 
+            $delbtn . $newlink,
             'd-flex justify-content-between mt-1 mb-6 align-items-center'
         );
 
         $finalhtml = \html_writer::table($table) . $footer;
 
-        $jsParams = [
+        $jsparams = [
             'tableId' => $tableid,
             'selectAllId' => $selectallid,
             'deleteBtnId' => $deletebtnid,
@@ -170,7 +171,7 @@ class widgettable extends \admin_setting {
             'confirmBtn' => $deletestr,
         ];
 
-        $PAGE->requires->js_call_amd('tiny_widgethub/widgettable', 'init', [$jsParams]);
+        $PAGE->requires->js_call_amd('tiny_widgethub/widgettable', 'init', [$jsparams]);
 
         return format_admin_setting(
             $this,

@@ -25,39 +25,6 @@
 defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
-
-    // Delete action.
-    $action = optional_param('action', '', PARAM_ALPHA);
-    $idsRaw = optional_param('ids', '', PARAM_SEQUENCE);
-
-    /*
-    if ($action === 'delete' && !empty($idsRaw)) {
-        // Verify security (CSRF).
-        require_sesskey();
-
-        // Convert the list of IDs into an array.
-        $idsToDelete = explode(',', $idsRaw);
-
-        // Get rid of the widget at the selected indices.
-        $conf = get_config('tiny_widgethub');
-        $widgetindex = \tiny_widgethub\plugininfo::get_widget_index($conf);
-        foreach ($idsToDelete as $id) {
-            unset_config('def_' . $id, 'tiny_widgethub');
-            unset($widgetindex[strval($id)]);
-        }
-
-        // Update index.
-        set_config('index', json_encode($widgetindex), 'tiny_widgethub');
-
-        redirect(
-            new \moodle_url('/admin/settings.php', ['section' => 'tiny_widgethub_settings']),
-            get_string('deleted', 'tiny_widgethub'),
-            null,
-            \core\output\notification::NOTIFY_SUCCESS
-        );
-    }
-    */
-
     $tinycategory = 'tiny_widgethub';
     $settings = new admin_settingpage('tiny_widgethub_settings', get_string('pluginname', $tinycategory));
 
