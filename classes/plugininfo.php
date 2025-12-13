@@ -135,7 +135,7 @@ class plugininfo extends plugin implements
 
             $conf = get_config('tiny_widgethub');
             $widgetindex = self::get_widget_index($conf);
-            $widgetlist = self::get_widget_list($conf, $widgetindex);
+            $widgetlist = self::get_widget_list($conf, $widgetindex, true);
 
             $params['user'] = [
                 'id' => $USER->id,
@@ -243,9 +243,10 @@ class plugininfo extends plugin implements
      *
      * @param object $conf
      * @param array $widgetindex (optional)
+     * @param bool $removehidden (optional)
      * @return array
      */
-    public static function get_widget_list($conf, $widgetindex): array {
+    public static function get_widget_list($conf, $widgetindex, $removehidden = false): array {
         if (!isset($widgetindex)) {
             $widgetindex = self::get_widget_index($conf);
         }
@@ -261,6 +262,9 @@ class plugininfo extends plugin implements
             }
             $json = json_decode($definition, false);
             if (!isset($json)) {
+                continue;
+            }
+            if ($removehidden && $json->hidden) {
                 continue;
             }
             // Also include the internal widget id.
@@ -417,10 +421,11 @@ class plugininfo extends plugin implements
     /**
      * Saves the current $preset to the database and updates the index key.
      * @param array $presets
+     * @param string $mode Optional. install or update. Defaults 'update'.
      * @param bool $force Optional. Forces saving regardless of version or author changes. Defaults false.
      * @return void
      */
-    public static function save_update_presets(array $presets, bool $force = false): void {
+    public static function save_update_presets(array $presets, string $mode = 'update', bool $force = false): void {
         // Obtain the configuration options for the plugin from the config table.
         $conf = get_config('tiny_widgethub');
         // Obtain the index.
@@ -431,7 +436,7 @@ class plugininfo extends plugin implements
             $id = tiny_widgethub_searchbykey($widgetindex, $preset['key']);
             $mustupdate = true;
 
-            if ($id == null) {
+            if ($id == null && $mode == 'install') {
                 // Create a new entry.
                 $id = self::update_seq($conf);
             } else if (isset($conf->{'def_' . $id})) {
@@ -446,7 +451,7 @@ class plugininfo extends plugin implements
                     $mustupdate = false;
                 }
             }
-            if ($force || $mustupdate) {
+            if (isset($id) && ($force || $mustupdate)) {
                 // Save the definition.
                 set_config('def_' . $id, json_encode($preset), 'tiny_widgethub');
                 // Update the index object.

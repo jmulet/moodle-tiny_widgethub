@@ -31,7 +31,8 @@ require_once("$CFG->libdir/externallib.php");
 class external extends \external_api {
 
     /**
-     * Defineix els paràmetres d'entrada (els arguments que rebràs del JS)
+     * Defineix els paràmetres d'entrada (els arguments que rebràs del JS).
+     * @return \external_function_parameters
      */
     public static function delete_widgets_parameters() {
         return new \external_function_parameters([
@@ -43,7 +44,9 @@ class external extends \external_api {
     }
 
     /**
-     * La funció que executa la lògica real
+     * La funció que executa la lògica real.
+     * @param array $ids List of widget IDs to delete.
+     * @return array List of deleted widget IDs.
      */
     public static function delete_widgets($ids) {
         global $CFG;
@@ -65,7 +68,8 @@ class external extends \external_api {
     }
 
     /**
-     * Defineix què retorna la funció al JS
+     * Defineix què retorna la funció al JS.
+     * @return \external_single_structure
      */
     public static function delete_widgets_returns() {
         return new \external_single_structure([

@@ -90,7 +90,7 @@ if ($hassiteconfig) {
 
         // Add setting pages for every widget to category (hidden from nav).
         $widgetindex = \tiny_widgethub\plugininfo::get_widget_index($conf);
-        $widgetlist = \tiny_widgethub\plugininfo::get_widget_list($conf, $widgetindex);
+        $widgetlist = \tiny_widgethub\plugininfo::get_widget_list($conf, $widgetindex, false);
         $usedkeys = array_column($widgetindex, 'key');
         $partials = \tiny_widgethub\plugininfo::get_partials($conf, $widgetindex);
 

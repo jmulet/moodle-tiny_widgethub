@@ -25,26 +25,25 @@
  * @typedef {*} TinyMCE
  **/
 
-import {getTinyMCE} from 'editor_tiny/loader';
-import {getPluginMetadata} from 'editor_tiny/utils';
+import { getTinyMCE } from 'editor_tiny/loader';
+import { getPluginMetadata } from 'editor_tiny/utils';
 
 import Common from './common';
-import {register as registerOptions} from './options';
-import {getSetup as getCommandSetup} from './commands';
+import { register as registerOptions } from './options';
+import { getSetup as getCommandSetup } from './commands';
 import * as Configuration from './configuration';
-import {subscribe} from './extension';
+import { subscribe } from './extension';
 
 // Register extensions
 import './extension/dependencies';
-import {refractorListener} from './extension/refractorbs5';
+import { refractorListener } from './extension/refractorbs5';
 subscribe('onInit', refractorListener);
 
-const documentationUrl = 'https://github.com/jmulet/moodle-tiny_widgethub';
-const {component, pluginName} = Common;
+const { component, pluginName, documentationUrl } = Common;
 
 // Setup the plugin.
 // eslint-disable-next-line no-async-promise-executor
-export default new Promise(async(resolve) => {
+export default new Promise(async (resolve) => {
     const [
         tinyMCE,
         pluginMetadata,

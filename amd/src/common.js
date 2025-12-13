@@ -29,6 +29,7 @@ const component = `tiny_${componentName}`;
 export default {
     // @ts-ignore
     baseUrl: `${Config.wwwroot}/lib/editor/tiny/plugins/${componentName}`,
+    documentationUrl: 'https://github.com/jmulet/moodle-tiny_widgethub',
     component,
     componentName,
     jsURL: '',
