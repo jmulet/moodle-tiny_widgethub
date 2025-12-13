@@ -55,7 +55,7 @@ class external extends \external_api {
 
         // Validate parameters.
         $params = self::validate_parameters(self::delete_widgets_parameters(), ['ids' => $ids]);
-        
+
         // Security checks.
         $context = \context_system::instance();
         self::validate_context($context);

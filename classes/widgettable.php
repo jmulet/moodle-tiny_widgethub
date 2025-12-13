@@ -152,7 +152,7 @@ class widgettable extends \admin_setting {
         $newlinktext = \html_writer::tag('i', '', ['class' => 'fa fa-plus-circle'])
             . ' ' . get_string('createwidget', $tinycategory);
         $newlink = \html_writer::link($newurl, $newlinktext);
-        
+
         $footer = \html_writer::div(
             $delbtn . $newlink,
             'd-flex justify-content-between mt-1 mb-6 align-items-center'
