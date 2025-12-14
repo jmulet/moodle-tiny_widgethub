@@ -118,8 +118,11 @@ class widgettable extends \admin_setting {
             $checktd = new \html_table_cell($checkbox);
             $checktd->attributes = ['class' => 'text-center', 'style' => 'width: 40px;'];
             $categorytd = new \html_table_cell('<span class="badge bg-secondary text-capitalize">' . $item->category . '</span>');
-            $closedeyeicon = $item->hidden == 1 ? \html_writer::tag('i', '',
-            ['class' => 'btn-warning fa fa-eye-slash mr-1', 'title' => 'Hidden']) : '';
+            $closedeyeicon = $item->hidden == 1 ? \html_writer::tag(
+                'i',
+                '',
+                ['class' => 'btn-warning fa fa-eye-slash mr-1', 'title' => 'Hidden']
+            ) : '';
             $keytd = new \html_table_cell($closedeyeicon . $item->key);
             $nametd = new \html_table_cell($item->name);
             $newlinktext = \html_writer::tag('i', '', ['class' => 'fa fa-pencil']);
