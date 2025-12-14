@@ -173,13 +173,22 @@ class plugininfo extends plugin implements
         $nerrs = 0;
         foreach (array_keys($widgetindex) as $id) {
             if (!isset($conf->{'def_' . $id})) {
+                // Remove the widget from the index.
                 unset($widgetindex[strval($id)]);
                 $nerrs++;
-            } else if (!isset($widgetindex[strval($id)]['category'])) {
-                // Rebuild the index to include the category.
+            } else if (!isset($widgetindex[$id]['c']) || !isset($widgetindex[$id]['h'])) {
+                // Decode JSON only if at least one property is missing.
                 $tmpwidget = json_decode($conf->{'def_' . $id}, false);
-                $widgetindex[strval($id)]['category'] = isset($tmpwidget->category) ? $tmpwidget->category : '';
-                $nerrs++;
+
+                if (!isset($widgetindex[$id]['c'])) {
+                    $widgetindex[$id]['c'] = $tmpwidget->category ?? '';
+                    $nerrs++;
+                }
+
+                if (!isset($widgetindex[$id]['h'])) {
+                    $widgetindex[$id]['h'] = (int) ($tmpwidget->hidden ?? false);
+                    $nerrs++;
+                }
             }
         }
         unset($widgetindex[0]); // Remove any temporal entry.
@@ -220,7 +229,8 @@ class plugininfo extends plugin implements
                 $widgetindex[strval($id)] = [
                     'key' => $tmpwidget->key,
                     'name' => isset($tmpwidget->name) ? $tmpwidget->name : $tmpwidget->key,
-                    'category' => isset($tmpwidget->category) ? $tmpwidget->category : get_string('misc', 'tiny_widgethub'),
+                    'c' => isset($tmpwidget->category) ? $tmpwidget->category : get_string('misc', 'tiny_widgethub'),
+                    'h' => isset($tmpwidget->hidden) ? (int) ($tmpwidget->hidden) : 0,
                 ];
                 set_config('def_' . $id, $conf->def_0, 'tiny_widgethub');
                 // Remove the temporal widget.
@@ -231,7 +241,8 @@ class plugininfo extends plugin implements
             $widgetindex[$id] = [
                 'key' => $widget->key,
                 'name' => isset($widget->name) ? $widget->name : $widget->key,
-                'category' => isset($widget->category) ? $widget->category : get_string('misc', 'tiny_widgethub'),
+                'c' => isset($widget->category) ? $widget->category : get_string('misc', 'tiny_widgethub'),
+                'h' => isset($widget->hidden) ? (int) ($tmpwidget->hidden) : 0,
             ];
         }
         set_config('index', json_encode($widgetindex), 'tiny_widgethub');
@@ -252,6 +263,11 @@ class plugininfo extends plugin implements
         }
         $widgetlist = [];
         foreach (array_keys($widgetindex) as $id) {
+            $windex = $widgetindex[$id];
+            if ($removehidden && isset($windex['h']) && $windex['h'] == 1) {
+                // Hidden widgets are not passed to UI. No need to parse them.
+                continue;
+            }
             // Check if the key is set.
             if (!isset($conf->{'def_' . $id})) {
                 continue;
@@ -459,6 +475,8 @@ class plugininfo extends plugin implements
                 $widgetindex[$id] = [
                     'key' => $preset['key'],
                     'name' => isset($preset['name']) ? $preset['name'] : $preset['key'],
+                    'c' => isset($preset['category']) ? $preset['category'] : '',
+                    'h' => isset($preset['hidden']) ? (int) $preset['hidden'] : 0,
                 ];
             }
         }

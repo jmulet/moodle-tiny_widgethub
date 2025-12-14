@@ -66,24 +66,25 @@ export default {
         const tableFooter = document.createElement('tfoot');
         const tableFooterRow = document.createElement('tr');
         const tableFooterCell = document.createElement('td');
-        tableFooterCell.classList.add('text-right', 'position-sticky', 'bottom-0', 'bg-light', 'z-index-1');
+        tableFooterCell.classList.add('text-right', 'position-sticky', 'tiny_widgethub-bottom-0', 'bg-light', 'z-index-1');
         tableFooterCell.colSpan = table.rows[0].cells.length;
         tableFooterRow.appendChild(tableFooterCell);
         tableFooter.appendChild(tableFooterRow);
         table.appendChild(tableFooter);
         updateFooter(table, tableFooterCell);
 
-        // Add colors
+        // Add colors to category badges
         /** @type {NodeListOf<HTMLTableRowElement>} */
-        const rows = table.querySelectorAll('tbody tr');
-        rows.forEach(row => {
-            const catName = row.cells[1].innerText ?? '';
-            const color = hashCode(catName) % 360;
+        const badges = table.querySelectorAll('tbody tr td span.badge');
+        badges.forEach(badge => {
+            const catName = badge.innerText ?? 'misc';
+            const color = hashCode(catName.toUpperCase()) % 360;
             let sat = '30%';
             if (catName.toLowerCase().startsWith('obsolet') || catName.toLowerCase().startsWith('deprecated')) {
                 sat = '0%'; // Gray
             }
-            row.style.backgroundColor = `hsl(${color}, ${sat}, 90%)`;
+            badge.style.setProperty('background-color', `hsl(${color}, ${sat}, 40%)`, 'important');
+            badge.style.setProperty('color', 'white');
         });
 
         /** @type {HTMLElement | null} */
@@ -107,7 +108,7 @@ export default {
         const allHeaders = table.querySelectorAll('thead th');
         allHeaders.forEach(header => {
             header.setAttribute('scope', 'col');
-            header.classList.add('position-sticky', 'top-0', 'bg-light', 'z-index-1');
+            header.classList.add('position-sticky', 'tiny_widgethub-top-0', 'bg-light', 'z-index-1');
         });
 
         /** @type {NodeListOf<HTMLTableCellElement>} */

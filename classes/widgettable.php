@@ -117,8 +117,9 @@ class widgettable extends \admin_setting {
             $checkbox = \html_writer::checkbox('', $item->id, false, '', ['class' => 'tiny_widgethub-check']);
             $checktd = new \html_table_cell($checkbox);
             $checktd->attributes = ['class' => 'text-center', 'style' => 'width: 40px;'];
-            $categorytd = new \html_table_cell($item->category);
-            $keytd = new \html_table_cell($item->key);
+            $categorytd = new \html_table_cell('<span class="badge bg-secondary text-capitalize">' . $item->category . '</span>');
+            $closedeyeicon = $item->hidden == 1 ? \html_writer::tag('i', '', ['class' => 'btn-warning fa fa-eye-slash mr-1', 'title' => 'Hidden']) : '';
+            $keytd = new \html_table_cell($closedeyeicon . $item->key);
             $nametd = new \html_table_cell($item->name);
             $newlinktext = \html_writer::tag('i', '', ['class' => 'fa fa-pencil']);
             $editlink = \html_writer::link($item->url, $newlinktext);
@@ -201,7 +202,8 @@ class widgettable extends \admin_setting {
             $cfg->id = $id;
             $cfg->key = $tindex['key'];
             $cfg->name = $tindex['name'];
-            $cfg->category = $tindex['category'] ?? '';
+            $cfg->category = $tindex['c'] ?? '';
+            $cfg->hidden = $tindex['h'] ?? 0;
             $cfg->url = new \moodle_url(
                 '/admin/settings.php',
                 ['section' => 'tiny_widgethub_spage_' . $id]

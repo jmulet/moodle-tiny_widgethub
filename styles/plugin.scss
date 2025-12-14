@@ -23,6 +23,14 @@ $border-radius-md: 6px;
 $border-radius-lg: 10px;
 $btn-border-radius: .5rem;
 
+.tiny_widgethub-top-0 {
+    top: 0 !important;
+}
+
+.tiny_widgethub-bottom-0 {
+    bottom: 0 !important;
+}
+
 .tiny_widgethub-container {
     position: relative;
 
@@ -503,11 +511,11 @@ h4.tiny_widgethub-headertext {
 
             .twh-label {
                 overflow: hidden;
-                line-height: 1.2;
-                max-height: 2.4em;
+                line-height: 1.1;
+                height: 3.5em;
                 width: 100%;
                 margin-top: 4px;
-                font-size: 80%;
+                font-size: 79%;
                 text-overflow: ellipsis;
             }
 
