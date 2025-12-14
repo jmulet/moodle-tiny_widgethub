@@ -141,6 +141,9 @@ jobs:
 
       - name: Behat features
         if: ${{ !cancelled() }}
+        # Setting the timeout multiplier to 3 (3 * 30 seconds = 90 seconds)
+        env:
+          MOODLE_CONFIG: '{"behat_increasetimeout": 3}'
         run: moodle-plugin-ci behat --profile chrome
 
       - name: Mark cancelled jobs as failed.

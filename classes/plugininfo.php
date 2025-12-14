@@ -264,7 +264,8 @@ class plugininfo extends plugin implements
             if (!isset($json)) {
                 continue;
             }
-            if ($removehidden && $json->hidden) {
+            if ($removehidden && isset($json->hidden) && $json->hidden) {
+                // Hidden widgets are not passed to UI.
                 continue;
             }
             // Also include the internal widget id.
