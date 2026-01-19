@@ -623,6 +623,17 @@ export function removeStyleMCE(target, propName) {
     target.setAttribute('data-mce-style', target.getAttribute('style') ?? '');
 }
 
+/**
+ * @param {Element} target
+ * @param {string} propName
+ * @param {string} propValue
+ */
+export function setAttributeMCE(target, propName, propValue) {
+    target.setAttribute(propName, propValue);
+    if (propName === 'href' || propName === 'src') {
+        target.setAttribute(`data-mce-${propName}`, propValue);
+    }
+}
 
 /**
  * Any menu item, different from |, is prefixed by componentName_ and ended with _item.

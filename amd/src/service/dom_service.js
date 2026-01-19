@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+import { setAttributeMCE } from '../util';
+
 /**
  * Tiny WidgetHub plugin.
  *
@@ -57,9 +59,9 @@ export class DomSrv {
                             newId = oldId + ext;
                             idMap[oldId] = newId;
                         }
-                        el.setAttribute(dataX, "#" + newId);
+                        setAttributeMCE(el, dataX, "#" + newId);
                     } else {
-                       // Generar un ID único
+                        // Generar un ID único
                         const newId = 'd' + Math.random().toString(32).substring(2);
 
                         // Clonar el elemento (deep clone si quieres incluir hijos)
@@ -70,7 +72,7 @@ export class DomSrv {
                         clonedRef.id = newId;
 
                         // Actualizar el atributo/data en el elemento original
-                        el.setAttribute(dataX, "#" + newId);
+                        setAttributeMCE(el, dataX, "#" + newId);
 
                         // Compatibilidad con Bootstrap: actualizar el otro atributo
                         if (dataX === 'data-bs-target') {
@@ -130,8 +132,8 @@ export class DomSrv {
             // Look in descendants
             el.querySelectorAll(searchFor).forEach(desc => {
                 const attr = desc.getAttribute('data-target')
-                        ?? desc.getAttribute('data-bs-target')
-                        ?? desc.getAttribute('href');
+                    ?? desc.getAttribute('data-bs-target')
+                    ?? desc.getAttribute('href');
 
                 if (attr && attr !== '#') {
                     found.push(...root.querySelectorAll(attr));
@@ -222,7 +224,7 @@ export class DomSrv {
                     tag = parent?.tagName;
                 }
                 /** @ts-ignore */
-                res.widget = {key: `!${tag}`, prop: () => ''};
+                res.widget = { key: `!${tag}`, prop: () => '' };
                 res.targetElement = isTag ? res.selectedElement : parent;
             }
         }
