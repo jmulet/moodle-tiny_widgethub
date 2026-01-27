@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Local WidgetHub plugin.
+ * Tiny WidgetHub plugin.
  *
- * @module      local_widgethub/sandbox
+ * @module      tiny_widgethub/sandbox
  * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -93,7 +93,7 @@ export default class Sandbox {
         iframe.style.cssText = 'position:absolute; top:-9999em; left:-9999em; z-index:-1; width:0; height:0; border:none;';
 
         const moodleOrigin = window.location.origin;
-        const html = await Templates.render('local_widgethub/sandbox', {
+        const html = await Templates.render('tiny_widgethub/sandbox', {
             wwwroot: Config.wwwroot,
             origin: moodleOrigin,
             jsrev: Config.jsrev || 1
@@ -104,7 +104,7 @@ export default class Sandbox {
         this._readyPromise = new Promise((resolve, reject) => {
             const onPostMessage = (/** @type {MessageEvent} */ event) => {
                 URL.revokeObjectURL(url);
-                if (event.data?.type === `local_widgethub_sandbox_init` &&
+                if (event.data?.type === `tiny_widgethub_sandbox_init` &&
                     event.source === iframe.contentWindow && event.origin === 'null') {
 
                     window.removeEventListener('message', onPostMessage);

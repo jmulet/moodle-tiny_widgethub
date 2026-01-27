@@ -558,6 +558,7 @@ const bindingFactory = function (el) {
  * @property {(value: string | boolean | number) => void} setValue
  */
 /**
+ * TODO: Cannot eval in context in sandbox because it uses functions in context.
  * @param {string | {get?: string, set?: string, getValue?: string, setValue?: string}} definition
  * @param {Element} elem  - The root of widget
  * @param {string=} castTo  - The type that must be returned

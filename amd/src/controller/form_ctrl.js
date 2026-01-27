@@ -25,7 +25,8 @@
 import { getFileSrv } from '../service/file_service';
 import { getTemplateSrv } from '../service/template_service';
 import { getUserStorage } from '../service/userstorage_service';
-import { capitalize, cleanParameterName, evalInContext, genID, stream, toHexAlphaColor, toRgba } from '../util';
+import { capitalize, cleanParameterName, genID, stream, toHexAlphaColor, toRgba } from '../util';
+import Sandbox from '../service/sandbox';
 
 const questionPopover = '{{#tooltip}}<a href="javascript:void(0)" data-toggle="popover" data-trigger="hover" data-content="{{tooltip}}" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-content="{{tooltip}}"><i class="fa fas fa-question-circle text-info"></i></a>{{/tooltip}}';
 
@@ -451,14 +452,19 @@ export class FormCtrl {
          watchedvars.push(varobj.name);
       }
 
-      const doUpdateVisibilities = () => {
-         updatableComponents.forEach(upcomp => {
+      const doUpdateVisibilities = async () => {
+         const sandbox = await Sandbox.getInstance();
+         updatableComponents.forEach(async (upcomp) => {
             // Evaluate condition
             const newVariables = this.extractFormParameters(widget, formElem, false);
             // Add to the new variables the internal variables
             newVariables.SELECT_MODE = selectmode;
             // Eval JS condition for new variables
-            const showme = evalInContext(newVariables, upcomp.condition);
+            const result = await sandbox.execute('eval', {
+               code: upcomp.condition,
+               ctx: newVariables
+            });
+            const showme = result.returns;
             if (upcomp.component) {
                /** @type {HTMLElement | null} */
                const theComponent = upcomp.component.closest('.form-group');

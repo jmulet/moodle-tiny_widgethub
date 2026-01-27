@@ -25,7 +25,7 @@
 // Micro-Bootstrap (The "Optimized" Moodle Load).
 define('ABORT_AFTER_CONFIG', true);  // Stop Moodle immediately after config.php.
 define('NO_DEBUG_DISPLAY', true);    // Silence errors.
-require_once(__DIR__ . '/../../config.php');
+require_once(__DIR__ . '/../../../../../config.php');
 
 // The Most Robust Path Parser (No assumptions on $_SERVER).
 $rawpath = $_SERVER['PATH_INFO'] ?? '';
@@ -59,7 +59,7 @@ $name = preg_replace('/[^a-zA-Z0-9_\-]/', '', $args[2]) ?? 'bundle';
 if ($type === 'css') {
     $mimetype = 'text/css';
 } else if ($type === 'js') {
-    $mimetype = 'text/javascript';
+    $mimetype = 'application/javascript';
 } else if ($type === 'html') {
     $mimetype = 'text/html';
 } else {
