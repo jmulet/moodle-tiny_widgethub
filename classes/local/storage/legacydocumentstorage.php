@@ -24,8 +24,6 @@
 
 namespace tiny_widgethub\local\storage;
 
-use stdClass;
-
 /**
  * Class filedocumentstorage
  *
@@ -84,15 +82,26 @@ class legacydocumentstorage implements documentstorage {
      * @return bool True if document was saved, false otherwise.
      */
     private static function save_filearea_document(int $id, ?string $doc, string $ext): bool {
+        if ($id < 0) {
+            throw new \moodle_exception('invalid id ' . $id, 'tiny_widgethub');
+        }
         $systemcontextid = \context_system::instance()->id;
         $fs = get_file_storage();
+        $fileinfo = [
+            'contextid' => $systemcontextid,
+            'component' => self::COMPONENT_NAME,
+            'filearea' => self::FILEAREA,
+            'itemid' => $id,
+            'filepath' => '/',
+            'filename' => 'data.' . $ext,
+        ];
         $file = $fs->get_file(
-            $systemcontextid,
-            self::COMPONENT_NAME,
-            self::FILEAREA,
-            $id,
-            '/',
-            'data.' . $ext
+            $fileinfo['contextid'],
+            $fileinfo['component'],
+            $fileinfo['filearea'],
+            $fileinfo['itemid'],
+            $fileinfo['filepath'],
+            $fileinfo['filename']
         );
         if ($file) {
             if ($doc !== null && $file->compare_to_string($doc)) {
@@ -104,15 +113,10 @@ class legacydocumentstorage implements documentstorage {
         if ($doc === null) {
             return true;
         }
-        $file = $fs->create_file_from_string(
-            $systemcontextid,
-            self::COMPONENT_NAME,
-            self::FILEAREA,
-            $id,
-            '/',
-            'data.' . $ext,
-            $doc
-        );
+        $file = $fs->create_file_from_string($fileinfo, $doc);
+        if (!$file) {
+            return false;
+        }
         return true;
     }
 

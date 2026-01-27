@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Local WidgetHub Legacy storage (based on get_config) implementation.
+ * Tiny WidgetHub Legacy storage (based on get_config) implementation.
  *
  * @package     tiny_widgethub
  * @copyright   2026 Josep Mulet <pep.mulet@gmail.com>
@@ -24,7 +24,7 @@
 
 namespace tiny_widgethub\local\storage;
 
-use local_widgethub\local\storage\storagefactory;
+use tiny_widgethub\local\storage\storagefactory;
 
 /**
  * Function to search for the index by the 'key' property.
@@ -120,7 +120,7 @@ class legacywidgetstorage implements widgetstorage {
      * @return array Associative array of partials.
      */
     public function get_partials(): array {
-        $raw = $this->documentstorage->get(0, 'json');
+        $raw = $this->documentstorage->get(storagefactory::PARTIALS_ID, 'json');
         if ($raw) {
             $decoded = json_decode($raw);
             if ($decoded && is_object($decoded)) {
@@ -137,7 +137,7 @@ class legacywidgetstorage implements widgetstorage {
      * @return string|null YAML string of partials.
      */
     public function get_partials_yml(): ?string {
-        return $this->documentstorage->get(0, 'yml');
+        return $this->documentstorage->get(storagefactory::PARTIALS_ID, 'yml');
     }
 
     /**
@@ -197,11 +197,11 @@ class legacywidgetstorage implements widgetstorage {
     /**
      * The entry id has changed, update the index.
      * @param int $id
+     * @param array $raw
      * @return int - The id if a new widget is created and 0 otherwise.
      */
-    private function update_index($id) {
+    private function update_index($id, $raw) {
         $newid = 0;
-        $raw = $this->load_raw_widget($id);
         if ($raw === null || (empty($raw['key']) && empty($raw['name']))) {
             // Remove the widget from the index.
             unset($this->index[strval($id)]);
@@ -338,13 +338,13 @@ class legacywidgetstorage implements widgetstorage {
      * If the widget already exists, it will be updated.
      * The property $widget['id'] is required on update.
      *
-     * @param int|null $id The widget ID. If null, a new widget will be created. -1 for partials.
+     * @param int|null $id The widget ID. If null, a new widget will be created. 0 for partials.
      * @param array $widget The widget data to save.
      * @param string|null $yml The widget yml string.
      * @param string|null $html The widget html string.
      * @param string|null $css The widget css string.
      * @param int $rev The widget revision.
-     * @return int The widget ID > 0 on success, -1 for partials, -2 on failure.
+     * @return int The widget ID > 0 on success, 0 for partials, -2 on failure.
      */
     public function save_widget(
         ?int $id,
@@ -354,13 +354,13 @@ class legacywidgetstorage implements widgetstorage {
         ?string $css = null,
         int $rev = 1
     ): int {
-        if ($id === 0 || $id === null) {
+        if ($id === storagefactory::BLANK_ID) {
             $id = $this->update_seq();
         }
         $this->documentstorage->save($id, json_encode($widget), 'json');
         $this->documentstorage->save($id, $yml, 'yml');
 
-        $this->update_index($id);
+        $this->update_index($id, $widget);
         return $id;
     }
 
@@ -436,7 +436,7 @@ class legacywidgetstorage implements widgetstorage {
         $this->documentstorage->save($id, json_encode($widget), 'json');
         // Must delete yml document to mantain consistency.
         $this->documentstorage->delete($id, 'yml');
-        $this->update_index($id);
+        $this->update_index($id, $widget);
         return true;
     }
 

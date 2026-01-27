@@ -49,7 +49,7 @@ class widgetrepository {
 
         $extensions = array_map('strtolower', $extensions);
         // Search in the given directory.
-        $workingdir = $CFG->dirroot . '/local/widgethub/' . $directory;
+        $workingdir = $CFG->dirroot . '/lib/editor/tiny/plugins/widgethub/' . $directory;
         if (file_exists($workingdir)) {
             $dirs[] = new \DirectoryIterator($workingdir);
         }

@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import replace from '@rollup/plugin-replace';
-import {nodeResolve} from '@rollup/plugin-node-resolve';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -14,12 +14,12 @@ const banner = `
 
 export default [
     {
-        input: './codemirror6/ymleditor.mjs',
+        input: './codemirror6/cmeditor.mjs',
         output: {
             sourcemap: false,
-            file: path.resolve(__dirname, '../../amd/src/libs/ymleditor-lazy.js'),
+            file: path.resolve(__dirname, '../../amd/src/libs/cmeditor-lazy.js'),
             format: 'esm',
-            name: 'ymleditor',
+            name: 'cmeditor',
             plugins: [],
             banner
         },
@@ -29,10 +29,24 @@ export default [
                 preventAssignment: true,
                 values: {
                     "const defaultHighlightStyle = /*@__PURE__*/HighlightStyle.define([":
-                    "const HighlightStyleDefs = HighlightStyle.define;\nconst defaultHighlightStyle = /*@__PURE__*/HighlightStyleDefs(["
+                        "const HighlightStyleDefs = HighlightStyle.define;\nconst defaultHighlightStyle = /*@__PURE__*/HighlightStyleDefs(["
                 },
                 delimiters: ['', '']
             }),
+            nodeResolve()
+        ]
+    },
+    {
+        input: './codemirror6/yaml.mjs',
+        output: {
+            sourcemap: false,
+            file: path.resolve(__dirname, '../../amd/src/libs/yaml-lazy.js'),
+            format: 'esm',
+            name: 'yaml',
+            plugins: [],
+            banner
+        },
+        plugins: [
             nodeResolve()
         ]
     },

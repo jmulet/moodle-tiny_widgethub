@@ -27,8 +27,57 @@ import {
   Scalar,
 } from 'yaml';
 
+/**
+ * Does a key name of the yaml file requires a block format?
+ * @param {string} str
+ * @returns {boolean}
+ */
+function needsBlock(str) {
+  return typeof str === 'string' && str.includes('\n');
+}
+
+/**
+ * Converts a JSON string to a YAML string.
+ * @param {string} json 
+ * @returns {string}
+ */
+function fromJSON(json) {
+  const _obj = JSON.parse(json);
+  const blockKeys = {
+    template: 'BLOCK_LITERAL',
+    filter: 'BLOCK_LITERAL',
+    instructions: 'BLOCK_FOLDED',
+  };
+
+  for (const [key, style] of Object.entries(blockKeys)) {
+    if (needsBlock(_obj[key])) {
+      /** @type {any} */
+      const scalar = new Scalar(_obj[key]);
+      scalar.type = style;
+      if (style === 'BLOCK_FOLDED') {
+        scalar.chomping = 'CLIP';
+      }
+      _obj[key] = scalar;
+    }
+  }
+  if (Array.isArray(_obj.parameters)) {
+    for (const param of _obj.parameters) {
+      if (param.bind && typeof param.bind === 'object') {
+        ['get', 'set'].forEach(key => {
+          if (needsBlock(param.bind[key])) {
+            param.bind[key] = new Scalar(param.bind[key]);
+            param.bind[key].type = 'BLOCK_LITERAL';
+          }
+        });
+      }
+    }
+  }
+  return stringify(_obj, { indent: 2 });
+}
+
 export {
   parse,
+  fromJSON,
   stringify,
   Scalar,
 };

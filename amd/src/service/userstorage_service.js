@@ -14,21 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-import { getEditorOptions } from '../options';
+import { getEditorOptions, getUserPrefs } from '../options';
 import Common from '../common';
+import { getExternalService } from './external_service';
 const { component } = Common;
 
 /**
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /**
- * @typedef {{localStorage: Storage, sessionStorage: Storage}} IStorage;
+ * @typedef {{
+ *     getItem: () => string | null,
+ *     setItem: (value: string) => void
+ * }} MyStorage;
+ * @typedef {{localStorage: Storage, sessionStorage: Storage, moodleStorage: MyStorage}} IStorage;
  */
+
+const MOODLE_STORAGE_KEYS = ['viewmode', 'startup.filters'];
 
 export class UserStorageSrv {
     /**
@@ -40,6 +47,8 @@ export class UserStorageSrv {
         this.localStorage = iStorage.localStorage;
         /** @type {Storage} */
         this.sessionStorage = iStorage.sessionStorage;
+        /** @type {MyStorage} */
+        this.moodleStorage = iStorage.moodleStorage;
         /** @type {number} */
         this._courseId = editorOptions.courseId;
         /** @type {string} */
@@ -48,6 +57,10 @@ export class UserStorageSrv {
          * @type {Record<string, any>}
          */
         this._localStore = { values: {} };
+        /**
+         * @type {Record<string, any>}
+         */
+        this._moodleStore = {};
         /**
          * @type {Record<string, any>}
          */
@@ -72,11 +85,21 @@ export class UserStorageSrv {
             // @ts-ignore
             this._localStore["_" + this._courseId] = {};
         }
-        if (typeof this.sessionStorage !== 'undefined') {
-            const json2 = this.sessionStorage.getItem(this.STORE_KEY);
+        if (typeof this.moodleStorage !== 'undefined') {
+            const json2 = this.moodleStorage.getItem();
             if (json2) {
                 try {
-                    this._sessionStore = JSON.parse(json2);
+                    this._moodleStore = JSON.parse(json2);
+                } catch (ex) {
+                    console.error(ex);
+                }
+            }
+        }
+        if (typeof this.sessionStorage !== 'undefined') {
+            const json3 = this.sessionStorage.getItem(this.STORE_KEY);
+            if (json3) {
+                try {
+                    this._sessionStore = JSON.parse(json3);
                 } catch (ex) {
                     console.error(ex);
                 }
@@ -93,6 +116,10 @@ export class UserStorageSrv {
     getFromLocal(key, defaultValue) {
         if (!this._localStore) {
             return defaultValue;
+        }
+        // Try to find first in moodleStorage
+        if (this._moodleStore[key]) {
+            return this._moodleStore[key];
         }
         // @ts-ignore
         const MLSC = this._localStore["_" + this._courseId]; // Almost everything goes here
@@ -122,6 +149,16 @@ export class UserStorageSrv {
     saveStore(type) {
         if (type === 'local') {
             this.localStorage.setItem(this.STORE_KEY, JSON.stringify(this._localStore));
+            // Some local keys go to moodleStorage
+            const data = Object.fromEntries(
+                MOODLE_STORAGE_KEYS
+                    .filter(key => this._localStore[key] !== undefined)
+                    .map(key => [key, this._localStore[key]])
+            );
+
+            if (Object.keys(data).length > 0) {
+                this.moodleStorage.setItem(JSON.stringify(data));
+            }
         } else if (type === 'session') {
             this.sessionStorage.setItem(this.STORE_KEY, JSON.stringify(this._sessionStore));
         } else if (type === null || type === undefined) {
@@ -222,7 +259,26 @@ const userStorageInstances = new Map();
 export function getUserStorage(editor) {
     let instance = userStorageInstances.get(editor);
     if (!instance) {
-        const iStorage = { localStorage, sessionStorage };
+        const userPrefs = getUserPrefs(editor);
+        /** @type {MyStorage} */
+        const moodleStorage = {
+            getItem: () => {
+                return userPrefs;
+            },
+            setItem: (value) => {
+                const externalService = getExternalService();
+                externalService.saveUserPref(value)
+                    .catch((/** @type {Error} */ ex) => {
+                        console.error('Cannot save user prefs', ex);
+                    });
+            }
+        };
+        /** @type {IStorage} */
+        const iStorage = {
+            localStorage,
+            sessionStorage,
+            moodleStorage
+        };
         instance = new UserStorageSrv(getEditorOptions(editor), iStorage);
         userStorageInstances.set(editor, instance);
     }

@@ -1,4 +1,3 @@
-
 /* eslint-disable no-console */
 // This file is part of Moodle - http://moodle.org/
 //
@@ -19,21 +18,37 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import { getButtonImage } from 'editor_tiny/utils';
 import * as coreStr from 'core/str';
 import Common from './common';
-import * as cfg from 'core/config';
 import { getContextMenuManager } from './contextactions';
-import { getAdditionalCss, getGlobalConfig, getWidgetDict, isPluginVisible, Shared, getEditorOptions, isShareCss } from './options';
+import {
+    getAdditionalCss,
+    getGlobalConfig,
+    getWidgetDict,
+    isPluginVisible,
+    Shared,
+    getEditorOptions,
+    isShareCss,
+    isPlaygroundMode
+} from './options';
 import { getWidgetPickCtrl } from './controller/widgetpicker_ctrl';
 import { getListeners } from './extension';
 import { getUserStorage } from './service/userstorage_service';
-import { applyWidgetFilterFactory, findVariableByName, loadScriptAsync, removeRndFromCtx, searchComp } from './util';
+import {
+    applyWidgetFilterFactory,
+    findVariableByName,
+    loadScriptAsync,
+    removeRndFromCtx,
+    searchComp
+} from './util';
 import { enableIframeBubble } from './extension/iframebubble';
+import { getWidgetParamsFactory } from './controller/widgetparams_ctrl';
+import Config from 'core/config';
 
 export const getSetup = async () => {
     // Get some translations
@@ -101,17 +116,37 @@ export const getSetup = async () => {
             return ctx;
         };
 
+        const isInPlaygroundMode = isPlaygroundMode();
+        let splitButtonBehavior = getGlobalConfig(editor, 'insert.splitbutton.behavior', 'lastused');
+        if (isInPlaygroundMode) {
+            splitButtonBehavior = 'none';
+        }
         // Register the Toolbar Button or SplitButton - including recently used widgets
+        // Hook for administrator widget editor page.
+
+        // Click on button directly opens the only registered widget options.
         const defaultAction = () => {
-            const widgetPickCtrl = getWidgetPickCtrl(editor);
-            widgetPickCtrl.handleAction();
+            if (isInPlaygroundMode) {
+                // Click on button directly opens the only registered widget options.
+                const factory = getWidgetParamsFactory(editor);
+                const widget = Object.values(getWidgetDict(editor))[0];
+                if (!widget) {
+                    console.error('No widget found in playground mode');
+                    return;
+                }
+                const widgetParamsCtrl = factory(widget);
+                widgetParamsCtrl.handleAction();
+            } else {
+                const widgetPickCtrl = getWidgetPickCtrl(editor);
+                widgetPickCtrl.handleAction();
+            }
         };
         const toolbarButtonSpec = {
             icon: Common.icon,
             tooltip: widgetNameTitle,
             onAction: defaultAction
         };
-        const splitButtonBehavior = getGlobalConfig(editor, 'insert.splitbutton.behavior', 'lastused');
+
         if (splitButtonBehavior === 'none') {
             editor.ui.registry.addButton(Common.component, toolbarButtonSpec);
         } else {
@@ -175,34 +210,39 @@ export const getSetup = async () => {
              * @returns {Promise<{type: string, value: string, text: string}[]>}
              */
             const autocompleterFetch = (pattern) => {
-                /** @type {{type: string, value: string, text: string}[]} */
-                const results = [];
-                getMatchedWidgets(pattern).forEach((/** @type {import('./options').Widget} */ w) => {
+                const resultPromises = getMatchedWidgets(pattern).map(async (/** @type {import('./options').Widget} */ w) => {
                     const varname = w.prop('autocomplete')?.trim();
-                    const param = findVariableByName(varname, w.parameters);
+                    // Widgets that have autocomplete need to be fully loaded
+                    let param;
+                    if (varname) {
+                        await w.loadDefinition();
+                        param = findVariableByName(varname, w.parameters);
+                    }
                     if (!param?.options) {
-                        results.push({
+                        /** @type {{type: string, value: string, text: string}} */
+                        return [{
                             type: 'autocompleteitem',
                             value: w.key,
                             text: w.name
-                        });
+                        }];
                     } else {
-                        param.options.forEach(opt => {
+                        /** @type {{type: string, value: string, text: string}[]} */
+                        return param.options.map(opt => {
                             let value = opt;
                             let label = opt;
                             if (typeof opt === 'object') {
                                 value = opt.v;
                                 label = opt.l;
                             }
-                            results.push({
+                            return {
                                 type: 'autocompleteitem',
                                 value: `${w.key}|${varname}:${value}`,
                                 text: w.name + " " + label
-                            });
+                            };
                         });
                     }
                 });
-                return Promise.resolve(results);
+                return Promise.all(resultPromises).then(results => results.flat());
             };
             /**
              * @param {*} api
@@ -285,16 +325,14 @@ function initializeEditor(editor) {
         // On init editor.dom is ready
         // Inject css all generated by Moodle into the editor's iframe
         // http://localhost:4141/theme/styles.php/boost/1721728984_1/all
-
         if (isShareCss(editor)) {
             // TODO: Missing themesubrevision
             const subversion = 1;
-            // @ts-ignore
-            const allCss = `${cfg.wwwroot}/theme/styles.php/${cfg.theme}/${cfg.themerev}_${subversion}/all`;
+            const allCss = `${Config.wwwroot}/theme/styles.php/${Config.theme}/${Config.themerev}_${subversion}/all`;
             editor.dom.loadCSS(allCss);
         }
 
-        // Inject css from site Admin
+        // Inject css from site Admin textarea.
         let adminCss = (getAdditionalCss(editor) ?? '').trim();
         if (adminCss) {
             // Commented URLs are interpreted as loadCss
@@ -320,7 +358,7 @@ function initializeEditor(editor) {
 
         // Detect jQuery and Boostrap versions.
         // @ts-ignore
-        const defaultBsVersion = window.M?.cfg?.version?.startsWith('5.') ? '5.3.8' : '4.6.2';
+        const defaultBsVersion = Config.version?.startsWith('5.') ? '5.3.8' : '4.6.2';
         const bsVersion = getGlobalConfig(editor, 'tiny.iframe.jsbootstrap.version', defaultBsVersion);
         const defaultJqVersion = bsVersion.startsWith("5.") ? 'none' : '3.6.1';
         let jqVersion = getGlobalConfig(editor, 'tiny.iframe.jquery.version', defaultJqVersion);
@@ -383,4 +421,3 @@ function initializeEditor(editor) {
         getListeners('onInit').forEach(listener => listener(editor));
     });
 }
-

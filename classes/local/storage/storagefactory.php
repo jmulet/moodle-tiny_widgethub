@@ -33,11 +33,11 @@ abstract class storagefactory {
     /**
      * The blank widget id.
      */
-    public const BLANK_ID = 0;
+    public const BLANK_ID = null;
     /**
      * The partials widget id.
      */
-    public const PARTIALS_ID = -1;
+    public const PARTIALS_ID = 0;
     /**
      * The failure widget id.
      */
@@ -100,7 +100,7 @@ abstract class storagefactory {
         if (!$cached) {
             // Cache miss, get from storage.
             $cached = [
-                'widgets' => $storage->get_all_widgets(),
+                'widgetlist' => $storage->get_all_widgets(),
                 'partials' => $storage->get_partials(),
             ];
             $widgetindexcache->set('geteditordata', $cached);

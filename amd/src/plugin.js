@@ -29,7 +29,7 @@ import { getTinyMCE } from 'editor_tiny/loader';
 import { getPluginMetadata } from 'editor_tiny/utils';
 
 import Common from './common';
-import { register as registerOptions } from './options';
+import { register as registerOptions, setWidgetDefinitions } from './options';
 import { getSetup as getCommandSetup } from './commands';
 import * as Configuration from './configuration';
 import { subscribe } from './extension';
@@ -69,7 +69,11 @@ export default new Promise(async (resolve) => {
             // Setup commands.
             setupCommands(editor);
 
-            return pluginMetadata;
+            return {
+                ...pluginMetadata,
+                widgetDefine: (/** @type {import('./options').RawWidget} */ widget,
+                /** @type {string} */ css) => setWidgetDefinitions(editor, widget, css),
+            };
         });
 
     // Resolve the Plugin and include configuration.

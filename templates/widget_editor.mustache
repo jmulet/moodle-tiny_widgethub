@@ -1,0 +1,96 @@
+ {{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template tiny_widgethub/widget_editor
+
+    Layout of the widget editor.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Context variables required for this template:
+    * showpreview: Whether the preview section is going to be included or not.
+    * showassets: Whether the assets JS/CSS sections are going to be included or not.
+    * disablehtml: Whether the HTML section is going to be disabled or not.
+    * disablecss: Whether the CSS section is going to be disabled or not.
+
+    Example context (json):
+    {
+        "showpreview": true,
+        "showassets": false,
+        "disablehtml": false,
+        "disablecss": false
+    }
+}}
+    <div class="container-fluid mt-3 mb-5">
+            <div class="row">
+                <div class="col-lg-7">
+                    {{#showpreview}}
+                        <button type="button" id="id_widget_refreshbutton" style="float: right;" class="btn btn-info" title="{{#str}}refreshpreview, tiny_widgethub{{/str}}">
+                            <i class="fa fa-refresh mr-1"></i>
+                        </button>
+                    {{/showpreview}}
+                    <ul class="nav nav-tabs" id="editorTabs" role="tablist">
+                        <li class="nav-item"><a class="nav-link active" data-toggle="tab" data-bs-toggle="tab" href="#p-yml" data-bs-target="#p-yml">YML</a></li>
+                        {{#showassets}}
+                        <li class="nav-item"><a class="nav-link{{#disablecss}} disabled{{/disablecss}}" data-toggle="tab" data-bs-toggle="tab" href="#p-css" data-bs-target="#p-css">CSS</a></li>
+                        <li class="nav-item d-none"><a class="nav-link{{#disablehtml}} disabled{{/disablehtml}}" data-toggle="tab" data-bs-toggle="tab" href="#p-html" data-bs-target="#p-html">Embed body (HTML)</a></li>
+                        {{/showassets}}
+                    </ul>
+                    <div class="tab-content border border-top-0 p-2">
+                        <div class="tab-pane fade show active" id="p-yml" role="tabpanel">
+                            <div id="id_widget_editoryml" class="tiny_widgethub-cmcontrol" style="height: 500px;"></div>
+                        </div>
+                        {{#showassets}}
+                        <div class="tab-pane fade" id="p-css" role="tabpanel">
+                            <div id="id_widget_editorcss" class="tiny_widgethub-cmcontrol" style="height: 500px;"></div>
+                        </div>
+                        <div class="tab-pane fade" id="p-html" role="tabpanel">
+                            <div id="id_widget_editorhtml" class="tiny_widgethub-cmcontrol" style="height: 500px;"></div>
+                        </div>
+                        {{/showassets}}
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <ul class="nav nav-tabs" id="previewTabs" role="tablist">
+                        {{#showpreview}}
+                        <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#p-tiny">TinyMCE</a></li>
+                        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#p-preview">{{#str}}preview, tiny_widgethub{{/str}}</a></li>
+                        {{/showpreview}}
+                        <li class="nav-item"><a class="nav-link{{^showpreview}} active{{/showpreview}}" data-toggle="tab" href="#p-log">Log</a></li>
+                    </ul>
+                    <div class="tab-content border border-top-0 p-2">
+                        {{#showpreview}}
+                        <div class="tab-pane fade show active h-100" id="p-tiny" role="tabpanel">
+                            <textarea id="id_widget_previewtiny" name="widget_previewtiny" class="w-100" style="height: 500px;">
+...
+                            </textarea>
+                        </div>
+                        <div class="tab-pane fade h-100" id="p-preview" role="tabpanel">
+                            <iframe id="id_widget_previewiframe" class="tiny_widgethub-previewpanel p-4 w-100" height="500" style="height: 500px;"></iframe>
+                        </div>
+                        {{/showpreview}}
+                        <div class="tab-pane fade h-100{{^showpreview}} show active{{/showpreview}}" id="p-log" role="tabpanel" style="height: 500px!important;overflow-y: scroll;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+    <div style="height: 100px;"></div>

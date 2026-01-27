@@ -1,0 +1,478 @@
+
+ {{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template tiny_widgethub/sandbox
+
+    Logic of the sandbox executor.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Context variables required for this template:
+    * wwwroot: The root URL of the Moodle site
+    * jsrev: The revision number of the JavaScript files
+    * origin: The origin of the Moodle site
+
+    Example context (json):
+    {
+        "wwwroot": "https://moodle.example.com",
+        "origin": "https://moodle.example.com",
+        "jsrev": "1234567890"
+    }
+}}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>WidgetHub Sandbox</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="
+    default-src 'none';
+    script-src 'self' {{{origin}}} 'unsafe-inline' 'unsafe-eval';
+    worker-src 'self' blob:;
+    style-src 'self';
+    connect-src 'self' {{{origin}}};
+    img-src 'none';
+    font-src 'none';
+    media-src 'none';
+    child-src blob:;
+    object-src 'none';
+    base-uri 'none';
+    form-action 'none';
+    ">
+</head>
+
+<body>
+  <script id="worker_liquid" type="text/javascript-worker">
+        importScripts("{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/liquid");
+        var Liquid = liquidjs.Liquid
+        var engine = new Liquid({cache: false});
+
+        disableWorkerAPIs();
+
+        self.onmessage = async function(e) {
+            var data = e.data;
+            var payload = data.payload || {};
+            try {
+                var ctx = payload.ctx || {}; 
+                var result = await engine.parseAndRender(payload.template, ctx);
+                self.postMessage({
+                    requestId: data.requestId,
+                    result: result
+                }); 
+            } catch (e) {
+                console.error('Failed to render template: ' + e);
+                self.postMessage({
+                    requestId: data.requestId,
+                    error: 'Failed to render template: ' + e
+                });
+            }
+        };
+        self.postMessage({
+            type: !!engine ? 'worker_ready' : 'worker_error',
+        });
+    </script>
+
+    <script id="worker_ejs" type="text/javascript-worker">
+        importScripts("{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/ejs");
+
+        disableWorkerAPIs();
+
+        self.onmessage = function(e) {
+            var data = e.data;
+            var payload = data.payload || {};
+            try {
+                var ctx = payload.ctx || {};
+                var extendedTemplate = '<% ' + 
+                    blacklist.map(key => 'var ' + key + ' = null;').join('\n') +
+                    Object.keys(ctx).map(key => 'var ' + key + ' = locals["' + key + '"];').join('\n')
+                + '%>' + payload.template;
+                var result = ejs.render(extendedTemplate, ctx, {
+                    strict: true,
+                    _with: false,
+                    context: null
+                });
+                self.postMessage({
+                    requestId: data.requestId,
+                    result: result
+                });
+            } catch (e) {
+                console.error('Failed to render template: ' + e);
+                self.postMessage({
+                    requestId: data.requestId,
+                    error: 'Failed to render template: ' + e
+                });
+            }
+        };
+        self.postMessage({
+            type: !!ejs ? 'worker_ready' : 'worker_error',
+        });
+    </script>
+
+    <script id="worker_mustache" type="text/javascript-worker">
+        importScripts("{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/mustache");
+
+        disableWorkerAPIs();
+
+        function defineVar(text, ctx2) {
+            var pos = text.indexOf("=");
+            var varname = text.substring(0, pos).trim();
+            var varvalue = evalInContext(ctx2, text.substring(pos + 1).trim());
+            ctx2[varname] = varvalue;
+            return varname;
+        }
+
+        function applyMustacheHelpers(ctx, translations) {
+            translations = translations || {};
+            ctx.if = () =>
+                /**
+                 * @param {string} text
+                 * @param {Mustache.render} render
+                 */
+                function(text, render) {
+                    var pos = text.indexOf("]");
+                    var condition = text.substring(0, pos).trim().substring(1);
+                    var show = evalInContext(ctx, condition);
+                    if (show) {
+                        // @ts-ignore
+                        return render(text.substring(pos + 1).trim());
+                    }
+                    return "";
+                };
+
+            ctx.var = () =>
+                /**
+                 * @param {string} text
+                 */
+                function(text) {
+                    defineVar(text, ctx);
+                };
+
+            ctx.I18n = () =>
+                /**
+                 * @param {string} text
+                 * @param {Mustache.render} render
+                 */
+                function(text, render) {
+                    // @ts-ignore
+                    var key = render(text).trim();
+                    var dict = translations[key] || {};
+                    return dict[ctx._lang] || dict.en || dict.ca || key;
+                };
+
+            ctx.each = () =>
+                /**
+                 * @param {string} text
+                 */
+                function(text) {
+                    var pos = text.indexOf("]");
+                    var cond = text.substring(0, pos).trim().substring(1);
+                    var components = cond.split(",");
+                    var dim = components.length;
+                    var maxValues = new Array(dim);
+                    var loopVars = new Array(dim);
+                    let total = 1;
+                    var cc = 'i'.charCodeAt(0);
+                    components.forEach((def, i) => {
+                        var parts = def.split("=");
+                        if (parts.length === 1) {
+                            parts.unshift(String.fromCharCode(cc + i));
+                        }
+                        var cname = parts[0].trim();
+                        loopVars[i] = cname;
+                        var dm = evalInContext(ctx, parts[1]);
+                        total = total * dm;
+                        maxValues[i] = dm;
+                        ctx[cname] = 1;
+                    });
+                    let output = [];
+                    for (let _ei = 0; _ei < total; _ei++) {
+                        // @ts-ignore
+                        output.push(Mustache.render(text.substring(pos + 1), ctx));
+                        let currentDim = dim - 1;
+                        let incrUp;
+                        do {
+                            var oldValue = ctx[loopVars[currentDim]] - 1;
+                            var newValue = (oldValue + 1) % maxValues[currentDim] + 1;
+                            ctx[loopVars[currentDim]] = newValue;
+                            incrUp = newValue < oldValue;
+                            currentDim--;
+                        } while (currentDim >= 0 && incrUp);
+                    }
+                    return output.join('');
+                };
+
+            ctx.for = () =>
+                /**
+                 * @param {string} text
+                 */
+                function(text) {
+                    var pos = text.indexOf("]");
+                    var condition = text.substring(0, pos).trim().substring(1);
+                    var parts = condition.split(";");
+                    var loopvar = defineVar(parts[0], ctx);
+                    let output = "";
+                    let maxIter = 0; // Prevent infinite loop imposing a limit of 1000
+                    while (evalInContext(ctx, parts[1]) && maxIter < 1000) {
+                        output += self.mustache.render(text.substring(pos + 1), ctx);
+                        if (parts.length === 3 && parts[2].trim()) {
+                            defineVar(loopvar + "=" + parts[2], ctx);
+                        } else {
+                            ctx[loopvar] = ctx[loopvar] + 1;
+                        }
+                        maxIter++;
+                    }
+                    return output;
+                };
+        }
+
+        self.onmessage = function(e) {
+            var data = e.data;
+            var payload = data.payload || {};
+            // Add lambda functions to context
+            var context = Object.assign({}, payload.ctx);
+            applyMustacheHelpers(context, payload.translations);
+            try {
+                var result = Mustache.render(payload.template, context);
+                self.postMessage({
+                    requestId: data.requestId,
+                    result: result
+                });
+            } catch (e) {
+                self.postMessage({
+                    requestId: data.requestId,
+                    error: 'Failed to render template: ' + e
+                });
+            }
+        };
+
+        self.postMessage({
+            type: !!Mustache ? 'worker_ready' : 'worker_error',
+        });
+    </script>
+
+    <script id="worker_eval" type="text/javascript-worker">
+        disableWorkerAPIs();
+
+        self.onmessage = function(e) {
+            var data = e.data;
+            var payload = data.payload || {};
+            try {
+                var result = evalInContext(payload.ctx, payload.code);
+                self.postMessage({
+                    requestId: data.requestId,
+                    result: {
+                        returns: result,
+                        ctx: payload.ctx
+                    }
+                });
+            } catch (e) {
+                self.postMessage({
+                    requestId: data.requestId,
+                    error: 'Failed to evaluate code: ' + e
+                });
+            }
+        };
+        self.postMessage({
+            type: !!evalInContext ? 'worker_ready' : 'worker_error',
+        });
+    </script>
+
+    <script>
+        var MAX_WORKER_TIMEOUT = 5000;
+        var MAX_WORKER_RUNS = 5; // Maximum number of runs for a worker
+        var queues = {};
+        var workers = {};
+        var port1;
+
+        var baseWorker = `function disableWorkerAPIs() {
+            var dangerous = ['close', 'fetch', 'XMLHttpRequest', 'importScripts'];
+            dangerous.forEach(api => {
+                if (self[api]) {
+                    Object.defineProperty(self, api, {
+                        value: () => { throw new Error('Security Error: worker api is disabled.'); },
+                        configurable: false,
+                        writable: false
+                    });
+                }
+            });
+        }
+
+        var blacklist = ['self', 'globalThis', 'Worker', 'SharedWorker', 'postMessage', 'onmessage', 
+            'indexedDB', 'location', 'navigator', 'origin', 'console', 'setTimeout', 'setInterval'];
+
+        function evalInContext(ctx, expr, keepFns) {
+            if (expr.indexOf('Function(') !== -1 || expr.indexOf('eval(') !== -1 ||
+                expr.indexOf('.constructor') !== -1) {
+                throw new Error('Function or eval or constructor is not allowed');
+            }
+            var listArgs = [];
+            var listVals = [];
+            ctx = ctx || {};
+            Object.keys(ctx).forEach((key) => {
+                if (keepFns || typeof ctx[key] !== "function") {
+                    listArgs.push(key);
+                    listVals.push(ctx[key]);
+                }
+            });
+            blacklist.forEach((key) => {
+                if (ctx[key] !== undefined) {
+                    return;
+                }
+                listArgs.push(key);
+                listVals.push(null);
+            });
+            listArgs.push('expr');
+            listArgs.push('return eval(expr)');
+            listVals.push(expr);
+            var evaluator = new Function(...listArgs);
+            return evaluator(...listVals);
+        }
+        `;
+
+        function createWorker(type) {
+            var template = document.getElementById('worker_' + type);
+            if (!template) {
+                console.error('Worker template not found for type: ' + type);
+                return null;
+            }
+            var jsCode = baseWorker + template.innerHTML;
+            var url = URL.createObjectURL(new Blob([jsCode], {
+                type: 'text/javascript'
+            }));
+            var worker = new Worker(url);
+            worker.runs = 0;
+            worker.onmessage = function(e) {
+                if (e.data.type === 'worker_ready') {
+                    URL.revokeObjectURL(url);
+                    worker.loaded = true;
+                    processNextTask(type);
+                    return;
+                } else if (e.data.type === 'worker_error') {
+                    URL.revokeObjectURL(url);
+                    // Cannot process any task on this queue
+                    (queues[type] || []).forEach((task) => {
+                        port1.postMessage({
+                            type: type,
+                            requestId: task.requestId,
+                            error: 'Worker error for type: ' + type + ' ' + e.data.error
+                        });
+                    });
+                    queues[type] = [];
+                    worker.terminate();
+                    workers[type] = null;
+                    return;
+                }
+                // Normal task execution response
+                worker.id = null;
+                var data = e.data;
+                data.type = type;
+                port1.postMessage(data);
+                if (worker.timeout) {
+                    clearTimeout(worker.timeout);
+                }
+                processNextTask(type);
+            };
+            worker.onerror = function(e) {
+                console.error('Worker onerror for type: ' + type, e, worker.id);
+                port1.postMessage({
+                    type: type,
+                    requestId: worker.id,
+                    error: 'Worker error for type: ' + type + ' ' + e
+                });
+                if (worker.timeout) {
+                    clearTimeout(worker.timeout);
+                }
+                worker.terminate();
+                workers[type] = null;
+                queues[type] = []; 
+                URL.revokeObjectURL(url);
+            };
+            return worker;
+        }
+
+        function processNextTask(type) {
+            if (!queues[type] || queues[type].length === 0) {
+                return;
+            }
+            var task = queues[type][0];
+            if (!task) {
+                return;
+            }
+            var worker = workers[type];
+            if (worker) {
+                if (!worker.loaded || worker.id) {
+                    return;
+                }
+                if (worker.runs >= MAX_WORKER_RUNS) {
+                    if (worker.timeout) {
+                        clearTimeout(worker.timeout);
+                    }
+                    worker.terminate();
+                    worker = null;
+                    workers[type] = null;
+                }
+            }
+            if (!worker) {
+                worker = createWorker(type);
+                workers[type] = worker;
+                return;
+            }
+            queues[type].shift();
+            worker.timeout = setTimeout(function() {
+                clearTimeout(worker.timeout);
+                worker.terminate();
+                port1.postMessage({
+                    requestId: task.requestId,
+                    type: type,
+                    error: 'Worker timeout for type: ' + type
+                });
+                workers[type] = null;
+                processNextTask(type);
+            }, MAX_WORKER_TIMEOUT);
+            worker.id = task.requestId;
+            worker.runs++;
+            worker.postMessage(task);
+        }
+
+        /** {type: string, payload: Object} Task received on channel */
+        function onChannelMessage(e) {
+            var data = e.data;
+            if (data.type) {
+                if (!queues[data.type]) {
+                    queues[data.type] = [];
+                }
+                queues[data.type].push(data);
+                processNextTask(data.type);
+            }
+        }
+
+        var channel = new MessageChannel();
+        window.parent.postMessage({
+            type: 'tiny_widgethub_sandbox_init',
+            status: 'ready'
+        }, '*', [channel.port2]);
+        port1 = channel.port1;
+        port1.onmessage = onChannelMessage;
+    </script>
+</body>
+
+</html>

@@ -186,12 +186,16 @@ const NonRepeatableParamSchema = z.object({
 
 
 // This is the main ParamSchema which can be 'repeatable'
-const ParamSchema = z.object({
+let ParamSchema = z.object({
     ...commonParamSchema,
     'type': z.enum(['textfield', 'numeric', 'checkbox', 'select', 'autocomplete', 'textarea', 'image', 'color', 'repeatable']).optional(),
     item_selector: z.string().optional().describe('A css query that provides the DOM elements; one per item'),
     fields: z.array(z.lazy(() => NonRepeatableParamSchema)).optional().describe('A list of parameters that define the repeatable object'),
-}).superRefine((data, ctx) => {
+});
+
+const PartialParamSchema = ParamSchema.partial();
+
+ParamSchema = ParamSchema.superRefine((data, ctx) => {
     validateCommonParam(data, ctx, { allowRepeatable: true });
     const isRepeatable = data.type === 'repeatable';
 
@@ -245,7 +249,7 @@ const ActionSchema = z.object({
 });
 
 // Make all fields optional
-const PartialSchema = ParamSchema.partial().extend({
+const PartialSchema = PartialParamSchema.extend({
     partial: z.string().regex(/^([A-Z0-9_]+)$/).describe('A parameter name defined in the partials file')
 });
 
@@ -275,7 +279,7 @@ const normalWidgetSchema = z.object({
     author: z.string().optional().describe("*The author of the widget"),
     scope: z.string().optional().describe("Regex for identifying allowed body ids"),
     instructions: z.string().optional().describe("Optional. Instructions to the end user"),
-    engine: z.enum(['mustache', 'ejs']).optional().describe("Optional. It can either be mustache or ejs. Defaults to mustache."),
+    engine: z.enum(['mustache', 'ejs', 'liquid']).optional().describe("Optional. It can either be mustache or ejs or liquid. Defaults to mustache."),
     template: z.string().optional().describe("*The template of the widget. Cannot be used with filter."),
     filter: z.string().optional().describe("*The template of the filter. Cannot be used with template."),
     selectors: z.union([z.string(), z.array(z.string())]).optional().describe("Optional. CSS selectors to identify the widget."),

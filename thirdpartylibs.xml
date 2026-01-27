@@ -9,7 +9,7 @@
         <repository>https://github.com/mde/ejs</repository>
     </library>
     <library>
-        <location>amd/src/libs/ymleditor-lazy.js</location>
+        <location>amd/src/libs/yaml-lazy.js</location>
         <name>yaml</name>
         <version>2.8.0</version>
         <license>ISC</license>
@@ -17,19 +17,35 @@
         <repository>https://github.com/eemeli/yaml</repository>
     </library>
     <library>
-        <location>amd/src/libs/ymleditor-lazy.js</location>
+        <location>amd/src/libs/cmeditor-lazy.js</location>
         <name>codemirror</name>
         <version>6.0.1</version>
         <license>MIT</license>
         <licenseversion></licenseversion>
         <repository>https://github.com/codemirror/basic-setup</repository>
     </library>
+     <library>
+        <location>libs/js/ejs.js</location>
+        <name>ejs</name>
+        <version>4.0.1</version>
+        <license>Apache License</license>
+        <licenseversion>2.0</licenseversion>
+        <repository>https://github.com/mde/ejs/releases/download/v4.0.1/ejs.min.js</repository>
+    </library>
     <library>
-        <location>amd/src/libs/ymleditor-lazy.js</location>
-        <name>codemirror/lang-yaml</name>
-        <version>6.1.2</version>
+        <location>libs/js/mustache.js</location>
+        <name>mustache.js</name>
+        <version>4.2.0</version>
         <license>MIT</license>
         <licenseversion></licenseversion>
-        <repository>https://github.com/codemirror/lang-yaml</repository>
+        <repository>https://cdnjs.cloudflare.com/ajax/libs/mustache.js/4.2.0/mustache.min.js</repository>
+    </library>
+    <library>
+        <location>libs/js/liquid.js</location>
+        <name>liquidjs</name>
+        <version>10.24.0</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://cdn.jsdelivr.net/npm/liquidjs/dist/liquid.browser.min.js</repository>
     </library>
 </libraries>

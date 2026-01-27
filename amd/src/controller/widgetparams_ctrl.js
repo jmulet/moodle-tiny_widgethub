@@ -26,7 +26,7 @@ import * as coreStr from "core/str";
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -179,10 +179,20 @@ export class WidgetParamsCtrl {
     * @returns
     */
    async updatePreview(idtabpane, ctxFromDialogue) {
+      if (!this.modal?.body) {
+         return;
+      }
+      const body = this.modal.body[0];
       const interpoledCode = await this.generateInterpolatedCode(ctxFromDialogue);
-      const $previewPanel = this.modal?.body?.find(`#${idtabpane}_1`);
-      if ($previewPanel) {
-         $previewPanel.html(interpoledCode);
+      const previewPanel = body.querySelector(`#${idtabpane}_1`);
+      if (previewPanel) {
+         // Remove all preview iframes
+         previewPanel.querySelectorAll('iframe').forEach(iframe => {
+            iframe.src = 'about:blank';
+            iframe.remove();
+         });
+
+         previewPanel.innerHTML = interpoledCode;
       }
    }
 

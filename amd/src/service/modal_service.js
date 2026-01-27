@@ -18,7 +18,7 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -122,6 +122,19 @@ class IBContextModal extends ModalTracker {
 
 ModalRegistry.register(IBContextModal.TYPE, IBContextModal, IBContextModal.TEMPLATE);
 
+
+class IBPreviewModal extends ModalTracker {
+    static TYPE = `${component}/preview_modal`;
+    static TEMPLATE = `${component}/preview_modal`;
+
+    registerEventListeners() {
+        // Call the parent registration.
+        super.registerEventListeners();
+    }
+}
+
+ModalRegistry.register(IBPreviewModal.TYPE, IBPreviewModal, IBPreviewModal.TEMPLATE);
+
 /**
  * @typedef {(el: Element, event: string, handler: EventListener) => void} ListenerTracker
  * @typedef {JQuery<HTMLElement> & {header: JQuery<HTMLElement>, body: JQuery<HTMLElement>, footer: JQuery<HTMLElement>, destroy: () => void, show: () => void, getRoot: () => {on: () => void}, twhRegisterListener: ListenerTracker, twhRegisterListenerBySelector: (container: string, selector: string, event: string, handler: EventListener) => void }} ModalDialogue
@@ -133,7 +146,7 @@ ModalRegistry.register(IBContextModal.TYPE, IBContextModal, IBContextModal.TEMPL
 
 export class ModalSrv {
     /**
-     * @param {'picker' | 'params' | 'context'} name
+     * @param {'picker' | 'params' | 'context' | 'preview'} name
      * @param {object} templateContext
      * @param {()=>void} [onHidden]
      * @returns {Promise<ModalDialogue>}
@@ -144,6 +157,7 @@ export class ModalSrv {
             case ('picker'): cls = IBPickerModal; break;
             case ('params'): cls = IBParamsModal; break;
             case ('context'): cls = IBContextModal; break;
+            case ('preview'): cls = IBPreviewModal; break;
         }
         // On versions of Moodle beyond 4.3, call create directly on Modal class
         const options = {

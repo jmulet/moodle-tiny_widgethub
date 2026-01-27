@@ -15,25 +15,26 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny WidgetHub plugin.
+ * Local WidgetHub plugin.
  *
- * @module      tiny_widgethub/plugin
+ * @module      local_widgethub/widgettable
  * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import Notification from 'core/notification';
-import Ajax from 'core/ajax';
+import { getExternalService } from './service/external_service';
 import { hashCode } from './util';
+import { fromJSON as json2yaml } from './libs/yaml-lazy';
 
 /**
  * Update the footer of the table.
  * @param {HTMLTableElement} table - The table element.
  * @param {HTMLTableCellElement} tableFooterCell - The footer cell element.
  */
-const updateFooter = function (table, tableFooterCell) {
+function updateFooter(table, tableFooterCell) {
     const nrows = table.querySelectorAll('tbody tr').length;
     tableFooterCell.innerHTML = `${nrows} widgets`;
-};
+}
 
 export default {
     /**
@@ -51,26 +52,24 @@ export default {
         /** @type {HTMLTableElement | null} */
         // @ts-ignore
         const table = document.getElementById(params.tableId);
+        /** @type {HTMLTableCellElement | null} */
+        // @ts-ignore
+        const tableFooterCell = table.querySelector('tfoot td');
         /** @type {HTMLInputElement | null} */
         // @ts-ignore
         const selectAll = document.getElementById(params.selectAllId);
         /** @type {HTMLButtonElement | null} */
         // @ts-ignore
         const deleteBtn = document.getElementById(params.deleteBtnId);
+        /** @type {HTMLButtonElement | null} */
+        // @ts-ignore
+        const exportBtn = document.getElementById(params.exportBtnId);
 
-        if (!table || !selectAll || !deleteBtn) {
+        if (!table || !tableFooterCell || !selectAll || !deleteBtn || !exportBtn) {
             return;
         }
 
         // Add a footer to the table
-        const tableFooter = document.createElement('tfoot');
-        const tableFooterRow = document.createElement('tr');
-        const tableFooterCell = document.createElement('td');
-        tableFooterCell.classList.add('text-right', 'position-sticky', 'tiny_widgethub-bottom-0', 'bg-light', 'z-index-1');
-        tableFooterCell.colSpan = table.rows[0].cells.length;
-        tableFooterRow.appendChild(tableFooterCell);
-        tableFooter.appendChild(tableFooterRow);
-        table.appendChild(tableFooter);
         updateFooter(table, tableFooterCell);
 
         // Add colors to category badges
@@ -87,32 +86,10 @@ export default {
             badge.style.setProperty('color', 'white');
         });
 
-        /** @type {HTMLElement | null} */
-        const parent = table.parentElement;
-        const isAlreadyWrapped = parent &&
-            parent.classList.contains('table-responsive');
-        if (!isAlreadyWrapped) {
-            const tableContainer = document.createElement('div');
-            tableContainer.classList.add('table-responsive');
-            table.replaceWith(tableContainer);
-            tableContainer.appendChild(table);
-            tableContainer.style.maxHeight = '600px';
-            tableContainer.style.overflowY = 'auto';
-        } else {
-            parent.style.maxHeight = '600px';
-            parent.style.overflowY = 'auto';
-        }
-
         document.querySelector('#admin-widgettable div.form-defaultinfo')?.classList?.add('d-none');
-        /** @type {NodeListOf<HTMLTableCellElement>} */
-        const allHeaders = table.querySelectorAll('thead th');
-        allHeaders.forEach(header => {
-            header.setAttribute('scope', 'col');
-            header.classList.add('position-sticky', 'tiny_widgethub-top-0', 'bg-light', 'z-index-1');
-        });
 
         /** @type {NodeListOf<HTMLTableCellElement>} */
-        const headers = table.querySelectorAll('th span[data-sort]');
+        const headers = table.querySelectorAll('th[data-sort]');
         headers.forEach(header => {
             header.addEventListener('click', () => {
                 const columnIdxStr = header.getAttribute('data-sort');
@@ -155,7 +132,7 @@ export default {
         });
 
         // 2. SELECTION LOGIC (Checkboxes)
-        const checkSelector = '.tiny_widgethub-check';
+        const checkSelector = '.local_widgethub-check';
 
         // Function to update delete button state.
         const toggleDeleteBtn = () => {
@@ -197,6 +174,40 @@ export default {
             }
         });
 
+        const locks = {
+            visibilities: new Set(),
+        };
+        table.addEventListener('click', (e) => {
+            /** @type {HTMLElement | null} */
+            // @ts-ignore
+            const target = e.target?.closest('i[data-visible]');
+            if (target) {
+                const isVisible = target.getAttribute('data-visible') === '1';
+                const id = target.closest('tr')?.getAttribute('data-id');
+                if (id) {
+                    if (locks.visibilities.has(id)) {
+                        return;
+                    }
+                    locks.visibilities.add(id);
+                    const externalService = getExternalService();
+                    externalService.setVisibility(parseInt(id), !isVisible).then((/** @type {boolean} */ success) => {
+                        if (!success) {
+                            console.error('Failed to update visibility');
+                            return;
+                        }
+                        target.classList.toggle('fa-eye');
+                        target.classList.toggle('fa-eye-slash');
+                        target.classList.toggle('btn-warning');
+                        target.setAttribute('data-visible', isVisible ? '0' : '1');
+                        locks.visibilities.delete(id);
+                    }).catch((err) => {
+                        console.error('Failed to update visibility', err);
+                        locks.visibilities.delete(id);
+                    });
+                }
+            }
+        });
+
         // 3. DELETION LOGIC (With Moodle confirmation)
         deleteBtn.addEventListener('click', () => {
             /** @type {NodeListOf<HTMLInputElement>} */
@@ -213,11 +224,8 @@ export default {
                 params.confirmMessage,
                 params.confirmBtn,
             ).then(() => {
-                // @ts-ignore
-                Ajax.call([{
-                    methodname: 'tiny_widgethub_delete_widgets',
-                    args: { ids }
-                }])[0].then((/** @type {any} */ response) => {
+                const externalService = getExternalService();
+                externalService.deleteWidgets(ids).then((/** @type {any} */ response) => {
                     selectAll.checked = false;
                     deleteBtn.disabled = true;
                     const deletedIds = response.ids;
@@ -235,6 +243,49 @@ export default {
                 selectAll.checked = false;
                 selectAll.dispatchEvent(new Event('change'));
                 updateFooter(table, tableFooterCell);
+            });
+        });
+
+        exportBtn.addEventListener('click', async () => {
+            exportBtn.disabled = true;
+            console.log('Export button clicked');
+            // Precheck if all documents include yml, if not generate from json.
+            const externalService = getExternalService();
+            const missingIds = await externalService.getWidgetsNoYml();
+            if (missingIds.length > 0) {
+                // TODO create batches.
+                const documents = await externalService.getWidgetDocuments(missingIds, true, false);
+                // Generate yml from json.
+                const documentsWithYml = documents.map(doc => {
+                    return {
+                        yml: json2yaml(doc.json ?? ''),
+                        id: doc.id,
+                        key: doc.key
+                    };
+                });
+
+                // Save missing yml documents.
+                await externalService.saveWidgetsYml(documentsWithYml);
+            }
+
+            externalService.backupWidgets().then((/** @type {any} */ response) => {
+                const draftAreaUrl = response.url;
+                const a = document.createElement('a');
+                a.href = draftAreaUrl;
+                const now = new Date();
+                const dateString =
+                    now.getFullYear().toString() +
+                    (now.getMonth() + 1).toString().padStart(2, '0') +
+                    now.getDate().toString().padStart(2, '0') +
+                    now.getHours().toString().padStart(2, '0') +
+                    now.getMinutes().toString().padStart(2, '0') +
+                    now.getSeconds().toString().padStart(2, '0');
+                a.download = `tiny_widgethub_backup_${dateString}.whz`;
+                a.click();
+                exportBtn.disabled = false;
+            }).catch((/** @type {any} */ ex) => {
+                console.error(ex);
+                exportBtn.disabled = false;
             });
         });
     }

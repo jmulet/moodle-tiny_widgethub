@@ -118,11 +118,12 @@ class plugininfo extends plugin implements
                 'username' => $USER->username,
                 'roles' => array_values($userroles),
             ];
+            $params['userprefs'] = get_user_preferences('tiny_widgethub_userprefs', '');
             $params['courseid'] = $COURSE->id;
 
             $data = storagefactory::get_editor_data();
-            $params['widgetlist'] = $data['widgetlist'];
-            $params['partials'] = $data['partials'];
+            $params['widgetlist'] = $data['widgetlist'] ?? [];
+            $params['partials'] = $data['partials'] ?? (object)[];
 
             // Configuration.
             $params['sharecss'] = get_config('tiny_widgethub', 'sharecss') === '1';

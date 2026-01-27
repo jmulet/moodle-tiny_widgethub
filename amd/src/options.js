@@ -27,16 +27,27 @@ import { getPluginOptionName } from 'editor_tiny/options';
 import Common from './common';
 import { compareVersion, genID } from './util';
 import { createDefaultsForParam } from './service/template_service';
+import { FetchDocumentsBatch } from './service/fetchdocumentsbatch';
+import { getContextMenuManager } from './contextactions';
 const pluginName = Common.pluginName;
 
-const showPlugin = getPluginOptionName(pluginName, 'showplugin');
-const userInfoOpt = getPluginOptionName(pluginName, 'user');
-const courseId = getPluginOptionName(pluginName, 'courseid');
-const widgetList = getPluginOptionName(pluginName, 'widgetlist');
+const showPluginOptName = getPluginOptionName(pluginName, 'showplugin');
+const userInfoOptName = getPluginOptionName(pluginName, 'user');
+const courseIdOptName = getPluginOptionName(pluginName, 'courseid');
+const widgetListOptName = getPluginOptionName(pluginName, 'widgetlist');
+const partialsOptName = getPluginOptionName(pluginName, 'partials');
+const shareCssOptName = getPluginOptionName(pluginName, 'sharecss');
+const additionalCssOptName = getPluginOptionName(pluginName, 'additionalcss');
+const globalConfigOptName = getPluginOptionName(pluginName, 'cfg');
+const userPrefsOptName = getPluginOptionName(pluginName, 'userprefs');
 
-const shareCss = getPluginOptionName(pluginName, 'sharecss');
-const additionalCss = getPluginOptionName(pluginName, 'additionalcss');
-const globalConfig = getPluginOptionName(pluginName, 'cfg');
+/**
+ * Wrapped version of the widget definitions shared among all editors in page
+ * @type {{widgetDict: Record<string, Widget> | undefined}}
+ */
+const _cache = {
+    widgetDict: undefined,
+};
 
 /**
  * @param {import('./plugin').TinyMCE} editor
@@ -44,12 +55,12 @@ const globalConfig = getPluginOptionName(pluginName, 'cfg');
 export const register = (editor) => {
     const registerOption = editor.options.register;
 
-    registerOption(showPlugin, {
+    registerOption(showPluginOptName, {
         processor: 'boolean',
         "default": true,
     });
 
-    registerOption(userInfoOpt, {
+    registerOption(userInfoOptName, {
         processor: 'object',
         "default": {
             id: 0,
@@ -58,44 +69,85 @@ export const register = (editor) => {
         },
     });
 
-    registerOption(courseId, {
+    registerOption(courseIdOptName, {
         processor: 'string',
         "default": "-1",
     });
 
-    registerOption(widgetList, {
+    registerOption(widgetListOptName, {
         processor: 'array',
         "default": [],
     });
 
-    registerOption(shareCss, {
+    registerOption(partialsOptName, {
+        processor: 'object',
+        "default": {},
+    });
+
+    registerOption(shareCssOptName, {
         processor: 'boolean',
         "default": true,
     });
 
-    registerOption(additionalCss, {
+    registerOption(additionalCssOptName, {
         processor: 'string',
         "default": "",
     });
 
-    registerOption(globalConfig, {
+    registerOption(globalConfigOptName, {
         processor: 'object',
         "default": {},
     });
+
+    registerOption(userPrefsOptName, {
+        processor: 'string',
+        "default": '',
+    });
 };
+
+/**
+ *  Hook to update widgetlist option from administrator widget editor page.
+ *
+ * @param {import('./plugin').TinyMCE} editor
+ * @param {RawWidget} widget - widget to be added to the editor
+ * @param {string} css - css to be injected in the editor iframe
+ */
+export function setWidgetDefinitions(editor, widget, css) {
+    if (!_embedRevs) {
+        // Initialize _embedRevs before widgets are overwritten.
+        getEmbedRevs(editor);
+    }
+    editor.mode.set(widget ? 'design' : 'readonly');
+    editor.options.set(widgetListOptName, widget ? [widget] : []);
+    // Clear cache.
+    _cache.widgetDict = undefined;
+    // Add css into editor's iframe.
+    const styleNode = editor.dom.get('tiny_widgethub-playground-style');
+    if (styleNode) {
+        editor.dom.remove(styleNode);
+    }
+    editor.dom.add(
+        editor.dom.select('head')[0],
+        'style',
+        { type: 'text/css', id: 'tiny_widgethub-playground-style' },
+        css ?? ''
+    );
+    // Reinit context menu.
+    getContextMenuManager(editor).init();
+}
 
 /**
  * @param {import('./plugin').TinyMCE} editor
  * @returns {boolean} - are the plugin buttons visible?
  */
-export const isPluginVisible = (editor) => editor.options.get(showPlugin);
+export const isPluginVisible = (editor) => editor.options.get(showPluginOptName);
 
 /**
  * @param {import('./plugin').TinyMCE} editor
  * @returns {string} - additional css that must be included in a <style> tag in editor's iframe
  */
 export const getAdditionalCss = (editor) => {
-    return editor.options.get(additionalCss);
+    return editor.options.get(additionalCssOptName);
 };
 
 /**
@@ -103,7 +155,14 @@ export const getAdditionalCss = (editor) => {
  * @returns {boolean} - whether site styles should be inserted into iframe
  */
 export const isShareCss = (editor) => {
-    return editor.options.get(shareCss);
+    return editor.options.get(shareCssOptName);
+};
+
+/**
+ * @returns {boolean} - whether the editor is in playground mode
+ */
+export const isPlaygroundMode = () => {
+    return document.body.classList.contains('tiny_widgethub-playground');
 };
 
 /**
@@ -113,47 +172,69 @@ export const isShareCss = (editor) => {
  * @returns {string} - An object with the key/value properties
  */
 export const getGlobalConfig = (editor, key, defaultValue) => {
-    const dict = editor.options.get(globalConfig) ?? {};
+    const dict = editor.options.get(globalConfigOptName) ?? {};
     return dict[key]?.trim() ?? defaultValue;
 };
 
 /**
- * Wrapper version of the snippet definitions shared among all editors in page
- * @type {Record<string, Widget> | undefined}
- * */
-let _widgetDict;
+ * @param {import('./plugin').TinyMCE} editor
+ * @returns {Object<string, string>} - An object with the key/value properties
+ */
+export const getPartials = (editor) => {
+    return editor.options.get(partialsOptName) ?? {};
+};
 
 /**
  * @param {import('./plugin').TinyMCE} editor
- * @returns {Record<string, Widget>} - The available list of widgets
+ * @returns {string | null} - user preferences
+ */
+export const getUserPrefs = (editor) => {
+    return editor.options.get(userPrefsOptName);
+};
+
+/**
+ * @param {import('./plugin').TinyMCE} editor
+ * @returns {Record<string, Widget>} - The available list of widgets indexed by key
  */
 export const getWidgetDict = (editor) => {
-    if (_widgetDict) {
-        return _widgetDict;
+    if (_cache.widgetDict) {
+        return _cache.widgetDict;
     }
     /** @type {RawWidget[]} */
-    let rawWidgets = editor.options.get(widgetList) ?? [];
-    _widgetDict = {};
+    const rawWidgets = editor.options.get(widgetListOptName) ?? [];
+    /** @type {Record<string, Widget>} */
+    const widgetDict = {};
     // Partials is a special widget that is used to define common parameters shared by other widgets
-    /** @type {RawWidget | undefined} */
-    let partials = rawWidgets.filter(e => e.key === 'partials')[0];
-    if (partials) {
-        rawWidgets = rawWidgets.filter(e => e.key !== 'partials');
-    }
+    const partials = getPartials(editor);
     // Create a wrapper for the widget to handle operations
-    const wrappedWidgets = rawWidgets
-        .map(w => new Widget(w, partials || {}));
+    const wrappedWidgets = rawWidgets.map(w => new Widget(w, partials));
 
     // Remove those widgets that aren't usable for the current user
     // and not supported by the currentVersion of the plugin.
-    const userInfo = editor.options.get(userInfoOpt);
+    const userInfo = editor.options.get(userInfoOptName);
     wrappedWidgets.filter(w => w.isFor(userInfo) && compareVersion(Common.currentRelease, w.prop('plugin_release')))
-        .forEach(w => {
-            if (_widgetDict) {
-                _widgetDict[w.key] = w;
-            }
+        .forEach(w => { widgetDict[w.key] = w; });
+
+    _cache.widgetDict = widgetDict;
+    return widgetDict;
+};
+
+/** @type {Record<string, {id: number, lastmodified: number}> | null} */
+let _embedRevs = null;
+/**
+ * Revisions for widget embeddings.
+ * @param {import('./plugin').TinyMCE} editor
+ * @returns {Record<string, {id: number, lastmodified: number}>} - The available list of widgets indexed by key
+ */
+export const getEmbedRevs = (editor) => {
+    if (!_embedRevs) {
+        _embedRevs = {};
+        Object.entries(getWidgetDict(editor)).forEach(([key, widget]) => {
+            // @ts-ignore
+            _embedRevs[key] = { id: widget.id, lastmodified: widget.prop('timemodified') };
         });
-    return _widgetDict;
+    }
+    return _embedRevs;
 };
 
 export class EditorOptions {
@@ -168,14 +249,14 @@ export class EditorOptions {
      * @returns {{id: number, username: string, roles: string[]}} - an integer with the id of the current user
      */
     get userInfo() {
-        return this.editor.options.get(userInfoOpt);
+        return this.editor.options.get(userInfoOptName);
     }
 
     /**
      * @returns {number} - an integer with the id of the current course
      */
     get courseId() {
-        return parseInt(this.editor.options.get(courseId));
+        return parseInt(this.editor.options.get(courseIdOptName));
     }
 
     /**
@@ -346,7 +427,10 @@ export function applyPartials(widget, partials) {
  * @property {string} key
  * @property {string} name
  * @property {string} category
- * @property {string} [scope] - Regex for idenfying allowed body ids
+ * @property {boolean} isfilter - Computed
+ * @property {boolean} isselectcapable - Computed
+ * @property {boolean} hasbindings - Computed
+ * @property {string} [scope] - Regex for identifying allowed body ids
  * @property {string} [instructions]
  * @property {'mustache' | 'ejs'} [engine]
  * @property {string} [template]
@@ -369,35 +453,83 @@ export function applyPartials(widget, partials) {
  * @property {number} [stars]
  * @property {Action[]} [contextmenu]
  * @property {Action[]} [contexttoolbar]
+ * @property {number} [lastmodified]
  */
 /**
  * @class
  * @classdesc Wrapper for Widget definition
  */
 export class Widget {
+    static documentBatcher = new FetchDocumentsBatch(300);
     _widget;
     #instructionsParsed = false;
     /** @type {string | undefined} */
     _preview;
+    /** @type {boolean} */
+    _fullyLoaded;
+    /** @type {Promise<void> | null} */
+    _loadingPromise = null;
 
     /**
      * @param {RawWidget} widget
-     * @param {Object.<string, any>=} partials
+     * @param {Object.<string, any>} [partials]
      */
     constructor(widget, partials) {
         if (!widget.key) {
             // Define a random key
             widget.key = 'w' + genID();
         }
-        partials = partials ?? {};
-        applyPartials(widget, partials);
+        this.partials = partials ?? {};
+        this._id = widget.id;
         this._widget = widget;
+        this._fullyLoaded = !!widget.template || !!widget.filter;
     }
+    /**
+     * Fully load widget definition via ajax.
+     * @param {import('./plugin').TinyMCE} [editor]
+     * @returns {Promise<void>}
+     */
+    async loadDefinition(editor) {
+        if (this._fullyLoaded) {
+            return Promise.resolve();
+        }
+        if (this._loadingPromise) {
+            return this._loadingPromise;
+        }
+
+        // Define and store the new promise
+        // eslint-disable-next-line no-async-promise-executor
+        this._loadingPromise = new Promise(async (resolve, reject) => {
+            try {
+                editor?.setProgressState(true);
+                const doc = await Widget.documentBatcher.fetchDocument(this._widget.id ?? 0);
+
+                this._widget = {
+                    ...this._widget,
+                    ...JSON.parse(doc)
+                };
+
+                applyPartials(this._widget, this.partials);
+                this._fullyLoaded = true;
+                resolve();
+            } catch (e) {
+                console.error(e);
+                reject(e);
+            } finally {
+                // Clear the lock so subsequent calls (if failed) can try again
+                this._loadingPromise = null;
+                editor?.setProgressState(false);
+            }
+        });
+
+        return this._loadingPromise;
+    }
+
     /**
      * @returns {number}
      */
     get id() {
-        return this._widget.id ?? 0;
+        return this._id ?? 0;
     }
     /**
      * @returns {string}
@@ -565,7 +697,7 @@ export class Widget {
      * @returns {boolean}
      */
     isFilter() {
-        return this._widget.template === undefined && this._widget.filter !== undefined;
+        return this._widget.isfilter;
     }
 
     /**
@@ -584,23 +716,14 @@ export class Widget {
      * @returns {boolean}
      */
     isSelectCapable() {
-        return this._widget.selectors !== undefined && this._widget.insertquery !== undefined;
+        return this._widget.isselectcapable;
     }
     /**
      * Determine if a widget contains bindings
      * @returns {boolean}
      */
     hasBindings() {
-        const parameters = this._widget.parameters ?? [];
-        return parameters.some(param => {
-            if (param.type === 'repeatable') {
-                const hasFieldBindings = param.fields?.some(f => f.bind !== undefined);
-                return (typeof param.bind === 'object') ||
-                    (hasFieldBindings && typeof param.item_selector === 'string');
-            } else {
-                return param.bind !== undefined;
-            }
-        });
+        return this._widget.hasbindings;
     }
 
     /**

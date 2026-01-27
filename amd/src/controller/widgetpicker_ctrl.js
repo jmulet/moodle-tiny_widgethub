@@ -20,7 +20,7 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 // eslint-disable-next-line camelcase
@@ -182,7 +182,7 @@ export class WidgetPickerCtrl {
         /** @type {string} */
         const searchtext = this.storage.getFromSession("searchtext", "");
         const defaultViewMode = getGlobalConfig(this.editor, 'widgetpicker.viewmode', 'grid');
-        const viewMode = this.storage.getFromLocal('widgethub_view_mode', defaultViewMode);
+        const viewMode = this.storage.getFromLocal('viewmode', defaultViewMode);
         const miscStr = await get_string('misc', component);
         const data = {
             ...this.getPickTemplateContext({ misc: miscStr }),
@@ -254,7 +254,7 @@ export class WidgetPickerCtrl {
         // Toggle view button
         this.updateView(viewMode, data.rid);
         this.body.querySelector(`#widget-view-toggle-btn${data.rid}`)?.addEventListener('click', () => {
-            const currentMode = this.storage.getFromLocal('widgethub_view_mode', 'list');
+            const currentMode = this.storage.getFromLocal('viewmode', 'list');
             const newMode = currentMode === 'list' ? 'grid' : 'list';
             this.updateView(newMode, data.rid);
         });
@@ -413,14 +413,15 @@ export class WidgetPickerCtrl {
                 btnIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M0 72C0 49.9 17.9 32 40 32H88c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H40c-22.1 0-40-17.9-40-40V72zM0 232c0-22.1 17.9-40 40-40H88c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H40c-22.1 0-40-17.9-40-40V232zM128 392c0-22.1-17.9-40-40-40H40c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40V392zM160 72c0-22.1 17.9-32 40-32H248c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H200c-22.1 0-40-17.9-40-40V72zM160 232c0-22.1 17.9-40 40-40H248c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H200c-22.1 0-40-17.9-40-40V232zM288 392c0-22.1-17.9-40-40-40H200c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H248c22.1 0 40-17.9 40-40V392zM320 72c0-22.1 17.9-32 40-32H408c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H360c-22.1 0-40-17.9-40-40V72zM320 232c0-22.1 17.9-40 40-40H408c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H360c-22.1 0-40-17.9-40-40V232zM448 392c0-22.1-17.9-40-40-40H360c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H408c22.1 0 40-17.9 40-40V392z"/></svg>';
             }
         }
-        this.storage.setToLocal('widgethub_view_mode', mode, true);
+        this.storage.setToLocal('viewmode', mode, true);
     }
 
     /**
      * @param {import('../options').Widget} widget
      * @returns {Promise<string>}
      */
-    generatePreview(widget) {
+    async generatePreview(widget) {
+        await widget.loadDefinition();
         const toInterpolate = { ...widget.defaultsWithRepeatable(true) };
         // Decide which template engine to use
         const engine = widget.prop('engine');
@@ -565,7 +566,7 @@ export class WidgetPickerCtrl {
                     return false;
                 }
                 // In select mode must filter widgets that do support it
-                const selectable = widget.insertquery !== undefined;
+                const selectable = widget.isSelectCapable();
                 const isSelection = this.isSelectMode();
                 return key.length > 0 && (!isSelection || (isSelection && selectable));
             }).map((/** @type {any} **/ recent) => {
@@ -620,6 +621,7 @@ export class WidgetPickerCtrl {
             console.warn('Cannot find widget');
             return;
         }
+        await widget.loadDefinition(this.editor);
         /** @type {HTMLElement | undefined} */
         const button = target.closest('button.tiny_widgethub-btn');
         // Check if it is a toggle button to autoset a filter
@@ -698,7 +700,8 @@ export class WidgetPickerCtrl {
      * @param {boolean} [forceInsert]
      * @param {Record<string, *>} [ctx]
      */
-    handlePickModalAction(widget, forceInsert, ctx) {
+    async handlePickModalAction(widget, forceInsert, ctx) {
+        await widget.loadDefinition(this.editor);
         this.modal?.hide();
         const paramsController = this.widgetParamsFactory(widget);
         // Keep reference to the calling parentCtrl
