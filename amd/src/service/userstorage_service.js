@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-import {getEditorOptions} from '../options';
+import { getEditorOptions } from '../options';
 import Common from '../common';
-const {component} = Common;
+const { component } = Common;
 
 /**
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -31,10 +31,10 @@ const {component} = Common;
  */
 
 export class UserStorageSrv {
-   /**
-    * @param {import('../options').EditorOptions} editorOptions
-    * @param {IStorage} iStorage
-    */
+    /**
+     * @param {import('../options').EditorOptions} editorOptions
+     * @param {IStorage} iStorage
+     */
     constructor(editorOptions, iStorage) {
         /** @type {Storage} */
         this.localStorage = iStorage.localStorage;
@@ -47,11 +47,11 @@ export class UserStorageSrv {
         /**
          * @type {Record<string, any>}
          */
-        this._localStore = {values: {}};
+        this._localStore = { values: {} };
         /**
          * @type {Record<string, any>}
          */
-        this._sessionStore = {searchtext: ''};
+        this._sessionStore = { searchtext: '' };
         this.loadStore();
     }
 
@@ -202,12 +202,12 @@ export class UserStorageSrv {
     /**
      * @returns {{key: string, p: Record<string, any>}[]}
      */
-     getRecentUsed() {
+    getRecentUsed() {
         let recentList = [];
         try {
-           recentList = JSON.parse(this.getFromSession("recent", "[]"));
+            recentList = JSON.parse(this.getFromSession("recent", "[]"));
         } catch (ex) {
-           console.error('Cannot parse recent', ex);
+            console.error('Cannot parse recent', ex);
         }
         return recentList;
     }
@@ -222,7 +222,7 @@ const userStorageInstances = new Map();
 export function getUserStorage(editor) {
     let instance = userStorageInstances.get(editor);
     if (!instance) {
-        const iStorage = {localStorage, sessionStorage};
+        const iStorage = { localStorage, sessionStorage };
         instance = new UserStorageSrv(getEditorOptions(editor), iStorage);
         userStorageInstances.set(editor, instance);
     }

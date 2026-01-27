@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $capabilities = [
     'tiny/widgethub:viewplugin' => [
-        'captype' => 'write',
+        'captype' => 'read',
         'contextlevel' => CONTEXT_COURSE,
         'archetypes' => [
             'student' => CAP_PREVENT,
@@ -41,6 +41,14 @@ $capabilities = [
         'contextlevel' => CONTEXT_COURSE,
         'archetypes' => [
             'user' => CAP_ALLOW,
+        ],
+    ],
+    'tiny/widgethub:manage' => [
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'riskbitmask' => RISK_CONFIG,
+        'archetypes' => [
+            'manager' => CAP_ALLOW,
         ],
     ],
 ];

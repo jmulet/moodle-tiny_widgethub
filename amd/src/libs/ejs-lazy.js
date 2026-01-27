@@ -20,7 +20,7 @@
  * An adaptation of the EJS templating engine as AMD module.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -43,11 +43,11 @@
 */
 
 const utils = {};
-(function(mod) {
+(function (mod) {
     'use strict';
     const regExpChars = /[|\\{}()[\]^$+*?.]/g;
     const hasOwnProperty = Object.prototype.hasOwnProperty;
-    const hasOwn = function(obj, key) {
+    const hasOwn = function (obj, key) {
         return hasOwnProperty.apply(obj, [key]);
     };
 
@@ -61,7 +61,7 @@ const utils = {};
      * @static
      * @private
      */
-    mod.escapeRegExpChars = function(string) {
+    mod.escapeRegExpChars = function (string) {
         // istanbul ignore if
         if (!string) {
             return '';
@@ -119,7 +119,7 @@ const utils = {};
      * @static
      * @private
      */
-    mod.escapeXML = function(markup) {
+    mod.escapeXML = function (markup) {
         return markup == undefined
             ? ''
             : String(markup)
@@ -143,7 +143,7 @@ const utils = {};
             // mode, attempting that will be silently ignored.
             // However, we can still explicitly shadow the prototype's "toString" property by
             // defining a new "toString" property on this object.
-            Object.defineProperty(mod.escapeXML, 'toString', {value: escapeXMLToString});
+            Object.defineProperty(mod.escapeXML, 'toString', { value: escapeXMLToString });
         } else {
             // If Object.defineProperty() doesn't exist, attempt to shadow this property using the assignment operator.
             mod.escapeXML.toString = escapeXMLToString;
@@ -163,7 +163,7 @@ const utils = {};
      * @static
      * @private
      */
-    mod.shallowCopy = function(to, from) {
+    mod.shallowCopy = function (to, from) {
         from = from || {};
         if ((to !== null) && (to !== undefined)) {
             for (let p in from) {
@@ -191,7 +191,7 @@ const utils = {};
      * @static
      * @private
      */
-    mod.shallowCopyFromList = function(to, from, list) {
+    mod.shallowCopyFromList = function (to, from, list) {
         list = list || [];
         from = from || {};
         if ((to !== null) && (to !== undefined)) {
@@ -221,16 +221,16 @@ const utils = {};
      */
     mod.cache = {
         _data: {},
-        set: function(key, val) {
+        set: function (key, val) {
             this._data[key] = val;
         },
-        get: function(key) {
+        get: function (key) {
             return this._data[key];
         },
-        remove: function(key) {
+        remove: function (key) {
             delete this._data[key];
         },
-        reset: function() {
+        reset: function () {
             this._data = {};
         }
     };
@@ -243,10 +243,10 @@ const utils = {};
      * @static
      * @private
      */
-    mod.hyphenToCamel = function(str) {
-        return str.replace(/-[a-z]/g, function(match) {
- return match[1].toUpperCase();
-});
+    mod.hyphenToCamel = function (str) {
+        return str.replace(/-[a-z]/g, function (match) {
+            return match[1].toUpperCase();
+        });
     };
 
     /**
@@ -256,19 +256,19 @@ const utils = {};
      * @static
      * @private
      */
-    mod.createNullProtoObjWherePossible = (function() {
+    mod.createNullProtoObjWherePossible = (function () {
         if (typeof Object.create == 'function') {
-            return function() {
+            return function () {
                 return Object.create(null);
             };
         }
-        if (!({__proto__: null} instanceof Object)) {
-            return function() {
-                return {__proto__: null};
+        if (!({ __proto__: null } instanceof Object)) {
+            return function () {
+                return { __proto__: null };
             };
         }
         // Not possible, just pass through
-        return function() {
+        return function () {
             return {};
         };
     })();
@@ -282,7 +282,7 @@ const utils = {};
      * @static
      * @private
      */
-    mod.hasOwnOnlyObject = function(obj) {
+    mod.hasOwnOnlyObject = function (obj) {
         const o = mod.createNullProtoObjWherePossible();
         for (let p in obj) {
             if (hasOwn(obj, p)) {
@@ -451,18 +451,18 @@ function includeFile(path, options) {
     const opts = utils.shallowCopy(utils.createNullProtoObjWherePossible(), options);
     opts.filename = path + "/" + options.filename;
     if (typeof options.includer === 'function') {
-      const includerResult = options.includer(path, opts.filename);
-      if (includerResult) {
-        if (includerResult.filename) {
-          opts.filename = includerResult.filename;
+        const includerResult = options.includer(path, opts.filename);
+        if (includerResult) {
+            if (includerResult.filename) {
+                opts.filename = includerResult.filename;
+            }
+            if (includerResult.template) {
+                return handleCache(opts, includerResult.template);
+            }
         }
-        if (includerResult.template) {
-          return handleCache(opts, includerResult.template);
-        }
-      }
     }
     return handleCache(opts);
- }
+}
 
 /**
  * Re-throw the given `err` in context to the `str` of ejs, `filename`, and
@@ -482,7 +482,7 @@ function rethrow(err, str, flnm, lineno, esc) {
     const end = Math.min(lines.length, lineno + 3);
     const filename = esc(flnm);
     // Error context
-    const context = lines.slice(start, end).map(function(line, i) {
+    const context = lines.slice(start, end).map(function (line, i) {
         const curr = i + start + 1;
         return (curr == lineno ? ' >> ' : '    ')
             + curr
@@ -555,7 +555,7 @@ EJS.compile = function compile(template, opts) {
  * @public
  */
 
-EJS.render = function(template, d, o) {
+EJS.render = function (template, d, o) {
     const data = d || utils.createNullProtoObjWherePossible();
     const opts = o || utils.createNullProtoObjWherePossible();
 
@@ -579,7 +579,7 @@ EJS.render = function(template, d, o) {
  */
 EJS.Template = Template;
 
-EJS.clearCache = function() {
+EJS.clearCache = function () {
     EJS.cache.reset();
 };
 
@@ -638,7 +638,7 @@ Template.modes = {
 };
 
 Template.prototype = {
-    createRegex: function() {
+    createRegex: function () {
         let str = _REGEX_STRING;
         const delim = utils.escapeRegExpChars(this.opts.delimiter);
         const open = utils.escapeRegExpChars(this.opts.openDelimiter);
@@ -649,7 +649,7 @@ Template.prototype = {
         return new RegExp(str);
     },
 
-    compile: function() {
+    compile: function () {
         /** @type {string} */
         let src;
         /** @type {ClientFunction} */
@@ -769,7 +769,7 @@ Template.prototype = {
         // created by the source-code, with the passed data as locals
         // Adds a local `include` function which allows full recursive include
         const returnedFn = opts.client ? fn : function anonymous(data) {
-            const include = function(path, includeData) {
+            const include = function (path, includeData) {
                 let d = utils.shallowCopy(utils.createNullProtoObjWherePossible(), data);
                 if (includeData) {
                     d = utils.shallowCopy(d, includeData);
@@ -794,7 +794,7 @@ Template.prototype = {
         return returnedFn;
     },
 
-    generateSource: function() {
+    generateSource: function () {
         const opts = this.opts;
 
         if (opts.rmWhitespace) {
@@ -815,7 +815,7 @@ Template.prototype = {
         const c = this.opts.closeDelimiter;
 
         if (matches?.length) {
-            matches.forEach(function(line, index) {
+            matches.forEach(function (line, index) {
                 let closing;
                 // If this is an opening tag, check for closing tags
                 // May end up with some false positives here
@@ -834,7 +834,7 @@ Template.prototype = {
 
     },
 
-    parseTemplateText: function() {
+    parseTemplateText: function () {
         let str = this.templateText;
         const pat = this.regex;
         let result = pat.exec(str);
@@ -861,7 +861,7 @@ Template.prototype = {
         return arr;
     },
 
-    _addOutput: function(line) {
+    _addOutput: function (line) {
         if (this.truncate) {
             // Only replace single leading linebreak in the line after
             // -%> tag -- this is the single, trailing linebreak
@@ -889,7 +889,7 @@ Template.prototype = {
         return undefined;
     },
 
-    scanLine: function(line) {
+    scanLine: function (line) {
         const self = this;
         const d = this.opts.delimiter;
         const o = this.opts.openDelimiter;

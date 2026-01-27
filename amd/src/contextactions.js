@@ -16,21 +16,21 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-import {getWidgetDict} from './options';
-import {getDomSrv} from './service/dom_service';
-import {getWidgetPropertiesCtrl} from './controller/widgetproperties_ctrl';
-import {getMenuItemProviders, getListeners} from './extension';
-import {get_strings} from 'core/str';
+import { getWidgetDict } from './options';
+import { getDomSrv } from './service/dom_service';
+import { getWidgetPropertiesCtrl } from './controller/widgetproperties_ctrl';
+import { getMenuItemProviders, getListeners } from './extension';
+import { get_strings } from 'core/str';
 import Common from './common';
-import {prefixItemsWith} from './util';
+import { prefixItemsWith } from './util';
 
-const {component, componentName} = Common;
+const { component, componentName } = Common;
 
 /**
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -99,7 +99,7 @@ export function matchesCondition(condition, value) {
  * @param {{widget: import('./options').Widget | undefined, html: string | undefined}} widgetCutClipboard
  * @const widgetCutClipboard
  */
-export const predefinedActionsFactory = function(editor, domSrv, widgetCutClipboard) {
+export const predefinedActionsFactory = function (editor, domSrv, widgetCutClipboard) {
     /** @type {Record<string, Function>} */
     const factory = {
         /**
@@ -379,7 +379,7 @@ export class ContextActionsManager {
             'properties', 'unwrap', 'moveup', 'movedown', 'moveafter',
             'movebefore', 'insert', 'remove', 'printable', 'cut', 'paste'
         ];
-        const values = await this.translateSrv.get_strings(keys.map(key => ({key, component})));
+        const values = await this.translateSrv.get_strings(keys.map(key => ({ key, component })));
         // @ts-ignore
         return Object.fromEntries(keys.map((k, i) => [k, values[i]]));
     }
@@ -580,14 +580,14 @@ export class ContextActionsManager {
             return menuItems;
         }
         if (path.widget.hasBindings()) {
-            this.ctx.actionPaths.modal.push({...path});
+            this.ctx.actionPaths.modal.push({ ...path });
             menuItems.push('modal');
         }
         // Unwrap action always to the end
         if (path.widget.unwrap) {
             menuItems.push('unwrap');
             this.ctx.actionPaths.unwrap = this.ctx.actionPaths.unwrap || [];
-            this.ctx.actionPaths.unwrap.push({...path});
+            this.ctx.actionPaths.unwrap.push({ ...path });
         }
         // Now look for contextmenu property in widget definition
         /** @type {import('./options').Action[] | undefined} */
@@ -636,7 +636,7 @@ export class ContextActionsManager {
             newActionsToAdd.filter(e => e !== '|').forEach((/** @type {string} */ e) => {
                 path.targetElement = targetElem;
                 this.ctx.actionPaths[e] = this.ctx.actionPaths[e] || [];
-                this.ctx.actionPaths[e].push({...path, text: cm.description});
+                this.ctx.actionPaths[e].push({ ...path, text: cm.description });
             });
         });
         return menuItems;
@@ -678,7 +678,7 @@ export class ContextActionsManager {
             if (parentElem) {
                 const p = this.domSrv.findWidgetOnEventPath(this.widgetList, parentElem);
                 if (p && p.widget?.key === widget.prop('bubbles')) {
-                    parentPath = {...p};
+                    parentPath = { ...p };
                 }
             }
         }
@@ -742,7 +742,7 @@ export class ContextActionsManager {
             }
             this.editor.ui.registry.addContextToolbar(`${componentName}_ctb_${widget.key}`, {
                 /** @param {HTMLElement} node */
-                predicate: function(node) {
+                predicate: function (node) {
                     const path = this.domSrv.findWidgetOnEventPath(this.widgetList, node);
                     // Only activate if the first widget found in path is the current one
                     return path.widget?.key === widget.key;
@@ -757,9 +757,9 @@ export class ContextActionsManager {
 
 
 // Share widgetCutClipboard among serveral editors
- /**
-  * @type {{widget: import('./options').Widget | undefined, html: string | undefined}}
-  */
+/**
+ * @type {{widget: import('./options').Widget | undefined, html: string | undefined}}
+ */
 const widgetCutClipboard = {
     widget: undefined,
     html: undefined
@@ -772,11 +772,11 @@ const contextMenuManagerInstances = new Map();
  * @returns {ContextActionsManager}
  */
 export function getContextMenuManager(editor) {
-   let instance = contextMenuManagerInstances.get(editor);
-   if (!instance) {
-      // @ts-ignore
-      instance = new ContextActionsManager(editor, getDomSrv(), {get_strings}, widgetCutClipboard);
-      contextMenuManagerInstances.set(editor, instance);
-   }
-   return instance;
+    let instance = contextMenuManagerInstances.get(editor);
+    if (!instance) {
+        // @ts-ignore
+        instance = new ContextActionsManager(editor, getDomSrv(), { get_strings }, widgetCutClipboard);
+        contextMenuManagerInstances.set(editor, instance);
+    }
+    return instance;
 }

@@ -36,7 +36,11 @@ if ($hassiteconfig) {
         $ADMIN->add('editortiny', new admin_category($tinycategory, get_string('pluginname', $tinycategory)));
 
         // Main settings.
-        $mainsettings = new admin_settingpage($tinycategory . '_settings', get_string('pluginname', $tinycategory));
+        $mainsettings = new admin_settingpage(
+            $tinycategory . '_settings',
+            get_string('pluginname', $tinycategory),
+            'tiny/widgethub:manage'
+        );
 
         // Add basic items to page.
         $mainitems = \tiny_widgethub\settingsutil::create_spage_items();

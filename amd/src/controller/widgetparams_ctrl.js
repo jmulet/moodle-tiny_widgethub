@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-import {getFormCtrl} from '../controller/form_ctrl';
-import {getListeners} from '../extension';
-import {getModalSrv} from '../service/modal_service';
-import {getTemplateSrv} from '../service/template_service';
-import {getUserStorage} from '../service/userstorage_service';
-import {applyWidgetFilterFactory, removeRndFromCtx} from '../util';
+import { getFormCtrl } from '../controller/form_ctrl';
+import { getListeners } from '../extension';
+import { getModalSrv } from '../service/modal_service';
+import { getTemplateSrv } from '../service/template_service';
+import { getUserStorage } from '../service/userstorage_service';
+import { applyWidgetFilterFactory, removeRndFromCtx } from '../util';
 import * as coreStr from "core/str";
 
 /**
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -38,15 +38,15 @@ export class WidgetParamsCtrl {
     * @type {import('./widgetpicker_ctrl').WidgetPickerCtrl | undefined }
     */
    parentCtrl;
-  /**
-   * @param {import('../plugin').TinyMCE} editor
-   * @param {import('../service/userstorage_service').UserStorageSrv} userStorage
-   * @param {import('../service/template_service').TemplateSrv} templateSrv
-   * @param {import('../service/modal_service').ModalSrv} modalSrv
-   * @param {import('../controller/form_ctrl').FormCtrl} formCtrl
-   * @param {*} applyWidgetFilter
-   * @param {import('../options').Widget} widget
-   */
+   /**
+    * @param {import('../plugin').TinyMCE} editor
+    * @param {import('../service/userstorage_service').UserStorageSrv} userStorage
+    * @param {import('../service/template_service').TemplateSrv} templateSrv
+    * @param {import('../service/modal_service').ModalSrv} modalSrv
+    * @param {import('../controller/form_ctrl').FormCtrl} formCtrl
+    * @param {*} applyWidgetFilter
+    * @param {import('../options').Widget} widget
+    */
    constructor(editor, userStorage, templateSrv, modalSrv, formCtrl, applyWidgetFilter, widget) {
       /** @type {import('../plugin').TinyMCE} */
       this.editor = editor;
@@ -79,7 +79,7 @@ export class WidgetParamsCtrl {
       this.modal = modal;
       const bodyElem = modal.body[0];
       const formElem = modal.body.find("form")[0];
-      modal.body.find(`a[href="#${data.idtabpane}_1"`).on("click", async() => {
+      modal.body.find(`a[href="#${data.idtabpane}_1"`).on("click", async () => {
          // Handle preview;
          const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, formElem, true);
          await this.updatePreview(data.idtabpane, ctxFromDialogue);
@@ -87,7 +87,7 @@ export class WidgetParamsCtrl {
       this.formCtrl.attachRepeatable(bodyElem, this.widget);
       this.formCtrl.attachPickers(bodyElem, listenerTracker);
       modal.footer.show();
-      modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", async() => {
+      modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", async () => {
          // Go back to main menú
          // TODO detachPicker and detachRepeatable
          modal.destroy();
@@ -95,7 +95,7 @@ export class WidgetParamsCtrl {
             await this.parentCtrl.handleAction();
          }
       });
-      modal.footer.find("button.tiny_widgethub-btn-primary").on("click", async() => {
+      modal.footer.find("button.tiny_widgethub-btn-primary").on("click", async () => {
          // Go back to main menú
          const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, formElem, true);
          modal.hide();
@@ -130,13 +130,13 @@ export class WidgetParamsCtrl {
     * @param {object} ctx
     * @returns {Promise<string>} The rendered template
     */
-    render(ctx) {
-        const defaultsCopy = {...this.widget.defaults};
-        const toInterpolate = Object.assign(defaultsCopy, ctx ?? {});
-        // Decide which template engine to use
-        let engine = this.widget.prop('engine');
-        return this.templateSrv.render(this.widget.template ?? "", toInterpolate,
-            this.widget.I18n, engine);
+   render(ctx) {
+      const defaultsCopy = { ...this.widget.defaults };
+      const toInterpolate = Object.assign(defaultsCopy, ctx ?? {});
+      // Decide which template engine to use
+      let engine = this.widget.prop('engine');
+      return this.templateSrv.render(this.widget.template ?? "", toInterpolate,
+         this.widget.I18n, engine);
    }
 
    /**
@@ -201,7 +201,7 @@ export class WidgetParamsCtrl {
          }
          // Never store values that are obtained from $RND
          const ctxFiltered = removeRndFromCtx(ctxFromDialogue, this.widget.parameters);
-         recentList.unshift({key: this.widget.key, p: ctxFiltered});
+         recentList.unshift({ key: this.widget.key, p: ctxFiltered });
          if (recentList.length > 4) {
             recentList.splice(5, recentList.length - 4);
          }

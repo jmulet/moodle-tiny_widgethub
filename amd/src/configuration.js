@@ -17,13 +17,13 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import Common from './common';
-import {addMenubarItem} from 'editor_tiny/utils';
+import { addMenubarItem } from 'editor_tiny/utils';
 
-const {component} = Common;
+const { component } = Common;
 
 /**
  * @typedef {Object} Menu

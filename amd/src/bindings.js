@@ -18,18 +18,18 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import jQuery from 'jquery';
-import {evalInContext} from './util';
+import { evalInContext } from './util';
 
 /**
  * @param {*} value
  * @param {string | undefined} type
  * @returns {*}
  */
-export const performCasting = function(value, type) {
+export const performCasting = function (value, type) {
     if (!type || typeof value === type) {
         return value;
     }
@@ -77,7 +77,7 @@ export const performCasting = function(value, type) {
  * @param {unknown} a
  * @param {unknown} b
  */
-const xor = function(a, b) {
+const xor = function (a, b) {
     return !a !== !b;
 };
 
@@ -87,7 +87,7 @@ const xor = function(a, b) {
  * @param {string} replacement
  * @returns {string}
  */
-const replaceStrPart = function(str, match, replacement) {
+const replaceStrPart = function (str, match, replacement) {
     if (!match.indices) {
         console.error("RegExp match does not include indices");
         return str;
@@ -103,7 +103,7 @@ const replaceStrPart = function(str, match, replacement) {
  * @param {string} replacement
  * @returns {string}
  */
-const getValueFromRegex = function(regexExpr, replacement) {
+const getValueFromRegex = function (regexExpr, replacement) {
     const reParser = /\((?!\?:).*?\)/g;
     let capturingGroupCount = 0;
     return regexExpr.replace(reParser, () => {
@@ -119,7 +119,7 @@ const getValueFromRegex = function(regexExpr, replacement) {
  * @param {Element} el - The target element
  * @returns
  */
-const bindingFactory = function(el) {
+const bindingFactory = function (el) {
     /** @this {Record<string, Function>} */
     const methods = {
         /**
@@ -395,7 +395,7 @@ const bindingFactory = function(el) {
          * @param {string=} castTo
          * @returns {Binding}
          */
-        attrRegex: function(attr, query, castTo) {
+        attrRegex: function (attr, query, castTo) {
             /** @type {Element | null} */
             let elem = el;
             if (query) {
@@ -441,7 +441,7 @@ const bindingFactory = function(el) {
          * @param {boolean=} neg
          * @returns {Binding}
          */
-        hasStyle: function(sty, query, neg) {
+        hasStyle: function (sty, query, neg) {
             /** @type {Element | null} */
             let elem = el;
             if (query) {
@@ -490,7 +490,7 @@ const bindingFactory = function(el) {
          * @param {string=} castTo
          * @returns {Binding}
          */
-        styleRegex: function(attr, query, castTo) {
+        styleRegex: function (attr, query, castTo) {
             /** @type {Element | null} */
             let elem = el;
             if (query) {
@@ -567,7 +567,7 @@ export const createBinding = (definition, elem, castTo) => {
     /** @type {Binding | null} */
     let bindFn = null;
     if (typeof (definition) === 'string') {
-        return evalInContext({...bindingFactory(elem)}, definition, true);
+        return evalInContext({ ...bindingFactory(elem) }, definition, true);
     } else {
         // The user provides the get and set functions (for jQuery element) @deprecated
         // or getValue, setValue (for vanilla JS elements)
@@ -575,10 +575,10 @@ export const createBinding = (definition, elem, castTo) => {
             getValue: () => {
                 let v;
                 if (definition.getValue) {
-                    v = evalInContext({elem}, `(${definition.getValue})(elem)`);
+                    v = evalInContext({ elem }, `(${definition.getValue})(elem)`);
                 } else if (definition.get) {
                     // @Deprecated. It will be removed in the future.
-                    v = evalInContext({elem: jQuery(elem)}, `(${definition.get})(elem)`);
+                    v = evalInContext({ elem: jQuery(elem) }, `(${definition.get})(elem)`);
                 }
                 if (castTo) {
                     v = performCasting(v, castTo);
@@ -587,10 +587,10 @@ export const createBinding = (definition, elem, castTo) => {
             },
             setValue: (v) => {
                 if (definition.setValue) {
-                    evalInContext({elem, v}, `(${definition.setValue})(elem, v)`);
+                    evalInContext({ elem, v }, `(${definition.setValue})(elem, v)`);
                 } else if (definition.set) {
                     // @Deprecated. It will be removed in the future.
-                    evalInContext({elem: jQuery(elem), v}, `(${definition.set})(elem, v)`);
+                    evalInContext({ elem: jQuery(elem), v }, `(${definition.set})(elem, v)`);
                 }
             }
         };

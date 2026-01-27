@@ -53,15 +53,18 @@ Changes:
 == 1.4.1 ==
   Hotfix: Rename to lowercase contextinit.js
 
-== 1.4.2 ==
-  - Issue #23 Suggestion to Enhance the Widget Modal Layout. Implementation of grid view.
+== 1.5.0 ==
+  - Issue #23 Suggestion to Enhance the Widget Modal Layout. Implementation of a grid view.
+  - Issue #39: Migration jQuery to vanilla Javascript. Reduce the quantity of code relying on jQuery.
+  - Issue #46: Do not install widgets that have been removed during plugin upgrades.
+  - Hotfix: Activate image pickers on repeatable parameters.
+  New features:
+  - New capability tiny/widgethub:manage to manage widgets.
+  Improvements:
   - Implementation of the widgethub_view_mode option to switch between grid and list views.
   - Updated YML API to support icon property.
-  - Issue #39: Migration jQuery to vanilla Javascript. Reduce the quantity of code relying on jQuery.
   - Make the versions of jQuery and Bootstrap injected into the editor's iFrame configurable.
-  - Hotfix: Activate image pickers on repeatable parameters.
   - Improved mouse leave detection on widget preview.
   - Detect context actions on widgets that include iframe, like YouTube or Vimeo.
   - Improved administrator widget table. Easy widget deletion.
-  - Issue #46: Do not install widgets that have been removed during plugin upgrades.
 

@@ -18,13 +18,13 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {getFormCtrl} from '../controller/form_ctrl';
-import {getModalSrv} from '../service/modal_service';
-import {createBinding} from '../bindings';
+import { getFormCtrl } from '../controller/form_ctrl';
+import { getModalSrv } from '../service/modal_service';
+import { createBinding } from '../bindings';
 
 /**
  * @typedef {JQuery<HTMLElement>} ModalDialogue
@@ -208,9 +208,9 @@ export class WidgetPropertiesCtrl {
         try {
             // @ts-ignore
             this.modal.body.popover({
-            container: "body",
-            selector: "[data-toggle=popover][data-trigger=hover]",
-            trigger: "hover"
+                container: "body",
+                selector: "[data-toggle=popover][data-trigger=hover]",
+                trigger: "hover"
             });
         } catch (ex) {
             // console.error(ex);

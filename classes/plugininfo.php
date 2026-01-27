@@ -116,10 +116,7 @@ class plugininfo extends plugin implements
         global $USER, $COURSE;
 
         // Decide if to enable the plugin.
-        $showplugin = true;
-        if (!has_capability('tiny/widgethub:viewplugin', $context)) {
-            $showplugin = false;
-        }
+        $showplugin = has_capability('tiny/widgethub:viewplugin', $context);
 
         $params = [
             'showplugin' => $showplugin,
@@ -242,7 +239,7 @@ class plugininfo extends plugin implements
                 'key' => $widget->key,
                 'name' => isset($widget->name) ? $widget->name : $widget->key,
                 'c' => isset($widget->category) ? $widget->category : get_string('misc', 'tiny_widgethub'),
-                'h' => isset($widget->hidden) ? (int) ($tmpwidget->hidden) : 0,
+                'h' => isset($widget->hidden) ? (int) ($widget->hidden) : 0,
             ];
         }
         set_config('index', json_encode($widgetindex), 'tiny_widgethub');

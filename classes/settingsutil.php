@@ -114,7 +114,12 @@ class settingsutil {
             $title = get_string('edit', 'tiny_widgethub') . ' ' . $widget->name;
         }
         // Page Settings for every widget.
-        $settingspage = new \admin_settingpage('tiny_widgethub_spage_' . $windx, $title, 'moodle/site:config', true);
+        $settingspage = new \admin_settingpage(
+            'tiny_widgethub_spage_' . $windx,
+            $title,
+            'tiny/widgethub:manage',
+            true
+        );
 
         if ($windx > 0) {
             $settingspage->add(

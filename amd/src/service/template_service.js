@@ -18,14 +18,14 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import mustache from 'core/mustache';
-import {evalInContext, genID} from '../util';
+import { evalInContext, genID } from '../util';
 import Common from '../common';
-const {component} = Common;
+const { component } = Common;
 
 
 /**
@@ -33,7 +33,7 @@ const {component} = Common;
  * @param {Object.<string, any>} ctx2
  * @returns {string}
  */
-const defineVar = function(text, ctx2) {
+const defineVar = function (text, ctx2) {
     const pos = text.indexOf("=");
     const varname = text.substring(0, pos).trim();
     const varvalue = evalInContext(ctx2, text.substring(pos + 1).trim());
@@ -58,7 +58,7 @@ export class TemplateSrv {
      * @returns {string} The interpolated template given a context and translations map
      */
     renderMustache(template, context, translations) {
-        const ctx = {...context};
+        const ctx = { ...context };
         Object.keys(ctx).forEach(key => {
             if (ctx[key] === "$RND") {
                 ctx[key] = genID();
@@ -77,7 +77,7 @@ export class TemplateSrv {
      */
     async renderEJS(template, context, translations) {
         /** @type {Object.<string, any>} */
-        const ctx = {...context, I18n: {}};
+        const ctx = { ...context, I18n: {} };
         Object.keys(ctx).forEach(key => {
             if (ctx[key] === "$RND") {
                 ctx[key] = genID();
@@ -128,7 +128,7 @@ export class TemplateSrv {
              * @param {string} text
              * @param {Mustache.render} render
              */
-            function(text, render) {
+            function (text, render) {
                 const pos = text.indexOf("]");
                 const condition = text.substring(0, pos).trim().substring(1);
                 const show = evalInContext(ctx, condition);
@@ -142,14 +142,14 @@ export class TemplateSrv {
             /**
              * @param {string} text
              */
-            function(text) {
+            function (text) {
                 defineVar(text, ctx);
             };
         ctx.eval = () =>
             /**
              * @param {string} text
              */
-            function(text) {
+            function (text) {
                 return evalInContext(ctx, text) + "";
             };
         ctx.I18n = () =>
@@ -157,7 +157,7 @@ export class TemplateSrv {
              * @param {string} text
              * @param {Mustache.render} render
              */
-            function(text, render) {
+            function (text, render) {
                 // @ts-ignore
                 const key = render(text).trim();
                 const dict = translations[key] || {};
@@ -167,7 +167,7 @@ export class TemplateSrv {
             /**
              * @param {string} text
              */
-            function(text) {
+            function (text) {
                 const pos = text.indexOf("]");
                 const cond = text.substring(0, pos).trim().substring(1);
                 const components = cond.split(",");
@@ -208,7 +208,7 @@ export class TemplateSrv {
             /**
              * @param {string} text
              */
-            function(text) {
+            function (text) {
                 const pos = text.indexOf("]");
                 const condition = text.substring(0, pos).trim().substring(1);
                 const parts = condition.split(";");
@@ -286,7 +286,7 @@ export function createDefaultsForParam(param, populateRepeatable) {
             param.fields?.forEach(field => {
                 let val = field.value ?? '';
                 if (typeof (val) === 'string' && val.indexOf("{{i}}") >= 0) {
-                    val = getTemplateSrv().renderMustache(val, {i});
+                    val = getTemplateSrv().renderMustache(val, { i });
                 }
                 obj[field.name] = val;
             });
