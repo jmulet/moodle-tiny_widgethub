@@ -21,6 +21,7 @@
  * @copyright   2024 Josep Mulet <pep.mulet@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+require_once(__DIR__ . '/upgradelib.php');
 
 /**
  * Upgrade the plugin.
@@ -28,6 +29,10 @@
  * @return bool
  */
 function xmldb_tiny_widgethub_upgrade($oldversion) {
-    // Do not change widgets during upgrades.
+    if ($oldversion < 2026012700) {
+        // Migration to filearea storage.
+        tiny_widgethub_migrate_to_filearea_storage();
+        upgrade_plugin_savepoint(true, 2026012700, 'tiny', 'widgethub');
+    }
     return true;
 }

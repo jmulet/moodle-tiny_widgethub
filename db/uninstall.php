@@ -18,7 +18,7 @@
  * Tiny WidgetHub plugin version details.
  *
  * @package     tiny_widgethub
- * @copyright   2024 Josep Mulet <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet <pep.mulet@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,7 +27,14 @@
  * @return boolean
  */
 function xmldb_tiny_widgethub_uninstall() {
-    // It removes all the configuration keys for this plugin.
-    \tiny_widgethub\plugininfo::remove_configuration_settings();
+    global $DB;
+    $componentname = 'tiny_widgethub';
+    // Remove all user preferences associated with this plugin.
+    $likesql = $DB->sql_like('name', ':prefixtosearch');
+    $DB->delete_records_select(
+        'user_preferences',
+        $likesql,
+        ['prefixtosearch' => $componentname . '_%']
+    );
     return true;
 }

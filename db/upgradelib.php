@@ -1,0 +1,198 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Tiny WidgetHub plugin version details.
+ *
+ * @package     tiny_widgethub
+ * @copyright   2026 Josep Mulet <pep.mulet@gmail.com>
+ * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+/**
+ * Internal helper to get a property from the widget array with a default value.
+ *
+ * @param array $array The array to get the property from.
+ * @param string $key The key to get the property from.
+ * @param mixed $default The default value to return if the key is not found.
+ * @return mixed The value of the property or the default value.
+ */
+function tiny_widgethub_getprop($array, $key, $default = null) {
+    return (is_array($array) && array_key_exists($key, $array)) ? $array[$key] : $default;
+}
+
+/**
+ * Internal helper to store a widget document in the file system.
+ *
+ * @param int $widgetid The widget id.
+ * @param string $doc The widget document as a string.
+ * @param string $ext The type of the document (json or yml).
+ * @return bool True if the document was stored successfully, false otherwise.
+ */
+function tiny_widgethub_storedocument($widgetid, $doc, $ext = 'json') {
+    // System context id.
+    $systemcontextid = context_system::instance()->id;
+    $fs = get_file_storage();
+    $fileinfo = [
+        'contextid' => $systemcontextid,
+        'component' => 'tiny_widgethub',
+        'filearea' => 'widgetdefs',
+        'itemid' => $widgetid,
+        'filepath' => '/',
+        'filename' => 'data.' . $ext,
+    ];
+    $file = $fs->get_file(
+        $fileinfo['contextid'],
+        $fileinfo['component'],
+        $fileinfo['filearea'],
+        $fileinfo['itemid'],
+        $fileinfo['filepath'],
+        $fileinfo['filename']
+    );
+    if ($file) {
+        if ($doc !== null && $file->compare_to_string($doc)) {
+            return true;
+        }
+        $file->delete();
+    }
+    if ($doc === null) {
+        return true;
+    }
+    $storedfile = $fs->create_file_from_string($fileinfo, $doc);
+    if (!$storedfile) {
+        return false;
+    }
+    // Check if contents have been stored.
+    $storedfile = $fs->get_file(
+        $fileinfo['contextid'],
+        $fileinfo['component'],
+        $fileinfo['filearea'],
+        $fileinfo['itemid'],
+        $fileinfo['filepath'],
+        $fileinfo['filename']
+    );
+    if (!$storedfile) {
+        return false;
+    }
+    if ($storedfile->compare_to_string($doc)) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Intend of this upgrade function is to migrate the widget definitions from the config table
+ * to filearea storage.
+ *
+ * Previous state:
+ *  - Widgets are stored in the config table as JSON strings.
+ * Next state:
+ *  - Widgets are stored in the filearea.
+ *  - The config data is deleted for performance reasons.
+ *
+ * @return bool True if the upgrade was successful, false otherwise.
+ * @throws Exception if the table cannot be created or data cannot be migrated.
+ */
+function tiny_widgethub_migrate_to_filearea_storage() {
+    global $DB;
+    $componentname = 'tiny_widgethub';
+
+    // Get all widgets from legacy storage.
+    $index = get_config($componentname, 'index');
+    if (!$index) {
+        // Nothing to migrate.
+        return true;
+    }
+    $index = json_decode($index, true);
+
+    // DATA MIGRATION.
+    // Start a transaction.
+    $transaction = $DB->start_delegated_transaction();
+
+    try {
+        $numwidgets = 0;
+        $mergedpartials = [];
+
+        foreach ($index as $id => $indexentry) {
+            $json = get_config($componentname, 'def_' . $id);
+            if (!$json) {
+                debugging('Widget ' . $id . ' (' . json_encode($indexentry) . ') not found in legacy storage', DEBUG_DEVELOPER);
+                continue;
+            }
+            $raw = json_decode($json, true);
+            if ($raw['key'] === 'partials') {
+                // We merge all partials because only one entry with key "partials" is allowed.
+                $mergedpartials = array_merge($mergedpartials, $raw);
+                // Partials no longer need to be stored in the index.
+                unset($index[$id]);
+                continue;
+            }
+
+            // Store the widget in the filearea.
+            if (!tiny_widgethub_storedocument($id, $json)) {
+                throw new \moodle_exception(
+                    'datamigrationfailed',
+                    $componentname,
+                    '',
+                    'Failed to store widget ' . $raw['key']
+                );
+            }
+            $numwidgets++;
+        }
+        // Store partials.
+        $json = json_encode($mergedpartials);
+        $res = local_widgethub_storedocument(0, $json, 'json');
+        if (!$res) {
+            throw new \moodle_exception(
+                'datamigrationfailed',
+                $componentname,
+                '',
+                'Failed to store partials'
+            );
+        }
+        set_config($componentname, 'index', json_encode($index));
+
+        // Check that the file table contains the expected number of files (excluding dot directories).
+        $filecount = $DB->count_records_select(
+            'files',
+            "component = :component AND filearea = :filearea AND filename != '.'",
+            [
+                'component' => $componentname,
+                'filearea' => 'widgetdefs'
+            ]
+        );
+        if ($filecount !== $numwidgets + 1) {
+            throw new \moodle_exception(
+                'datamigrationfailed',
+                $componentname,
+                '',
+                'Failed to store documents'
+            );
+        }
+
+        // Now it is safe to get rid of the config data.
+        foreach (array_values($index) as $id) {
+            unset_config($componentname, 'def_' . $id);
+        }
+
+        // Commit the transaction.
+        $transaction->allow_commit();
+    } catch (Exception $e) {
+        $transaction->rollback($e);
+        throw $e;
+    }
+    return true;
+}
