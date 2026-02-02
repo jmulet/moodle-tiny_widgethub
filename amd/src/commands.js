@@ -21,7 +21,6 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 import { getButtonImage } from 'editor_tiny/utils';
 import * as coreStr from 'core/str';
 import Common from './common';
@@ -40,7 +39,6 @@ import { getWidgetPickCtrl } from './controller/widgetpicker_ctrl';
 import { getListeners } from './extension';
 import { getUserStorage } from './service/userstorage_service';
 import {
-    applyWidgetFilterFactory,
     findVariableByName,
     loadScriptAsync,
     removeRndFromCtx,
@@ -49,6 +47,7 @@ import {
 import { enableIframeBubble } from './extension/iframebubble';
 import { getWidgetParamsFactory } from './controller/widgetparams_ctrl';
 import Config from 'core/config';
+import { getFilterSrv } from './service/filter_service';
 
 export const getSetup = async () => {
     // Get some translations
@@ -287,25 +286,43 @@ export const getSetup = async () => {
  * If the user has selected automatic apply of filters on startup, apply them!
  * @param {import('./plugin').TinyMCE} editor
  */
-const applyAutoFilters = (editor) => {
+const applyAutoFilters = async (editor) => {
     const storage = getUserStorage(editor);
     const requiresFilter = storage.getFromLocal("startup.filters", "").split(",");
 
     if (requiresFilter.length > 0) {
         const editorOptions = getEditorOptions(editor);
-        const widgetsFound = requiresFilter.map(key => editorOptions.widgetDict[key]).filter(w => w !== undefined);
-        const applyWidgetFilter = applyWidgetFilterFactory(editor, coreStr);
+        const widgetsFound = requiresFilter.map(key => editorOptions.widgetDict[key])
+            .filter(widget => widget?.isFilter());
+        // All these widgets must have been fully loaded.
+        await Promise.all(widgetsFound.map(widget => widget.loadDefinition()));
 
-        // Apply the filters and show the result
-        widgetsFound.forEach(w => applyWidgetFilter(w.template ?? '', true));
 
-        // Apply it also on save
-        const pageForm = document.querySelector('form.mform');
-        if (pageForm && pageForm.querySelector('div[data-fieldtype="editor"]')) {
-            pageForm.addEventListener('submit', () => {
-                widgetsFound.forEach(w => applyWidgetFilter(w.template ?? '', true));
-                return true;
-            });
+        const filters = widgetsFound.map(widget => {
+            return {
+                name: widget.name,
+                code: widget.prop('filter') ?? '',
+                opts: widget.defaultsWithRepeatable(true)
+            };
+        });
+        if (filters.length > 0) {
+            await getFilterSrv(editor).applyWidgetFilters(filters);
+
+            // Apply it also on save
+            const pageForm = document.querySelector('form.mform');
+            if (pageForm && pageForm.querySelector('div[data-fieldtype="editor"]')) {
+                let filtersApplied = false;
+                pageForm.addEventListener('submit', async (evt) => {
+                    if (filtersApplied) {
+                        return;
+                    }
+                    filtersApplied = true;
+                    evt.preventDefault();
+                    await getFilterSrv(editor).applyWidgetFilters(filters);
+                    // @ts-ignore
+                    evt.target?.submit?.();
+                });
+            }
         }
     }
 };
@@ -363,23 +380,39 @@ function initializeEditor(editor) {
         const defaultJqVersion = bsVersion.startsWith("5.") ? 'none' : '3.6.1';
         let jqVersion = getGlobalConfig(editor, 'tiny.iframe.jquery.version', defaultJqVersion);
         if (jqVersion === 'none' && bsVersion.startsWith('4.')) {
-            jqVersion = '3.6.1';
+            jqVersion = '3.6.1'; // required for bootstrap 4
         }
         const requiresJquery = jqVersion !== 'none';
         const head = editor.getDoc().querySelector("head");
 
+        // Define integrities for the most common versions
+        /** @type {Record<string, string>} */
+        const jqIntegrities = {
+            '3.6.1': 'sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=',
+            '3.7.1': 'sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=',
+        };
+        /** @type {Record<string, string>} */
+        const bsIntegrities = {
+            '4.6.2': 'sha256-GRJrh0oydT1CwS36bBeJK/2TggpaUQC6GzTaTQdZm0k=',
+            '5.3.8': 'sha256-5P1JGBOIxI7FBAvT/mb1fCnI5n/NhQKzNUuW7Hq0fMc=',
+        };
 
         try {
             // Load jQuery if required
             if (requiresJquery) {
-                await loadScriptAsync(editor, `https://code.jquery.com/jquery-${jqVersion}.min.js`);
+                await loadScriptAsync(
+                    editor,
+                    `https://code.jquery.com/jquery-${jqVersion}.min.js`,
+                    jqIntegrities[jqVersion]
+                );
             }
 
             // Load Bootstrap if required (bundle already includes Popper)
             if (bsVersion !== 'none') {
                 await loadScriptAsync(
                     editor,
-                    `https://cdn.jsdelivr.net/npm/bootstrap@${bsVersion}/dist/js/bootstrap.bundle.min.js`
+                    `https://cdn.jsdelivr.net/npm/bootstrap@${bsVersion}/dist/js/bootstrap.bundle.min.js`,
+                    bsIntegrities[bsVersion]
                 );
             }
 

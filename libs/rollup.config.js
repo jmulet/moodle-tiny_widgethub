@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 import replace from '@rollup/plugin-replace';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
+import esbuild from 'rollup-plugin-esbuild';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -17,7 +18,7 @@ export default [
         input: './codemirror6/cmeditor.mjs',
         output: {
             sourcemap: false,
-            file: path.resolve(__dirname, '../../amd/src/libs/cmeditor-lazy.js'),
+            file: path.resolve(__dirname, '../amd/src/libs/cmeditor-lazy.js'),
             format: 'esm',
             name: 'cmeditor',
             plugins: [],
@@ -40,7 +41,7 @@ export default [
         input: './codemirror6/yaml.mjs',
         output: {
             sourcemap: false,
-            file: path.resolve(__dirname, '../../amd/src/libs/yaml-lazy.js'),
+            file: path.resolve(__dirname, '../amd/src/libs/yaml-lazy.js'),
             format: 'esm',
             name: 'yaml',
             plugins: [],
@@ -50,4 +51,33 @@ export default [
             nodeResolve()
         ]
     },
+    {
+        input: './sandbox/remoterender.js',
+        output: {
+            sourcemap: false,
+            file: path.resolve(__dirname, './js/remoterender.js'),
+            format: 'iife',
+            name: 'remoterender',
+            plugins: [],
+        },
+        plugins: [
+            nodeResolve(),
+            esbuild({ target: 'es2017', minify: true }),
+        ]
+    },
+
+    {
+        input: './sandbox/remotedom.js',
+        output: {
+            sourcemap: false,
+            file: path.resolve(__dirname, './js/remotedom.js'),
+            format: 'iife',
+            name: 'remotedom',
+            plugins: [],
+        },
+        plugins: [
+            nodeResolve(),
+            esbuild({ target: 'es2017', minify: true }),
+        ]
+    }
 ];

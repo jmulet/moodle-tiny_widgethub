@@ -446,6 +446,11 @@ export default class WidgetSettings {
 
             // Partial and Template validation
             applyPartials(jsonObj, partials);
+            // Templates cannot have script tags nor style tags
+            const template = jsonObj.template ?? jsonObj.filter ?? '';
+            if (template.includes('<script') || template.includes('<style')) {
+                validation.msg += await get_string('errscript', component) + ' ';
+            }
             if (jsonObj.template) {
                 const stack = unbalancedHTMLWithEJS(jsonObj.template);
                 if (stack.length > 0) {

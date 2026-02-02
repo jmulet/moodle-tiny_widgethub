@@ -24,8 +24,6 @@
  * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import Common from './common';
-const { component } = Common;
 
 /**
  * @param {string} [prefix]
@@ -38,30 +36,189 @@ export function genID(prefix = 'g') {
 }
 
 /**
- * @param {Object.<string, any>} ctx
- * @param {string} expr
- * @param {boolean=} keepFns - Keep or not the funcions in the ctx
- * @returns {any} The evaluated expression within the context ctx
+ * @param {string} val
+ * @returns {any}
  */
-export function evalInContext(ctx, expr, keepFns) {
-    const listArgs = [];
-    const listVals = [];
-
-    if (ctx) {
-        Object.keys(ctx).forEach((key) => {
-            // Remove functions from ctx
-            if (keepFns || typeof ctx[key] !== "function") {
-                listArgs.push(key);
-                listVals.push(ctx[key]);
-            }
-        });
+const castValue = (val) => {
+    val = val.trim();
+    if (val === '') {
+        return undefined;
     }
-    listArgs.push('expr');
-    listArgs.push('return eval(expr)');
-    listVals.push(expr);
-    const evaluator = new Function(...listArgs);
-    return evaluator(...listVals);
+    if (val === 'true') {
+        return true;
+    }
+    if (val === 'false') {
+        return false;
+    }
+    if (val === 'null') {
+        return null;
+    }
+    if (val === 'undefined') {
+        return undefined;
+    }
+    // Regex Support: /pattern/flags
+    if (val.startsWith('/')) {
+        const lastSlashIndex = val.lastIndexOf('/');
+        if (lastSlashIndex > 0) {
+            const pattern = val.slice(1, lastSlashIndex);
+            const flags = val.slice(lastSlashIndex + 1);
+            return new RegExp(pattern, flags);
+        }
+    }
+    const num = Number(val);
+    if (!isNaN(num)) {
+        return num;
+    }
+    throw new Error(`Invalid argument type: ${val}`);
+};
+
+/**
+ * Parses a function call like fnname(true, null, 'arg2\'etc', ...)
+ * into an object {name: 'fnname', args: [true, null, "arg2'etc", ...]}
+ * Supported argument types are string, boolean, number, null, undefined and regexp.
+ * It uses a FSA with memory to parse the expression.
+ * It throws an error if the expression is not valid.
+ * @param {string} expr - The function call to parse
+ * @throws {Error} If the expression is not valid
+ * @returns {{name: string, args: any[]}} An object with the function name and arguments
+ */
+export function fnCallParser(expr) {
+    /** @type {{name: string, args: any[]}} **/
+    const result = { name: '', args: [] };
+
+    // Numerical State Constants
+    const S_NAME = 0; // Reading function name
+    const S_BEFORE = 1; // Between name and '('
+    const S_ARG = 2; // Reading non-string argument
+    const S_STRING = 3; // Inside a string literal
+    const S_REGEX = 4; // Inside a regex literal
+    const S_END = 5; // After ')'
+
+    let state = S_NAME;
+    let currentArg = '';
+    let quoteChar = '';
+    let pendingToken = false;
+    let i = 0;
+
+    while (i < expr.length) {
+        const char = expr[i];
+
+        switch (state) {
+            case S_NAME:
+                if (/[a-zA-Z_$]/.test(char)) {
+                    result.name += char;
+                }
+                else if (/[0-9]/.test(char)) {
+                    if (result.name.length === 0) {
+                        throw new Error("Name cannot start with number");
+                    }
+                    result.name += char;
+                } else if (char === '(') {
+                    state = S_ARG;
+                } else if (/\s/.test(char) && result.name.length > 0) {
+                    state = S_BEFORE;
+                } else if (!/\s/.test(char)) {
+                    throw new Error("Illegal character in name: " + char);
+                }
+                break;
+
+            case S_BEFORE:
+                if (char === '(') {
+                    state = S_ARG;
+                }
+                else if (!/\s/.test(char)) {
+                    throw new Error("Expected (");
+                }
+                break;
+
+            case S_ARG:
+                if (result.name.trim() === '') {
+                    throw new Error("Expected name");
+                }
+                if (char === "'" || char === '"') {
+                    // If we just finished a string/regex and see another quote without a comma
+                    if (pendingToken) {
+                        throw new Error("Expected delimiter");
+                    }
+                    quoteChar = char;
+                    state = S_STRING;
+                    currentArg = '';
+                } else if (char === '/' && (currentArg.trim() === '')) {
+                    // Enter Regex state if we see a / at the start of an arg
+                    state = S_REGEX;
+                    currentArg = char;
+                } else if (char === ',') {
+                    if (!pendingToken) {
+                        result.args.push(castValue(currentArg));
+                    }
+                    currentArg = '';
+                    pendingToken = false;
+                } else if (char === ')') {
+                    if (!pendingToken) {
+                        const trimmed = currentArg.trim();
+                        if (trimmed !== '' || result.args.length > 0) {
+                            result.args.push(castValue(currentArg));
+                        }
+                    }
+                    state = S_END;
+                } else {
+                    if (!pendingToken) {
+                        currentArg += char;
+                    } else if (!/\s/.test(char)) {
+                        throw new Error("Expected delimiter");
+                    }
+                }
+                break;
+
+            case S_STRING:
+                if (char === '\\' && i + 1 < expr.length && expr[i + 1] === quoteChar) {
+                    currentArg += quoteChar;
+                    i++;
+                } else if (char === quoteChar) {
+                    result.args.push(currentArg);
+                    currentArg = '';
+                    pendingToken = true;
+                    state = S_ARG;
+                } else {
+                    currentArg += char;
+                }
+                break;
+
+            case S_REGEX:
+                currentArg += char;
+                // Check for closing slash (not escaped)
+                if (char === '/' && expr[i - 1] !== '\\') {
+                    // Regex isn't finished yet! We need to capture flags (gim...)
+                    // We'll peek ahead in the next iterations of S_ARG via castValue
+                    // or stay here to grab letters? Let's stay to grab flags.
+                    let j = i + 1;
+                    while (j < expr.length && /[a-z]/.test(expr[j])) {
+                        currentArg += expr[j];
+                        j++;
+                    }
+                    i = j - 1; // Advance main pointer
+                    result.args.push(castValue(currentArg));
+                    currentArg = '';
+                    pendingToken = true;
+                    state = S_ARG;
+                }
+                break;
+
+            case S_END:
+                if (!/\s/.test(char)) {
+                    throw new Error("Trailing data");
+                }
+                break;
+        }
+        i++;
+    }
+
+    if (state !== S_END) {
+        throw new Error("Incomplete call");
+    }
+    return result;
 }
+
 
 /**
  * @param {string} s - string to be hashed
@@ -203,97 +360,6 @@ export function stream(transformStr) {
  */
 export function cleanParameterName(name) {
     return name.replace(/\$/g, '_');
-}
-
-/**
- * Creates a filter funcion from filterCode
- * @param {string} filterCode
- * @returns {Function?}
- */
-export function createFilterFunction(filterCode) {
-    let userWidgetFilter = null;
-    try {
-        userWidgetFilter = new Function('text', 'editor', 'opts', filterCode);
-    } catch (ex) {
-        userWidgetFilter = null;
-        console.error(ex);
-    }
-    return userWidgetFilter;
-}
-
-/**
- * @param {import('./plugin').TinyMCE} editor
- * @param {{get_strings: (keyComponent: any[]) => Promise<string[]>}} coreStr - dependency on core/str
- * @returns {*}
- */
-export function applyWidgetFilterFactory(editor, coreStr) {
-    /**
-     * @param {string} widgetTemplate
-     * @param {boolean} silent
-     * @param {object?} mergevars
-     * @returns {Promise<boolean>} - True if the filter can be compiled
-     */
-    return async (widgetTemplate, silent, mergevars) => {
-        const translations = await coreStr.get_strings([
-            { key: 'filterres', component },
-            { key: 'nochanges', component }
-        ]);
-        // Es tracta d'un filtre, no d'un widget i s'ha de tractar de forma diferent
-        const userWidgetFilter = createFilterFunction(widgetTemplate);
-
-        if (!userWidgetFilter) {
-            editor.notificationManager.open({
-                text: translations[0] + ": Invalid filter",
-                type: 'danger',
-                timeout: 4000
-            });
-            return false;
-        }
-        // @ts-ignore
-        const handleFilterResult = function (res) {
-            const out = res[0];
-            let msg = res[1];
-            if (out != null) {
-                if (typeof out === "string") {
-                    editor.setContent(out);
-                    editor.notificationManager.open({
-                        text: translations[0] + ": " + msg,
-                        type: 'success',
-                        timeout: 5000
-                    });
-                } else if (out === true) {
-                    editor.notificationManager.open({
-                        text: translations[0] + ": " + msg,
-                        type: 'success',
-                        timeout: 5000
-                    });
-                } else if (out === false && !silent) {
-                    editor.notificationManager.open({
-                        text: translations[1],
-                        type: 'info',
-                        timeout: 5000
-                    });
-                }
-            } else if (!silent) {
-                editor.notificationManager.open({
-                    text: translations[1],
-                    type: 'info',
-                    timeout: 5000
-                });
-            }
-        };
-
-        const initialHTML = editor.getContent();
-        const filteredResult = userWidgetFilter(initialHTML, editor, mergevars);
-        // Hi ha la possibilitat que el filtre retorni una promesa o un array
-        const isPromise = filteredResult != null && typeof (filteredResult) === 'object' && ('then' in filteredResult);
-        if (isPromise) {
-            filteredResult.then(handleFilterResult).catch((/** @type {any} */ err) => console.error(err));
-        } else {
-            handleFilterResult(filteredResult || [null, translations[1]]);
-        }
-        return true;
-    };
 }
 
 /**
@@ -569,12 +635,18 @@ export function removeRndFromCtx(ctx, parameters) {
  * Helper to load scripts
  * @param {import('./plugin').TinyMCE} editor
  * @param {string} src
+ * @param {string} [integrity]
  * @returns {Promise<void>}
  */
-export function loadScriptAsync(editor, src) {
+export function loadScriptAsync(editor, src, integrity) {
     return new Promise((resolve, reject) => {
         const s = editor.dom.create('script', { src });
         s.onload = () => resolve();
+        s.referrerPolicy = 'no-referrer';
+        if (integrity) {
+            s.crossOrigin = 'anonymous';
+            s.integrity = integrity;
+        }
         s.onerror = reject;
         const head = editor.getDoc().querySelector("head");
         head.appendChild(s);
@@ -647,3 +719,19 @@ export function prefixItemsWith(items, prefix, skipItems = [], separator = '_') 
     return items.map(e => skipItems.includes(e) ? e : `${prefix}${separator}${e}`);
 }
 
+/**
+ * Sanitizes the given HTML using the editor's schema.
+ * @param {string} html The HTML to sanitize.
+ * @param {any} tinymce
+ * @param {any} schema
+ * @returns {string} The sanitized HTML.
+ */
+export function sanitize(html, tinymce, schema) {
+    const parser = new tinymce.html.DomParser({
+        validate: true,
+        schema: schema,
+        allow_script_urls: false
+    });
+    const doc = parser.parse(html);
+    return new tinymce.html.Serializer().serialize(doc);
+}

@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+import { getTinyMCE } from 'editor_tiny/loader';
 import { getFormCtrl } from '../controller/form_ctrl';
 import { getListeners } from '../extension';
+import { getFilterSrv } from '../service/filter_service';
 import { getModalSrv } from '../service/modal_service';
 import { getTemplateSrv } from '../service/template_service';
 import { getUserStorage } from '../service/userstorage_service';
-import { applyWidgetFilterFactory, removeRndFromCtx } from '../util';
-import * as coreStr from "core/str";
+import { removeRndFromCtx, sanitize } from '../util';
 
 /**
  * Tiny WidgetHub plugin.
@@ -44,10 +45,10 @@ export class WidgetParamsCtrl {
     * @param {import('../service/template_service').TemplateSrv} templateSrv
     * @param {import('../service/modal_service').ModalSrv} modalSrv
     * @param {import('../controller/form_ctrl').FormCtrl} formCtrl
-    * @param {*} applyWidgetFilter
+    * @param {import('../service/filter_service').FilterSrv} filterSrv
     * @param {import('../options').Widget} widget
     */
-   constructor(editor, userStorage, templateSrv, modalSrv, formCtrl, applyWidgetFilter, widget) {
+   constructor(editor, userStorage, templateSrv, modalSrv, formCtrl, filterSrv, widget) {
       /** @type {import('../plugin').TinyMCE} */
       this.editor = editor;
       /** @type {import('../service/userstorage_service').UserStorageSrv} */
@@ -58,7 +59,7 @@ export class WidgetParamsCtrl {
       this.modalSrv = modalSrv;
       /** @type {import('../controller/form_ctrl').FormCtrl} */
       this.formCtrl = formCtrl;
-      this.applyWidgetFilter = applyWidgetFilter;
+      this.filterSrv = filterSrv;
       /** @type {import('../options').Widget} */
       this.widget = widget;
    }
@@ -128,15 +129,17 @@ export class WidgetParamsCtrl {
 
    /**
     * @param {object} ctx
-    * @returns {Promise<string>} The rendered template
+    * @returns {Promise<string>} The rendered template previously sanitized
     */
-   render(ctx) {
+   async render(ctx) {
       const defaultsCopy = { ...this.widget.defaults };
       const toInterpolate = Object.assign(defaultsCopy, ctx ?? {});
       // Decide which template engine to use
       let engine = this.widget.prop('engine');
-      return this.templateSrv.render(this.widget.template ?? "", toInterpolate,
+      const dirtyHtml = await this.templateSrv.render(this.widget.template ?? "", toInterpolate,
          this.widget.I18n, engine);
+      const tinymce = await getTinyMCE();
+      return sanitize(dirtyHtml, tinymce, this.editor.schema);
    }
 
    /**
@@ -147,6 +150,7 @@ export class WidgetParamsCtrl {
       const sel = this.editor.selection.getContent();
       // Decideix quin mode de selecció estam
       let interpoledComponentCode = await this.render(ctxFromDialogue);
+
       if (sel.trim() && this.widget.insertquery) {
          let query = this.widget.insertquery.trim();
          let replaceMode = query.startsWith('r!');
@@ -220,7 +224,11 @@ export class WidgetParamsCtrl {
       }
 
       if (this.widget.isFilter()) {
-         this.applyWidgetFilter(this.widget.template ?? '', false, ctxFromDialogue);
+         this.filterSrv.applyWidgetFilter([{
+            name: this.widget.name,
+            code: this.widget.prop('filter') ?? '',
+            opts: ctxFromDialogue
+         }], false);
          this.editor.focus();
          return;
       }
@@ -241,8 +249,7 @@ export class WidgetParamsCtrl {
  */
 export function getWidgetParamsFactory(editor) {
    // @ts-ignore
-   const applyWidgetFilter = applyWidgetFilterFactory(editor, coreStr);
    return (widget) => new WidgetParamsCtrl(editor, getUserStorage(editor), getTemplateSrv(),
-      getModalSrv(), getFormCtrl(editor), applyWidgetFilter, widget);
+      getModalSrv(), getFormCtrl(editor), getFilterSrv(editor), widget);
 
 }

@@ -46,7 +46,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="
     default-src 'none';
-    script-src 'self' {{{origin}}} 'unsafe-inline' 'unsafe-eval';
+    script-src 'self' {{{origin}}} 'unsafe-eval';
     worker-src 'self' blob:;
     style-src 'self';
     connect-src 'self' {{{origin}}};
@@ -58,22 +58,23 @@
     base-uri 'none';
     form-action 'none';
     ">
+    <script src="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/remoterender"></script>
 </head>
 
 <body>
-  <script id="worker_liquid" type="text/javascript-worker">
+  <template id="worker_liquid">
         importScripts("{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/liquid");
-        var Liquid = liquidjs.Liquid
-        var engine = new Liquid({cache: false});
+        const Liquid = liquidjs.Liquid
+        const engine = new Liquid({cache: false});
 
         disableWorkerAPIs();
 
         self.onmessage = async function(e) {
-            var data = e.data;
-            var payload = data.payload || {};
+            const data = e.data;
+            const payload = data.payload || {};
             try {
-                var ctx = payload.ctx || {}; 
-                var result = await engine.parseAndRender(payload.template, ctx);
+                const ctx = payload.ctx || {}; 
+                const result = await engine.parseAndRender(payload.template, ctx);
                 self.postMessage({
                     requestId: data.requestId,
                     result: result
@@ -89,23 +90,26 @@
         self.postMessage({
             type: !!engine ? 'worker_ready' : 'worker_error',
         });
-    </script>
+    </template>
 
-    <script id="worker_ejs" type="text/javascript-worker">
+    <template id="worker_ejs">
         importScripts("{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/ejs");
 
         disableWorkerAPIs();
+        
+        const validName = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
 
         self.onmessage = function(e) {
-            var data = e.data;
-            var payload = data.payload || {};
+            const data = e.data;
+            const payload = data.payload || {};
             try {
-                var ctx = payload.ctx || {};
-                var extendedTemplate = '<% ' + 
+                const ctx = payload.ctx || {};
+                const keys = Object.keys(ctx).filter(key => validName.test(key));
+                const extendedTemplate = '<% ' + 
                     blacklist.map(key => 'var ' + key + ' = null;').join('\n') +
-                    Object.keys(ctx).map(key => 'var ' + key + ' = locals["' + key + '"];').join('\n')
+                    keys.map(key => 'var ' + key + ' = locals["' + key + '"];').join('\n')
                 + '%>' + payload.template;
-                var result = ejs.render(extendedTemplate, ctx, {
+                const result = ejs.render(extendedTemplate, ctx, {
                     strict: true,
                     _with: false,
                     context: null
@@ -125,17 +129,17 @@
         self.postMessage({
             type: !!ejs ? 'worker_ready' : 'worker_error',
         });
-    </script>
+    </template>
 
-    <script id="worker_mustache" type="text/javascript-worker">
+    <template id="worker_mustache">
         importScripts("{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/mustache");
 
         disableWorkerAPIs();
 
         function defineVar(text, ctx2) {
-            var pos = text.indexOf("=");
-            var varname = text.substring(0, pos).trim();
-            var varvalue = evalInContext(ctx2, text.substring(pos + 1).trim());
+            const pos = text.indexOf("=");
+            const varname = text.substring(0, pos).trim();
+            const varvalue = evalInContext(ctx2, text.substring(pos + 1).trim());
             ctx2[varname] = varvalue;
             return varname;
         }
@@ -148,9 +152,9 @@
                  * @param {Mustache.render} render
                  */
                 function(text, render) {
-                    var pos = text.indexOf("]");
-                    var condition = text.substring(0, pos).trim().substring(1);
-                    var show = evalInContext(ctx, condition);
+                    const pos = text.indexOf("]");
+                    const condition = text.substring(0, pos).trim().substring(1);
+                    const show = evalInContext(ctx, condition);
                     if (show) {
                         // @ts-ignore
                         return render(text.substring(pos + 1).trim());
@@ -173,8 +177,8 @@
                  */
                 function(text, render) {
                     // @ts-ignore
-                    var key = render(text).trim();
-                    var dict = translations[key] || {};
+                    const key = render(text).trim();
+                    const dict = translations[key] || {};
                     return dict[ctx._lang] || dict.en || dict.ca || key;
                 };
 
@@ -183,35 +187,35 @@
                  * @param {string} text
                  */
                 function(text) {
-                    var pos = text.indexOf("]");
-                    var cond = text.substring(0, pos).trim().substring(1);
-                    var components = cond.split(",");
-                    var dim = components.length;
-                    var maxValues = new Array(dim);
-                    var loopVars = new Array(dim);
+                    const pos = text.indexOf("]");
+                    const cond = text.substring(0, pos).trim().substring(1);
+                    const components = cond.split(",");
+                    const dim = components.length;
+                    const maxValues = new Array(dim);
+                    const loopVars = new Array(dim);
                     let total = 1;
-                    var cc = 'i'.charCodeAt(0);
+                    const cc = 'i'.charCodeAt(0);
                     components.forEach((def, i) => {
-                        var parts = def.split("=");
+                        const parts = def.split("=");
                         if (parts.length === 1) {
                             parts.unshift(String.fromCharCode(cc + i));
                         }
-                        var cname = parts[0].trim();
+                        const cname = parts[0].trim();
                         loopVars[i] = cname;
-                        var dm = evalInContext(ctx, parts[1]);
+                        const dm = evalInContext(ctx, parts[1]);
                         total = total * dm;
                         maxValues[i] = dm;
                         ctx[cname] = 1;
                     });
-                    let output = [];
+                    const output = [];
                     for (let _ei = 0; _ei < total; _ei++) {
                         // @ts-ignore
                         output.push(Mustache.render(text.substring(pos + 1), ctx));
                         let currentDim = dim - 1;
                         let incrUp;
                         do {
-                            var oldValue = ctx[loopVars[currentDim]] - 1;
-                            var newValue = (oldValue + 1) % maxValues[currentDim] + 1;
+                            const oldValue = ctx[loopVars[currentDim]] - 1;
+                            const newValue = (oldValue + 1) % maxValues[currentDim] + 1;
                             ctx[loopVars[currentDim]] = newValue;
                             incrUp = newValue < oldValue;
                             currentDim--;
@@ -225,14 +229,14 @@
                  * @param {string} text
                  */
                 function(text) {
-                    var pos = text.indexOf("]");
-                    var condition = text.substring(0, pos).trim().substring(1);
-                    var parts = condition.split(";");
-                    var loopvar = defineVar(parts[0], ctx);
+                    const pos = text.indexOf("]");
+                    const condition = text.substring(0, pos).trim().substring(1);
+                    const parts = condition.split(";");
+                    const loopvar = defineVar(parts[0], ctx);
                     let output = "";
                     let maxIter = 0; // Prevent infinite loop imposing a limit of 1000
                     while (evalInContext(ctx, parts[1]) && maxIter < 1000) {
-                        output += self.mustache.render(text.substring(pos + 1), ctx);
+                        output += self.Mustache.render(text.substring(pos + 1), ctx);
                         if (parts.length === 3 && parts[2].trim()) {
                             defineVar(loopvar + "=" + parts[2], ctx);
                         } else {
@@ -245,13 +249,13 @@
         }
 
         self.onmessage = function(e) {
-            var data = e.data;
-            var payload = data.payload || {};
+            const data = e.data;
+            const payload = data.payload || {};
             // Add lambda functions to context
-            var context = Object.assign({}, payload.ctx);
+            const context = Object.assign({}, payload.ctx);
             applyMustacheHelpers(context, payload.translations);
             try {
-                var result = Mustache.render(payload.template, context);
+                const result = Mustache.render(payload.template, context);
                 self.postMessage({
                     requestId: data.requestId,
                     result: result
@@ -267,16 +271,16 @@
         self.postMessage({
             type: !!Mustache ? 'worker_ready' : 'worker_error',
         });
-    </script>
+    </template>
 
-    <script id="worker_eval" type="text/javascript-worker">
+    <template id="worker_eval">
         disableWorkerAPIs();
 
         self.onmessage = function(e) {
-            var data = e.data;
-            var payload = data.payload || {};
+            const data = e.data;
+            const payload = data.payload || {};
             try {
-                var result = evalInContext(payload.ctx, payload.code);
+                const result = evalInContext(payload.ctx, payload.code);
                 self.postMessage({
                     requestId: data.requestId,
                     result: {
@@ -294,185 +298,6 @@
         self.postMessage({
             type: !!evalInContext ? 'worker_ready' : 'worker_error',
         });
-    </script>
-
-    <script>
-        var MAX_WORKER_TIMEOUT = 5000;
-        var MAX_WORKER_RUNS = 10; // Maximum number of runs for a worker
-        var queues = {};
-        var workers = {};
-        var port1;
-
-        var baseWorker = `function disableWorkerAPIs() {
-            var dangerous = ['close', 'fetch', 'XMLHttpRequest', 'importScripts'];
-            dangerous.forEach(api => {
-                if (self[api]) {
-                    Object.defineProperty(self, api, {
-                        value: () => { throw new Error('Security Error: worker api is disabled.'); },
-                        configurable: false,
-                        writable: false
-                    });
-                }
-            });
-        }
-
-        var blacklist = ['self', 'globalThis', 'Worker', 'SharedWorker', 'postMessage', 'onmessage', 
-            'indexedDB', 'location', 'navigator', 'origin', 'console', 'setTimeout', 'setInterval'];
-
-        function evalInContext(ctx, expr, keepFns) {
-            if (expr.indexOf('Function(') !== -1 || expr.indexOf('eval(') !== -1 ||
-                expr.indexOf('.constructor') !== -1) {
-                throw new Error('Function or eval or constructor is not allowed');
-            }
-            var listArgs = [];
-            var listVals = [];
-            ctx = ctx || {};
-            Object.keys(ctx).forEach((key) => {
-                if (keepFns || typeof ctx[key] !== "function") {
-                    listArgs.push(key);
-                    listVals.push(ctx[key]);
-                }
-            });
-            blacklist.forEach((key) => {
-                if (ctx[key] !== undefined) {
-                    return;
-                }
-                listArgs.push(key);
-                listVals.push(null);
-            });
-            listArgs.push('expr');
-            listArgs.push('return eval(expr)');
-            listVals.push(expr);
-            var evaluator = new Function(...listArgs);
-            return evaluator(...listVals);
-        }
-        `;
-
-        function createWorker(type) {
-            var template = document.getElementById('worker_' + type);
-            if (!template) {
-                console.error('Worker template not found for type: ' + type);
-                return null;
-            }
-            var jsCode = baseWorker + template.innerHTML;
-            var url = URL.createObjectURL(new Blob([jsCode], {
-                type: 'text/javascript'
-            }));
-            var worker = new Worker(url);
-            worker.runs = 0;
-            worker.onmessage = function(e) {
-                if (e.data.type === 'worker_ready') {
-                    URL.revokeObjectURL(url);
-                    worker.loaded = true;
-                    processNextTask(type);
-                    return;
-                } else if (e.data.type === 'worker_error') {
-                    URL.revokeObjectURL(url);
-                    // Cannot process any task on this queue
-                    (queues[type] || []).forEach((task) => {
-                        port1.postMessage({
-                            type: type,
-                            requestId: task.requestId,
-                            error: 'Worker error for type: ' + type + ' ' + e.data.error
-                        });
-                    });
-                    queues[type] = [];
-                    worker.terminate();
-                    workers[type] = null;
-                    return;
-                }
-                // Normal task execution response
-                worker.id = null;
-                var data = e.data;
-                data.type = type;
-                port1.postMessage(data);
-                if (worker.timeout) {
-                    clearTimeout(worker.timeout);
-                }
-                processNextTask(type);
-            };
-            worker.onerror = function(e) {
-                console.error('Worker onerror for type: ' + type, e, worker.id);
-                port1.postMessage({
-                    type: type,
-                    requestId: worker.id,
-                    error: 'Worker error for type: ' + type + ' ' + e
-                });
-                if (worker.timeout) {
-                    clearTimeout(worker.timeout);
-                }
-                worker.terminate();
-                workers[type] = null;
-                queues[type] = []; 
-                URL.revokeObjectURL(url);
-            };
-            return worker;
-        }
-
-        function processNextTask(type) {
-            if (!queues[type] || queues[type].length === 0) {
-                return;
-            }
-            var task = queues[type][0];
-            if (!task) {
-                return;
-            }
-            var worker = workers[type];
-            if (worker) {
-                if (!worker.loaded || worker.id) {
-                    return;
-                }
-                if (worker.runs >= MAX_WORKER_RUNS) {
-                    if (worker.timeout) {
-                        clearTimeout(worker.timeout);
-                    }
-                    worker.terminate();
-                    worker = null;
-                    workers[type] = null;
-                }
-            }
-            if (!worker) {
-                worker = createWorker(type);
-                workers[type] = worker;
-                return;
-            }
-            queues[type].shift();
-            worker.timeout = setTimeout(function() {
-                clearTimeout(worker.timeout);
-                worker.terminate();
-                port1.postMessage({
-                    requestId: task.requestId,
-                    type: type,
-                    error: 'Worker timeout for type: ' + type
-                });
-                workers[type] = null;
-                processNextTask(type);
-            }, MAX_WORKER_TIMEOUT);
-            worker.id = task.requestId;
-            worker.runs++;
-            worker.postMessage(task);
-        }
-
-        /** {type: string, payload: Object} Task received on channel */
-        function onChannelMessage(e) {
-            var data = e.data;
-            if (data.type) {
-                if (!queues[data.type]) {
-                    queues[data.type] = [];
-                }
-                queues[data.type].push(data);
-                processNextTask(data.type);
-            }
-        }
-
-        var channel = new MessageChannel();
-        window.parent.postMessage({
-            type: 'tiny_widgethub_sandbox_init',
-            status: 'ready'
-        }, '*', [channel.port2]);
-        port1 = channel.port1;
-        port1.onmessage = onChannelMessage;
-    </script>
+    </template>
 </body>
-
 </html>

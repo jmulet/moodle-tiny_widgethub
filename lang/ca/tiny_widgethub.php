@@ -107,6 +107,7 @@ $string['directinsert'] = 'Inserir directament';
 $string['edit'] = 'Editar';
 $string['emptylist'] = 'No s\'han trobat widgets que coincideixin amb els criteris de cerca';
 $string['errkeyinuse'] = 'La clau {$a} ja està usada. Canvieu de nom';
+$string['errscript'] = 'No es permeten etiquetes script ni style en templates';
 $string['errparamtype'] = 'Paràmetre @1 ha de ser del tipus @2';
 $string['errparamvalue'] = 'Paràmetre @1 ha de tenir un valor @2';
 $string['errpreview'] = 'S\'ha produït un error quan es generava la previsualització';

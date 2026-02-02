@@ -54,12 +54,6 @@ export default new Promise(async (resolve) => {
         getCommandSetup(),
     ]);
 
-    tinyMCE.overrideDefaults({
-        ...tinyMCE.defaultOptions,
-        // eslint-disable-next-line camelcase
-        allow_script_urls: true, // Allow href="javascript:void(0)" used in popovers
-    });
-
     tinyMCE.PluginManager.add(pluginName,
         /** @param {TinyMCE} editor */
         (editor) => {

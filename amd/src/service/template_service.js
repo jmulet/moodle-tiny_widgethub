@@ -24,7 +24,7 @@
 
 import mustache from 'core/mustache';
 import { genID } from '../util';
-import Sandbox from './sandbox';
+import { Sandbox } from './sandbox';
 
 /**
  * Template service

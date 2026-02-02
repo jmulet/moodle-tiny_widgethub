@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "rollup --config ./codemirror6/rollup.config.js",
+    "build": "rollup --config ./rollup.config.js",
     "serve": "npx http-server ./playground -o index.html"
   },
   "keywords": [],
@@ -31,6 +31,7 @@
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-replace": "^6.0.2",
-    "rollup": "^4.46.2"
+    "rollup": "^4.46.2",
+    "rollup-plugin-esbuild": "^6.2.1"
   }
 }

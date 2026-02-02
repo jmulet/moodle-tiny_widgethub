@@ -107,6 +107,7 @@ $string['directinsert'] = 'Insert directly';
 $string['edit'] = 'Edit';
 $string['emptylist'] = 'No widgets have been found for the search criteria';
 $string['errkeyinuse'] = 'Key {$a} is already in use. Please rename it';
+$string['errscript'] = 'Script and style tags are not allowed in templates';
 $string['errparamtype'] = 'Parameter @1 must be of type @2';
 $string['errparamvalue'] = 'Parameter @1 must have a value @2';
 $string['errpreview'] = 'An error occurred while rendering the preview';

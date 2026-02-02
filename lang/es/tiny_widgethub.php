@@ -107,6 +107,7 @@ $string['directinsert'] = 'Insertar directamente';
 $string['edit'] = 'Editar';
 $string['emptylist'] = 'No se han encontrado widgets que coincidan con los criterios de búsqueda';
 $string['errkeyinuse'] = 'La clave {$a} ya está usada. Cambiad de nombre';
+$string['errscript'] = 'No se permiten etiquetas script ni style en templates';
 $string['errparamtype'] = 'Parámetro @1 debe ser del tipo @2';
 $string['errparamvalue'] = 'Parámetro @1 debe tener un valor @2';
 $string['errpreview'] = 'Se ha producido un error cuando se generaba la previsualitzación';

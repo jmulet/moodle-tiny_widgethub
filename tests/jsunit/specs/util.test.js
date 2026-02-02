@@ -12,7 +12,7 @@ const U = require("../src/util");
  * @param {number} delay 
  * @returns {Promise<void>}
  */
-const wait = function(delay) {
+const wait = function (delay) {
     return new Promise((resolve) => {
         setTimeout(() => resolve(), delay);
     });
@@ -23,7 +23,7 @@ describe('utils module tests', () => {
     let consoleSpy;
 
     beforeEach(() => {
-        consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
     });
 
     afterEach(() => {
@@ -41,7 +41,7 @@ describe('utils module tests', () => {
     });
 
     test('it productes a hashCode of string', () => {
-        expect(typeof U.hashCode('')).toBe('number'); 
+        expect(typeof U.hashCode('')).toBe('number');
         expect(typeof U.hashCode('a word')).toBe('number');
         // Non random
         expect(U.hashCode('')).toBe(U.hashCode(''));
@@ -142,7 +142,7 @@ describe('utils module tests', () => {
         }
     });
 
-    it("It applies widgetFilter", async() => {
+    it("It applies widgetFilter", async () => {
         /** @type {*} */
         const editor = global.Mocks.editorFactory();
         editor.getContent.mockReturnValue("<p>This is the editor's content</p>");
@@ -286,7 +286,7 @@ describe('utils module tests', () => {
         expect(U.toHexAlphaColor(" #ffaa01")).toStrictEqual(["#ffaa01", 1]);
         // convert rgb to hex
         expect(U.toHexAlphaColor("rgb(255, 255, 255)")).toStrictEqual(["#ffffff", 1]);
-        expect(U.toHexAlphaColor("rgb(255, 0, 255)")).toStrictEqual(["#ff00ff", 1]);        
+        expect(U.toHexAlphaColor("rgb(255, 0, 255)")).toStrictEqual(["#ff00ff", 1]);
     });
 
 
@@ -294,10 +294,10 @@ describe('utils module tests', () => {
         // No color passed
         expect(U.toHexAlphaColor("")).toStrictEqual(["#000000", 1]);
         // Already in hex
-        expect(U.toHexAlphaColor(" #ffaa0123")).toStrictEqual(["#ffaa01", 35/255]);
+        expect(U.toHexAlphaColor(" #ffaa0123")).toStrictEqual(["#ffaa01", 35 / 255]);
         // convert rgb to hex
         expect(U.toHexAlphaColor("rgb(255, 255, 255, 15)")).toStrictEqual(["#ffffff", 0.15]);
-        expect(U.toHexAlphaColor("rgb(255, 0, 255, 0.25)")).toStrictEqual(["#ff00ff", 0.25]);        
+        expect(U.toHexAlphaColor("rgb(255, 0, 255, 0.25)")).toStrictEqual(["#ff00ff", 0.25]);
     });
 
     test('Convert to rgb color', () => {
@@ -311,7 +311,7 @@ describe('utils module tests', () => {
         expect(U.toRgba("#ff00ff", 0.2587256)).toBe("rgba(255,0,255,0.26)");
     });
 
-    test('debounce', async() => {
+    test('debounce', async () => {
         const cb = jest.fn();
         const debounced1 = U.debounce(cb, 800);
         debounced1();
@@ -336,7 +336,7 @@ describe('utils module tests', () => {
         U.toggleClass(elem, 'cl3', 'cl4');
         expect([...elem.classList].sort()).toStrictEqual(['cl1', 'cl2', 'cl3', 'cl4']);
         U.toggleClass(elem, 'cl1', 'cl3');
-        expect([...elem.classList].sort()).toStrictEqual(['cl2', 'cl4']);        
+        expect([...elem.classList].sort()).toStrictEqual(['cl2', 'cl4']);
     });
 
     test.each([
@@ -388,35 +388,36 @@ describe('utils module tests', () => {
             expect(U.compareVersion(current, condition)).toBe(expected);
             if (shouldThrow) {
                 expect(consoleSpy).toHaveBeenCalled();
-            } 
             }
+        }
     );
 
 
     test("removeRndFromCtx should remove parameters associated to $RND", () => {
         /** @type {*} */
         const parameters = [
-            {name: 'q', value: ''},
-            {name: 'id', value: '$RND'},
-            {name: 'effect', value: 'none'},
+            { name: 'q', value: '' },
+            { name: 'id', value: '$RND' },
+            { name: 'effect', value: 'none' },
         ];
         const ctx = {
             q: 'foo value',
             id: 'd24523fvvv_34',
             effect: 'fade'
         }
-        expect(U.removeRndFromCtx(ctx, parameters)).toStrictEqual({ 
+        expect(U.removeRndFromCtx(ctx, parameters)).toStrictEqual({
             q: 'foo value',
-            effect: 'fade'}
+            effect: 'fade'
+        }
         );
     });
 
     test("removeRndFromCtx should not remove any parameters", () => {
         /** @type {*} */
         const parameters = [
-            {name: 'q', value: ''},
-            {name: 'id', value: 'RND'},
-            {name: 'effect', value: 'none'},
+            { name: 'q', value: '' },
+            { name: 'id', value: 'RND' },
+            { name: 'effect', value: 'none' },
         ];
         const ctx = {
             q: 'foo value',
@@ -425,5 +426,106 @@ describe('utils module tests', () => {
         }
         expect(U.removeRndFromCtx(ctx, parameters)).toStrictEqual(ctx);
     });
+
+    test.each([
+        ["f('x')", { name: 'f', args: ['x'] }],
+        ["classRegex('alert-(.*)')", { name: 'classRegex', args: ['alert-(.*)'] }],
+        ["attr('src', 'img')", { name: 'attr', args: ['src', 'img'] }],
+        ["styleRegex('max-width:(.*)px', null, 'number')", { name: 'styleRegex', args: ['max-width:(.*)px', null, 'number'] }],
+        ["attrBS('original-title')", { name: 'attrBS', args: ['original-title'] }],
+        // Type support: Numbers, Booleans, Null, Undefined
+        ["calculate(100, -5.5, true, false, null, undefined)", {
+            name: 'calculate',
+            args: [100, -5.5, true, false, null, undefined]
+        }],
+
+        // Regex with modifiers
+        ["match(/^[a-z]+$/gi)", {
+            name: 'match',
+            args: [/^[a-z]+$/gi]
+        }],
+
+        // Escaped quotes inside strings
+        ["log('It\\'s a trap!', \"He said \\\"Hello\\\"\")", {
+            name: 'log',
+            args: ["It's a trap!", 'He said "Hello"']
+        }],
+
+        // Whitespace tolerance (around commas, names, and parens)
+        ["  spaceFn  (  'arg1'  ,  'arg2'  )  ", {
+            name: 'spaceFn',
+            args: ['arg1', 'arg2']
+        }],
+
+        // Empty arguments and empty functions
+        ["init()", { name: 'init', args: [] }],
+        ["trailingComma('data', )", { name: 'trailingComma', args: ['data', undefined] }],
+
+        // Identifiers with numbers, underscores, and $
+        ["$_update_2(1)", { name: '$_update_2', args: [1] }],
+
+        // Complex strings containing delimiters
+        ["csv('one,two', 'three)four')", {
+            name: 'csv',
+            args: ['one,two', 'three)four']
+        }],
+        // Basic Regex
+        ["search(/abc/)", { name: 'search', args: [/abc/] }],
+
+        // Regex with multiple modifiers
+        ["filter(/\\d+/gim)", { name: 'filter', args: [/\d+/gim] }],
+
+        // Regex containing commas and parentheses (should not break parsing)
+        ["match(/a(b,c)d/g)", { name: 'match', args: [/a(b,c)d/g] }],
+
+        // Regex mixed with other types
+        ["validate(/^[0-9]+$/, true, 'Error')", {
+            name: 'validate',
+            args: [/^[0-9]+$/, true, 'Error']
+        }],
+
+        // Regex with advanced modifiers (u, s, y)
+        ["unicodeCheck(/\\p{L}/u, /foo/s)", {
+            name: 'unicodeCheck',
+            args: [/\p{L}/u, /foo/s]
+        }],
+
+        // Empty Regex pattern
+        ["empty(//)", { name: 'empty', args: [/(?:)/] }]
+    ])(
+        "fnCallParser should parse a function call %s", (fnCallStr, parsedFnCall) => {
+            expect(typeof fnCallStr).toBe('string');
+            expect(typeof parsedFnCall).toBe('object');
+            expect(U.fnCallParser(fnCallStr)).toStrictEqual(parsedFnCall);
+
+        });
+
+    test.each([
+        // --- Name / Identifier Errors ---
+        ["1fn()", "Name cannot start with number"],
+        ["fn-name()", "Illegal character in name: -"],
+        ["(1, 2)", "Expected name"], // Missing name entirely
+
+        // --- Structural Errors ---
+        ["fn(1, 2", "Incomplete call"], // Missing closing parenthesis
+        ["fn 1, 2)", "Expected ("], // Missing opening parenthesis
+        ["fn(1, 2) extra", "Trailing data"], // Data after the function call ends
+        ["fn('arg' 'another')", "Expected delimiter"], // Missing comma between strings
+        ["fn('arg' 123)", "Expected delimiter"], // Missing comma between string and number
+
+        // --- Argument / Type Errors ---
+        ["fn(unknownVariable)", "Invalid argument type: unknownVariable"],
+        ["fn(nullish)", "Invalid argument type: nullish"],
+        ["fn(1.2.3)", "Invalid argument type: 1.2.3"],
+
+        // --- String / Regex Errors ---
+        ["fn('unclosed string)", "Incomplete call"],
+        ["fn(/unclosed regex)", "Incomplete call"],
+        ["fn(/malformed(regex/)", "Invalid regular expression: /malformed(regex/: Unterminated group"], // If the second slash is missing
+    ])(
+        "should throw error for invalid input: %s", (invalidExpr, expectedError) => {
+            expect(() => U.fnCallParser(invalidExpr)).toThrow(expectedError);
+        }
+    );
 
 });

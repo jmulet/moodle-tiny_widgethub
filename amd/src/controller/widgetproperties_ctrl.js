@@ -24,16 +24,9 @@
 
 import { getFormCtrl } from '../controller/form_ctrl';
 import { getModalSrv } from '../service/modal_service';
-import { createBinding } from '../bindings';
-
-/**
- * @typedef {JQuery<HTMLElement>} ModalDialogue
- * @property {JQuery<HTMLElement>} header
- * @property {JQuery<HTMLElement>} body
- * @property {JQuery<HTMLElement>} footer
- * @property {() => void} destroy
- * @property {() => void} show
- */
+import { RemoteDom } from '../service/sandbox';
+import { fnCallParser } from '../util';
+import { bindingsFactoryAPI } from '../bindings';
 
 /**
  * @class
@@ -42,6 +35,12 @@ import { createBinding } from '../bindings';
 export class WidgetPropertiesCtrl {
     /** @type {import('../service/modal_service').ModalDialogue | null} */
     modal = null;
+
+    /** @type {import('../service/sandbox').RemoteDom | null} */
+    remoteDom = null;
+
+    /** @type {string | null} */
+    vdomId = null;
 
     /**
      * @param {import('../plugin').TinyMCE} editor
@@ -74,77 +73,76 @@ export class WidgetPropertiesCtrl {
         const elem = currentContext.elem;
 
         if (!elem || !widget?.hasBindings()) {
-            console.error("Invalid widget definition ", widget);
+            console.error("Widget has no bindings ", widget);
             return;
         }
 
-        // Create bindings
-        /** @type {Object.<string, any>} Empty object {} without prototype */
-        const bindingsDOM = Object.create(null);
+        // Parameters that contain bindings.
+        const parametersWithBindings = widget.parameters.filter(param => {
+            return param.bind !== undefined;
+        });
+        const hasRemoteBindings = parametersWithBindings.some(param => typeof param.bind === 'object');
+        if (hasRemoteBindings) {
+            // Create a Virtual Dom for the widget root element
+            this.remoteDom = await RemoteDom.getInstance();
+            this.vdomId = await this.remoteDom.createRemoteDom(elem);
+        }
+
+        const localBindings = new Map();
+
+        /** @type {Array<Promise<any>>} */
+        const pendingValuePromises = [];
+        parametersWithBindings.forEach((param) => {
+            const paramValueType = typeof (param.value);
+            if (!param.bind) {
+                return;
+            }
+            /** @type {string | {name: string, args: Array<any>}} */
+            if (typeof param.bind === 'string') {
+                // Retrieve the value of this parameter from the Local Dom
+                const { name, args } = fnCallParser(param.bind);
+                const bindingFactory = bindingsFactoryAPI[name];
+                if (!bindingFactory) {
+                    console.error("Binding function not found: ", name);
+                    return;
+                }
+                const binder = bindingFactory(elem, ...args);
+                localBindings.set(param.name, binder);
+                const value = binder.getValue();
+                pendingValuePromises.push(Promise.resolve({
+                    name: param.name,
+                    value
+                }));
+            } else if (typeof param.bind === 'object') {
+                // Retrieve the value of this parameter from the Remote Dom
+                if (this.remoteDom === null || this.vdomId === null) {
+                    return;
+                }
+                const instructions = param.bind.getValue || param.bind.get || '';
+                const useJQuery = param.bind.get !== undefined;
+                pendingValuePromises.push(this.remoteDom.queryOnRemoteDom({
+                    vid: this.vdomId,
+                    name: param.name,
+                    type: paramValueType,
+                    instructions,
+                    useJQuery
+                }));
+            }
+        });
+
         // Extract param values from DOM
         /** @type {Object.<string, any>} Empty object {} without prototype */
         const paramValues = Object.create(null);
-        // Parameters that contain bindings
-        const parametersWithBindings = widget.parameters.filter(param => {
-            if (param.type === 'repeatable') {
-                const fieldsWithBindings = param.fields?.some(f => f.bind !== undefined);
-                return (fieldsWithBindings && param.item_selector !== undefined) || (typeof param.bind === 'object');
-            } else {
-                return param.bind != undefined;
-            }
-        });
-        parametersWithBindings.forEach((param) => {
-            if (param.bind && param.type !== 'repeatable') {
-                // A simple control binding
-                const binding = createBinding(param.bind, elem, typeof (param.value));
-                if (binding) {
-                    const pname = param.name;
-                    bindingsDOM[pname] = binding;
-                    paramValues[pname] = binding.getValue();
-                }
-            } else if (param.type === 'repeatable') {
-                if (typeof param.item_selector === 'string') {
-                    /** @type {any[]} */
-                    const lstValues = [];
-                    /** @type {Record<string, import('../bindings').Binding>[]} */
-                    const lstBindings = [];
-                    paramValues[param.name] = lstValues;
-                    bindingsDOM[param.name] = lstBindings;
-                    // Strategy 1. Searching DOM items and creating a binding per input
-                    // Find all item containers in DOM (param.bind is a query to every item element)
-                    elem.querySelectorAll(param.item_selector).forEach(itemRoot => {
-                        // For every field in parameter which has binding, create it
-                        /** @type {Record<string, any>} */
-                        const objValue = {};
-                        /** @type {Record<string, import('../bindings').Binding>} */
-                        const objBinding = {};
-                        param.fields?.filter(f => f.bind !== undefined).forEach(f => {
-                            // @ts-ignore
-                            const binding = createBinding(f.bind, itemRoot, typeof (f.value));
-                            if (binding) {
-                                objBinding[f.name] = binding;
-                                objValue[f.name] = binding.getValue();
-                            }
-                        });
-                        lstValues.push(objValue);
-                        lstBindings.push(objBinding);
-                    });
-                } else if (typeof param.bind === 'object') {
-                    // Strategy 2. A single binding for the whole array of objects
-                    const binding = createBinding(param.bind, elem);
-                    if (binding) {
-                        const pname = param.name;
-                        bindingsDOM[pname] = binding;
-                        paramValues[pname] = binding.getValue();
-                    }
-                }
-            }
+
+        const valuesFromDom = await Promise.all(pendingValuePromises);
+        valuesFromDom.forEach(res => {
+            paramValues[res.name] = res.value;
         });
 
         // Create parameters form controls
         /** @type {string[]} */
-        const controls = parametersWithBindings
-            .map(param => this.formCtrl.createControlHTML(hostId, param, paramValues[param.name]));
+        const controls = valuesFromDom
+            .map(res => this.formCtrl.createControlHTML(hostId, res.name, res.value));
 
         const ctxData = {
             name: widget.name,
@@ -154,8 +152,7 @@ export class WidgetPropertiesCtrl {
         // Create the modal
         // @ts-ignore
         this.modal = await this.modalSrv.create('context', ctxData, () => {
-            this.modal?.destroy();
-            this.modal = null;
+            this.close();
         });
         /** @type {import('../service/modal_service').ListenerTracker} */
         const listenerTracker = (/** @type {Element}*/ el, /** @type {string} */ evType, /** @type {EventListener} */ handler) => {
@@ -170,38 +167,60 @@ export class WidgetPropertiesCtrl {
 
         // Bind accept action to modal
         this.modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", () => {
-            this.modal?.destroy();
+            this.close();
         });
-        this.modal.footer.find("button.tiny_widgethub-btn-primary").on("click", () => {
+        this.modal.footer.find("button.tiny_widgethub-btn-primary").on("click", async () => {
             let updatedValues = paramValues;
             if (formElem) {
                 updatedValues = this.formCtrl.extractFormParameters(widget, formElem, true);
             }
-            this.modal?.destroy();
-            // Update parameter values back to DOM
-            Object.keys(bindingsDOM).forEach(key => {
-                const val = updatedValues[key];
-                if (val === undefined) {
-                    return;
-                }
-                if (Array.isArray(val) && Array.isArray(bindingsDOM[key])) {
-                    // eslint-disable-next-line max-len
-                    const zipped = val.map((v, i) => [v, bindingsDOM[key][i]]).slice(0, Math.min(val.length, bindingsDOM[key].length));
-                    // Follow stategy 1 for repeatable.
-                    for (const [valueObject, bindingObject] of zipped) {
-                        if (!valueObject || typeof valueObject !== 'object' ||
-                            !bindingObject || typeof bindingObject !== 'object') {
-                            continue;
-                        }
-                        Object.keys(valueObject).forEach(objKey => {
-                            bindingObject[objKey]?.setValue(valueObject[objKey]);
-                        });
-                    }
-                } else {
-                    // Regular binding or strategy 2 for repeatable.
-                    bindingsDOM[key]?.setValue(val);
+
+            // Patch local bindings first
+            localBindings.forEach((binder, name) => {
+                const val = updatedValues[name];
+                const oldValue = valuesFromDom.find(res => res.name === name)?.value;
+                if (val !== undefined && val !== oldValue && val !== oldValue) {
+                    binder.setValue(val);
                 }
             });
+            if (!this.remoteDom || !this.vdomId) {
+                // We are done. Close the modal.
+                this.close();
+                return;
+            }
+
+            // Update parameter values to remote DOM.
+            /** @type {Array<Promise<any>>} */
+            const pendingUpdates = [];
+            parametersWithBindings.filter(param => typeof param.bind === 'object')
+                .forEach((param) => {
+                    if (this.remoteDom === null || this.vdomId === null) {
+                        return;
+                    }
+                    const oldValue = valuesFromDom.find(res => res.name === param.name)?.value;
+                    const val = updatedValues[param.name];
+                    if (val === undefined || val === oldValue || typeof param.bind !== 'object') {
+                        return;
+                    }
+                    /** @type {string | {name: string, args: Array<any>}} */
+                    const instructions = param.bind.getValue || param.bind.get || '';
+                    const useJQuery = param.bind.get !== undefined;
+                    pendingUpdates.push(this.remoteDom.updateRemoteDomValue({
+                        vid: this.vdomId,
+                        name: param.name,
+                        value: val,
+                        instructions,
+                        useJQuery
+                    }));
+                });
+
+            // Wait for all updates to complete on remote DOM.
+            await Promise.all(pendingUpdates);
+            // Retrieve the patches from remote DOM.
+            await this.remoteDom.applyPatches(this.vdomId);
+
+            // Do not close until remoteDom can be disposed.
+            this.close();
         });
 
         // Help circles require popover
@@ -219,8 +238,14 @@ export class WidgetPropertiesCtrl {
         this.modal.show();
     }
 
-    close() {
+    async close() {
+        if (this.remoteDom && this.vdomId) {
+            await this.remoteDom.destroyRemoteDom(this.vdomId);
+            this.vdomId = null;
+            this.remoteDom = null;
+        }
         this.modal?.destroy();
+        this.modal = null;
     }
 }
 

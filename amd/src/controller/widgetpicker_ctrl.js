@@ -31,7 +31,8 @@ import { getEditorOptions, getGlobalConfig } from '../options';
 import { getModalSrv } from '../service/modal_service';
 import { getTemplateSrv } from '../service/template_service';
 import { getUserStorage } from '../service/userstorage_service';
-import { debounce, genID, hashCode, removeRndFromCtx, searchComp, toggleClass } from '../util';
+import { debounce, genID, hashCode, removeRndFromCtx, sanitize, searchComp, toggleClass } from '../util';
+import { getTinyMCE } from 'editor_tiny/loader';
 
 const { component } = Common;
 
@@ -348,9 +349,9 @@ export class WidgetPickerCtrl {
                     return !selectmode || (selectmode && widget.isSelectCapable());
                 })
                 .map(r =>
-                    `<a href="javascript:void(0)" data-key="${r.key}" data-insert="recent">
+                    `<button type="button" class="btn btn-link p-0" data-key="${r.key}" data-insert="recent">
                     <span class="badge badge-secondary text-truncate d-inline-block" style="max-width: 120px;" title="${widgetDict[r.key].name}">
-                    ${widgetDict[r.key].name}</span></a>`)
+                    ${widgetDict[r.key].name}</span></button>`)
                 .join('\n');
             const recentDiv = this.body?.querySelector('.tiny_widgethub-recent');
             if (recentDiv) {
@@ -425,7 +426,9 @@ export class WidgetPickerCtrl {
         const toInterpolate = { ...widget.defaultsWithRepeatable(true) };
         // Decide which template engine to use
         const engine = widget.prop('engine');
-        return this.templateSrv.render(widget.template ?? "", toInterpolate, widget.I18n, engine);
+        const dirtyHtml = await this.templateSrv.render(widget.template ?? "", toInterpolate, widget.I18n, engine);
+        const tinymce = await getTinyMCE();
+        return sanitize(dirtyHtml, tinymce, this.editor.schema);
     }
 
     /**
