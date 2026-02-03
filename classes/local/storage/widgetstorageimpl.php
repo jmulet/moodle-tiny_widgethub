@@ -110,12 +110,16 @@ class widgetstorageimpl implements widgetstorage {
      */
     private function load_index(): array {
         global $DB;
-        $sql = "SELECT source FROM {files} WHERE component = :component AND filename = 'data.json'";
-        $params = ['component' => 'tiny_widgethub'];
-        $sources = $DB->get_fieldset_sql($sql, $params);
-        $final_json = '[' . implode(',', $sources) . ']';
-        $all_data = json_decode($final_json, true);
-        return array_column($all_data, null, 'id');
+        $sql = "SELECT itemid, source FROM {files} WHERE component = 'tiny_widgethub' AND filename = 'data.json' AND source IS NOT NULL";
+        $records = $DB->get_records_sql($sql);
+        $index = [];
+        foreach ($records as $itemid => $record) {
+            $data = json_decode($record->source, true);
+            if (is_array($data)) {
+                $index[$itemid] = $data;
+            }
+        }
+        return $index;
     }
 
     /**
@@ -150,6 +154,7 @@ class widgetstorageimpl implements widgetstorage {
                 $category = $raw['category'] ?? get_string('misc', self::COMPONENTNAME);
                 $hidden = ($raw['hidden'] ?? false) ? 1 : 0;
                 $this->index[$id] = [
+                    'id' => $id,
                     'key' => $key,
                     'name' => $name,
                     'c' => $category,
@@ -269,12 +274,12 @@ class widgetstorageimpl implements widgetstorage {
 
     /**
      * Basic server-side validate the widget data before saving.
-     * @param int $id The widget ID.
+     * @param ?int $id The widget ID.
      * @param array $widget The widget data to validate.
      * @param array $usedkeys Associative array of used keys [key => id].
      * @return bool True if the widget data is valid, false otherwise.
      */
-    private static function validate_widget(int $id, array $widget, array $usedkeys): bool {
+    private static function validate_widget(?int $id, array $widget, array $usedkeys): bool {
         $key = $widget['key'] ?? null;
         if ($key === null) {
             return false;

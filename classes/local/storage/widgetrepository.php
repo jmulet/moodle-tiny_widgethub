@@ -200,9 +200,6 @@ class widgetrepository {
                     $combinedpartials = array_merge($combinedpartials, $preset);
                 }
                 continue;
-            } else {
-                $preset['timecreated'] = time();
-                $preset['timemodified'] = time();
             }
 
             $yml = $ymlentries[$filename] ?? null;

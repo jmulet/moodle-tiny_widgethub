@@ -81,8 +81,8 @@ class documentstorageimpl implements documentstorage {
      * @param string $ext Document extension.
      * @return bool True if document was saved, false otherwise.
      */
-    private static function save_filearea_document(int $id, $doc, string $ext): bool {
-        if ($id < 0) {
+    private static function save_filearea_document($id, $doc, string $ext): bool {
+        if ($id === null || $id < 0) {
             throw new \moodle_exception('invalid id ' . $id, 'tiny_widgethub');
         }
         $systemcontextid = \context_system::instance()->id;
@@ -99,8 +99,7 @@ class documentstorageimpl implements documentstorage {
             $fileinfo['author'] = \core_text::substr($doc['author'] ?? '', 0, 255);
             $fileinfo['license'] = \core_text::substr($doc['version'] ?? '', 0, 255);
             $source = [
-                'id' => $doc['id'] ?? '',
-                'key' => $doc['key'] ?? $doc['id'] ?? '',
+                'key' => $doc['key'] ?? $id . '',
                 'name' => $doc['name'] ?? $doc['key'] ?? '',
                 'c' => $doc['category'] ?? 'other',
                 'h' => ($doc['hidden'] ?? false) ? 1 : 0,
