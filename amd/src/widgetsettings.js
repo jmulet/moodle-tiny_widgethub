@@ -471,7 +471,7 @@ export default class WidgetSettings {
                 });
 
                 try {
-                    const tinyinstance = getInstanceForElementId(this.nodes.panel.id);
+                    const tinyinstance = getInstanceForElementId(this.nodes.previewTiny?.id ?? '');
                     const templateSrv = getTemplateSrv(tinyinstance);
                     validation.html = await templateSrv.render(jsonObj.template, ctx, translations, jsonObj.engine);
                     const tabSelector = document.querySelector('a[data-toggle="tab"][href="#p-html"]')?.parentElement;

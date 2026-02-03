@@ -94,9 +94,9 @@
 
     <template id="worker_ejs">
         importScripts("{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/ejs");
-
+        console.log('ejs worker loaded');
         disableWorkerAPIs();
-        
+        console.log('ejs worker APIs disabled');
         const validName = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
 
         self.onmessage = function(e) {
@@ -126,6 +126,7 @@
                 });
             }
         };
+        console.log('ejs worker sending ready message');
         self.postMessage({
             type: !!ejs ? 'worker_ready' : 'worker_error',
         });
@@ -255,12 +256,13 @@
             const context = Object.assign({}, payload.ctx);
             applyMustacheHelpers(context, payload.translations);
             try {
-                const result = Mustache.render(payload.template, context);
+                const result = mustache.render(payload.template, context);
                 self.postMessage({
                     requestId: data.requestId,
                     result: result
                 });
             } catch (e) {
+                console.error('Failed to render template: ' + e);
                 self.postMessage({
                     requestId: data.requestId,
                     error: 'Failed to render template: ' + e
@@ -269,7 +271,7 @@
         };
 
         self.postMessage({
-            type: !!Mustache ? 'worker_ready' : 'worker_error',
+            type: !!mustache ? 'worker_ready' : 'worker_error',
         });
     </template>
 
@@ -289,6 +291,7 @@
                     }
                 });
             } catch (e) {
+                console.error('Failed to evaluate code: ' + e);
                 self.postMessage({
                     requestId: data.requestId,
                     error: 'Failed to evaluate code: ' + e

@@ -54,20 +54,6 @@ function sanitize(doc) {
         });
     });
 }
-
-// Disable potential dangerous APIs in IFRAME window
-const dangerous = ['fetch', 'XMLHttpRequest', 'eval', 'location', 'navigator',
-    'alert', 'confirm', 'prompt', 'indexedDB'];
-dangerous.forEach(api => {
-    // @ts-ignore
-    if (window[api]) {
-        Object.defineProperty(window, api, {
-            value: undefined,
-            writable: false
-        });
-    }
-});
-
 /**
  * Communication port with parent.
  * @type {MessagePort | null}

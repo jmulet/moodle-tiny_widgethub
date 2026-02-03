@@ -159,24 +159,22 @@ class widgettable extends \admin_setting {
      * @return \stdClass[] Array of widget objects.
      */
     public static function get_list_widgets_config(): array {
+        global $DB;
+        $sql = "SELECT itemid, source FROM {files} WHERE component = 'tiny_widgethub' AND filename = 'data.json' AND source IS NOT NULL";
+        $records = $DB->get_records_sql($sql);
         $widgets = [];
-
-        $widgetindex = get_config('tiny_widgethub', 'index');
-        if ($widgetindex) {
-            $widgetindex = json_decode($widgetindex, true) ?? [];
-            foreach ($widgetindex as $id => $info) {
-                if ($info['key'] === 'partials') {
-                    continue;
-                }
+        foreach ($records as $itemid => $record) {
+            $info = json_decode($record->source, true);
+            if (is_array($info)) {
                 $widgets[] = (object) [
-                    'id' => $id,
-                    'key' => $info['key'] ?? 'key' . $id,
-                    'name' => $info['name'] ?? 'Unknown ' . $id,
+                    'id' => $itemid,
+                    'key' => $info['key'] ?? 'key' . $itemid,
+                    'name' => $info['name'] ?? 'Unknown ' . $itemid,
                     'category' => $info['c'] ?? '',
                     'hidden' => ($info['h'] ?? 0) === 1,
                     'url' => new \moodle_url(
                         '/lib/editor/tiny/plugins/widgethub/settingseditorpage.php',
-                        ['id' => $id]
+                        ['id' => $itemid]
                     ),
                 ];
             }

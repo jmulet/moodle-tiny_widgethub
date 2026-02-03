@@ -116,7 +116,8 @@ class widgetstorageimpl implements widgetstorage {
         foreach ($records as $itemid => $record) {
             $data = json_decode($record->source, true);
             if (is_array($data)) {
-                $index[$itemid] = $data;
+                $id = (int) $itemid;
+                $index[$id] = $data;
             }
         }
         return $index;
@@ -144,7 +145,7 @@ class widgetstorageimpl implements widgetstorage {
         $newid = 0;
         if ($raw === null || (empty($raw['key']) && empty($raw['name']))) {
             // Remove the widget from the index.
-            unset($this->index[strval($id)]);
+            unset($this->index[$id]);
             $this->documentstorage->delete_all($id);
         } else {
             // Update its key, name and category.
@@ -254,6 +255,10 @@ class widgetstorageimpl implements widgetstorage {
             $ids = array_keys($this->index);
         }
         foreach ($ids as $id) {
+            $info = $this->index[$id] ?? null;
+            if (!$info || !isset($info['key'])) {
+                continue;
+            }
             $json = null;
             if ($includejson) {
                 $json = $this->documentstorage->get($id, 'json');
@@ -435,6 +440,10 @@ class widgetstorageimpl implements widgetstorage {
         if ($id <= 0) {
             return false;
         }
+        $info = $this->index[$id] ?? null;
+        if (!$info || !isset($info['key'])) {
+            return false;
+        }
         $widget = $this->load_raw_widget($id);
         if (!$widget) {
             return false;
@@ -444,8 +453,12 @@ class widgetstorageimpl implements widgetstorage {
             // No change.
             return true;
         }
-        $widget['hidden'] = !$visible;
-        $this->documentstorage->save($id, json_encode($widget), 'json');
+        if ($visible) {
+            unset($widget['hidden']);
+        } else {
+            $widget['hidden'] = true;
+        }
+        $this->documentstorage->save($id, $widget, 'json');
         // Must delete yml document to mantain consistency.
         $this->documentstorage->delete($id, 'yml');
         $this->update_index($id, $widget);

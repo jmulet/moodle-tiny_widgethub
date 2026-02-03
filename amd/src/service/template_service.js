@@ -35,14 +35,14 @@ import { getTinyMCE } from 'editor_tiny/loader';
  * @returns {string} The sanitized HTML.
  */
 export function sanitize(html, tinymce, schema) {
-    const validSchema = schema ?? new tinymce.html.Schema({});
-    const parser = new tinymce.html.DomParser({
+    schema = schema ?? tinymce.html.Schema({});
+    const parser = tinymce.html.DomParser({
         validate: true,
-        schema: validSchema,
+        schema: schema,
         allow_script_urls: false
     });
     const doc = parser.parse(html);
-    return new tinymce.html.Serializer({}, validSchema).serialize(doc);
+    return tinymce.html.Serializer({}, schema).serialize(doc);
 }
 
 /**
@@ -110,10 +110,10 @@ export class TemplateSrv {
             const dirtyHtml = await sandbox.execute(engine, { template, ctx, translations });
             const tinyMCE = await getTinyMCE();
             return sanitize(dirtyHtml, tinyMCE, this.editor?.schema);
-        } catch (ex) {
+        } catch (/** @type {any} */ ex) {
             return `<div class="alert alert-danger">
             <p>Render ${engine} template</p>
-            <pre>${ex}</pre>
+            <pre>${ex.message || ex}</pre>
             </div>`;
         }
     }

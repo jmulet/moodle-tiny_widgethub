@@ -46,7 +46,7 @@ export class Sandbox {
     static _instance = null;
 
     /** @type {number} */
-    static EXECUTE_TIMEOUT = 6000;
+    static EXECUTE_TIMEOUT = 60000;
 
     /**
      * Gets the singleton instance of the sandbox service

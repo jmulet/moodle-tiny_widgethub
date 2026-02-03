@@ -20,20 +20,6 @@
  * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-// Disable potential dangerous APIs in IFRAME window
-const dangerous = ['fetch', 'XMLHttpRequest', 'eval', 'location', 'navigator',
-    'alert', 'confirm', 'prompt', 'indexedDB'];
-dangerous.forEach(api => {
-    // @ts-ignore
-    if (window[api]) {
-        Object.defineProperty(window, api, {
-            value: undefined,
-            writable: false
-        });
-    }
-});
-
-
 /** @typedef {Object} QueuedTask
  * @property {string} type
  * @property {string} requestId
@@ -155,15 +141,18 @@ function sanitize(renderedHTML) {
  * @returns {WorkerWrap | null} The created worker, or null if the template is not found.
  */
 function createWorker(type) {
+    /** @type {HTMLTemplateElement | null} */
+    // @ts-ignore
     const template = document.getElementById('worker_' + type);
     if (!template) {
         console.error('Worker template not found for type: ' + type);
         return null;
     }
-    const jsCode = baseWorker + template.textContent.trim();
+    const jsCode = baseWorker + template.content.textContent.trim();
     const url = URL.createObjectURL(new Blob([jsCode], {
         type: 'text/javascript'
     }));
+    console.log('Creating worker for type: ' + type, jsCode);
     const worker = new Worker(url);
     const workerWrap = {
         worker,
@@ -173,9 +162,11 @@ function createWorker(type) {
         timeout: null,
     };
     worker.onmessage = function (e) {
+        console.log('Worker message for type: ' + type, e.data);
         if (e.data.type === 'worker_ready') {
             URL.revokeObjectURL(url);
             workerWrap.loaded = true;
+            console.log('Worker ready for type: ' + type);
             processNextTask(type);
             return;
         } else if (e.data.type === 'worker_error') {
@@ -209,11 +200,24 @@ function createWorker(type) {
     };
     worker.onerror = function (e) {
         console.error('Worker onerror for type: ' + type, e, workerWrap.id);
-        port1?.postMessage({
-            type: type,
-            requestId: workerWrap.id,
-            error: 'Worker error for type: ' + type + ' ' + e
+        const errorMessage = 'Worker error for type: ' + type + ' ' + (e.message || e);
+
+        if (workerWrap.id) {
+            port1?.postMessage({
+                type: type,
+                requestId: workerWrap.id,
+                error: errorMessage
+            });
+        }
+
+        (queues[type] || []).forEach((task) => {
+            port1?.postMessage({
+                type: type,
+                requestId: task.requestId,
+                error: errorMessage
+            });
         });
+
         if (workerWrap.timeout) {
             clearTimeout(workerWrap.timeout);
         }
@@ -231,18 +235,22 @@ function createWorker(type) {
  */
 function processNextTask(type) {
     if (!queues[type] || queues[type].length === 0) {
+        console.log('No tasks for type: ' + type);
         return;
     }
     const task = queues[type][0];
     if (!task) {
+        console.log('No task for type: ' + type);
         return;
     }
     let workerWrap = workers[type];
     if (workerWrap) {
         if (!workerWrap.loaded || workerWrap.id) {
+            console.log('Worker not ready or busy for type: ' + type);
             return;
         }
         if (workerWrap.runs >= MAX_WORKER_RUNS) {
+            console.log('Worker max runs reached for type: ' + type);
             if (workerWrap.timeout) {
                 clearTimeout(workerWrap.timeout);
             }
@@ -252,6 +260,7 @@ function processNextTask(type) {
         }
     }
     if (!workerWrap) {
+        console.log('Creating worker for type: ' + type);
         workerWrap = createWorker(type);
         workers[type] = workerWrap;
         return;
@@ -273,6 +282,7 @@ function processNextTask(type) {
     }, MAX_WORKER_TIMEOUT);
     workerWrap.id = task.requestId;
     workerWrap.runs++;
+    console.log('sending task to worker for type: ' + type, task);
     workerWrap.worker.postMessage(task);
 }
 
@@ -287,6 +297,7 @@ function onChannelMessage(e) {
             queues[data.type] = [];
         }
         queues[data.type].push(data);
+        console.log('Task received to iframe for type: ' + data.type, data);
         processNextTask(data.type);
     }
 }
