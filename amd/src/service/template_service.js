@@ -25,6 +25,25 @@
 import mustache from 'core/mustache';
 import { genID } from '../util';
 import { Sandbox } from './sandbox';
+import { getTinyMCE } from 'editor_tiny/loader';
+
+/**
+ * Sanitizes the given HTML using the editor's schema.
+ * @param {string} html The HTML to sanitize.
+ * @param {any} tinymce
+ * @param {any} [schema]
+ * @returns {string} The sanitized HTML.
+ */
+export function sanitize(html, tinymce, schema) {
+    const validSchema = schema ?? new tinymce.html.Schema({});
+    const parser = new tinymce.html.DomParser({
+        validate: true,
+        schema: validSchema,
+        allow_script_urls: false
+    });
+    const doc = parser.parse(html);
+    return new tinymce.html.Serializer({}, validSchema).serialize(doc);
+}
 
 /**
  * Template service
@@ -32,22 +51,32 @@ import { Sandbox } from './sandbox';
 export class TemplateSrv {
     /**
      * @param {*} mustache
+     * @param {import('../plugin').TinyMCE} [editor]
      */
-    constructor(mustache) {
+    constructor(mustache, editor) {
+        this.editor = editor;
         this.mustache = mustache;
     }
     /**
      * @param {string} template
      * @param {Object.<string, any>} context
+     * @param {boolean} [removeUnsafe=false] - Remove unsafe characters from the template
      * @returns {string} The interpolated template given a context and translations map
      */
-    renderMustache(template, context) {
+    renderMustache(template, context, removeUnsafe = false) {
         const ctx = { ...context };
         Object.keys(ctx).forEach(key => {
             if (ctx[key] === "$RND") {
                 ctx[key] = genID();
             }
         });
+        if (removeUnsafe) {
+            template = template
+                .replace(/\{{3,}/g, '{{')
+                .replace(/\}{3,}/g, '}}')
+                .replace(/{{&/g, '{{');
+        }
+        // Trusted plugin templates. No need to sanitize.
         // @ts-ignore
         return this.mustache.render(template, ctx);
     }
@@ -76,10 +105,11 @@ export class TemplateSrv {
             const dict = translations[wordKey];
             ctx.I18n[wordKey] = dict[lang] || dict.en || dict.es || wordKey;
         }
-
         try {
             const sandbox = await Sandbox.getInstance();
-            return await sandbox.execute(engine, { template, ctx, translations });
+            const dirtyHtml = await sandbox.execute(engine, { template, ctx, translations });
+            const tinyMCE = await getTinyMCE();
+            return sanitize(dirtyHtml, tinyMCE, this.editor?.schema);
         } catch (ex) {
             return `<div class="alert alert-danger">
             <p>Render ${engine} template</p>
@@ -89,16 +119,19 @@ export class TemplateSrv {
     }
 }
 
-/** @type {TemplateSrv | undefined} */
-let instanceSrv;
+/** @type {Map<import('../plugin').TinyMCE, TemplateSrv>} */
+let templateSrvInstances = new Map();
 /**
+ * @param {import('../plugin').TinyMCE} editor
  * @returns {TemplateSrv}
  */
-export function getTemplateSrv() {
-    if (!instanceSrv) {
-        instanceSrv = new TemplateSrv(mustache);
+export function getTemplateSrv(editor) {
+    let instance = templateSrvInstances.get(editor);
+    if (!instance) {
+        instance = new TemplateSrv(mustache, editor);
+        templateSrvInstances.set(editor, instance);
     }
-    return instanceSrv;
+    return instance;
 }
 
 /**
@@ -113,6 +146,7 @@ export function createDefaultsForParam(param, populateRepeatable) {
     }
     const lst = [];
     if (populateRepeatable) {
+        const templateSrv = new TemplateSrv(mustache);
         // In repeatable fields, create objects in lst up to min value.
         const nitems = param.min || 0;
         for (let i = 1; i <= nitems; i++) {
@@ -121,7 +155,7 @@ export function createDefaultsForParam(param, populateRepeatable) {
             param.fields?.forEach(field => {
                 let val = field.value ?? '';
                 if (typeof (val) === 'string' && val.indexOf("{{i}}") >= 0) {
-                    val = getTemplateSrv().renderMustache(val, { i });
+                    val = templateSrv.renderMustache(val, { i }, true);
                 }
                 obj[field.name] = val;
             });

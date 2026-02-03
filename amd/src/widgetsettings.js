@@ -18,7 +18,7 @@
 /**
  * Local WidgetHub plugin.
  *
- * @module      local_widgethub/widgetsettings
+ * @module      tiny_widgethub/widgetsettings
  * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -29,7 +29,7 @@ import Templates from 'core/templates';
 import { getTemplateSrv, createDefaultsForParam } from './service/template_service';
 import { applyPartials } from './options';
 import common from './common';
-import { compareVersion } from './util';
+import { compareVersion, sanitizeSvg } from './util';
 import { getInstanceForElementId } from 'editor_tiny/editor';
 
 /**
@@ -55,7 +55,6 @@ function spinButton(btn, toogleclass) {
 }
 
 const { component } = common;
-const templateSrv = getTemplateSrv();
 const randomKey = Math.random().toString(36).substring(2, 8);
 const DEFAULT_DOC =
     `key: username_sample-${randomKey}
@@ -416,6 +415,12 @@ export default class WidgetSettings {
                 return validation;
             }
 
+            // Sanitize SVG if set.
+            const icon = jsonObj.icon?.trim();
+            if (icon && (icon.startsWith('<svg') || icon.startsWith('data:image/svg+xml;base64,'))) {
+                jsonObj.icon = sanitizeSvg(icon);
+            }
+
             validation.json = JSON.stringify(jsonObj, null, 0);
             validation.obj = jsonObj;
 
@@ -423,7 +428,7 @@ export default class WidgetSettings {
             if (!jsonObj.key?.trim()) {
                 validation.msg = await get_string('errproprequired', component, "'key'") + ' ';
             } else if (jsonObj.key !== 'partials') {
-                if (this.id === -1) {
+                if (this.id === 0) {
                     // This is a partials and it should have key: partials
                     validation.msg += await get_string('errproprequired', component, "'key: partials'") + ' ';
                 }
@@ -466,6 +471,8 @@ export default class WidgetSettings {
                 });
 
                 try {
+                    const tinyinstance = getInstanceForElementId(this.nodes.panel.id);
+                    const templateSrv = getTemplateSrv(tinyinstance);
                     validation.html = await templateSrv.render(jsonObj.template, ctx, translations, jsonObj.engine);
                     const tabSelector = document.querySelector('a[data-toggle="tab"][href="#p-html"]')?.parentElement;
                     if (tabSelector) {
@@ -811,7 +818,7 @@ export default class WidgetSettings {
                     id,
                     elem: node.outerHTML,
                 };
-                const widgetEmbedTemplate = await Templates.render('local_widgethub/widget_embed', {
+                const widgetEmbedTemplate = await Templates.render('tiny_widgethub/widget_embed', {
                     cssurl: allCss,
                     linksblock: cssCode,
                     usercontent: userIframeContent,
@@ -837,16 +844,16 @@ export default class WidgetSettings {
                             console.error("iframe not found");
                             return;
                         }
-                        if (event.data.type === 'local_widgethub_setheight') {
+                        if (event.data.type === 'tiny_widgethub_setheight') {
                             iframe.style.height = event.data.height + 'px';
-                        } else if (event.data.type === 'local_widgethub_context') {
+                        } else if (event.data.type === 'tiny_widgethub_context') {
                             var ctxData = ctxMap[event.data.id];
                             if (!ctxData) {
                                 console.error("context not found");
                                 return;
                             }
                             var dataResponse = {
-                                type: 'local_widgethub_context',
+                                type: 'tiny_widgethub_context',
                                 id: ctxData.id,
                                 elem: ctxData.elem,
                             };

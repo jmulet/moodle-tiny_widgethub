@@ -32,6 +32,7 @@ import {
     isPluginVisible,
     Shared,
     getEditorOptions,
+    getMoodleVersion,
     isShareCss,
     isPlaygroundMode
 } from './options';
@@ -375,49 +376,61 @@ function initializeEditor(editor) {
 
         // Detect jQuery and Boostrap versions.
         // @ts-ignore
-        const defaultBsVersion = Config.version?.startsWith('5.') ? '5.3.8' : '4.6.2';
-        const bsVersion = getGlobalConfig(editor, 'tiny.iframe.jsbootstrap.version', defaultBsVersion);
-        const defaultJqVersion = bsVersion.startsWith("5.") ? 'none' : '3.6.1';
-        let jqVersion = getGlobalConfig(editor, 'tiny.iframe.jquery.version', defaultJqVersion);
-        if (jqVersion === 'none' && bsVersion.startsWith('4.')) {
-            jqVersion = '3.6.1'; // required for bootstrap 4
+        const moodleVersion = getMoodleVersion(editor);
+        let jqUrl = getGlobalConfig(editor, 'tiny.iframe.jquery.url', '').trim();
+        let jqIntegrity = '';
+        let bsUrl = getGlobalConfig(editor, 'tiny.iframe.bootstrap.url', '').trim();
+        let bsIntegrity = '';
+
+        if (!bsUrl) {
+            if (moodleVersion.startsWith('4')) {
+                bsUrl = `https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js`;
+                bsIntegrity = 'sha256-GRJrh0oydT1CwS36bBeJK/2TggpaUQC6GzTaTQdZm0k=';
+            } else {
+                bsUrl = `https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js`;
+                bsIntegrity = 'sha256-5P1JGBOIxI7FBAvT/mb1fCnI5n/NhQKzNUuW7Hq0fMc=';
+            }
         }
-        const requiresJquery = jqVersion !== 'none';
+
+        if (!jqUrl && moodleVersion.startsWith('4')) {
+            try {
+                // @ts-ignore
+                const path = window.requirejs.s.contexts._.config.paths.jquery;
+                jqUrl = path.startsWith('http')
+                    ? path
+                    : Config.wwwroot + path;
+                if (!jqUrl.endsWith('.js')) {
+                    jqUrl += '.js';
+                }
+            } catch (e) {
+                jqUrl = 'https://code.jquery.com/jquery-3.7.1.min.js';
+                jqIntegrity = 'sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=';
+            }
+        }
+
+        const requiresJquery = jqUrl !== '' && jqUrl !== 'none';
         const head = editor.getDoc().querySelector("head");
-
-        // Define integrities for the most common versions
-        /** @type {Record<string, string>} */
-        const jqIntegrities = {
-            '3.6.1': 'sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=',
-            '3.7.1': 'sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=',
-        };
-        /** @type {Record<string, string>} */
-        const bsIntegrities = {
-            '4.6.2': 'sha256-GRJrh0oydT1CwS36bBeJK/2TggpaUQC6GzTaTQdZm0k=',
-            '5.3.8': 'sha256-5P1JGBOIxI7FBAvT/mb1fCnI5n/NhQKzNUuW7Hq0fMc=',
-        };
-
         try {
             // Load jQuery if required
             if (requiresJquery) {
                 await loadScriptAsync(
                     editor,
-                    `https://code.jquery.com/jquery-${jqVersion}.min.js`,
-                    jqIntegrities[jqVersion]
+                    jqUrl,
+                    jqIntegrity
                 );
             }
 
             // Load Bootstrap if required (bundle already includes Popper)
-            if (bsVersion !== 'none') {
+            if (bsUrl !== '' && bsUrl !== 'none') {
                 await loadScriptAsync(
                     editor,
-                    `https://cdn.jsdelivr.net/npm/bootstrap@${bsVersion}/dist/js/bootstrap.bundle.min.js`,
-                    bsIntegrities[bsVersion]
+                    bsUrl,
+                    bsIntegrity
                 );
             }
 
             // Initialize Bootstrap components depending on version
-            if (bsVersion.startsWith('5.')) {
+            if (bsUrl.includes('@5')) {
                 // Bootstrap 5 – no jQuery, use vanilla JS API
                 const initScript = editor.dom.create('script');
                 initScript.id = 'init_bs_comp';
@@ -427,7 +440,7 @@ function initializeEditor(editor) {
                     });
                 `;
                 head.appendChild(initScript);
-            } else if (requiresJquery && bsVersion.startsWith('4.')) {
+            } else if (requiresJquery && bsUrl.includes('@4')) {
                 // Bootstrap 4 – jQuery-based initialization
                 const initScript = editor.dom.create('script');
                 initScript.id = 'init_bs_comp';

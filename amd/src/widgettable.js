@@ -17,7 +17,7 @@
 /**
  * Local WidgetHub plugin.
  *
- * @module      local_widgethub/widgettable
+ * @module      tiny_widgethub/widgettable
  * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -132,7 +132,7 @@ export default {
         });
 
         // 2. SELECTION LOGIC (Checkboxes)
-        const checkSelector = '.local_widgethub-check';
+        const checkSelector = '.tiny_widgethub-check';
 
         // Function to update delete button state.
         const toggleDeleteBtn = () => {

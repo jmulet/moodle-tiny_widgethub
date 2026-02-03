@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-import { getTinyMCE } from 'editor_tiny/loader';
 import { getFormCtrl } from '../controller/form_ctrl';
 import { getListeners } from '../extension';
 import { getFilterSrv } from '../service/filter_service';
 import { getModalSrv } from '../service/modal_service';
 import { getTemplateSrv } from '../service/template_service';
 import { getUserStorage } from '../service/userstorage_service';
-import { removeRndFromCtx, sanitize } from '../util';
+import { removeRndFromCtx } from '../util';
 
 /**
  * Tiny WidgetHub plugin.
@@ -131,15 +130,13 @@ export class WidgetParamsCtrl {
     * @param {object} ctx
     * @returns {Promise<string>} The rendered template previously sanitized
     */
-   async render(ctx) {
+   render(ctx) {
       const defaultsCopy = { ...this.widget.defaults };
       const toInterpolate = Object.assign(defaultsCopy, ctx ?? {});
       // Decide which template engine to use
       let engine = this.widget.prop('engine');
-      const dirtyHtml = await this.templateSrv.render(this.widget.template ?? "", toInterpolate,
+      return this.templateSrv.render(this.widget.template ?? "", toInterpolate,
          this.widget.I18n, engine);
-      const tinymce = await getTinyMCE();
-      return sanitize(dirtyHtml, tinymce, this.editor.schema);
    }
 
    /**
@@ -249,7 +246,7 @@ export class WidgetParamsCtrl {
  */
 export function getWidgetParamsFactory(editor) {
    // @ts-ignore
-   return (widget) => new WidgetParamsCtrl(editor, getUserStorage(editor), getTemplateSrv(),
+   return (widget) => new WidgetParamsCtrl(editor, getUserStorage(editor), getTemplateSrv(editor),
       getModalSrv(), getFormCtrl(editor), getFilterSrv(editor), widget);
 
 }

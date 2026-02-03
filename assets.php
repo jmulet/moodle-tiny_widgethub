@@ -23,37 +23,39 @@
  */
 
 // Micro-Bootstrap (The "Optimized" Moodle Load).
-define('ABORT_AFTER_CONFIG', true);  // Stop Moodle immediately after config.php.
-define('NO_DEBUG_DISPLAY', true);    // Silence errors.
+define('NO_DEBUG_DISPLAY', true);
+define('ABORT_AFTER_CONFIG', true);
 require_once(__DIR__ . '/../../../../../config.php');
+require_once("$CFG->dirroot/lib/jslib.php"); // Provides min_ functions.
 
-// The Most Robust Path Parser (No assumptions on $_SERVER).
-$rawpath = $_SERVER['PATH_INFO'] ?? '';
+$slashargument = min_get_slash_argument();
 
-// Fallback for servers that don't support PATH_INFO (e.g. some CGI/FastCGI).
-if (empty($rawpath) && isset($_SERVER['REQUEST_URI'])) {
-    $scriptname = $_SERVER['SCRIPT_NAME'];
-    // Get everything after the script name.
-    $pos = strpos($_SERVER['REQUEST_URI'], $scriptname);
-    if ($pos !== false) {
-        $rawpath = substr($_SERVER['REQUEST_URI'], $pos + strlen($scriptname));
-        // Strip query string if present.
-        $rawpath = explode('?', $rawpath)[0];
-    }
+if ($slashargument) {
+    $slashargument = ltrim($slashargument, '/');
+    $args = explode('/', $slashargument, 3);
+} else {
+    // Fallback if slash arguments are disabled in Site Admin > Server > HTTP.
+    $args = [
+        min_optional_param('type', '', 'SAFEDIR'),
+        min_optional_param('rev', 1, 'INT'),
+        min_optional_param('name', 'bundle', 'SAFEDIR')
+    ];
 }
 
-$args = explode('/', trim($rawpath, '/'));
-
-// Validation & Strict Security.
-if (count($args) < 3) {
-    header("HTTP/1.1 400 Bad Request");
+if (count($args) < 3 || empty($args[0])) {
+    header("HTTP/1.1 404 Not Found");
     die('Invalid path');
 }
 
-// Whitelist and Sanitization.
-$type = $args[0];
-$rev  = preg_replace('/[^0-9]/', '', $args[1]) ?? 1;
-$name = preg_replace('/[^a-zA-Z0-9_\-]/', '', $args[2]) ?? 'bundle';
+$type = min_clean_param($args[0], 'SAFEDIR');
+$rev  = min_clean_param($args[1], 'INT');
+$name = min_clean_param($args[2], 'SAFEDIR');
+
+// Verification.
+if ($rev < -1 || empty($name)) {
+    header("HTTP/1.1 400 Bad Request");
+    die('Security violation');
+}
 
 // Performance Headers & Security.
 if ($type === 'css') {

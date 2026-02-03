@@ -41,7 +41,7 @@
         <repository>https://cdn.jsdelivr.net/npm/liquidjs/dist/liquid.browser.min.js</repository>
     </library>
      <library>
-        <location>libs/js/jquery.js</location>
+        <location>libs/js/jqueryslim.js</location>
         <name>jquery</name>
         <version>3.7.1</version>
         <license>MIT</license>

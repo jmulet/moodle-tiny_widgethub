@@ -83,11 +83,11 @@ The options available are:
 
   - *jsBaseUrl* - If specified, this **base URL** will be prepended to the `requires` property in the widget definition — *unless* `requires` already starts with `http`, in which case the base URL will be ignored. This feature is useful for dynamically changing the location of the JavaScript assets required by the widgets.
 
-  - *tiny.iframe.jquery.version* The jQuery version that should be injected into the editor's iFrame. It defaults to "3.6.1" for Moodle 4.x and "none" for Moodle 5.x. The dependency is loaded from CDN and it should be available at: `https://code.jquery.com/jquery-${jqVersion}.min.js`
+  - *tiny.iframe.jquery.url* The jQuery version that should be injected into the editor's iFrame. It defaults to your site's version and "none" for Moodle 5.x. If the value is "none", no jQuery will be injected. Please note that Bootstrap 4.x requires jQuery to work properly. Provide your own (on-premises) URL if you want to use a different version. 
+ 
+  - *tiny.iframe.jsbootstrap.url* The version of the javascript bundle of Bootstrap that should be injected into the editor's iFrame. It defaults to "https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" for Moodle 4.x and "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" for Moodle 5.x. If the value is "none", no Bootstrap javascript bundle will be injected. Provide your own (on-premises) URL if you want to use a different version or if you want to avoid being tracked by a CDN. Disabling this option will make the editing of some widgets that rely on Bootstrap's JavaScript components harder.
 
-  - *tiny.iframe.jsbootstrap.version* The version of the javascript bundle of Bootstrap that should be injected into the editor's iFrame. It defaults to "4.6.2" for Moodle 4.x and "5.3.8" for Moodle 5.x. Please note that Bootstrap 4.x requires jQuery. The dependency is loaded from CDN and it should be available at: `https://cdn.jsdelivr.net/npm/bootstrap@${bsVersion}/dist/js/bootstrap.bundle.min.js`
-
-  - *tiny.contextmenu.iframes=1* Enable (`1`) or disable (`0`) right clicks on iFrames that trigger context menus. Interaction with iframes, like YouTube videos, can be temporary enabled by clicking on the iframe while holding Alt/Option key.
+  - *tiny.contextmenu.iframes=1* Enable (`1`) or disable (`0`) right clicks on iFrames that trigger context menus. Interaction with iframes, like YouTube videos, can be temporarily enabled by clicking on the iframe while holding Alt/Option key.
 
   - *widgetpicker.viewmode=grid* Set the default view mode for the widget picker. Can be `grid` or `list`. Default: `grid`.
 

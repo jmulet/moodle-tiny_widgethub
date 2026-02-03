@@ -40,6 +40,7 @@ const shareCssOptName = getPluginOptionName(pluginName, 'sharecss');
 const additionalCssOptName = getPluginOptionName(pluginName, 'additionalcss');
 const globalConfigOptName = getPluginOptionName(pluginName, 'cfg');
 const userPrefsOptName = getPluginOptionName(pluginName, 'userprefs');
+const moodleVersionOptName = getPluginOptionName(pluginName, 'moodleversion');
 
 /**
  * Wrapped version of the widget definitions shared among all editors in page
@@ -102,6 +103,11 @@ export const register = (editor) => {
     registerOption(userPrefsOptName, {
         processor: 'string',
         "default": '',
+    });
+
+    registerOption(moodleVersionOptName, {
+        processor: 'string',
+        "default": '4.1',
     });
 };
 
@@ -190,6 +196,14 @@ export const getPartials = (editor) => {
  */
 export const getUserPrefs = (editor) => {
     return editor.options.get(userPrefsOptName);
+};
+
+/**
+ * @param {import('./plugin').TinyMCE} editor
+ * @returns {string} - moodle version
+ */
+export const getMoodleVersion = (editor) => {
+    return editor.options.get(moodleVersionOptName);
 };
 
 /**

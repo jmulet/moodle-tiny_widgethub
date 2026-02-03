@@ -25,15 +25,15 @@
 namespace tiny_widgethub\local\storage;
 
 /**
- * Class filedocumentstorage
+ * Class documentstorageimpl
  *
  * File storage implementation used to manage local widget documents: json, yml, js and css.
  */
-class legacydocumentstorage implements documentstorage {
+class documentstorageimpl implements documentstorage {
     /**
      * Component name.
      */
-    private const COMPONENT_NAME = 'local_widgethub';
+    private const COMPONENT_NAME = 'tiny_widgethub';
     /**
      * File area for widget definitions.
      */
@@ -41,7 +41,7 @@ class legacydocumentstorage implements documentstorage {
     /**
      * Valid document types.
      */
-    private const VALID_DOCUMENT_TYPES = ['json', 'yml'];
+    private const VALID_DOCUMENT_TYPES = ['json', 'slim.json', 'yml'];
 
     /**
      * Load filearea file.
@@ -77,11 +77,11 @@ class legacydocumentstorage implements documentstorage {
      * Save filearea file.
      *
      * @param int $id Document id.
-     * @param ?string $doc Document content. Null deletes document
+     * @param string|array|null $doc Document content. Null deletes document
      * @param string $ext Document extension.
      * @return bool True if document was saved, false otherwise.
      */
-    private static function save_filearea_document(int $id, ?string $doc, string $ext): bool {
+    private static function save_filearea_document(int $id, $doc, string $ext): bool {
         if ($id < 0) {
             throw new \moodle_exception('invalid id ' . $id, 'tiny_widgethub');
         }
@@ -95,6 +95,19 @@ class legacydocumentstorage implements documentstorage {
             'filepath' => '/',
             'filename' => 'data.' . $ext,
         ];
+        if ($doc !== null && is_array($doc) && $ext === 'json') {
+            $fileinfo['author'] = \core_text::substr($doc['author'] ?? '', 0, 255);
+            $fileinfo['license'] = \core_text::substr($doc['version'] ?? '', 0, 255);
+            $source = [
+                'id' => $doc['id'] ?? '',
+                'key' => $doc['key'] ?? $doc['id'] ?? '',
+                'name' => $doc['name'] ?? $doc['key'] ?? '',
+                'c' => $doc['category'] ?? 'other',
+                'h' => ($doc['hidden'] ?? false) ? 1 : 0,
+            ];
+            $fileinfo['source'] = json_encode($source);
+            $doc = json_encode($doc);
+        }
         $file = $fs->get_file(
             $fileinfo['contextid'],
             $fileinfo['component'],
@@ -135,11 +148,11 @@ class legacydocumentstorage implements documentstorage {
      * Save document.
      *
      * @param int $id Document id.
-     * @param string|null $doc Document content.
+     * @param string|array|null $doc Document content.
      * @param string $ext Document extension.
      * @return bool True if document was saved, false otherwise.
      */
-    public function save(int $id, ?string $doc, string $ext = 'json'): bool {
+    public function save(int $id, $doc, string $ext = 'json'): bool {
         $result = self::save_filearea_document($id, $doc, $ext);
         if ($result && $ext === 'json') {
             \cache::make('tiny_widgethub', 'index')->delete('geteditordata');

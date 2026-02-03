@@ -39,6 +39,10 @@ abstract class storagefactory {
      */
     public const PARTIALS_ID = 0;
     /**
+     * The invalid widget id.
+     */
+    public const INVALID_ID = -1;
+    /**
      * The failure widget id.
      */
     public const FAILURE_ID = -2;
@@ -88,7 +92,7 @@ abstract class storagefactory {
         if (self::$instance !== null) {
             return self::$instance;
         }
-        self::$instance = new legacywidgetstorage();
+        self::$instance = new widgetstorageimpl();
         return self::$instance;
     }
 

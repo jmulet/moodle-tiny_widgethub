@@ -38,11 +38,11 @@ function tiny_widgethub_getprop($array, $key, $default = null) {
  * Internal helper to store a widget document in the file system.
  *
  * @param int $widgetid The widget id.
- * @param string $doc The widget document as a string.
+ * @param string|array $raw The widget document as an asociative array.
  * @param string $ext The type of the document (json or yml).
  * @return bool True if the document was stored successfully, false otherwise.
  */
-function tiny_widgethub_storedocument($widgetid, $doc, $ext = 'json') {
+function tiny_widgethub_storedocument($widgetid, $raw, $ext = 'json') {
     // System context id.
     $systemcontextid = context_system::instance()->id;
     $fs = get_file_storage();
@@ -54,6 +54,25 @@ function tiny_widgethub_storedocument($widgetid, $doc, $ext = 'json') {
         'filepath' => '/',
         'filename' => 'data.' . $ext,
     ];
+    if (is_array($raw)) {
+        if (isset($raw['author'])) {
+            $fileinfo['author'] = core_text::substr($raw['author'] ?? '', 0, 255);
+        }
+        if (isset($raw['version'])) {
+            $fileinfo['license'] = core_text::substr($raw['version'] ?? '', 0, 255);
+        }
+        $source = [
+            "id" => $widgetid,
+            "key" => $raw['key'] ?? '',
+            "name" => $raw['name'] ?? $raw['key'] ?? '',
+            "c" => $raw['category'] ?? '',
+            "h" => ($raw['hidden'] ?? false) ? 1 : 0,
+        ];
+        $fileinfo['source'] = json_encode($source);
+        $doc = json_encode($raw);
+    } else {
+        $doc = $raw;
+    }
     $file = $fs->get_file(
         $fileinfo['contextid'],
         $fileinfo['component'],
@@ -142,7 +161,32 @@ function tiny_widgethub_migrate_to_filearea_storage() {
             }
 
             // Store the widget in the filearea.
-            if (!tiny_widgethub_storedocument($id, $json)) {
+            if (!tiny_widgethub_storedocument($id, $raw, 'json')) {
+                throw new \moodle_exception(
+                    'datamigrationfailed',
+                    $componentname,
+                    '',
+                    'Failed to store widget ' . $raw['key']
+                );
+            }
+            // Store a slim version of the widget for quick loading.
+            $slimdoc = $raw;
+            // Computed records must be manually set.
+            $hasfilter   = !empty(tiny_widgethub_getprop($raw, 'filter'));
+            $hastemplate = !empty(tiny_widgethub_getprop($raw, 'template'));
+            $slimdoc['isfilter'] = ($hasfilter && !$hastemplate);
+            $hasselectors   = !empty(tiny_widgethub_getprop($raw, 'selectors'));
+            $hasinsertquery = !empty(tiny_widgethub_getprop($raw, 'insertquery'));
+            $slimdoc['isselectcapable'] = ($hasselectors && $hasinsertquery);
+            $parameters = tiny_widgethub_getprop($raw, 'parameters');
+            $slimdoc['hasbindings'] = $parameters !== null && preg_match('/"bind":/', json_encode($parameters));
+            unset($slimdoc['template']);
+            unset($slimdoc['filter']);
+            unset($slimdoc['instructions']);
+            unset($slimdoc['parameters']);
+            unset($slimdoc['author']);
+            unset($slimdoc['version']);
+            if (!tiny_widgethub_storedocument($id, $slimdoc, 'slim.json')) {
                 throw new \moodle_exception(
                     'datamigrationfailed',
                     $componentname,
@@ -153,8 +197,7 @@ function tiny_widgethub_migrate_to_filearea_storage() {
             $numwidgets++;
         }
         // Store partials.
-        $json = json_encode($mergedpartials);
-        $res = local_widgethub_storedocument(0, $json, 'json');
+        $res = tiny_widgethub_storedocument(0, $mergedpartials, 'json');
         if (!$res) {
             throw new \moodle_exception(
                 'datamigrationfailed',
@@ -163,18 +206,18 @@ function tiny_widgethub_migrate_to_filearea_storage() {
                 'Failed to store partials'
             );
         }
-        set_config($componentname, 'index', json_encode($index));
+        $numwidgets++;
 
         // Check that the file table contains the expected number of files (excluding dot directories).
         $filecount = $DB->count_records_select(
             'files',
-            "component = :component AND filearea = :filearea AND filename != '.'",
+            "component = :component AND filearea = :filearea AND filename = 'data.json'",
             [
                 'component' => $componentname,
                 'filearea' => 'widgetdefs'
             ]
         );
-        if ($filecount !== $numwidgets + 1) {
+        if ($filecount !== $numwidgets) {
             throw new \moodle_exception(
                 'datamigrationfailed',
                 $componentname,
@@ -187,6 +230,7 @@ function tiny_widgethub_migrate_to_filearea_storage() {
         foreach (array_values($index) as $id) {
             unset_config($componentname, 'def_' . $id);
         }
+        unset_config($componentname, 'index');
 
         // Commit the transaction.
         $transaction->allow_commit();

@@ -43,11 +43,11 @@ function tiny_widgethub_searchbykey($array, $searchkey) {
 }
 
 /**
- * Class legacywidgetstorage
+ * Class widgetstorageimpl
  *
  * Legacy implementation of the widgetstorage interface using Moodle config.
  */
-class legacywidgetstorage implements widgetstorage {
+class widgetstorageimpl implements widgetstorage {
     /**
      * Component name.
      */
@@ -71,47 +71,8 @@ class legacywidgetstorage implements widgetstorage {
      */
     public function __construct() {
         $this->conf = get_config(self::COMPONENTNAME);
-        $this->documentstorage = new legacydocumentstorage();
-        $this->index = $this->create_index();
-    }
-
-    /**
-     * Convert a record to a widget which can be passed to UI.
-     *
-     * @param array|\stdClass $record The "get_config" record.
-     * @param string $fields The fields to retrieve.
-     * @return \stdClass The widget with properties selected.
-     */
-    private static function from_record($record, string $fields = '*') {
-        $raw = (array) $record;
-        // If not '*', ensure each requested field exists.
-        if ($fields !== '*') {
-            $arrayfields = explode(',', $fields);
-            $cleanrecord = [];
-
-            foreach ($arrayfields as $f) {
-                $f = trim($f);
-                $cleanrecord[$f] = $raw[$f] ?? null;
-            }
-            $raw = $cleanrecord;
-        }
-        // Computed records must be manually set.
-        $hasfilter   = !empty(storagefactory::get_prop($record, 'filter'));
-        $hastemplate = !empty(storagefactory::get_prop($record, 'template'));
-        $raw['isfilter'] = ($hasfilter && !$hastemplate);
-        $hasselectors   = !empty(storagefactory::get_prop($record, 'selectors'));
-        $hasinsertquery = !empty(storagefactory::get_prop($record, 'insertquery'));
-        $raw['isselectcapable'] = ($hasselectors && $hasinsertquery);
-        $parameters = storagefactory::get_prop($record, 'parameters');
-        $raw['hasbindings'] = $parameters !== null && preg_match('/"bind":/', json_encode($parameters));
-
-        // NOTE: We want a light-weight widget object to pass to UI.
-        // These properties are not needed until rendering. They will be loaded by AJAX.
-        unset($raw['template']);
-        unset($raw['filter']);
-        unset($raw['parameters']);
-
-        return (object) $raw;
+        $this->documentstorage = new documentstorageimpl();
+        $this->index = $this->load_index();
     }
 
     /**
@@ -147,39 +108,14 @@ class legacywidgetstorage implements widgetstorage {
      *
      * @return array
      */
-    private function create_index(): array {
-        $widgetindex = []; // Associative array.
-        if (isset($this->conf->index)) {
-            $widgetindex = json_decode($this->conf->index, true) ?? [];
-        }
-        // Detect errors in the index.
-        $nerrs = 0;
-        foreach (array_keys($widgetindex) as $id) {
-            $def = $this->documentstorage->get($id, 'json');
-            if (!$def) {
-                // Remove the widget from the index.
-                unset($widgetindex[strval($id)]);
-                $nerrs++;
-            } else if (!isset($widgetindex[$id]['c']) || !isset($widgetindex[$id]['h'])) {
-                // Decode JSON only if at least one property is missing.
-                $tmpwidget = json_decode($def, false);
-
-                if (!isset($widgetindex[$id]['c'])) {
-                    $widgetindex[$id]['c'] = $tmpwidget->category ?? '';
-                    $nerrs++;
-                }
-
-                if (!isset($widgetindex[$id]['h'])) {
-                    $widgetindex[$id]['h'] = ($tmpwidget->hidden ?? false) ? 1 : 0;
-                    $nerrs++;
-                }
-            }
-        }
-        if ($nerrs > 0) {
-            // Store the ammended index.
-            set_config('index', json_encode($widgetindex), self::COMPONENTNAME);
-        }
-        return $widgetindex;
+    private function load_index(): array {
+        global $DB;
+        $sql = "SELECT source FROM {files} WHERE component = :component AND filename = 'data.json'";
+        $params = ['component' => 'tiny_widgethub'];
+        $sources = $DB->get_fieldset_sql($sql, $params);
+        $final_json = '[' . implode(',', $sources) . ']';
+        $all_data = json_decode($final_json, true);
+        return array_column($all_data, null, 'id');
     }
 
     /**
@@ -221,7 +157,6 @@ class legacywidgetstorage implements widgetstorage {
                 ];
             }
         }
-        set_config('index', json_encode($this->index), self::COMPONENTNAME);
         return $newid;
     }
 
@@ -230,10 +165,15 @@ class legacywidgetstorage implements widgetstorage {
      * Helper to load widget definition by ID from config.
      *
      * @param int $id
+     * @param bool $slim Whether to load the slim version of the widget.
      * @return array|null Associative array or null.
      */
-    private function load_raw_widget(int $id): ?array {
-        $def = $this->documentstorage->get($id, 'json');
+    private function load_raw_widget(int $id, bool $slim = false): ?array {
+        $ext = $slim ? 'slim.json' : 'json';
+        if ($id === storagefactory::PARTIALS_ID) {
+            $ext = 'json';
+        }
+        $def = $this->documentstorage->get($id, $ext);
         if (!$def) {
             return null;
         }
@@ -259,8 +199,10 @@ class legacywidgetstorage implements widgetstorage {
             if ($info['h'] === 1 && !$includehidden) {
                 continue;
             }
-            $raw = $this->load_raw_widget($id);
-            $widgets[] = self::from_record($raw, $fields);
+            $raw = $this->load_raw_widget($id, true); // true for slim version.
+            if ($raw) {
+                $widgets[] = $raw;
+            }
         }
         return $widgets;
     }
@@ -275,10 +217,7 @@ class legacywidgetstorage implements widgetstorage {
     public function get_widget_by_key(string $key, string $fields = '*') {
         foreach ($this->index as $id => $info) {
             if (isset($info['key']) && $info['key'] === $key) {
-                $raw = $this->load_raw_widget($id);
-                if ($raw) {
-                    return self::from_record($raw, $fields);
-                }
+                return $this->load_raw_widget($id) ?? false;
             }
         }
         return false;
@@ -292,11 +231,7 @@ class legacywidgetstorage implements widgetstorage {
      * @return \StdClass|bool The widget object, or false if not found.
      */
     public function get_widget_by_id(int $id, string $fields = '*') {
-        $raw = $this->load_raw_widget($id);
-        if ($raw) {
-            return self::from_record($raw, $fields);
-        }
-        return false;
+        return $this->load_raw_widget($id) ?? false;
     }
 
 
@@ -332,6 +267,42 @@ class legacywidgetstorage implements widgetstorage {
         return $widgetdocs;
     }
 
+    /**
+     * Basic server-side validate the widget data before saving.
+     * @param int $id The widget ID.
+     * @param array $widget The widget data to validate.
+     * @param array $usedkeys Associative array of used keys [key => id].
+     * @return bool True if the widget data is valid, false otherwise.
+     */
+    private static function validate_widget(int $id, array $widget, array $usedkeys): bool {
+        $key = $widget['key'] ?? null;
+        if ($key === null) {
+            return false;
+        }
+        $ispartials = $key === 'partials';
+        if ($ispartials) {
+            return $id === storagefactory::PARTIALS_ID;
+        }
+        if (isset($usedkeys[$key]) && $usedkeys[$key] !== $id) {
+            return false;
+        }
+        $requiredkeys = ['name', 'author', 'version'];
+        foreach ($requiredkeys as $field) {
+            if (!isset($widget[$field])) {
+                return false;
+            }
+        }
+        if ((!isset($widget['template']) && !isset($widget['filter'])) ||
+            (isset($widget['template']) && isset($widget['filter']))
+        ) {
+            return false;
+        }
+        $template = $widget['template'] ?? $widget['filter'] ?? '';
+        if (str_contains($template, '<script') || str_contains($template, '<style')) {
+            return false;
+        }
+        return true;
+    }
 
     /**
      * Save an existing widget.
@@ -344,7 +315,7 @@ class legacywidgetstorage implements widgetstorage {
      * @param string|null $html The widget html string.
      * @param string|null $css The widget css string.
      * @param int $rev The widget revision.
-     * @return int The widget ID > 0 on success, 0 for partials, -2 on failure.
+     * @return int The widget ID > 0 on success, 0 for partials, -1 on invalid widget, -2 on failure.
      */
     public function save_widget(
         ?int $id,
@@ -354,13 +325,58 @@ class legacywidgetstorage implements widgetstorage {
         ?string $css = null,
         int $rev = 1
     ): int {
+        // Used widgets keys.
+        $usedkeys = array_combine(
+            array_column($this->index, 'key'),
+            array_keys($this->index)
+        );
+        if (!self::validate_widget($id, $widget, $usedkeys)) {
+            return storagefactory::INVALID_ID;
+        }
         if ($id === storagefactory::BLANK_ID) {
             $id = $this->update_seq();
         }
-        $this->documentstorage->save($id, json_encode($widget), 'json');
-        $this->documentstorage->save($id, $yml, 'yml');
-
-        $this->update_index($id, $widget);
+        try {
+            // Do not store meta in widget
+            unset($widget['id']);
+            unset($widget['timecreated']);
+            unset($widget['timemodified']);
+            unset($widget['rev']);
+            $success = $this->documentstorage->save($id, $widget, 'json');
+            if (!$success) {
+                return storagefactory::FAILURE_ID;
+            }
+            $success = $this->documentstorage->save($id, $yml, 'yml');
+            if (!$success) {
+                return storagefactory::FAILURE_ID;
+            }
+            $this->update_index($id, $widget);
+            if ($id !== storagefactory::PARTIALS_ID) {
+                // Store a slim version of the widget for quick loading.
+                $slimdoc = $widget;
+                // Computed records must be manually set.
+                $hasfilter   = !empty(storagefactory::get_prop($widget, 'filter'));
+                $hastemplate = !empty(storagefactory::get_prop($widget, 'template'));
+                $slimdoc['isfilter'] = ($hasfilter && !$hastemplate);
+                $hasselectors   = !empty(storagefactory::get_prop($widget, 'selectors'));
+                $hasinsertquery = !empty(storagefactory::get_prop($widget, 'insertquery'));
+                $slimdoc['isselectcapable'] = ($hasselectors && $hasinsertquery);
+                $parameters = storagefactory::get_prop($widget, 'parameters');
+                $slimdoc['hasbindings'] = $parameters !== null && preg_match('/"bind":/', json_encode($parameters));
+                unset($slimdoc['template']);
+                unset($slimdoc['filter']);
+                unset($slimdoc['instructions']);
+                unset($slimdoc['parameters']);
+                unset($slimdoc['author']);
+                unset($slimdoc['version']);
+                $success = $this->documentstorage->save($id, json_encode($slimdoc), 'slim.json');
+                if (!$success) {
+                    return storagefactory::FAILURE_ID;
+                }
+            }
+        } catch (\Exception $e) {
+            return storagefactory::FAILURE_ID;
+        }
         return $id;
     }
 
@@ -378,8 +394,6 @@ class legacywidgetstorage implements widgetstorage {
             return false;
         }
         unset($this->index[$id]);
-        set_config('index', json_encode($this->index), self::COMPONENTNAME);
-
         $this->documentstorage->delete_all($id);
         return true;
     }
@@ -392,7 +406,6 @@ class legacywidgetstorage implements widgetstorage {
      */
     public function delete_widgets(array $ids): array {
         $deletedids = [];
-
         foreach ($ids as $id) {
             $wiget = $this->load_raw_widget($id);
             if (!$wiget || $wiget['key'] == 'partials') {
@@ -403,12 +416,6 @@ class legacywidgetstorage implements widgetstorage {
             $this->documentstorage->delete_all($id);
             $deletedids[] = $id;
         }
-
-        // Update index if any widget was deleted.
-        if (!empty($deletedids)) {
-            set_config('index', json_encode($this->index), self::COMPONENTNAME);
-        }
-
         return $deletedids;
     }
 

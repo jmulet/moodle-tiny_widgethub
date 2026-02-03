@@ -31,8 +31,7 @@ import { getEditorOptions, getGlobalConfig } from '../options';
 import { getModalSrv } from '../service/modal_service';
 import { getTemplateSrv } from '../service/template_service';
 import { getUserStorage } from '../service/userstorage_service';
-import { debounce, genID, hashCode, removeRndFromCtx, sanitize, searchComp, toggleClass } from '../util';
-import { getTinyMCE } from 'editor_tiny/loader';
+import { debounce, genID, hashCode, removeRndFromCtx, searchComp, toggleClass } from '../util';
 
 const { component } = Common;
 
@@ -426,9 +425,7 @@ export class WidgetPickerCtrl {
         const toInterpolate = { ...widget.defaultsWithRepeatable(true) };
         // Decide which template engine to use
         const engine = widget.prop('engine');
-        const dirtyHtml = await this.templateSrv.render(widget.template ?? "", toInterpolate, widget.I18n, engine);
-        const tinymce = await getTinyMCE();
-        return sanitize(dirtyHtml, tinymce, this.editor.schema);
+        return this.templateSrv.render(widget.template ?? "", toInterpolate, widget.I18n, engine);
     }
 
     /**
@@ -518,12 +515,15 @@ export class WidgetPickerCtrl {
             if (image) {
                 iconHtml = `<img src="${image}" alt="" style="width:100%;height:100%;object-fit:contain;">`;
             } else if (icon) {
-                if (icon.trim().startsWith('<svg')) {
-                    iconHtml = icon;
-                } else if (icon.trim().startsWith('http') || icon.trim().startsWith('/')) {
-                    iconHtml = `<img src="${icon}" alt="" style="width:100%;height:100%;object-fit:contain;">`;
+                icon = icon.trim();
+                if (icon.startsWith('<svg')) {
+                    // Do not add SVG to DOM directly because it is unsafe.
+                    // Instead, we encode it as a data URL.
+                    iconHtml = `<img src="data:image/svg+xml;base64,${btoa(icon)}" alt="Widget icon" style="width:100%;height:100%;object-fit:contain;">`;
+                } else if (icon.startsWith('data:image') || icon.startsWith('https://')) {
+                    iconHtml = `<img src="${icon}" alt="Widget icon" style="width:100%;height:100%;object-fit:contain;">`;
                 } else {
-                    // Assume class
+                    // Assume font-awesome class
                     iconHtml = `<i class="${icon}"></i>`;
                 }
             } else {
@@ -730,7 +730,7 @@ export function getWidgetPickCtrl(editor) {
     if (!instance) {
         instance = new WidgetPickerCtrl(editor,
             getEditorOptions(editor), getWidgetParamsFactory(editor),
-            getModalSrv(), getTemplateSrv(), getUserStorage(editor));
+            getModalSrv(), getTemplateSrv(editor), getUserStorage(editor));
         widgetPickerCtrlInstances.set(editor, instance);
     }
     return instance;

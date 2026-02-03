@@ -720,18 +720,56 @@ export function prefixItemsWith(items, prefix, skipItems = [], separator = '_') 
 }
 
 /**
- * Sanitizes the given HTML using the editor's schema.
- * @param {string} html The HTML to sanitize.
- * @param {any} tinymce
- * @param {any} schema
- * @returns {string} The sanitized HTML.
+ * Simple SVG Sanitizer
+ * @param {string} svgString
+ * @returns {string} Clean SVG
  */
-export function sanitize(html, tinymce, schema) {
-    const parser = new tinymce.html.DomParser({
-        validate: true,
-        schema: schema,
-        allow_script_urls: false
-    });
-    const doc = parser.parse(html);
-    return new tinymce.html.Serializer().serialize(doc);
+export function sanitizeSvg(svgString) {
+    const isDataUrl = svgString.startsWith('data:image/svg+xml;base64,');
+    if (isDataUrl) {
+        svgString = atob(svgString.replace('data:image/svg+xml;base64,', ''));
+    }
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgString, 'image/svg+xml');
+    const svg = doc.querySelector('svg');
+
+    if (!svg) {
+        return '';
+    }
+
+    // Whitelist of safe tags
+    const allowedTags = ['svg', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon',
+        'g', 'defs', 'lineargradient', 'stop'];
+    // Whitelist of safe attributes
+    const allowedAttrs = ['viewbox', 'd', 'cx', 'cy', 'r', 'x', 'y', 'width', 'height',
+        'fill', 'stroke', 'stroke-width', 'points', 'transform', 'class', 'id', 'opacity'];
+
+    /**
+     * @param {Element} el
+     */
+    const cleanElement = (el) => {
+        // 1. Remove script/event tags
+        if (!allowedTags.includes(el.tagName.toLowerCase())) {
+            el.remove();
+            return;
+        }
+
+        // 2. Remove non-whitelisted attributes (including on*)
+        Array.from(el.attributes).forEach(attr => {
+            const name = attr.name.toLowerCase();
+            if (!allowedAttrs.includes(name)) {
+                el.removeAttribute(attr.name);
+            }
+        });
+
+        // 3. Recurse
+        Array.from(el.children).forEach(cleanElement);
+    };
+
+    cleanElement(svg);
+    const cleanSvg = svg.outerHTML;
+    if (isDataUrl) {
+        return 'data:image/svg+xml;base64,' + btoa(cleanSvg);
+    }
+    return cleanSvg;
 }

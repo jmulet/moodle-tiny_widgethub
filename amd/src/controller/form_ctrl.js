@@ -722,7 +722,7 @@ export function getFormCtrl(editor) {
    let instance = formCtrlInstances.get(editor);
    if (!instance) {
       // @ts-ignore
-      instance = new FormCtrl(editor, getUserStorage(editor), getTemplateSrv(), getFileSrv(editor));
+      instance = new FormCtrl(editor, getUserStorage(editor), getTemplateSrv(editor), getFileSrv(editor));
       formCtrlInstances.set(editor, instance);
    }
    return instance;

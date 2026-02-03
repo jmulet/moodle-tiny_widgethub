@@ -96,8 +96,7 @@ class plugininfo extends plugin implements
         array $fpoptions,
         ?\editor_tiny\editor $editor = null
     ): array {
-
-        global $USER, $COURSE;
+        global $USER, $COURSE, $CFG;
 
         // Decide if to enable the plugin.
         $showplugin = has_capability('tiny/widgethub:viewplugin', $context);
@@ -120,6 +119,7 @@ class plugininfo extends plugin implements
             ];
             $params['userprefs'] = get_user_preferences('tiny_widgethub_userprefs', '');
             $params['courseid'] = $COURSE->id;
+            $params['moodleversion'] = $CFG->release;
 
             $data = storagefactory::get_editor_data();
             $params['widgetlist'] = $data['widgetlist'] ?? [];

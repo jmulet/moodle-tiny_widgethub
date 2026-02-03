@@ -46,10 +46,10 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="
     default-src 'none';
-    script-src 'self' {{{origin}}} 'unsafe-inline' 'unsafe-eval';
+    script-src 'self' {{{origin}}} 'unsafe-eval';
     worker-src 'self' blob:;
     style-src 'self';
-    connect-src 'self' {{{origin}}};
+    connect-src 'none';
     img-src 'none';
     font-src 'none';
     media-src 'none';
@@ -58,7 +58,7 @@
     base-uri 'none';
     form-action 'none';
     ">
-    <script src="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/jquery"></script>
+    <script src="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/jqueryslim"></script>
     <script src="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/remotedom"></script>
 </head>
 <body>

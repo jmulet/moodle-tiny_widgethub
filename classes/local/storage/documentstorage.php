@@ -41,11 +41,11 @@ interface documentstorage {
      * Save document.
      *
      * @param int $id Document id.
-     * @param string|null $doc Document content.
+     * @param array|string|null $doc Document content.
      * @param string $ext Document extension.
      * @return bool True if document was saved, false otherwise.
      */
-    public function save(int $id, ?string $doc, string $ext = 'json'): bool;
+    public function save(int $id, $doc, string $ext = 'json'): bool;
 
     /**
      * Delete document.
