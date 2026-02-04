@@ -1,7 +1,5 @@
 /* eslint-disable no-console */
-/* eslint-disable no-eq-null */
 /* eslint-disable no-bitwise */
-/* eslint-disable no-new-func */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -221,21 +219,17 @@ export function fnCallParser(expr) {
 
 
 /**
+ * Simple fast string hash (djb2 variant)
  * @param {string} s - string to be hashed
- * @returns {number}
+ * @returns {number} non-negative 32-bit integer
  */
 export function hashCode(s) {
-    s = s || "";
-    let h = 0;
-    const l = s.length;
-    let i = 0;
-    if (l > 0) {
-        while (i < l) {
-            h = (h << 6) + ((s.charCodeAt(i) - 65) | 0);
-            i++;
-        }
+    let hash = 5381; // magic initial prime
+    for (let i = 0; i < s.length; i++) {
+        hash = ((hash << 5) + hash) + s.charCodeAt(i); // hash * 33 + c
+        hash |= 0; // force 32-bit integer
     }
-    return Math.abs(h);
+    return hash >>> 0; // convert to non-negative
 }
 
 /**
@@ -252,70 +246,71 @@ export function searchComp(str1, needle) {
 }
 
 /** Default transformers */
-const Transformers = {
-    /** @param {string} txt */
-    toUpperCase: function (txt) {
-        return (txt + "").toUpperCase();
-    },
-    /** @param {string} txt */
-    toLowerCase: function (txt) {
-        return (txt + "").toLowerCase();
-    },
-    /** @param {string} txt */
-    trim: function (txt) {
-        return (txt + "").trim();
-    },
-    /** @param {string} txt */
-    ytId: function (txt) {
-        // Finds the youtubeId in a text
-        const rx = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/;
-        const r = (txt || '').match(rx);
-        if (r?.length) {
-            return r[1];
+const Transformers = Object.freeze(
+    Object.assign(Object.create(null), {
+        /** @param {string} txt */
+        toUpperCase: function (txt) {
+            return (txt + "").toUpperCase();
+        },
+        /** @param {string} txt */
+        toLowerCase: function (txt) {
+            return (txt + "").toLowerCase();
+        },
+        /** @param {string} txt */
+        trim: function (txt) {
+            return (txt + "").trim();
+        },
+        /** @param {string} txt */
+        ytId: function (txt) {
+            // Finds the youtubeId in a text
+            const rx = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/;
+            const r = (txt || '').match(rx);
+            if (r?.length) {
+                return r[1];
+            }
+            return txt;
+        },
+        /** @param {string} txt */
+        vimeoId: function (txt) {
+            const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?(\d+)/;
+            const match = new RegExp(regExp).exec(txt || "");
+            if (match?.[5]) {
+                return match[5];
+            }
+            return txt;
+        },
+        /** @param {string} txt */
+        serveGDrive: function (txt) {
+            // Expecting https://drive.google.com/file/d/1DDUzcFrOlzWb3CBdFPJ1NCNXClvPbm5B/preview
+            const res = (txt + "").match(/https:\/\/drive.google.com\/file\/d\/([a-zA-Z0-9_]+)\//);
+            if (res?.length) {
+                const driveId = res[1];
+                return "https://docs.google.com/uc?export=open&id=" + driveId;
+            }
+            return txt;
+        },
+        /** @param {string} txt */
+        removeHTML: function (txt) {
+            return (txt || '').replace(/<[^>]*>?/gm, '');
+        },
+        /** @param {string} txt */
+        escapeHTML: function (txt) {
+            return (txt || '').replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        },
+        /** @param {string} txt */
+        encodeHTML: function (txt) {
+            // @ts-ignore
+            return encodeURIComponent(txt || "");
+        },
+        /** @param {string} txt */
+        escapeQuotes: function (txt) {
+            return (txt || '').replace(/"/gm, "'");
         }
-        return txt;
-    },
-    /** @param {string} txt */
-    vimeoId: function (txt) {
-        const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?(\d+)/;
-        const match = new RegExp(regExp).exec(txt || "");
-        if (match?.[5]) {
-            return match[5];
-        }
-        return txt;
-    },
-    /** @param {string} txt */
-    serveGDrive: function (txt) {
-        // Expecting https://drive.google.com/file/d/1DDUzcFrOlzWb3CBdFPJ1NCNXClvPbm5B/preview
-        const res = (txt + "").match(/https:\/\/drive.google.com\/file\/d\/([a-zA-Z0-9_]+)\//);
-        if (res?.length) {
-            const driveId = res[1];
-            return "https://docs.google.com/uc?export=open&id=" + driveId;
-        }
-        return txt;
-    },
-    /** @param {string} txt */
-    removeHTML: function (txt) {
-        return (txt || '').replace(/<[^>]*>?/gm, '');
-    },
-    /** @param {string} txt */
-    escapeHTML: function (txt) {
-        return (txt || '').replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    },
-    /** @param {string} txt */
-    encodeHTML: function (txt) {
-        // @ts-ignore
-        return encodeURIComponent(txt || "");
-    },
-    /** @param {string} txt */
-    escapeQuotes: function (txt) {
-        return (txt || '').replace(/"/gm, "'");
-    }
-};
+    }));
 
 
 class Builder {
@@ -328,7 +323,7 @@ class Builder {
             const prts = parts[j].trim();
             // @ts-ignore
             const transfunc = Transformers[prts];
-            if (transfunc != null) {
+            if (transfunc !== undefined) {
                 this.transSeq.push(transfunc);
             } else {
                 console.error("Cannot find transformer named " + prts);
@@ -623,12 +618,14 @@ export function compareVersion(current, condition) {
  * @returns {Record<string, any>}
  */
 export function removeRndFromCtx(ctx, parameters) {
-    return Object.fromEntries(
-        Object.entries(ctx).filter(([k]) => {
-            const val = parameters.find(p => p.name === k)?.value;
-            return val !== '$RND';
-        })
-    );
+    const result = Object.create(null);
+    Object.entries(ctx).forEach(([k, v]) => {
+        const val = parameters.find(p => p.name === k)?.value;
+        if (val !== undefined && val !== '$RND') {
+            result[k] = v;
+        }
+    });
+    return result;
 }
 
 /**
@@ -772,4 +769,13 @@ export function sanitizeSvg(svgString) {
         return 'data:image/svg+xml;base64,' + btoa(cleanSvg);
     }
     return cleanSvg;
+}
+
+/**
+ * Creates an object with null prototype.
+ * @param {object} obj
+ * @returns {object}
+ */
+export function nullProtofy(obj) {
+    return Object.assign(Object.create(null), obj);
 }

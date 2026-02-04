@@ -56,15 +56,15 @@ export class UserStorageSrv {
         /**
          * @type {Record<string, any>}
          */
-        this._localStore = { values: {} };
+        this._localStore = Object.assign(Object.create(null), { values: Object.create(null) });
         /**
          * @type {Record<string, any>}
          */
-        this._moodleStore = {};
+        this._moodleStore = Object.create(null);
         /**
          * @type {Record<string, any>}
          */
-        this._sessionStore = { searchtext: '' };
+        this._sessionStore = Object.assign(Object.create(null), { searchtext: '' });
         this.loadStore();
     }
 
@@ -180,19 +180,22 @@ export class UserStorageSrv {
 
         // @ts-ignore
         if (typeof (value) === 'object') {
-            if (MLSC && key === 'saveall_data' || key === 'values') {
-                MLSC[key] = MLSC[key] || {};
+            if (MLSC && (key === 'saveall_data' || key === 'values')) {
+                MLSC[key] = MLSC[key] || Object.create(null);
             } else {
                 // @ts-ignore
-                MLS[key] = MLS[key] || {};
+                MLS[key] = MLS[key] || Object.create(null);
             }
             // @ts-ignore
             const keys = Object.keys(value);
             for (let i = 0, len = keys.length; i < len; i++) {
                 const theKey = keys[i];
+                if (theKey === '__proto__' || theKey === 'constructor' || theKey === 'prototype') {
+                    continue;
+                }
                 // @ts-ignore
                 const val = value[theKey];
-                if (MLSC && key === 'saveall_data' || key === 'values') {
+                if (MLSC && (key === 'saveall_data' || key === 'values')) {
                     MLSC[key][theKey] = val;
                 } else {
                     // @ts-ignore
@@ -217,11 +220,14 @@ export class UserStorageSrv {
     setToSession(key, value, persist) {
         if (typeof (value) === 'object') {
             // @ts-ignore
-            this._sessionStore[key] = this._sessionStore[key] || {};
+            this._sessionStore[key] = this._sessionStore[key] || Object.create(null);
             // @ts-ignore
             const keys = Object.keys(value);
             for (let i = 0, len = keys.length; i < len; i++) {
                 const theKey = keys[i];
+                if (theKey === '__proto__' || theKey === 'constructor' || theKey === 'prototype') {
+                    continue;
+                }
                 // @ts-ignore
                 const val = value[theKey];
                 // @ts-ignore

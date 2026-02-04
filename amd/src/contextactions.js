@@ -45,19 +45,20 @@ const { component, componentName } = Common;
  * @property {string} [text] - Descriptive text for nested contextmenus
  */
 
-const ICONS = {
-    gear: 'gear',
-    arrowUpFromBracket: 'arrow-up-from-bracket',
-    arrowUp: 'arrow-up',
-    arrowDown: 'arrow-down',
-    arrowLeft: 'arrow-left',
-    arrowRight: 'arrow-right',
-    remove: 'remove',
-    clone: 'clone',
-    cut: 'cut',
-    paste: 'paste',
-    preview: 'preview',
-};
+const ICONS = Object.freeze(
+    Object.assign(Object.create(null), {
+        gear: 'gear',
+        arrowUpFromBracket: 'arrow-up-from-bracket',
+        arrowUp: 'arrow-up',
+        arrowDown: 'arrow-down',
+        arrowLeft: 'arrow-left',
+        arrowRight: 'arrow-right',
+        remove: 'remove',
+        clone: 'clone',
+        cut: 'cut',
+        paste: 'paste',
+        preview: 'preview',
+    }));
 
 /**
  * Define icons used by the context menus. Source: FontAwesome 6
@@ -105,7 +106,8 @@ export function matchesCondition(condition, value) {
  */
 export const predefinedActionsFactory = function (editor, domSrv, modalSrv, widgetCutClipboard) {
     /** @type {Record<string, Function>} */
-    const factory = {
+    const factory = Object.create(null);
+    Object.assign(factory, {
         /**
          * Unwraps or destroys the contents of a widget
          * @param {PathResult} path
@@ -210,7 +212,7 @@ export const predefinedActionsFactory = function (editor, domSrv, modalSrv, widg
             }
 
             /** @type {Record<string, string>} */
-            const idMap = {};
+            const idMap = Object.create(null);
             const clone = domSrv.smartClone(el, root, idMap);
 
             // Insert the clone *after* the original element
@@ -325,7 +327,7 @@ export const predefinedActionsFactory = function (editor, domSrv, modalSrv, widg
             widgetCutClipboard.widget = undefined;
             widgetCutClipboard.html = undefined;
         },
-    };
+    });
     // Alias.
     factory.moveup = factory.movebefore;
     factory.movedown = factory.moveafter;
@@ -803,10 +805,12 @@ export class ContextActionsManager {
 /**
  * @type {{widget: import('./options').Widget | undefined, html: string | undefined}}
  */
-const widgetCutClipboard = {
-    widget: undefined,
-    html: undefined
-};
+const widgetCutClipboard = Object.seal(
+    Object.assign(Object.create(null), {
+        widget: undefined,
+        html: undefined
+    })
+);
 
 
 const contextMenuManagerInstances = new Map();

@@ -46,9 +46,11 @@ const moodleVersionOptName = getPluginOptionName(pluginName, 'moodleversion');
  * Wrapped version of the widget definitions shared among all editors in page
  * @type {{widgetDict: Record<string, Widget> | undefined}}
  */
-const _cache = {
-    widgetDict: undefined,
-};
+const _cache = Object.seal(
+    Object.assign(Object.create(null), {
+        widgetDict: undefined,
+    })
+);
 
 /**
  * @param {import('./plugin').TinyMCE} editor
@@ -217,7 +219,7 @@ export const getWidgetDict = (editor) => {
     /** @type {RawWidget[]} */
     const rawWidgets = editor.options.get(widgetListOptName) ?? [];
     /** @type {Record<string, Widget>} */
-    const widgetDict = {};
+    const widgetDict = Object.create(null);
     // Partials is a special widget that is used to define common parameters shared by other widgets
     const partials = getPartials(editor);
     // Create a wrapper for the widget to handle operations
@@ -242,13 +244,13 @@ let _embedRevs = null;
  */
 export const getEmbedRevs = (editor) => {
     if (!_embedRevs) {
-        _embedRevs = {};
+        _embedRevs = Object.create(null);
         Object.entries(getWidgetDict(editor)).forEach(([key, widget]) => {
             // @ts-ignore
             _embedRevs[key] = { id: widget.id, lastmodified: widget.prop('timemodified') };
         });
     }
-    return _embedRevs;
+    return /** @type {Record<string, {id: number, lastmodified: number}>} */ (_embedRevs);
 };
 
 export class EditorOptions {
@@ -642,7 +644,7 @@ export class Widget {
      */
     defaultsWithRepeatable(populateRepeatable = true) {
         /** @type {Object.<string, any> } */
-        const obj = {};
+        const obj = Object.create(null);
         (this._widget.parameters ?? []).forEach((param) => {
             obj[param.name] = createDefaultsForParam(param, populateRepeatable);
         });

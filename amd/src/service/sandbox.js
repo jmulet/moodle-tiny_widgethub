@@ -27,6 +27,17 @@ import Templates from 'core/templates';
 import { genID } from '../util';
 
 /**
+ * Generates a random request ID
+ * @returns {string} Request ID
+ */
+function genRequestId() {
+    if (typeof window.crypto?.randomUUID === "function") {
+        return window.crypto.randomUUID();
+    }
+    return genID();
+}
+
+/**
  * Sandbox service to run untrusted JavaScript code in a sandboxed iframe.
  * One iframe is created and multiple workers are created in it.
  * - Avoid accessing cookies, localStorage, fetch, etc.
@@ -46,7 +57,7 @@ export class Sandbox {
     static _instance = null;
 
     /** @type {number} */
-    static EXECUTE_TIMEOUT = 60000;
+    static EXECUTE_TIMEOUT = 6000;
 
     /**
      * Gets the singleton instance of the sandbox service
@@ -115,23 +126,23 @@ export class Sandbox {
 
         this._readyPromise = new Promise((resolve, reject) => {
             const onPostMessage = (/** @type {MessageEvent} */ event) => {
-                URL.revokeObjectURL(url);
-                if (event.data?.type === `tiny_widgethub_${this.initEventName}_init` &&
-                    event.source === iframe.contentWindow && event.origin === 'null') {
-
-                    window.removeEventListener('message', onPostMessage);
-                    this._onPostMessage = null;
-                    if (event.data.status === 'ready') {
-                        this._port2 = event.ports[0];
-                        this._port2.onmessage = this._onChannelMessage.bind(this);
-                        resolve(iframe);
-                    } else {
-                        iframe.src = 'about:blank';
-                        iframe.remove();
-                        reject(new Error(event.data.status));
-                    }
-                    this._readyPromise = null;
+                if (event.data?.type !== `tiny_widgethub_${this.initEventName}_init` ||
+                    event.source !== iframe.contentWindow || event.origin !== 'null') {
+                    return;
                 }
+                URL.revokeObjectURL(url);
+                window.removeEventListener('message', onPostMessage);
+                this._onPostMessage = null;
+                if (event.data.status === 'ready') {
+                    this._port2 = event.ports[0];
+                    this._port2.onmessage = this._onChannelMessage.bind(this);
+                    resolve(iframe);
+                } else {
+                    iframe.src = 'about:blank';
+                    iframe.remove();
+                    reject(new Error(event.data.status));
+                }
+                this._readyPromise = null;
             };
             this._onPostMessage = onPostMessage;
             window.addEventListener('message', onPostMessage);
@@ -174,7 +185,7 @@ export class Sandbox {
                 reject(new Error('Sandbox not ready'));
                 return;
             }
-            const requestId = genID();
+            const requestId = genRequestId();
             const timeout = window.setTimeout(() => {
                 this._tasks.delete(requestId);
                 reject(new Error('Sandbox timeout'));
@@ -248,7 +259,7 @@ export class RemoteDom extends Sandbox {
                 element.setAttribute('data-rvn-id', 'l' + RemoteDom.vdomNodeCounter++);
             }
             /** @type {Array<VNode|string>} */
-            for (var i = 0; i < element.childNodes.length; i++) {
+            for (let i = 0; i < element.childNodes.length; i++) {
                 this._addVIds(element.childNodes[i]);
             }
         }
@@ -340,6 +351,35 @@ export class RemoteDom extends Sandbox {
     }
 
     /**
+     * Checks if a tag is safe to be created in the host DOM.
+     * @param {string} tag
+     * @returns {boolean}
+     */
+    _isSafeTag(tag) {
+        const forbiddenTags = ['script', 'style', 'object', 'embed', 'link', 'meta', 'base', 'form', 'textarea', 'svg', 'math'];
+        return !forbiddenTags.includes(tag.toLowerCase());
+    }
+
+    /**
+     * Checks if an attribute is safe to be applied to the host DOM.
+     * @param {string} name
+     * @param {string} value
+     * @returns {boolean}
+     */
+    _isSafeAttribute(name, value) {
+        const lowerName = name.toLowerCase();
+        if (lowerName.startsWith('on') || lowerName.startsWith('form')) {
+            return false;
+        } else if (lowerName === 'href' || lowerName === 'src') {
+            const lowerValue = (value || '').toLowerCase().trim();
+            if (lowerValue.startsWith('javascript' + ':') || lowerValue.startsWith('data:text/html')) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Deserializes a VNode into a DOM Node
      * @param {VNode | string | null} vNode
      * @returns {Node | null}
@@ -353,9 +393,14 @@ export class RemoteDom extends Sandbox {
         }
         if (Array.isArray(vNode)) {
             const [tag, attrs, children] = vNode;
+            if (!this._isSafeTag(tag)) {
+                return null;
+            }
             const element = document.createElement(tag);
             for (const [key, value] of Object.entries(attrs)) {
-                element.setAttribute(key, value);
+                if (this._isSafeAttribute(key, value)) {
+                    element.setAttribute(key, value);
+                }
             }
             children.forEach(childVNode => {
                 const childNode = this._deserializeVNode(childVNode);
@@ -386,6 +431,10 @@ export class RemoteDom extends Sandbox {
         }
 
         if (patch.type === 'attributes') {
+            if (!this._isSafeAttribute(patch.name, patch.value)) {
+                console.warn('Insecure attribute ignored', patch.name);
+                return;
+            }
             if (patch.isDeleted || patch.value === undefined) {
                 node.removeAttribute(patch.name);
             } else if (patch.name === 'class') {
@@ -451,6 +500,7 @@ export class RemoteDom extends Sandbox {
         if (rootElement) {
             const nodes = rootElement.querySelectorAll(`[data-rvn-id]`);
             nodes.forEach(node => node.removeAttribute('data-rvn-id'));
+            rootElement.removeAttribute('data-rvn-id');
         }
         this.vdomInstances.delete(vid);
         return this.execute('vdom:destroy', { vid });

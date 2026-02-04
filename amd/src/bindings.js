@@ -120,487 +120,488 @@ const getValueFromRegex = function (regexExpr, replacement) {
  * Predefined bindings
  * @type {Record<string, (el: Element, ...args: any[]) => Binding>}
  */
-export const bindingsFactoryAPI = {
-    /**
-     * @param {Element} el
-     * @param {string} className
-     * @param {string=} query
-     * @param {boolean=} neg
-     * @returns {Binding}
-     */
-    hasClass: (el, className, query, neg) => {
-        /** @type {Element | null} */
-        let elem = el;
-        if (query) {
-            elem = el.querySelector(query);
-        }
-        return {
-            // @ts-ignore
-            getValue: () => {
-                const res = xor(neg, elem?.classList?.contains(className));
-                return Boolean(res);
-            },
-            // @ts-ignore
-            setValue: (bool) => {
-                if (xor(neg, bool)) {
-                    elem?.classList.add(className);
-                } else {
-                    elem?.classList.remove(className);
-                }
+export const bindingsFactoryAPI = Object.freeze(
+    Object.assign(Object.create(null), {
+        /**
+         * @param {Element} el
+         * @param {string} className
+         * @param {string=} query
+         * @param {boolean=} neg
+         * @returns {Binding}
+         */
+        hasClass: (el, className, query, neg) => {
+            /** @type {Element | null} */
+            let elem = el;
+            if (query) {
+                elem = el.querySelector(query);
             }
-        };
-    },
-    /**
-     * @param {Element} el
-     * @param {string} className
-     * @param {string=} query
-     * @returns {Binding}
-     */
-    notHasClass: (el, className, query) => {
-        return bindingsFactoryAPI.hasClass(el, className, query, true);
-    },
-    /**
-     * @param {Element} el
-     * @param {string} classExpr
-     * @param {string=} query
-     * @param {string=} castTo
-     * @returns {Binding}
-     */
-    classRegex: (el, classExpr, query, castTo) => {
-        /** @type {Element | null} */
-        let elem = el;
-        if (query) {
-            elem = el.querySelector(query);
-        }
-        return {
-            getValue: () => {
-                let ret = '';
-                const classes = Array.from(elem?.classList ?? []);
-                for (const clazz of classes) {
-                    const match = new RegExp(classExpr).exec(clazz);
-                    if (match?.[1] && typeof (match[1]) === "string") {
-                        ret = match[1];
-                        break;
+            return {
+                // @ts-ignore
+                getValue: () => {
+                    const res = xor(neg, elem?.classList?.contains(className));
+                    return Boolean(res);
+                },
+                // @ts-ignore
+                setValue: (bool) => {
+                    if (xor(neg, bool)) {
+                        elem?.classList.add(className);
+                    } else {
+                        elem?.classList.remove(className);
                     }
                 }
-                return performCasting(ret, castTo);
-            },
-            setValue: (val) => {
-                const cl = Array.from(elem?.classList ?? []);
-                let found = false;
-                cl.forEach(c => {
-                    const match = new RegExp(classExpr, 'd').exec(c);
-                    if (match === null) {
-                        return;
+            };
+        },
+        /**
+         * @param {Element} el
+         * @param {string} className
+         * @param {string=} query
+         * @returns {Binding}
+         */
+        notHasClass: (el, className, query) => {
+            return bindingsFactoryAPI.hasClass(el, className, query, true);
+        },
+        /**
+         * @param {Element} el
+         * @param {string} classExpr
+         * @param {string=} query
+         * @param {string=} castTo
+         * @returns {Binding}
+         */
+        classRegex: (el, classExpr, query, castTo) => {
+            /** @type {Element | null} */
+            let elem = el;
+            if (query) {
+                elem = el.querySelector(query);
+            }
+            return {
+                getValue: () => {
+                    let ret = '';
+                    const classes = Array.from(elem?.classList ?? []);
+                    for (const clazz of classes) {
+                        const match = new RegExp(classExpr).exec(clazz);
+                        if (match?.[1] && typeof (match[1]) === "string") {
+                            ret = match[1];
+                            break;
+                        }
                     }
-                    found = true;
-                    elem?.classList.remove(c);
-                    const newCls = replaceStrPart(c, match, val + '');
-                    elem?.classList.add(newCls);
-                });
-                // If not found, then set the regExp replacing the
-                // first capturing group with val, and removing the remaining groups.
-                if (!found) {
-                    const newCls = getValueFromRegex(classExpr, val + '');
-                    elem?.classList.add(newCls);
+                    return performCasting(ret, castTo);
+                },
+                setValue: (val) => {
+                    const cl = Array.from(elem?.classList ?? []);
+                    let found = false;
+                    cl.forEach(c => {
+                        const match = new RegExp(classExpr, 'd').exec(c);
+                        if (match === null) {
+                            return;
+                        }
+                        found = true;
+                        elem?.classList.remove(c);
+                        const newCls = replaceStrPart(c, match, val + '');
+                        elem?.classList.add(newCls);
+                    });
+                    // If not found, then set the regExp replacing the
+                    // first capturing group with val, and removing the remaining groups.
+                    if (!found) {
+                        const newCls = getValueFromRegex(classExpr, val + '');
+                        elem?.classList.add(newCls);
+                    }
                 }
+            };
+        },
+        /**
+         * @param {Element} el
+         * @param {string} attrName
+         * @param {string=} query
+         * @param {string=} castTo
+         * @returns {Binding}
+         */
+        attr: (el, attrName, query, castTo) => {
+            /** @type {Element | null} */
+            let elem = el;
+            if (query) {
+                elem = el.querySelector(query);
             }
-        };
-    },
-    /**
-     * @param {Element} el
-     * @param {string} attrName
-     * @param {string=} query
-     * @param {string=} castTo
-     * @returns {Binding}
-     */
-    attr: (el, attrName, query, castTo) => {
-        /** @type {Element | null} */
-        let elem = el;
-        if (query) {
-            elem = el.querySelector(query);
-        }
-        return {
-            getValue: () => {
-                let attrValue = elem?.getAttribute(attrName);
-                if (attrName.indexOf('-bs-') > 0) {
-                    attrValue = attrValue ?? elem?.getAttribute(attrName.replace('-bs-', '-'));
-                }
-                return performCasting(attrValue, castTo);
-            },
-            // @ts-ignore
-            setValue: (val) => {
-                if (typeof val === "boolean") {
-                    val = val ? 1 : 0;
-                }
-                const attrVal = val + '';
-                elem?.setAttribute(attrName, attrVal);
-                if (attrName.indexOf('-bs-') > 0) {
-                    // Save as old bs
-                    elem?.setAttribute(attrName.replace('-bs-', '-'), attrVal);
-                }
-                if (attrName === 'href' || attrName === 'src') {
-                    elem?.setAttribute('data-mce-' + attrName, attrVal);
-                }
-            }
-        };
-    },
-    /**
-     * Adapted to take into account both data- and data-bs- for Boostrap 4 & 5 compatibility.
-     * @param {Element} el
-     * @param {string} attrName - Name without data- nor data-bs-
-     * @param {string=} query
-     * @param {string=} castTo
-     * @param {number=} version - 4 or 5 depending the version of BS currently using
-     * @returns {Binding}
-     */
-    attrBS: (el, attrName, query, castTo, version) => {
-        /** @type {Element | null} */
-        let elem = el;
-        if (query) {
-            elem = el.querySelector(query);
-        }
-        return {
-            getValue: () => {
-                // If version=4 it has preference BS4 over BS5, it will not remove BS4 prefix
-                let p1 = '';
-                let p2 = 'bs-';
-                if (version === 5) {
-                    p1 = p2;
-                    p2 = '';
-                }
-                let value = elem?.getAttribute('data-' + p1 + attrName);
-                if (value === undefined) {
-                    value = elem?.getAttribute('data-' + p2 + attrName);
-                }
-                return performCasting(value || '', castTo);
-            },
-            // @ts-ignore
-            setValue: (val) => {
-                if (typeof val === "boolean") {
-                    val = val ? 1 : 0;
-                }
-                const attrVal = val + '';
-                elem?.setAttribute('data-bs-' + attrName, attrVal);
-                if (version === 5) {
-                    elem?.removeAttribute('data-' + attrName);
-                } else {
-                    elem?.setAttribute('data-' + attrName, attrVal);
-                }
-            }
-        };
-    },
-    /**
-     * @param {Element} el
-     * @param {string} attr
-     * @param {string=} query
-     * @param {boolean=} neg
-     * @returns {Binding}
-     */
-    hasAttr: (el, attr, query, neg) => {
-        /** @type {Element | null} */
-        let elem = el;
-        if (query) {
-            elem = el.querySelector(query);
-        }
-        const parts = attr.split("=");
-        const attrName = parts[0].trim();
-        let attrValue = '';
-        if (parts.length > 1) {
-            attrValue = parts[1].trim();
-        }
-        return {
-            getValue: () => {
-                let found = elem?.getAttribute(attrName) !== null;
-                if (attrValue) {
-                    found = found && elem?.getAttribute(attrName) === attrValue;
-                }
-                return xor(neg, found);
-            },
-            // @ts-ignore
-            setValue: (bool) => {
-                if (xor(neg, bool)) {
-                    elem?.setAttribute(attrName, attrValue || '');
+            return {
+                getValue: () => {
+                    let attrValue = elem?.getAttribute(attrName);
+                    if (attrName.indexOf('-bs-') > 0) {
+                        attrValue = attrValue ?? elem?.getAttribute(attrName.replace('-bs-', '-'));
+                    }
+                    return performCasting(attrValue, castTo);
+                },
+                // @ts-ignore
+                setValue: (val) => {
+                    if (typeof val === "boolean") {
+                        val = val ? 1 : 0;
+                    }
+                    const attrVal = val + '';
+                    elem?.setAttribute(attrName, attrVal);
+                    if (attrName.indexOf('-bs-') > 0) {
+                        // Save as old bs
+                        elem?.setAttribute(attrName.replace('-bs-', '-'), attrVal);
+                    }
                     if (attrName === 'href' || attrName === 'src') {
-                        elem?.setAttribute('data-mce-' + attrName, attrValue + '');
-                    }
-                } else {
-                    elem?.removeAttribute(attrName);
-                    if (attrName === 'href' || attrName === 'src') {
-                        elem?.removeAttribute('data-mce-' + attrName);
+                        elem?.setAttribute('data-mce-' + attrName, attrVal);
                     }
                 }
+            };
+        },
+        /**
+         * Adapted to take into account both data- and data-bs- for Boostrap 4 & 5 compatibility.
+         * @param {Element} el
+         * @param {string} attrName - Name without data- nor data-bs-
+         * @param {string=} query
+         * @param {string=} castTo
+         * @param {number=} version - 4 or 5 depending the version of BS currently using
+         * @returns {Binding}
+         */
+        attrBS: (el, attrName, query, castTo, version) => {
+            /** @type {Element | null} */
+            let elem = el;
+            if (query) {
+                elem = el.querySelector(query);
             }
-        };
-    },
-    /**
-     * Variant to check for compatibility between Bootstrap 4 and 5.
-     * @param {Element} el
-     * @param {string} attr - attr name without data- nor data-bs-
-     * @param {string=} query
-     * @param {boolean=} neg
-     * @param {number=} version - 4 or 5
-     * @returns {Binding}
-     */
-    hasAttrBS: (el, attr, query, neg, version) => {
-        /** @type {Element | null} */
-        let elem = el;
-        if (query) {
-            elem = el.querySelector(query);
-        }
-        const parts = attr.split("=");
-        const attrName = parts[0].trim();
-        let attrValue = '';
-        if (parts.length > 1) {
-            attrValue = parts[1].trim();
-        }
-        const getValuePrefix = (/** @type{string} **/ prefix) => {
-            let found = elem?.getAttribute(prefix + attrName) !== null;
-            if (attrValue) {
-                found = found && elem?.getAttribute(prefix + attrName) === attrValue;
-            }
-            return xor(neg, found);
-        };
-        return {
-            getValue: () => {
-                let p1 = 'data-';
-                let p2 = 'data-bs-';
-                if (version === 5) {
-                    p2 = p1;
-                    p1 = 'data-bs-';
-                }
-                return getValuePrefix(p1) || getValuePrefix(p2);
-            },
-            // @ts-ignore
-            setValue: (bool) => {
-                if (xor(neg, bool)) {
-                    elem?.setAttribute('data-bs-' + attrName, attrValue || '');
+            return {
+                getValue: () => {
+                    // If version=4 it has preference BS4 over BS5, it will not remove BS4 prefix
+                    let p1 = '';
+                    let p2 = 'bs-';
+                    if (version === 5) {
+                        p1 = p2;
+                        p2 = '';
+                    }
+                    let value = elem?.getAttribute('data-' + p1 + attrName);
+                    if (value === undefined) {
+                        value = elem?.getAttribute('data-' + p2 + attrName);
+                    }
+                    return performCasting(value || '', castTo);
+                },
+                // @ts-ignore
+                setValue: (val) => {
+                    if (typeof val === "boolean") {
+                        val = val ? 1 : 0;
+                    }
+                    const attrVal = val + '';
+                    elem?.setAttribute('data-bs-' + attrName, attrVal);
                     if (version === 5) {
                         elem?.removeAttribute('data-' + attrName);
                     } else {
-                        elem?.setAttribute('data-' + attrName, attrValue || '');
+                        elem?.setAttribute('data-' + attrName, attrVal);
                     }
-                } else {
-                    elem?.removeAttribute('data-' + attrName);
-                    elem?.removeAttribute('data-bs-' + attrName);
                 }
+            };
+        },
+        /**
+         * @param {Element} el
+         * @param {string} attr
+         * @param {string=} query
+         * @param {boolean=} neg
+         * @returns {Binding}
+         */
+        hasAttr: (el, attr, query, neg) => {
+            /** @type {Element | null} */
+            let elem = el;
+            if (query) {
+                elem = el.querySelector(query);
             }
-        };
-    },
-    /**
-     * @param {Element} el
-     * @param {string} attr
-     * @param {string=} query
-     * @returns {Binding}
-     */
-    notHasAttr: (el, attr, query) => {
-        return bindingsFactoryAPI.hasAttr(el, attr, query, true);
-    },
-    /**
-     * @param {Element} el
-     * @param {string} attr - Regex of attr
-     * @param {string=} query
-     * @param {string=} castTo
-     * @returns {Binding}
-     */
-    attrRegex: (el, attr, query, castTo) => {
-        /** @type {Element | null} */
-        let elem = el;
-        if (query) {
-            elem = el.querySelector(query);
-        }
-        const parts = attr.split("=");
-        const attrName = parts[0].trim();
-        let attrValue = '';
-        if (parts.length > 1) {
-            attrValue = parts[1].trim();
-        }
-        return {
-            getValue() {
-                const found = elem?.getAttribute(attrName) !== null;
-                if (found) {
-                    const match = elem?.getAttribute(attrName)?.match(attrValue);
-                    if (match?.[1] && typeof (match[1]) === "string") {
-                        return performCasting(match[1], castTo);
+            const parts = attr.split("=");
+            const attrName = parts[0].trim();
+            let attrValue = '';
+            if (parts.length > 1) {
+                attrValue = parts[1].trim();
+            }
+            return {
+                getValue: () => {
+                    let found = elem?.getAttribute(attrName) !== null;
+                    if (attrValue) {
+                        found = found && elem?.getAttribute(attrName) === attrValue;
                     }
-                    return '';
+                    return xor(neg, found);
+                },
+                // @ts-ignore
+                setValue: (bool) => {
+                    if (xor(neg, bool)) {
+                        elem?.setAttribute(attrName, attrValue || '');
+                        if (attrName === 'href' || attrName === 'src') {
+                            elem?.setAttribute('data-mce-' + attrName, attrValue + '');
+                        }
+                    } else {
+                        elem?.removeAttribute(attrName);
+                        if (attrName === 'href' || attrName === 'src') {
+                            elem?.removeAttribute('data-mce-' + attrName);
+                        }
+                    }
                 }
-                return null;
-            },
-            setValue(val) {
-                const oldValue = elem?.getAttribute(attrName) ?? '';
-                const match = new RegExp(attrValue, 'd').exec(oldValue);
-                let newValue;
-                if (match) {
-                    newValue = replaceStrPart(oldValue, match, val + '');
-                } else {
-                    newValue = getValueFromRegex(attrValue, val + '');
-                }
-                elem?.setAttribute(attrName, newValue);
-                if (attrName === 'href' || attrName === 'src') {
-                    elem?.setAttribute('data-mce-' + attrName, newValue + '');
-                }
+            };
+        },
+        /**
+         * Variant to check for compatibility between Bootstrap 4 and 5.
+         * @param {Element} el
+         * @param {string} attr - attr name without data- nor data-bs-
+         * @param {string=} query
+         * @param {boolean=} neg
+         * @param {number=} version - 4 or 5
+         * @returns {Binding}
+         */
+        hasAttrBS: (el, attr, query, neg, version) => {
+            /** @type {Element | null} */
+            let elem = el;
+            if (query) {
+                elem = el.querySelector(query);
             }
-        };
-    },
-    /**
-     * @param {Element} el
-     * @param {string} sty
-     * @param {string=} query
-     * @param {boolean=} neg
-     * @returns {Binding}
-     */
-    hasStyle: (el, sty, query, neg) => {
-        /** @type {Element | null} */
-        let elem = el;
-        if (query) {
-            elem = el.querySelector(query);
-        }
-        const parts = sty.split(":");
-        let styName = parts[0].trim();
-        /** @type {string | undefined} */
-        let styValue;
-        if (parts.length > 1) {
-            styValue = parts[1].trim();
-        }
-        return {
-            getValue() {
-                // @ts-ignore
-                const st = elem?.style;
-                const pValue = st.getPropertyValue(styName);
-                const has = styValue === undefined ? pValue !== '' : pValue === styValue;
-                return xor(has, neg);
-            },
-            // @ts-ignore
-            setValue(bool) {
-                // @ts-ignore
-                const st = elem?.style;
-                if (xor(bool, neg)) {
-                    st?.setProperty(styName, styValue ?? '');
-                } else {
-                    st?.removeProperty(styName);
-                }
-                // TODO: better way to update data-mce-style
-                elem?.setAttribute('data-mce-style', st?.cssText ?? '');
+            const parts = attr.split("=");
+            const attrName = parts[0].trim();
+            let attrValue = '';
+            if (parts.length > 1) {
+                attrValue = parts[1].trim();
             }
-        };
-    },
-    /**
-     * @param {Element} el
-     * @param {string} sty
-     * @param {string=} query
-     * @returns {Binding}
-     */
-    notHasStyle: (el, sty, query) => {
-        return bindingsFactoryAPI.hasStyle(el, sty, query, true);
-    },
-    /**
-     * @param {Element} el
-     * @param {string} attr - styName:styValue where styValue is a regex with (.*)
-     * @param {string=} query
-     * @param {string=} castTo
-     * @returns {Binding}
-     */
-    styleRegex: (el, attr, query, castTo) => {
-        /** @type {Element | null} */
-        let elem = el;
-        if (query) {
-            elem = el.querySelector(query);
-        }
-        const parts = attr.split(":");
-        const styName = parts[0].trim();
-        let styValue = '';
-        if (parts.length > 1) {
-            styValue = parts[1].trim();
-        }
-        return {
-            /** @returns {string | null} */
-            getValue() {
+            const getValuePrefix = (/** @type{string} **/ prefix) => {
+                let found = elem?.getAttribute(prefix + attrName) !== null;
+                if (attrValue) {
+                    found = found && elem?.getAttribute(prefix + attrName) === attrValue;
+                }
+                return xor(neg, found);
+            };
+            return {
+                getValue: () => {
+                    let p1 = 'data-';
+                    let p2 = 'data-bs-';
+                    if (version === 5) {
+                        p2 = p1;
+                        p1 = 'data-bs-';
+                    }
+                    return getValuePrefix(p1) || getValuePrefix(p2);
+                },
                 // @ts-ignore
-                const st = elem?.style;
-                const currentVal = st?.getPropertyValue(styName);
-                if (currentVal) {
-                    if (styValue) {
-                        const match = new RegExp(styValue).exec(currentVal);
-                        if (match?.[1] && (typeof match[1]) === "string") {
+                setValue: (bool) => {
+                    if (xor(neg, bool)) {
+                        elem?.setAttribute('data-bs-' + attrName, attrValue || '');
+                        if (version === 5) {
+                            elem?.removeAttribute('data-' + attrName);
+                        } else {
+                            elem?.setAttribute('data-' + attrName, attrValue || '');
+                        }
+                    } else {
+                        elem?.removeAttribute('data-' + attrName);
+                        elem?.removeAttribute('data-bs-' + attrName);
+                    }
+                }
+            };
+        },
+        /**
+         * @param {Element} el
+         * @param {string} attr
+         * @param {string=} query
+         * @returns {Binding}
+         */
+        notHasAttr: (el, attr, query) => {
+            return bindingsFactoryAPI.hasAttr(el, attr, query, true);
+        },
+        /**
+         * @param {Element} el
+         * @param {string} attr - Regex of attr
+         * @param {string=} query
+         * @param {string=} castTo
+         * @returns {Binding}
+         */
+        attrRegex: (el, attr, query, castTo) => {
+            /** @type {Element | null} */
+            let elem = el;
+            if (query) {
+                elem = el.querySelector(query);
+            }
+            const parts = attr.split("=");
+            const attrName = parts[0].trim();
+            let attrValue = '';
+            if (parts.length > 1) {
+                attrValue = parts[1].trim();
+            }
+            return {
+                getValue() {
+                    const found = elem?.getAttribute(attrName) !== null;
+                    if (found) {
+                        const match = elem?.getAttribute(attrName)?.match(attrValue);
+                        if (match?.[1] && typeof (match[1]) === "string") {
                             return performCasting(match[1], castTo);
                         }
+                        return '';
+                    }
+                    return null;
+                },
+                setValue(val) {
+                    const oldValue = elem?.getAttribute(attrName) ?? '';
+                    const match = new RegExp(attrValue, 'd').exec(oldValue);
+                    let newValue;
+                    if (match) {
+                        newValue = replaceStrPart(oldValue, match, val + '');
                     } else {
-                        return performCasting(currentVal, castTo);
+                        newValue = getValueFromRegex(attrValue, val + '');
+                    }
+                    elem?.setAttribute(attrName, newValue);
+                    if (attrName === 'href' || attrName === 'src') {
+                        elem?.setAttribute('data-mce-' + attrName, newValue + '');
                     }
                 }
-                return performCasting('', castTo);
-            },
-            // @ts-ignore
-            setValue(val) {
-                let newValue;
+            };
+        },
+        /**
+         * @param {Element} el
+         * @param {string} sty
+         * @param {string=} query
+         * @param {boolean=} neg
+         * @returns {Binding}
+         */
+        hasStyle: (el, sty, query, neg) => {
+            /** @type {Element | null} */
+            let elem = el;
+            if (query) {
+                elem = el.querySelector(query);
+            }
+            const parts = sty.split(":");
+            let styName = parts[0].trim();
+            /** @type {string | undefined} */
+            let styValue;
+            if (parts.length > 1) {
+                styValue = parts[1].trim();
+            }
+            return {
+                getValue() {
+                    // @ts-ignore
+                    const st = elem?.style;
+                    const pValue = st.getPropertyValue(styName);
+                    const has = styValue === undefined ? pValue !== '' : pValue === styValue;
+                    return xor(has, neg);
+                },
                 // @ts-ignore
-                const st = elem?.style;
-                if (styValue) {
-                    // Case val <= 0 && styName contains width or height
-                    if ((styName.includes("width") || styName.includes("height")) && (parseFloat(val + '') <= 0)) {
-                        newValue = '';
+                setValue(bool) {
+                    // @ts-ignore
+                    const st = elem?.style;
+                    if (xor(bool, neg)) {
+                        st?.setProperty(styName, styValue ?? '');
                     } else {
-                        const oldValue = st?.getPropertyValue(styName) ?? '';
-                        if (oldValue) {
-                            const match = new RegExp(styValue, 'd').exec(oldValue);
-                            // @ts-ignore
-                            newValue = replaceStrPart(oldValue, match, val + '');
+                        st?.removeProperty(styName);
+                    }
+                    // TODO: better way to update data-mce-style
+                    elem?.setAttribute('data-mce-style', st?.cssText ?? '');
+                }
+            };
+        },
+        /**
+         * @param {Element} el
+         * @param {string} sty
+         * @param {string=} query
+         * @returns {Binding}
+         */
+        notHasStyle: (el, sty, query) => {
+            return bindingsFactoryAPI.hasStyle(el, sty, query, true);
+        },
+        /**
+         * @param {Element} el
+         * @param {string} attr - styName:styValue where styValue is a regex with (.*)
+         * @param {string=} query
+         * @param {string=} castTo
+         * @returns {Binding}
+         */
+        styleRegex: (el, attr, query, castTo) => {
+            /** @type {Element | null} */
+            let elem = el;
+            if (query) {
+                elem = el.querySelector(query);
+            }
+            const parts = attr.split(":");
+            const styName = parts[0].trim();
+            let styValue = '';
+            if (parts.length > 1) {
+                styValue = parts[1].trim();
+            }
+            return {
+                /** @returns {string | null} */
+                getValue() {
+                    // @ts-ignore
+                    const st = elem?.style;
+                    const currentVal = st?.getPropertyValue(styName);
+                    if (currentVal) {
+                        if (styValue) {
+                            const match = new RegExp(styValue).exec(currentVal);
+                            if (match?.[1] && (typeof match[1]) === "string") {
+                                return performCasting(match[1], castTo);
+                            }
                         } else {
-                            newValue = styValue.replace('(.*)', val + '');
+                            return performCasting(currentVal, castTo);
                         }
                     }
-                } else {
-                    newValue = val + '';
+                    return performCasting('', castTo);
+                },
+                // @ts-ignore
+                setValue(val) {
+                    let newValue;
+                    // @ts-ignore
+                    const st = elem?.style;
+                    if (styValue) {
+                        // Case val <= 0 && styName contains width or height
+                        if ((styName.includes("width") || styName.includes("height")) && (parseFloat(val + '') <= 0)) {
+                            newValue = '';
+                        } else {
+                            const oldValue = st?.getPropertyValue(styName) ?? '';
+                            if (oldValue) {
+                                const match = new RegExp(styValue, 'd').exec(oldValue);
+                                // @ts-ignore
+                                newValue = replaceStrPart(oldValue, match, val + '');
+                            } else {
+                                newValue = styValue.replace('(.*)', val + '');
+                            }
+                        }
+                    } else {
+                        newValue = val + '';
+                    }
+                    st?.setProperty(styName, newValue);
+                    // TODO: better way to update data-mce-style
+                    elem?.setAttribute('data-mce-style', st?.cssText || '');
                 }
-                st?.setProperty(styName, newValue);
-                // TODO: better way to update data-mce-style
-                elem?.setAttribute('data-mce-style', st?.cssText || '');
+            };
+        },
+        /**
+         * @param {Element} el
+         * @param {string=} query
+         * @returns {Binding}
+         */
+        html: (el, query) => {
+            /** @type {Element | null} */
+            let elem = el;
+            if (query) {
+                elem = el.querySelector(query);
             }
-        };
-    },
-    /**
-     * @param {Element} el
-     * @param {string=} query
-     * @returns {Binding}
-     */
-    html: (el, query) => {
-        /** @type {Element | null} */
-        let elem = el;
-        if (query) {
-            elem = el.querySelector(query);
+            return {
+                getValue() {
+                    return elem?.innerHTML ?? '';
+                },
+                setValue(val) {
+                    if (elem) {
+                        elem.innerHTML = val + '';
+                    }
+                }
+            };
+        },
+        /**
+         * @param {Element} el
+         * @param {string=} query
+         * @returns {Binding}
+         */
+        text: (el, query) => {
+            /** @type {Element | null} */
+            let elem = el;
+            if (query) {
+                elem = el.querySelector(query);
+            }
+            return {
+                getValue() {
+                    return elem?.textContent ?? '';
+                },
+                setValue(val) {
+                    if (elem) {
+                        elem.textContent = val + '';
+                    }
+                }
+            };
         }
-        return {
-            getValue() {
-                return elem?.innerHTML ?? '';
-            },
-            setValue(val) {
-                if (elem) {
-                    elem.innerHTML = val + '';
-                }
-            }
-        };
-    },
-    /**
-     * @param {Element} el
-     * @param {string=} query
-     * @returns {Binding}
-     */
-    text: (el, query) => {
-        /** @type {Element | null} */
-        let elem = el;
-        if (query) {
-            elem = el.querySelector(query);
-        }
-        return {
-            getValue() {
-                return elem?.textContent ?? '';
-            },
-            setValue(val) {
-                if (elem) {
-                    elem.textContent = val + '';
-                }
-            }
-        };
-    }
-};
+    }));

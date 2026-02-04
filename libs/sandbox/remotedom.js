@@ -54,11 +54,6 @@ function sanitize(doc) {
         });
     });
 }
-/**
- * Communication port with parent.
- * @type {MessagePort | null}
- */
-let port1 = null;
 
 /**
  * @typedef {{vId: string} | string | VNodeElement} VNode
@@ -123,7 +118,7 @@ function jsonDomSerialize(elem, forceFull) {
             return { vId: elementNode.getAttribute('data-rvn-id') ?? '' };
         }
         /** @type {Record<string, string>} */
-        const attrs = {};
+        const attrs = Object.create(null);
         for (let i = 0; i < elementNode.attributes.length; i++) {
             const attr = elementNode.attributes[i];
             attrs[attr.name] = attr.value;
@@ -323,35 +318,40 @@ function vdomDestroy(vid) {
 
 /**
  * @param {Document} doc
+ * @returns {Record<string, Set<Element>>}
  */
 function getTrustedNodes(doc) {
-    return {
-        scripts: new Set(
-            Array.from(doc.querySelectorAll('script'))
-        ),
-        styles: new Set(
-            Array.from(doc.querySelectorAll('style'))
-        )
-    };
+    return Object.freeze(
+        Object.assign(Object.create(null), {
+            scripts: new Set(
+                Array.from(doc.querySelectorAll('script'))
+            ),
+            styles: new Set(
+                Array.from(doc.querySelectorAll('style'))
+            ),
+            maths: new Set(
+                Array.from(doc.querySelectorAll('math'))
+            ),
+            svgs: new Set(
+                Array.from(doc.querySelectorAll('svg'))
+            )
+        })
+    );
 }
 
 /**
  * @param {Document} doc
- * @param {{scripts: Set<Element>, styles: Set<Element>}} trustedNodes
+ * @param {Record<string, Set<Element>>} trustedNodes
  */
 function removeNonTrustedNodes(doc, trustedNodes) {
-    const allScripts = doc.querySelectorAll('script');
-    for (const elem of allScripts) {
-        if (!trustedNodes.scripts.has(elem)) {
-            elem.remove();
+    Object.keys(trustedNodes).forEach(tagName => {
+        const allElements = doc.querySelectorAll(tagName);
+        for (const elem of allElements) {
+            if (!trustedNodes[tagName].has(elem)) {
+                elem.remove();
+            }
         }
-    }
-    const allStyles = doc.querySelectorAll('style');
-    for (const elem of allStyles) {
-        if (!trustedNodes.styles.has(elem)) {
-            elem.remove();
-        }
-    }
+    });
 }
 
 /**
@@ -404,6 +404,9 @@ async function vdomFilter(html, filters) {
                     break;
                 }
             }
+            if (lastHTML) {
+                doc = new DOMParser().parseFromString(lastHTML, 'text/html');
+            }
             removeNonTrustedNodes(doc, trustedNodes);
             sanitize(doc);
             trustedNodes = /** @type {any} */ (null);
@@ -423,41 +426,47 @@ async function vdomFilter(html, filters) {
     }
 }
 
-/**
- * @param {MessageEvent} e 
- * {type: string, payload: Object} Task received on channel */
-async function onChannelMessage(e) {
-    const data = e.data;
-    if (!data.type || !data.type.startsWith('vdom:')) {
-        return;
+(function () {
+    /**
+     * Communication port with parent.
+     * @type {MessagePort | null}
+     */
+    let port1 = null;
+    /**
+     * @param {MessageEvent} e 
+     * {type: string, payload: Object} Task received on channel */
+    async function onChannelMessage(e) {
+        const data = e.data;
+        if (!data.type || !data.type.startsWith('vdom:')) {
+            return;
+        }
+        let response = undefined;
+        if (data.type === 'vdom:create') {
+            response = vdomCreate(data.html);
+        } else if (data.type === 'vdom:query') {
+            response = vdomQuery(data);
+        } else if (data.type === 'vdom:update') {
+            response = vdomUpdate(data);
+        } else if (data.type === 'vdom:getpatches') {
+            response = await vdomGetPatches(data.vid);
+        } else if (data.type === 'vdom:destroy') {
+            response = vdomDestroy(data.vid);
+        } else if (data.type === 'vdom:filter') {
+            response = await vdomFilter(data.html, data.filters);
+        } else {
+            console.error('Unknown vdom task type: ' + data.type);
+        }
+        port1?.postMessage(Object.assign(Object.create(null), response ?? {}, {
+            type: data.type,
+            requestId: data.requestId
+        }));
     }
-    let response = undefined;
-    if (data.type === 'vdom:create') {
-        response = vdomCreate(data.html);
-    } else if (data.type === 'vdom:query') {
-        response = vdomQuery(data);
-    } else if (data.type === 'vdom:update') {
-        response = vdomUpdate(data);
-    } else if (data.type === 'vdom:getpatches') {
-        response = await vdomGetPatches(data.vid);
-    } else if (data.type === 'vdom:destroy') {
-        response = vdomDestroy(data.vid);
-    } else if (data.type === 'vdom:filter') {
-        response = await vdomFilter(data.html, data.filters);
-    } else {
-        console.error('Unknown vdom task type: ' + data.type);
-    }
-    port1?.postMessage({
-        type: data.type,
-        requestId: data.requestId,
-        ...(response || {})
-    });
-}
 
-const channel = new MessageChannel();
-window.parent.postMessage({
-    type: 'tiny_widgethub_remotedom_init',
-    status: 'ready'
-}, '*', [channel.port2]);
-port1 = channel.port1;
-port1.onmessage = onChannelMessage;
+    const channel = new MessageChannel();
+    window.parent.postMessage({
+        type: 'tiny_widgethub_remotedom_init',
+        status: 'ready'
+    }, '*', [channel.port2]);
+    port1 = channel.port1;
+    port1.onmessage = onChannelMessage;
+})();

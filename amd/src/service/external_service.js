@@ -23,6 +23,7 @@
  */
 /** @ts-ignore */
 import { call as fetchMany } from 'core/ajax';
+import { nullProtofy } from '../util';
 
 export class ExternalService {
     static USER_PREFS_KEY = 'tiny_widgethub_userprefs';
@@ -45,14 +46,15 @@ export class ExternalService {
      * @returns Promise<number[]>
      */
     deleteWidgets(ids) {
-        return this._fetch('tiny_widgethub_delete_widgets', { ids });
+        return this._fetch('tiny_widgethub_delete_widgets',
+            nullProtofy({ ids }));
     }
     /**
      * @param {{ id: number, yml: string, json: string }[]} widgets
      * @returns {Promise<{ids: number[]}>}
      */
     saveWidgets(widgets) {
-        return this._fetch('tiny_widgethub_save_widgets', { widgets });
+        return this._fetch('tiny_widgethub_save_widgets', nullProtofy({ widgets }));
     }
     /**
      * @param {number[]} ids
@@ -61,7 +63,7 @@ export class ExternalService {
      * @returns {Promise<{id: number, key: string, json?: string, yml?: string}[]>}
      */
     getWidgetDocuments(ids, includejson = true, includeother = false) {
-        return this._fetch('tiny_widgethub_get_widgetsdocuments', { ids, includejson, includeother });
+        return this._fetch('tiny_widgethub_get_widgetsdocuments', nullProtofy({ ids, includejson, includeother }));
     }
 
     /**
@@ -69,7 +71,7 @@ export class ExternalService {
      * @returns {Promise<string>} The backup file url.
      */
     backupWidgets() {
-        return this._fetch('tiny_widgethub_get_backup', {});
+        return this._fetch('tiny_widgethub_get_backup', nullProtofy({}));
     }
 
     /**
@@ -77,7 +79,7 @@ export class ExternalService {
      * @returns {Promise<number[]>}
      */
     getWidgetsNoYml() {
-        return this._fetch('tiny_widgethub_get_widgetsnoyml', {});
+        return this._fetch('tiny_widgethub_get_widgetsnoyml', nullProtofy({}));
     }
 
     /**
@@ -86,7 +88,7 @@ export class ExternalService {
      * @returns {Promise<boolean[]>}
      */
     saveWidgetsYml(widgetsdata) {
-        return this._fetch('tiny_widgethub_save_widgetsyml', { widgets: widgetsdata });
+        return this._fetch('tiny_widgethub_save_widgetsyml', nullProtofy({ widgets: widgetsdata }));
     }
 
     /**
@@ -95,7 +97,7 @@ export class ExternalService {
      * @returns {Promise<boolean>}
      */
     setVisibility(id, visible) {
-        return this._fetch('tiny_widgethub_update_visible', { id, visible });
+        return this._fetch('tiny_widgethub_update_visible', nullProtofy({ id, visible }));
     }
 
     /**
@@ -105,14 +107,14 @@ export class ExternalService {
      */
     async saveUserPref(userPrefs) {
         try {
-            await this._fetch('core_user_update_user_preferences', {
+            await this._fetch('core_user_update_user_preferences', nullProtofy({
                 preferences: [
-                    {
+                    nullProtofy({
                         type: ExternalService.USER_PREFS_KEY,
                         value: userPrefs,
-                    }
+                    })
                 ]
-            });
+            }));
             return true;
         } catch (e) {
             return false;

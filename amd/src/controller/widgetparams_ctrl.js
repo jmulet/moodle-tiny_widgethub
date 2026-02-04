@@ -131,8 +131,7 @@ export class WidgetParamsCtrl {
     * @returns {Promise<string>} The rendered template previously sanitized
     */
    render(ctx) {
-      const defaultsCopy = { ...this.widget.defaults };
-      const toInterpolate = Object.assign(defaultsCopy, ctx ?? {});
+      const toInterpolate = Object.assign(Object.create(null), this.widget.defaults, ctx ?? {});
       // Decide which template engine to use
       let engine = this.widget.prop('engine');
       return this.templateSrv.render(this.widget.template ?? "", toInterpolate,

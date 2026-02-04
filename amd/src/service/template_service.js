@@ -64,7 +64,7 @@ export class TemplateSrv {
      * @returns {string} The interpolated template given a context and translations map
      */
     renderMustache(template, context, removeUnsafe = false) {
-        const ctx = { ...context };
+        const ctx = Object.assign(Object.create(null), context);
         Object.keys(ctx).forEach(key => {
             if (ctx[key] === "$RND") {
                 ctx[key] = genID();
@@ -94,7 +94,7 @@ export class TemplateSrv {
         }
         engine = engine.toLowerCase();
         /** @type {Object.<string, any>} */
-        const ctx = { ...context, I18n: {} };
+        const ctx = Object.assign(Object.create(null), context, { I18n: Object.create(null) });
         Object.keys(ctx).forEach(key => {
             if (ctx[key] === "$RND") {
                 ctx[key] = genID();

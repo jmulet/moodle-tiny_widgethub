@@ -45,10 +45,10 @@ const MAX_WORKER_TIMEOUT = 5000;
 /** @type {number} */
 const MAX_WORKER_RUNS = 10; // Maximum number of runs for a worker
 
-/** @type {Record<string, Array<QueuedTask>>} */
-const queues = {};
-/** @type {Record<string, WorkerWrap | null>} */
-const workers = {};
+/** @type {Map<string, Array<QueuedTask>>} */
+const queues = new Map();
+/** @type {Map<string, WorkerWrap | null>} */
+const workers = new Map();
 /** @type {MessagePort | null} */
 let port1 = null;
 
@@ -149,18 +149,18 @@ function createWorker(type) {
         return null;
     }
     const jsCode = baseWorker + template.content.textContent.trim();
-    const url = URL.createObjectURL(new Blob([jsCode], {
+    const url = URL.createObjectURL(new Blob([jsCode], Object.assign(Object.create(null), {
         type: 'text/javascript'
-    }));
+    })));
     console.log('Creating worker for type: ' + type, jsCode);
     const worker = new Worker(url);
-    const workerWrap = {
+    const workerWrap = Object.seal(Object.assign(Object.create(null), {
         worker,
         id: null,
         runs: 0,
         loaded: false,
         timeout: null,
-    };
+    }));
     worker.onmessage = function (e) {
         console.log('Worker message for type: ' + type, e.data);
         if (e.data.type === 'worker_ready') {
@@ -172,21 +172,21 @@ function createWorker(type) {
         } else if (e.data.type === 'worker_error') {
             URL.revokeObjectURL(url);
             // Cannot process any task on this queue
-            (queues[type] || []).forEach((task) => {
-                port1?.postMessage({
+            (queues.get(type) ?? []).forEach((task) => {
+                port1?.postMessage(Object.assign(Object.create(null), {
                     type: type,
                     requestId: task.requestId,
                     error: 'Worker error for type: ' + type + ' ' + e.data.error
-                });
+                }));
             });
-            queues[type] = [];
+            queues.set(type, []);
             worker.terminate();
-            workers[type] = null;
+            workers.delete(type);
             return;
         }
         // Normal task execution response
         workerWrap.id = null;
-        const data = e.data;
+        const data = Object.assign(Object.create(null), e.data);
         data.type = type;
         // sanitize data.response
         if (data.response) {
@@ -198,33 +198,42 @@ function createWorker(type) {
         }
         processNextTask(type);
     };
-    worker.onerror = function (e) {
+    /**
+     * @param {ErrorEvent} e 
+     */
+    const onerrorFn = function (e) {
         console.error('Worker onerror for type: ' + type, e, workerWrap.id);
         const errorMessage = 'Worker error for type: ' + type + ' ' + (e.message || e);
 
         if (workerWrap.id) {
-            port1?.postMessage({
+            port1?.postMessage(Object.assign(Object.create(null), {
                 type: type,
                 requestId: workerWrap.id,
                 error: errorMessage
-            });
+            }));
         }
 
-        (queues[type] || []).forEach((task) => {
-            port1?.postMessage({
+        (queues.get(type) ?? []).forEach((task) => {
+            port1?.postMessage(Object.assign(Object.create(null), {
                 type: type,
                 requestId: task.requestId,
                 error: errorMessage
-            });
+            }));
         });
 
         if (workerWrap.timeout) {
             clearTimeout(workerWrap.timeout);
         }
         worker.terminate();
-        workers[type] = null;
-        queues[type] = [];
+        workers.delete(type);
+        queues.set(type, []);
         URL.revokeObjectURL(url);
+    };
+    worker.onerror = onerrorFn;
+    worker.onmessageerror = function () {
+        onerrorFn(new ErrorEvent('messageerror', {
+            message: 'Message error for type: ' + type
+        }));
     };
     return workerWrap;
 }
@@ -234,16 +243,17 @@ function createWorker(type) {
  * @param {string} type - The type of the queue to process.
  */
 function processNextTask(type) {
-    if (!queues[type] || queues[type].length === 0) {
+    const queue = queues.get(type);
+    if (!queue || queue.length === 0) {
         console.log('No tasks for type: ' + type);
         return;
     }
-    const task = queues[type][0];
+    const task = queue[0];
     if (!task) {
         console.log('No task for type: ' + type);
         return;
     }
-    let workerWrap = workers[type];
+    let workerWrap = workers.get(type);
     if (workerWrap) {
         if (!workerWrap.loaded || workerWrap.id) {
             console.log('Worker not ready or busy for type: ' + type);
@@ -256,28 +266,28 @@ function processNextTask(type) {
             }
             workerWrap.worker.terminate();
             workerWrap = null;
-            workers[type] = null;
+            workers.delete(type);
         }
     }
     if (!workerWrap) {
         console.log('Creating worker for type: ' + type);
         workerWrap = createWorker(type);
-        workers[type] = workerWrap;
+        workers.set(type, workerWrap);
         return;
     }
-    queues[type].shift();
+    queue.shift();
     workerWrap.timeout = window.setTimeout(function () {
         if (workerWrap?.timeout) {
             window.clearTimeout(workerWrap.timeout);
         }
         workerWrap?.worker?.terminate();
         workerWrap = null;
-        port1?.postMessage({
+        port1?.postMessage(Object.assign(Object.create(null), {
             requestId: task.requestId,
             type: type,
             error: 'Worker timeout for type: ' + type
-        });
-        workers[type] = null;
+        }));
+        workers.delete(type);
         processNextTask(type);
     }, MAX_WORKER_TIMEOUT);
     workerWrap.id = task.requestId;
@@ -293,19 +303,25 @@ function processNextTask(type) {
 function onChannelMessage(e) {
     const data = e.data;
     if (data.type) {
-        if (!queues[data.type]) {
-            queues[data.type] = [];
+        let queue = queues.get(data.type);
+        if (!queue) {
+            queue = [];
+            queues.set(data.type, queue);
         }
-        queues[data.type].push(data);
+        queue.push(data);
         console.log('Task received to iframe for type: ' + data.type, data);
         processNextTask(data.type);
     }
 }
 
 const channel = new MessageChannel();
-window.parent.postMessage({
-    type: 'tiny_widgethub_sandbox_init',
-    status: 'ready'
-}, '*', [channel.port2]);
+window.parent.postMessage(
+    Object.assign(Object.create(null), {
+        type: 'tiny_widgethub_sandbox_init',
+        status: 'ready'
+    }),
+    '*',
+    [channel.port2]
+);
 port1 = channel.port1;
 port1.onmessage = onChannelMessage;
