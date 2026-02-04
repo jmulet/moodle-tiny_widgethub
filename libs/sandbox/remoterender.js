@@ -53,7 +53,7 @@ const workers = new Map();
 let port1 = null;
 
 const baseWorker = `function disableWorkerAPIs() {
-            var dangerous = ['close', 'fetch', 'XMLHttpRequest', 'importScripts'];
+            const dangerous = ['close', 'fetch', 'XMLHttpRequest', 'importScripts'];
             dangerous.forEach(api => {
                 if (self[api]) {
                     Object.defineProperty(self, api, {
@@ -65,34 +65,47 @@ const baseWorker = `function disableWorkerAPIs() {
             });
         }
 
-        var blacklist = ['self', 'globalThis', 'Worker', 'SharedWorker', 'postMessage', 'onmessage', 
+        function protoNullify(obj) {
+            return Object.assign(Object.create(null), obj);
+        }
+
+        const blacklist = ['self', 'globalThis', 'Worker', 'SharedWorker', 'postMessage', 'onmessage', 
             'indexedDB', 'location', 'navigator', 'origin', 'console', 'setTimeout', 'setInterval'];
 
         function evalInContext(ctx, expr, keepFns) {
-            if (expr.indexOf('Function(') !== -1 || expr.indexOf('eval(') !== -1 ||
-                expr.indexOf('.constructor') !== -1) {
+            if (
+                expr.includes('Function(') ||
+                expr.includes('eval(') ||
+                expr.includes('.constructor')
+            ) {
                 throw new Error('Function or eval or constructor is not allowed');
             }
-            var listArgs = [];
-            var listVals = [];
-            ctx = ctx || {};
+
+            const listArgs = [];
+            const listVals = [];
+
+            ctx = protoNullify(ctx || {});
+
             Object.keys(ctx).forEach((key) => {
                 if (keepFns || typeof ctx[key] !== "function") {
                     listArgs.push(key);
                     listVals.push(ctx[key]);
                 }
             });
+
+            // Shadow blacklisted globals.
             blacklist.forEach((key) => {
-                if (ctx[key] !== undefined) {
-                    return;
+                if (!Object.hasOwn(ctx, key)) {
+                    listArgs.push(key);
+                    listVals.push(null);
                 }
-                listArgs.push(key);
-                listVals.push(null);
             });
-            listArgs.push('expr');
-            listArgs.push('return eval(expr)');
-            listVals.push(expr);
-            var evaluator = new Function(...listArgs);
+
+            const evaluator = new Function(
+                ...listArgs,
+                '"use strict"; return (' + expr + ');'
+            );
+
             return evaluator(...listVals);
         }
     `;
@@ -148,7 +161,10 @@ function createWorker(type) {
         console.error('Worker template not found for type: ' + type);
         return null;
     }
-    const jsCode = baseWorker + template.content.textContent.trim();
+    const jsCode = `(function(){
+    ${baseWorker}
+    ${template.content.textContent.trim()}
+    })()`;
     const url = URL.createObjectURL(new Blob([jsCode], Object.assign(Object.create(null), {
         type: 'text/javascript'
     })));

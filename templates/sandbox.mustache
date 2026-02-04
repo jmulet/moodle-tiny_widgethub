@@ -58,9 +58,6 @@
     base-uri 'none';
     form-action 'none';
     ">
-    <script>
-        window.parentOrigin = "{{{origin}}}";
-    </script>
     <script src="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/remoterender"></script>
 </head>
 
@@ -68,45 +65,44 @@
   <template id="worker_liquid">
         importScripts("{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/liquid");
         const Liquid = liquidjs.Liquid
-        const engine = new Liquid({cache: false});
-
+        const engine = new Liquid(protoNullify({cache: false}));
+        const _postMessage = self.postMessage;
         disableWorkerAPIs();
 
         self.onmessage = async function(e) {
             const data = e.data;
-            const payload = data.payload || {};
+            const payload = data.payload || protoNullify({});
             try {
-                const ctx = payload.ctx || {}; 
+                const ctx = payload.ctx || protoNullify({}); 
                 const result = await engine.parseAndRender(payload.template, ctx);
-                self.postMessage({
+                _postMessage(protoNullify({
                     requestId: data.requestId,
                     result: result
-                }); 
+                })); 
             } catch (e) {
                 console.error('Failed to render template: ' + e);
-                self.postMessage({
+                _postMessage(protoNullify({
                     requestId: data.requestId,
                     error: 'Failed to render template: ' + e
-                });
+                }));
             }
         };
-        self.postMessage({
+        _postMessage(protoNullify({
             type: !!engine ? 'worker_ready' : 'worker_error',
-        });
+        }));
     </template>
 
     <template id="worker_ejs">
         importScripts("{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/ejs");
-        console.log('ejs worker loaded');
+        const _postMessage = self.postMessage;
         disableWorkerAPIs();
-        console.log('ejs worker APIs disabled');
         const validName = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
 
         self.onmessage = function(e) {
             const data = e.data;
-            const payload = data.payload || {};
+            const payload = data.payload || protoNullify({});
             try {
-                const ctx = payload.ctx || {};
+                const ctx = payload.ctx || protoNullify({});
                 const keys = Object.keys(ctx).filter(key => validName.test(key));
                 const extendedTemplate = '<% ' + 
                     blacklist.map(key => 'var ' + key + ' = null;').join('\n') +
@@ -117,27 +113,26 @@
                     _with: false,
                     context: null
                 });
-                self.postMessage({
+                _postMessage(protoNullify({
                     requestId: data.requestId,
                     result: result
-                });
+                }));
             } catch (e) {
                 console.error('Failed to render template: ' + e);
-                self.postMessage({
+                _postMessage(protoNullify({
                     requestId: data.requestId,
                     error: 'Failed to render template: ' + e
-                });
+                }));
             }
         };
-        console.log('ejs worker sending ready message');
-        self.postMessage({
+        _postMessage(protoNullify({
             type: !!ejs ? 'worker_ready' : 'worker_error',
-        });
+        }));
     </template>
 
     <template id="worker_mustache">
         importScripts("{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/mustache");
-
+        const _postMessage = self.postMessage;
         disableWorkerAPIs();
 
         function defineVar(text, ctx2) {
@@ -149,7 +144,7 @@
         }
 
         function applyMustacheHelpers(ctx, translations) {
-            translations = translations || {};
+            translations = translations || protoNullify({});
             ctx.if = () =>
                 /**
                  * @param {string} text
@@ -254,28 +249,28 @@
 
         self.onmessage = function(e) {
             const data = e.data;
-            const payload = data.payload || {};
+            const payload = data.payload || protoNullify({});
             // Add lambda functions to context
-            const context = Object.assign({}, payload.ctx);
+            const context = protoNullify(payload.ctx);
             applyMustacheHelpers(context, payload.translations);
             try {
                 const result = mustache.render(payload.template, context);
-                self.postMessage({
+                _postMessage(protoNullify({
                     requestId: data.requestId,
                     result: result
-                });
+                }));
             } catch (e) {
                 console.error('Failed to render template: ' + e);
-                self.postMessage({
+                _postMessage(protoNullify({
                     requestId: data.requestId,
                     error: 'Failed to render template: ' + e
-                });
+                }));
             }
         };
 
-        self.postMessage({
+        _postMessage(protoNullify({
             type: !!mustache ? 'worker_ready' : 'worker_error',
-        });
+        }));
     </template>
 
     <template id="worker_eval">
@@ -283,27 +278,27 @@
 
         self.onmessage = function(e) {
             const data = e.data;
-            const payload = data.payload || {};
+            const payload = data.payload || protoNullify({});
             try {
                 const result = evalInContext(payload.ctx, payload.code);
-                self.postMessage({
+                self.postMessage(protoNullify({
                     requestId: data.requestId,
                     result: {
                         returns: result,
                         ctx: payload.ctx
                     }
-                });
+                }));
             } catch (e) {
                 console.error('Failed to evaluate code: ' + e);
-                self.postMessage({
+                self.postMessage(protoNullify({
                     requestId: data.requestId,
                     error: 'Failed to evaluate code: ' + e
-                });
+                }));
             }
         };
-        self.postMessage({
+        self.postMessage(protoNullify({
             type: !!evalInContext ? 'worker_ready' : 'worker_error',
-        });
+        }));
     </template>
 </body>
 </html>
