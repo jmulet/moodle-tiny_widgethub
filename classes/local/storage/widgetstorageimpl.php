@@ -110,9 +110,9 @@ class widgetstorageimpl implements widgetstorage {
      */
     private function load_index(): array {
         global $DB;
-        $sql = "SELECT itemid, source 
-        FROM {files} 
-        WHERE component = 'tiny_widgethub' 
+        $sql = "SELECT itemid, source
+        FROM {files}
+        WHERE component = 'tiny_widgethub'
         AND filename = 'data.json' AND source IS NOT NULL";
         $records = $DB->get_records_sql($sql);
         $index = [];
@@ -305,7 +305,8 @@ class widgetstorageimpl implements widgetstorage {
                 return false;
             }
         }
-        if ((!isset($widget['template']) && !isset($widget['filter'])) ||
+        if (
+            (!isset($widget['template']) && !isset($widget['filter'])) ||
             (isset($widget['template']) && isset($widget['filter']))
         ) {
             return false;

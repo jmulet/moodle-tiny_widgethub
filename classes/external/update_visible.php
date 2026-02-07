@@ -57,7 +57,9 @@ class update_visible extends external_api {
 
     /**
      * The function that executes the the widget saving logic.
-     * @param array $widgets The widgets to save.
+     * @param int $id The widget ID to update visibility.
+     * @param bool $visible The visibility of the widget.
+     * @return array The result of the operation.
      */
     public static function execute($id, $visible) {
         // Validate parameters.
