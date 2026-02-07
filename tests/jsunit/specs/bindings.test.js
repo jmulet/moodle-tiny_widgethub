@@ -22,7 +22,7 @@ function createBinding(bindDef, elem) {
     return bindingFn.apply(null, [elem, ...args]);
 }
 
-describe('utils module tests', () => {
+describe('bindings module tests', () => {
     /** @type {any} */
     let consoleSpy;
 
@@ -103,8 +103,8 @@ describe('utils module tests', () => {
         [`styleRegex("background-image:url\\(['\\"]?([^'\\")]*)['\\"]?\\)")`,
             `<span class="iedib-background-img" style="background-image:url(http://localhost:4545/pluginfile.php/19/mod_page/content/5/icon.png); padding: 10px; min-height: 40px; background-repeat: no-repeat; background-size: cover; background-position: 50% 50%;">
             Quina probabilitat tinc de guanyar els jocs d'atzar?</span>`, 'http://localhost:4545/pluginfile.php/19/mod_page/content/5/icon.png'],
-        ["html()", `<div><span>Content</span></div>`, "<span>Content</span>"],
-        ["text()", `<div><span>Content</span></div>`, "Content"],
+        ["html()", `<span><b>Content</b></span>`, "<b>Content</b>"],
+        ["text()", `<span>Content</span>`, "Content"],
         ["attrBS('target')", `<span data-target="modal"></span>`, "modal"],
         ["attrBS('target', null, null, 5)", `<span data-bs-target="modal"></span>`, "modal"],
         ["hasAttrBS('target=modal')", `<span data-target="modal"></span>`, true],
@@ -210,8 +210,8 @@ describe('utils module tests', () => {
             `<span class="iedib-background-img" style="background-image: url(&quot;https://newsite.com/example32.png&quot;); padding: 10px;" data-mce-style="background-image: url(&quot;https://newsite.com/example32.png&quot;); padding: 10px;">
             Lorem ipsum.</span>`],
 
-        ["html()", `<span>Old</span>`, "New", "<span>New</span>"],
-        ["text()", `<span>Old</span>`, "New", "<span>New</span>"],
+        ["html()", `<span>Old <i>...</i></span>`, "New <b>bold</b>", "<span>New <b>bold</b></span>"],
+        ["text()", `<span>Old <b>old</b></span>`, "New content", "<span>New content</span>"],
         ["attrBS('target')", `<span></span>`, "modal", `<span data-bs-target="modal" data-target="modal"></span>`],
         ["attrBS('target', null, null, 5)", `<span></span>`, "modal", `<span data-bs-target="modal"></span>`],
         ["hasAttrBS('target=modal')", `<span></span>`, true, `<span data-bs-target="modal" data-target="modal"></span>`],
@@ -228,14 +228,28 @@ describe('utils module tests', () => {
 
         // Binding on a child
         const e = U.htmlToElement(document, `<div class="container">${elemDef}</div>`);
-        if (bindDef.indexOf("null") > 0) {
-            bindDef = bindDef.replace("null", "'span'");
+        let childBindDef = bindDef; // Use a new variable for child binding definition
+        if (childBindDef.indexOf("()") > 0) {
+            childBindDef = childBindDef.replace("()", "('span')");
+        } else if (childBindDef.indexOf("null") > 0) {
+            childBindDef = childBindDef.replace("null", "'span'");
         } else {
-            bindDef = bindDef.substring(0, bindDef.length - 1) + ", 'span')";
+            // This handles cases like hasClass('editable') -> hasClass('editable', 'span')
+            // or attr('data-locked') -> attr('data-locked', 'span')
+            // It assumes the last argument is the selector, or adds it if not present.
+            // This might need more robust parsing for complex bindDefs.
+            const lastParenIndex = childBindDef.lastIndexOf(')');
+            if (lastParenIndex > -1) {
+                childBindDef = childBindDef.substring(0, lastParenIndex) + ", 'span')";
+            } else {
+                // Fallback for unexpected formats, though current bindDefs should have ')'
+                childBindDef += "('span')";
+            }
         }
-        binding = createBinding(bindDef, e);
+        binding = createBinding(childBindDef, e);
         expect(binding).not.toBeNull();
         binding?.setValue(value)
         expect(normalizeStyle(e.querySelector("span")?.outerHTML)).toBe(normalizeStyle(result));
+
     });
 });
