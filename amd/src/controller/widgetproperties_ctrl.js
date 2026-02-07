@@ -59,7 +59,7 @@ export class WidgetPropertiesCtrl {
 
     /**
      * @param {*} widget
-     * @param {Map<string, import('../bindings').Binding>} localBindings 
+     * @param {Map<string, import('../bindings').Binding>} localBindings
      * @param {import('../options').Param[]} parametersWithBindings
      * @param {{name: string, value: any}[]} valuesFromDom
      */

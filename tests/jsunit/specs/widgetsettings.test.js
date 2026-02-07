@@ -38,7 +38,7 @@ jest.mock("../src/libs/cmeditor-lazy", () => {
         CmEditor: MockCmEditor,
         YAML: {
             parse: require('yaml').parse,
-            fromJSON: (json) => require('yaml').stringify(JSON.parse(json))
+            fromJSON: (/** @type {string} */ json) => require('yaml').stringify(JSON.parse(json))
         }
     };
 }, { virtual: true });
