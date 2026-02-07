@@ -119,7 +119,8 @@ export class Sandbox {
         const html = await Templates.render(`tiny_widgethub/${this.initEventName}`, {
             wwwroot: Config.wwwroot,
             origin: moodleOrigin,
-            jsrev: Config.jsrev || 1
+            jsrev: Config.jsrev || 1,
+            lang: document.documentElement.lang || 'en'
         });
         const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
         iframe.src = url;

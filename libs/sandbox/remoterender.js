@@ -17,9 +17,24 @@
 /**
  * Tiny WidgetHub plugin.
  *
+ * @module     tiny_widgethub/remoterender
  * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+// Retrieve worker URLs from link tags
+/** @type {Object<string, string>} */
+const rawUrls = {};
+/** @type {NodeListOf<HTMLLinkElement>} */
+const links = document.querySelectorAll('link[rel="workersrc"]');
+links.forEach((link) => {
+    rawUrls[link.id] = link.href;
+    link.remove();
+});
+
+// Create a permanent, read-only configuration
+const WORKER_CONFIG = Object.freeze(rawUrls);
+
 /** @typedef {Object} QueuedTask
  * @property {string} type
  * @property {string} requestId
@@ -51,64 +66,6 @@ const queues = new Map();
 const workers = new Map();
 /** @type {MessagePort | null} */
 let port1 = null;
-
-const baseWorker = `function disableWorkerAPIs() {
-            const dangerous = ['close', 'fetch', 'XMLHttpRequest', 'importScripts'];
-            dangerous.forEach(api => {
-                if (self[api]) {
-                    Object.defineProperty(self, api, {
-                        value: () => { throw new Error('Security Error: worker api is disabled.'); },
-                        configurable: false,
-                        writable: false
-                    });
-                }
-            });
-        }
-
-        function protoNullify(obj) {
-            return Object.assign(Object.create(null), obj);
-        }
-
-        const blacklist = ['self', 'globalThis', 'Worker', 'SharedWorker', 'postMessage', 'onmessage', 
-            'indexedDB', 'location', 'navigator', 'origin', 'console', 'setTimeout', 'setInterval'];
-
-        function evalInContext(ctx, expr, keepFns) {
-            if (
-                expr.includes('Function(') ||
-                expr.includes('eval(') ||
-                expr.includes('.constructor')
-            ) {
-                throw new Error('Function or eval or constructor is not allowed');
-            }
-
-            const listArgs = [];
-            const listVals = [];
-
-            ctx = protoNullify(ctx || {});
-
-            Object.keys(ctx).forEach((key) => {
-                if (keepFns || typeof ctx[key] !== "function") {
-                    listArgs.push(key);
-                    listVals.push(ctx[key]);
-                }
-            });
-
-            // Shadow blacklisted globals.
-            blacklist.forEach((key) => {
-                if (!Object.hasOwn(ctx, key)) {
-                    listArgs.push(key);
-                    listVals.push(null);
-                }
-            });
-
-            const evaluator = new Function(
-                ...listArgs,
-                '"use strict"; return (' + expr + ');'
-            );
-
-            return evaluator(...listVals);
-        }
-    `;
 
 /**
  * Sanitizes the rendered HTML by removing potentially dangerous tags and attributes.
@@ -161,15 +118,8 @@ function createWorker(type) {
         console.error('Worker template not found for type: ' + type);
         return null;
     }
-    const jsCode = `(function(){
-    ${baseWorker}
-    ${template.content.textContent.trim()}
-    })()`;
-    const url = URL.createObjectURL(new Blob([jsCode], Object.assign(Object.create(null), {
-        type: 'text/javascript'
-    })));
-    console.log('Creating worker for type: ' + type, jsCode);
-    const worker = new Worker(url);
+    const workerUrl = WORKER_CONFIG['urlworker_' + type];
+    const worker = new Worker(workerUrl);
     const workerWrap = Object.seal(Object.assign(Object.create(null), {
         worker,
         id: null,
@@ -180,13 +130,11 @@ function createWorker(type) {
     worker.onmessage = function (e) {
         console.log('Worker message for type: ' + type, e.data);
         if (e.data.type === 'worker_ready') {
-            URL.revokeObjectURL(url);
             workerWrap.loaded = true;
             console.log('Worker ready for type: ' + type);
             processNextTask(type);
             return;
         } else if (e.data.type === 'worker_error') {
-            URL.revokeObjectURL(url);
             // Cannot process any task on this queue
             (queues.get(type) ?? []).forEach((task) => {
                 port1?.postMessage(Object.assign(Object.create(null), {
@@ -243,7 +191,6 @@ function createWorker(type) {
         worker.terminate();
         workers.delete(type);
         queues.set(type, []);
-        URL.revokeObjectURL(url);
     };
     worker.onerror = onerrorFn;
     worker.onmessageerror = function () {

@@ -1,0 +1,7 @@
+(function(){"use strict";/**
+ * Tiny WidgetHub plugin.
+ *
+ * @module      tiny_widgethub/workercommon
+ * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */function i(){["close","fetch","XMLHttpRequest","importScripts"].forEach(e=>{self[e]&&Object.defineProperty(self,e,{value:()=>{throw new Error("Security Error: worker api is disabled.")},configurable:!1,writable:!1})})}function s(e){return Object.assign(Object.create(null),e)}const u=["self","globalThis","Worker","SharedWorker","postMessage","onmessage","indexedDB","location","navigator","origin","console","setTimeout","setInterval"];function a(e,t,n){if(t.includes("Function(")||t.includes("eval(")||t.includes(".constructor"))throw new Error("Function or eval or constructor is not allowed");const r=[],l=[];return e=s(e||{}),Object.keys(e).forEach(o=>{(n||typeof e[o]!="function")&&(r.push(o),l.push(e[o]))}),u.forEach(o=>{e[o]===void 0&&(r.push(o),l.push(null))}),new Function(...r,'"use strict"; return ('+t+");")(...l)}i();const c=self.postMessage;self.onmessage=function(e){const t=e.data,n=t.payload||s({});try{const r=a(n.ctx,n.code,!1);c(s({requestId:t.requestId,result:{returns:r,ctx:n.ctx}}))}catch(r){console.error("Failed to evaluate code: "+r),c(s({requestId:t.requestId,error:"Failed to evaluate code: "+r}))}},c(s({type:typeof a=="function"?"worker_ready":"worker_error"}))})();

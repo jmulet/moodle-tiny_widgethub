@@ -57,26 +57,94 @@ export default [
             sourcemap: false,
             file: path.resolve(__dirname, './js/remoterender.js'),
             format: 'iife',
-            name: 'remoterender',
             plugins: [],
         },
         plugins: [
-            nodeResolve(),
+            nodeResolve({
+                browser: true,
+                preferBuiltins: false
+            }),
             esbuild({ target: 'es2017', minify: true }),
         ]
     },
-
     {
         input: './sandbox/remotedom.js',
         output: {
             sourcemap: false,
             file: path.resolve(__dirname, './js/remotedom.js'),
             format: 'iife',
-            name: 'remotedom',
             plugins: [],
         },
         plugins: [
-            nodeResolve(),
+            nodeResolve({
+                browser: true,
+                preferBuiltins: false
+            }),
+            esbuild({ target: 'es2017', minify: true }),
+        ]
+    },
+    {
+        input: './sandbox/workers/worker_eval.js',
+        output: {
+            sourcemap: false,
+            file: path.resolve(__dirname, './js/worker_eval.js'),
+            format: 'iife',
+            plugins: [],
+        },
+        plugins: [
+            nodeResolve({
+                browser: true,
+                preferBuiltins: false
+            }),
+            esbuild({ target: 'es2017', minify: true }),
+        ]
+    },
+    {
+        input: './sandbox/workers/worker_ejs.js',
+        output: {
+            sourcemap: false,
+            file: path.resolve(__dirname, './js/worker_ejs.js'),
+            format: 'iife',
+            plugins: [],
+        },
+        plugins: [
+            nodeResolve({
+                browser: true,
+                preferBuiltins: false
+            }),
+            esbuild({ target: 'es2017', minify: true }),
+        ]
+    },
+    {
+        input: './sandbox/workers/worker_liquid.js',
+        context: 'self',
+        output: {
+            sourcemap: false,
+            file: path.resolve(__dirname, './js/worker_liquid.js'),
+            format: 'iife',
+            plugins: [],
+        },
+        plugins: [
+            nodeResolve({
+                browser: true,
+                preferBuiltins: false
+            }),
+            esbuild({ target: 'es2017', minify: true }),
+        ]
+    },
+    {
+        input: './sandbox/workers/worker_mustache.js',
+        output: {
+            sourcemap: false,
+            file: path.resolve(__dirname, './js/worker_mustache.js'),
+            format: 'iife',
+            plugins: [],
+        },
+        plugins: [
+            nodeResolve({
+                browser: true,
+                preferBuiltins: false
+            }),
             esbuild({ target: 'es2017', minify: true }),
         ]
     }

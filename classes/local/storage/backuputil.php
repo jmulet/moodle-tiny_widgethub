@@ -142,16 +142,16 @@ class backuputil {
         $overrideenabled = $data->override === 1;
         $configenabled = $data->config === 1;
 
-        // Draft files are always in the 'user' component and 'draft' filearea
+        // Draft files are always in the 'user' component and 'draft' filearea.
         $fs = get_file_storage();
         $context = \context_user::instance($USER->id);
         $files = $fs->get_area_files(
-            $context->id,      // Files belong to the current user
-            'user',         // Component is 'user'
-            'draft',        // Area is 'draft'
-            $draftitemid,   // The ID from the form
-            'id DESC',      // Sort order
-            false           // Don't include directories
+            $context->id, // Files belong to the current user.
+            'user', // Component is 'user'.
+            'draft', // Area is 'draft'.
+            $draftitemid, // The ID from the form.
+            'id DESC', // Sort order.
+            false // Don't include directories.
         );
 
         if (empty($files)) {
@@ -213,7 +213,7 @@ class backuputil {
                 if (!is_object($jsondata) || empty($jsondata) || !isset($jsondata->key)) {
                     $logs[] = [
                         'message' => 'Invalid JSON data in ' . $filename,
-                        'severity' => 'error'
+                        'severity' => 'error',
                     ];
                     continue;
                 }

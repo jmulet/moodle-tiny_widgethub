@@ -111,21 +111,30 @@ class widgettable extends \admin_setting {
         $exportid = 'tiny_widgethub_export';
 
         // Prepare data for the template.
-        $template_data = [
+        $templatedata = [
             'tableid' => $tableid,
             'selectallid' => $selectallid,
             'deletebtnid' => $deletebtnid,
             'exportid' => $exportid,
             'widgets' => $widgets,
             'urls' => [
-                'partials' => (new \moodle_url('/lib/editor/tiny/plugins/widgethub/settingseditorpage.php', ['id' => 0]))->out(false),
-                'newwidget' => (new \moodle_url('/lib/editor/tiny/plugins/widgethub/settingseditorpage.php'))->out(false),
-                'restore' => (new \moodle_url('/lib/editor/tiny/plugins/widgethub/settingsrestorepage.php'))->out(false),
+                'partials' => (
+                    new \moodle_url(
+                        '/lib/editor/tiny/plugins/widgethub/settingseditorpage.php',
+                        ['id' => 0]
+                    )
+                )->out(false),
+                'newwidget' => (
+                    new \moodle_url('/lib/editor/tiny/plugins/widgethub/settingseditorpage.php')
+                )->out(false),
+                'restore' => (
+                    new \moodle_url('/lib/editor/tiny/plugins/widgethub/settingsrestorepage.php')
+                )->out(false),
             ]
         ];
 
         // Render the Mustache template.
-        $finalhtml = $OUTPUT->render_from_template('tiny_widgethub/widgettable', $template_data);
+        $finalhtml = $OUTPUT->render_from_template('tiny_widgethub/widgettable', $templatedata);
 
         $deletestr = get_string('delete', self::TINY_CATEGORY);
         $jsparams = [
@@ -160,7 +169,9 @@ class widgettable extends \admin_setting {
      */
     public static function get_list_widgets_config(): array {
         global $DB;
-        $sql = "SELECT itemid, source FROM {files} WHERE component = 'tiny_widgethub' AND filename = 'data.json' AND source IS NOT NULL";
+        $sql = "SELECT itemid, source FROM {files}
+        WHERE component = 'tiny_widgethub'
+        AND filename = 'data.json' AND source IS NOT NULL";
         $records = $DB->get_records_sql($sql);
         $widgets = [];
         foreach ($records as $itemid => $record) {

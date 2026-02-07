@@ -17,7 +17,7 @@
 /**
  * Local WidgetHub plugin version details.
  *
- * @package     local_widgethub
+ * @package     tiny_widgethub
  * @copyright   2026 Josep Mulet <pep.mulet@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

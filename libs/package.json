@@ -23,6 +23,9 @@
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.38.1",
     "codemirror": "^6.0.2",
+    "jquery-slim": "^3.0.0",
+    "liquidjs": "^10.24.0",
+    "mustache": "^4.2.0",
     "yaml": "^2.8.1",
     "zod": "^4.3.6"
   },

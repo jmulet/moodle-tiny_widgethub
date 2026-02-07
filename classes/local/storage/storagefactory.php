@@ -96,6 +96,11 @@ abstract class storagefactory {
         return self::$instance;
     }
 
+    /**
+     * Get the editor data.
+     *
+     * @return array
+     */
     public static function get_editor_data(): array {
         $storage = self::get_instance();
         // Try to get the widget index from cache.

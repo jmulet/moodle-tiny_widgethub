@@ -51,7 +51,7 @@ class update_visible extends external_api {
      */
     public static function execute_returns() {
         return new external_single_structure([
-            'result' => new external_value(PARAM_BOOL, 'Result of the operation')
+            'result' => new external_value(PARAM_BOOL, 'Result of the operation'),
         ]);
     }
 

@@ -39,266 +39,30 @@
     }
 }}
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
     <title>WidgetHub Sandbox</title>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="
     default-src 'none';
     script-src 'self' {{{origin}}} 'unsafe-eval';
-    worker-src 'self' blob:;
+    frame-src blob:;
+    worker-src 'self';
     style-src 'self';
     connect-src 'none';
     img-src 'none';
     font-src 'none';
     media-src 'none';
-    child-src blob:;
     object-src 'none';
     base-uri 'none';
     form-action 'none';
     ">
+    <link rel="workersrc" id="urlworker_mustache" href="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/worker_mustache">
+    <link rel="workersrc" id="urlworker_liquid" href="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/worker_liquid">
+    <link rel="workersrc" id="urlworker_ejs" href="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/worker_ejs">
+    <link rel="workersrc" id="urlworker_eval" href="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/worker_eval">
     <script src="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/remoterender"></script>
 </head>
-
-<body>
-  <template id="worker_liquid">
-        importScripts("{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/liquid");
-        const Liquid = liquidjs.Liquid
-        const engine = new Liquid(protoNullify({cache: false}));
-        const _postMessage = self.postMessage;
-        disableWorkerAPIs();
-
-        self.onmessage = async function(e) {
-            const data = e.data;
-            const payload = data.payload || protoNullify({});
-            try {
-                const ctx = payload.ctx || protoNullify({}); 
-                const result = await engine.parseAndRender(payload.template, ctx);
-                _postMessage(protoNullify({
-                    requestId: data.requestId,
-                    result: result
-                })); 
-            } catch (e) {
-                console.error('Failed to render template: ' + e);
-                _postMessage(protoNullify({
-                    requestId: data.requestId,
-                    error: 'Failed to render template: ' + e
-                }));
-            }
-        };
-        _postMessage(protoNullify({
-            type: !!engine ? 'worker_ready' : 'worker_error',
-        }));
-    </template>
-
-    <template id="worker_ejs">
-        importScripts("{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/ejs");
-        const _postMessage = self.postMessage;
-        disableWorkerAPIs();
-        const validName = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
-
-        self.onmessage = function(e) {
-            const data = e.data;
-            const payload = data.payload || protoNullify({});
-            try {
-                const ctx = payload.ctx || protoNullify({});
-                const keys = Object.keys(ctx).filter(key => validName.test(key));
-                const extendedTemplate = '<% ' + 
-                    blacklist.map(key => 'var ' + key + ' = null;').join('\n') +
-                    keys.map(key => 'var ' + key + ' = locals["' + key + '"];').join('\n')
-                + '%>' + payload.template;
-                const result = ejs.render(extendedTemplate, ctx, {
-                    strict: true,
-                    _with: false,
-                    context: null
-                });
-                _postMessage(protoNullify({
-                    requestId: data.requestId,
-                    result: result
-                }));
-            } catch (e) {
-                console.error('Failed to render template: ' + e);
-                _postMessage(protoNullify({
-                    requestId: data.requestId,
-                    error: 'Failed to render template: ' + e
-                }));
-            }
-        };
-        _postMessage(protoNullify({
-            type: !!ejs ? 'worker_ready' : 'worker_error',
-        }));
-    </template>
-
-    <template id="worker_mustache">
-        importScripts("{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/mustache");
-        const _postMessage = self.postMessage;
-        disableWorkerAPIs();
-
-        function defineVar(text, ctx2) {
-            const pos = text.indexOf("=");
-            const varname = text.substring(0, pos).trim();
-            const varvalue = evalInContext(ctx2, text.substring(pos + 1).trim());
-            ctx2[varname] = varvalue;
-            return varname;
-        }
-
-        function applyMustacheHelpers(ctx, translations) {
-            translations = translations || protoNullify({});
-            ctx.if = () =>
-                /**
-                 * @param {string} text
-                 * @param {Mustache.render} render
-                 */
-                function(text, render) {
-                    const pos = text.indexOf("]");
-                    const condition = text.substring(0, pos).trim().substring(1);
-                    const show = evalInContext(ctx, condition);
-                    if (show) {
-                        // @ts-ignore
-                        return render(text.substring(pos + 1).trim());
-                    }
-                    return "";
-                };
-
-            ctx.var = () =>
-                /**
-                 * @param {string} text
-                 */
-                function(text) {
-                    defineVar(text, ctx);
-                };
-
-            ctx.I18n = () =>
-                /**
-                 * @param {string} text
-                 * @param {Mustache.render} render
-                 */
-                function(text, render) {
-                    // @ts-ignore
-                    const key = render(text).trim();
-                    const dict = translations[key] || {};
-                    return dict[ctx._lang] || dict.en || dict.ca || key;
-                };
-
-            ctx.each = () =>
-                /**
-                 * @param {string} text
-                 */
-                function(text) {
-                    const pos = text.indexOf("]");
-                    const cond = text.substring(0, pos).trim().substring(1);
-                    const components = cond.split(",");
-                    const dim = components.length;
-                    const maxValues = new Array(dim);
-                    const loopVars = new Array(dim);
-                    let total = 1;
-                    const cc = 'i'.charCodeAt(0);
-                    components.forEach((def, i) => {
-                        const parts = def.split("=");
-                        if (parts.length === 1) {
-                            parts.unshift(String.fromCharCode(cc + i));
-                        }
-                        const cname = parts[0].trim();
-                        loopVars[i] = cname;
-                        const dm = evalInContext(ctx, parts[1]);
-                        total = total * dm;
-                        maxValues[i] = dm;
-                        ctx[cname] = 1;
-                    });
-                    const output = [];
-                    for (let _ei = 0; _ei < total; _ei++) {
-                        // @ts-ignore
-                        output.push(Mustache.render(text.substring(pos + 1), ctx));
-                        let currentDim = dim - 1;
-                        let incrUp;
-                        do {
-                            const oldValue = ctx[loopVars[currentDim]] - 1;
-                            const newValue = (oldValue + 1) % maxValues[currentDim] + 1;
-                            ctx[loopVars[currentDim]] = newValue;
-                            incrUp = newValue < oldValue;
-                            currentDim--;
-                        } while (currentDim >= 0 && incrUp);
-                    }
-                    return output.join('');
-                };
-
-            ctx.for = () =>
-                /**
-                 * @param {string} text
-                 */
-                function(text) {
-                    const pos = text.indexOf("]");
-                    const condition = text.substring(0, pos).trim().substring(1);
-                    const parts = condition.split(";");
-                    const loopvar = defineVar(parts[0], ctx);
-                    let output = "";
-                    let maxIter = 0; // Prevent infinite loop imposing a limit of 1000
-                    while (evalInContext(ctx, parts[1]) && maxIter < 1000) {
-                        output += self.Mustache.render(text.substring(pos + 1), ctx);
-                        if (parts.length === 3 && parts[2].trim()) {
-                            defineVar(loopvar + "=" + parts[2], ctx);
-                        } else {
-                            ctx[loopvar] = ctx[loopvar] + 1;
-                        }
-                        maxIter++;
-                    }
-                    return output;
-                };
-        }
-
-        self.onmessage = function(e) {
-            const data = e.data;
-            const payload = data.payload || protoNullify({});
-            // Add lambda functions to context
-            const context = protoNullify(payload.ctx);
-            applyMustacheHelpers(context, payload.translations);
-            try {
-                const result = mustache.render(payload.template, context);
-                _postMessage(protoNullify({
-                    requestId: data.requestId,
-                    result: result
-                }));
-            } catch (e) {
-                console.error('Failed to render template: ' + e);
-                _postMessage(protoNullify({
-                    requestId: data.requestId,
-                    error: 'Failed to render template: ' + e
-                }));
-            }
-        };
-
-        _postMessage(protoNullify({
-            type: !!mustache ? 'worker_ready' : 'worker_error',
-        }));
-    </template>
-
-    <template id="worker_eval">
-        disableWorkerAPIs();
-
-        self.onmessage = function(e) {
-            const data = e.data;
-            const payload = data.payload || protoNullify({});
-            try {
-                const result = evalInContext(payload.ctx, payload.code);
-                self.postMessage(protoNullify({
-                    requestId: data.requestId,
-                    result: {
-                        returns: result,
-                        ctx: payload.ctx
-                    }
-                }));
-            } catch (e) {
-                console.error('Failed to evaluate code: ' + e);
-                self.postMessage(protoNullify({
-                    requestId: data.requestId,
-                    error: 'Failed to evaluate code: ' + e
-                }));
-            }
-        };
-        self.postMessage(protoNullify({
-            type: !!evalInContext ? 'worker_ready' : 'worker_error',
-        }));
-    </template>
+ <body>
 </body>
 </html>

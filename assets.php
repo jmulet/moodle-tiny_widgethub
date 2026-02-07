@@ -17,7 +17,7 @@
 /**
  * Optimized assets loader for Local WidgetHub.
  *
- * @package     local_widgethub
+ * @package     tiny_widgethub
  * @copyright   2026 Josep Mulet <pep.mulet@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -38,7 +38,7 @@ if ($slashargument) {
     $args = [
         min_optional_param('type', '', 'SAFEDIR'),
         min_optional_param('rev', 1, 'INT'),
-        min_optional_param('name', 'bundle', 'SAFEDIR')
+        min_optional_param('name', 'bundle', 'SAFEDIR'),
     ];
 }
 

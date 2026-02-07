@@ -59,6 +59,15 @@ For widgets already present on a page, you can automatically add the missing `da
 
 Administrators can manage widget definitions by customizing existing ones, creating new ones, or removing unwanted widgets. To access these options, simply type `widget` in the search field of the administrator area.
 
+<div class="alert alert-danger d-flex align-items-center" role="alert" style="gap: 0.5rem;">
+  <i class="fa fa-exclamation-triangle fa-2x"></i>
+  <div class="alert-content">
+    <p><strong>Security Warning:</strong> Core widgets provided with this plugin are reviewed and considered secure. However, this plugin also allows Moodle managers to create and install custom or third-party widgets. This flexibility provides powerful functionality but also introduces potential security risks.</p>
+    <p>Always carefully review and validate any third-party or custom widget before using it. Do not grant untrusted users (for example, users with the Student role) permission to insert or manage widgets. If a widget template allows arbitrary HTML input, malicious users could inject harmful code, including Cross-Site Scripting (XSS) attacks, potentially compromising user data and system security.</p>
+    <p>For more information read the <a href="docs/api.md">security section</a> in the documentation.</p>
+  </div>
+</div>
+
 The options available are:
 
 <img src="./img/settings.png" width="400" style="margin:auto;max-width:400px">
@@ -82,6 +91,7 @@ The options available are:
   - *oninit.refractor.bs5=0* - Enable (`1`) or disable (`0`) automatic refractoring of Bootstrap 5 `data-bs-xxx` attributes when the editor opens (default: 0).
 
   - *jsBaseUrl* - If specified, this **base URL** will be prepended to the `requires` property in the widget definition — *unless* `requires` already starts with `http`, in which case the base URL will be ignored. This feature is useful for dynamically changing the location of the JavaScript assets required by the widgets.
+  **CAUTION**: You must only include trusted sources from trusted origins (preferrably from your own site). Otherwise you may introduce security vulnerabilities.
 
   - *tiny.iframe.jquery.url* The jQuery version that should be injected into the editor's iFrame. It defaults to your site's version and "none" for Moodle 5.x. If the value is "none", no jQuery will be injected. Please note that Bootstrap 4.x requires jQuery to work properly. Provide your own (on-premises) URL if you want to use a different version. 
  

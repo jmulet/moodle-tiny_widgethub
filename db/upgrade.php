@@ -18,13 +18,17 @@
  * Tiny WidgetHub plugin version details.
  *
  * @package     tiny_widgethub
- * @copyright   2024 Josep Mulet <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet <pep.mulet@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__ . '/upgradelib.php');
 
 /**
  * Upgrade the plugin.
+ * @package     tiny_widgethub
+ * @copyright   2026 Josep Mulet <pep.mulet@gmail.com>
+ * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @param string $oldversion
  * @return bool
  */

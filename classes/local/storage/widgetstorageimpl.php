@@ -110,7 +110,10 @@ class widgetstorageimpl implements widgetstorage {
      */
     private function load_index(): array {
         global $DB;
-        $sql = "SELECT itemid, source FROM {files} WHERE component = 'tiny_widgethub' AND filename = 'data.json' AND source IS NOT NULL";
+        $sql = "SELECT itemid, source 
+        FROM {files} 
+        WHERE component = 'tiny_widgethub' 
+        AND filename = 'data.json' AND source IS NOT NULL";
         $records = $DB->get_records_sql($sql);
         $index = [];
         foreach ($records as $itemid => $record) {
@@ -205,7 +208,7 @@ class widgetstorageimpl implements widgetstorage {
             if ($info['h'] === 1 && !$includehidden) {
                 continue;
             }
-            $raw = $this->load_raw_widget($id, true); // true for slim version.
+            $raw = $this->load_raw_widget($id, true); // True for slim version.
             if ($raw) {
                 $widgets[] = $raw;
             }
@@ -347,7 +350,7 @@ class widgetstorageimpl implements widgetstorage {
             $id = $this->update_seq();
         }
         try {
-            // Do not store meta in widget
+            // Do not store meta in widget.
             unset($widget['id']);
             unset($widget['timecreated']);
             unset($widget['timemodified']);
