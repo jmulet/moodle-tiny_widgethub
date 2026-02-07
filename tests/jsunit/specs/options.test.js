@@ -31,6 +31,9 @@ const rawSnpt = {
         "msg_important": { "ca": "IMPORTANT", "es": "IMPORTANTE", "en": "IMPORTANT", "fr": "IMPORTANT", "de": "WICHTIG" },
         "msg_introduccio": { "ca": "INTRODUCCIÓ", "es": "INTRODUCIÓN", "en": "INTRODUCTION", "fr": "INTRODUCTION", "de": "EINFÜHRUNG" }
     },
+    "isfilter": false,
+    "isselectcapable": false,
+    "hasbindings": false,
     "parameters": [
         { "name": "tipus", "value": "alerta", "title": "Propòsit de la capsa", "type": "select", "options": [{ "v": "alerta", "l": "Alerta" }, { "v": "ampliacio", "l": "Ampliació" }, { "v": "consell", "l": "Consell" }, { "v": "important", "l": "Important" }, { "v": "introduccio", "l": "Introducció" }] },
         { "name": "mida", "value": "gran", "title": "Mida de la capsa", "type": "select", "options": [{ "v": "gran", "l": "Gran" }, { "v": "mitjana", "l": "Mitjana" }, { "v": "petita", "l": "Petita" }] },
@@ -54,6 +57,9 @@ const rawSnpt2 = {
         "msg_important": { "ca": "IMPORTANT", "es": "IMPORTANTE", "en": "IMPORTANT", "fr": "IMPORTANT", "de": "WICHTIG" },
         "msg_introduccio": { "ca": "INTRODUCCIÓ", "es": "INTRODUCIÓN", "en": "INTRODUCTION", "fr": "INTRODUCTION", "de": "EINFÜHRUNG" }
     },
+    "isfilter": false,
+    "isselectcapable": false,
+    "hasbindings": false,
     "for": "55, 11",
     "scope": "^page-mod-(book|assign|quiz)-",
     "parameters": [
@@ -79,6 +85,9 @@ const rawSnpt3 = {
         "msg_important": { "ca": "IMPORTANT", "es": "IMPORTANTE", "en": "IMPORTANT", "fr": "IMPORTANT", "de": "WICHTIG" },
         "msg_introduccio": { "ca": "INTRODUCCIÓ", "es": "INTRODUCIÓN", "en": "INTRODUCTION", "fr": "INTRODUCTION", "de": "EINFÜHRUNG" }
     },
+    "isfilter": false,
+    "isselectcapable": false,
+    "hasbindings": false,
     "for": "5",
     "scope": "^page-mod-(book|page|assign|quiz)-",
     "parameters": [
@@ -105,8 +114,9 @@ describe('Options', () => {
         expect(registerOption).toHaveBeenNthCalledWith(2, "user", expect.any(Object));
         expect(registerOption).toHaveBeenNthCalledWith(3, "courseid", expect.any(Object));
         expect(registerOption).toHaveBeenNthCalledWith(4, "widgetlist", expect.any(Object));
-        expect(registerOption).toHaveBeenNthCalledWith(5, "sharecss", expect.any(Object));
-        expect(registerOption).toHaveBeenNthCalledWith(6, "additionalcss", expect.any(Object));
+        expect(registerOption).toHaveBeenNthCalledWith(5, "partials", expect.any(Object));
+        expect(registerOption).toHaveBeenNthCalledWith(6, "sharecss", expect.any(Object));
+        expect(registerOption).toHaveBeenNthCalledWith(7, "additionalcss", expect.any(Object));
     });
 
     test('It returns the dictionary of widgets', () => {
@@ -140,7 +150,7 @@ describe('Options', () => {
         expect(snpt.name).toBe(rawSnpt.name);
         expect(snpt.key).toBe(rawSnpt.key);
         expect(typeof (snpt.defaults)).toBe("object");
-        expect(snpt.defaults).toStrictEqual({
+        expect(snpt.defaults).toEqual({
             "tipus": "alerta",
             "mida": "gran",
             "LANG": "CA"

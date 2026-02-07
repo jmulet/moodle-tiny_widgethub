@@ -25,24 +25,25 @@
 import mustache from 'core/mustache';
 import { genID } from '../util';
 import { Sandbox } from './sandbox';
-import { getTinyMCE } from 'editor_tiny/loader';
 
 /**
  * Sanitizes the given HTML using the editor's schema.
  * @param {string} html The HTML to sanitize.
- * @param {any} tinymce
- * @param {any} [schema]
+ * @param {any} editor
  * @returns {string} The sanitized HTML.
  */
-export function sanitize(html, tinymce, schema) {
-    schema = schema ?? tinymce.html.Schema({});
-    const parser = tinymce.html.DomParser({
+export function sanitize(html, editor) {
+    if (!editor) {
+        return html;
+    }
+    const schema = editor.schema;
+    const parser = new editor.editorManager.html.DomParser({
         validate: true,
         schema: schema,
         allow_script_urls: false
-    });
+    }, schema);
     const doc = parser.parse(html);
-    return tinymce.html.Serializer({}, schema).serialize(doc);
+    return new editor.editorManager.html.Serializer({}, schema).serialize(doc);
 }
 
 /**
@@ -108,8 +109,7 @@ export class TemplateSrv {
         try {
             const sandbox = await Sandbox.getInstance();
             const dirtyHtml = await sandbox.execute(engine, { template, ctx, translations });
-            const tinyMCE = await getTinyMCE();
-            return sanitize(dirtyHtml, tinyMCE, this.editor?.schema);
+            return sanitize(dirtyHtml, this.editor);
         } catch (/** @type {any} */ ex) {
             return `<div class="alert alert-danger">
             <p>Render ${engine} template</p>

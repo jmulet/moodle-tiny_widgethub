@@ -89,7 +89,7 @@ describe("WidgetPickerCtrl", () => {
         const consoleSpy = jest.spyOn(global.console, 'error');
 
         currentContext = {}
-        widgetPropertiesCtrl.show(currentContext);
+        await widgetPropertiesCtrl.show(currentContext);
         expect(consoleSpy).toHaveBeenCalledWith("Missing widget on currentContext");
         expect(mockModalSrv.create).not.toHaveBeenCalled();
 
@@ -99,8 +99,8 @@ describe("WidgetPickerCtrl", () => {
             },
             elem: htmlToElement(document, '<span></span>')
         };
-        widgetPropertiesCtrl.show(currentContext);
-        expect(consoleSpy).toHaveBeenCalledWith("Invalid widget definition ", currentContext.widget);
+        await widgetPropertiesCtrl.show(currentContext);
+        expect(consoleSpy).toHaveBeenCalledWith("Widget has no bindings ", currentContext.widget);
         expect(mockModalSrv.create).not.toHaveBeenCalled();
 
         consoleSpy.mockClear();
@@ -126,6 +126,7 @@ describe("WidgetPickerCtrl", () => {
 
         // Accept the form
         widgetPropertiesCtrl.modal?.footer.find("button.tiny_widgethub-btn-primary").trigger('click');
+        // 
         // Check that the elem has been updated accordingly
         expect(elem.title).toBe('The title here');
         expect(elem.classList.contains('somecls')).toBe(true);

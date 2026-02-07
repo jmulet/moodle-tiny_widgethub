@@ -354,7 +354,7 @@ export function stream(transformStr) {
  * @returns {string} Replaces $ apperences by _ to make the name compatible by data attributes
  */
 export function cleanParameterName(name) {
-    return name.replace(/\$/g, '_');
+    return name?.replace(/\$/g, '_');
 }
 
 /**

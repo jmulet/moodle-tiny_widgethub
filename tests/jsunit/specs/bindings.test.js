@@ -6,23 +6,34 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-const {createBinding, performCasting} = require("../src/bindings");
+const { bindingsFactoryAPI, performCasting } = require("../src/bindings");
 const U = require("../src/util");
 /** @ts-ignore */
 const jQuery = require("jquery").default;
- 
+
+/**
+ * @param {string} bindDef 
+ * @param {HTMLElement} elem 
+ * @returns 
+ */
+function createBinding(bindDef, elem) {
+    const { name, args } = U.fnCallParser(bindDef);
+    const bindingFn = bindingsFactoryAPI[name];
+    return bindingFn.apply(null, [elem, ...args]);
+}
+
 describe('utils module tests', () => {
     /** @type {any} */
     let consoleSpy;
 
     beforeEach(() => {
-        consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
     });
 
     afterEach(() => {
         consoleSpy.mockRestore();
     });
- 
+
 
     test('performCasting', () => {
         expect(performCasting('true', 'boolean')).toStrictEqual(true);
@@ -41,11 +52,11 @@ describe('utils module tests', () => {
         expect(performCasting(12, 'string')).toStrictEqual('12');
         expect(performCasting(true, 'string')).toStrictEqual('true');
         expect(performCasting(false, 'string')).toStrictEqual('false');
-        expect(performCasting({a: 1}, 'string')).toStrictEqual('{"a":1}');
-        expect(performCasting({a: 1}, 'unktype')).toStrictEqual({"a":1});
+        expect(performCasting({ a: 1 }, 'string')).toStrictEqual('{"a":1}');
+        expect(performCasting({ a: 1 }, 'unktype')).toStrictEqual({ "a": 1 });
     });
 
-    
+
 
     test.each([
         ["hasClass('editable')", `<span class="a editable"></span>`, true],
@@ -60,7 +71,7 @@ describe('utils module tests', () => {
         ["classRegex('locked-([0-9]*)-some(.*)')", `<span class="etc"></span>`, ''],
         ["classRegex('locked-([0-9]*)-some(.*)')", `<span class="locked--some etc"></span>`, ''],
         ["classRegex('locked-([0-9]*)-some(.*)')", `<span class="locked-123-somes etc"></span>`, '123'],
- 
+
         ["hasAttr('data-locked')", `<span data-locked></span>`, true],
         ["hasAttr('data-locked')", `<span data-locked="false"></span>`, true],
         ["hasAttr('data-locked')", `<span data-open="false"></span>`, false],
@@ -79,7 +90,7 @@ describe('utils module tests', () => {
         ["attrRegex('role=channel(.*)')", `<span role="channel"></span>`, ''],
         ["attrRegex('role=locked-([0-9]*)-abc')", `<span role="locked--abc"></span>`, ''],
         ["attrRegex('role=locked-([0-9]*)-abc')", `<span role="locked-123-abc"></span>`, '123'],
-        
+
         ["hasStyle('width')", `<span style="width: 100px;"></span>`, true],
         ["hasStyle('height')", `<span style="width: 100px;"></span>`, false],
         ["hasStyle('color:red')", `<span style="color: red;"></span>`, true],
@@ -89,9 +100,15 @@ describe('utils module tests', () => {
 
         ["styleRegex('width: (.*)px')", `<span style="width: 100px;"></span>`, "100"],
         ["styleRegex('width: (.*)px', null, 'number')", `<span style="width: 100px;"></span>`, 100],
-        [`styleRegex("background-image:url\\\\(['\\"]?([^'\\")]*)['\\"]?\\\\)")`, 
+        [`styleRegex("background-image:url\\(['\\"]?([^'\\")]*)['\\"]?\\)")`,
             `<span class="iedib-background-img" style="background-image:url(http://localhost:4545/pluginfile.php/19/mod_page/content/5/icon.png); padding: 10px; min-height: 40px; background-repeat: no-repeat; background-size: cover; background-position: 50% 50%;">
-            Quina probabilitat tinc de guanyar els jocs d'atzar?</span>`, 'http://localhost:4545/pluginfile.php/19/mod_page/content/5/icon.png']
+            Quina probabilitat tinc de guanyar els jocs d'atzar?</span>`, 'http://localhost:4545/pluginfile.php/19/mod_page/content/5/icon.png'],
+        ["html()", `<div><span>Content</span></div>`, "<span>Content</span>"],
+        ["text()", `<div><span>Content</span></div>`, "Content"],
+        ["attrBS('target')", `<span data-target="modal"></span>`, "modal"],
+        ["attrBS('target', null, null, 5)", `<span data-bs-target="modal"></span>`, "modal"],
+        ["hasAttrBS('target=modal')", `<span data-target="modal"></span>`, true],
+        ["hasAttrBS('target=modal', null, null, 5)", `<span data-bs-target="modal"></span>`, true]
     ])('Create GET binding %s on %s returns %s', (bindDef, elemDef, result) => {
         let elem = U.htmlToElement(document, elemDef)
         // Binding on the same element
@@ -101,7 +118,9 @@ describe('utils module tests', () => {
 
         // Binding on a child
         elem = U.htmlToElement(document, `<div class="container">${elemDef}</div>`);
-        if (bindDef.indexOf("null") > 0) {
+        if (bindDef.indexOf("()") > 0) {
+            bindDef = bindDef.replace("()", "('span')");
+        } else if (bindDef.indexOf("null") > 0) {
             bindDef = bindDef.replace("null", "'span'");
         } else {
             bindDef = bindDef.substring(0, bindDef.length - 1) + ", 'span')";
@@ -127,10 +146,10 @@ describe('utils module tests', () => {
      * @returns {string}
      */
     function normalizeStyle(html) {
-       return html?.replace(/\s*:\s*/g, ':')
-        .replace(/\s*;\s*/g, ';')
-        .replace(/&quot;/g, '"')
-        .replace(/url\((['"]?)(.*?)\1\)/g, 'url($2)') || '';
+        return html?.replace(/\s*:\s*/g, ':')
+            .replace(/\s*;\s*/g, ';')
+            .replace(/&quot;/g, '"')
+            .replace(/url\((['"]?)(.*?)\1\)/g, 'url($2)') || '';
     }
 
     test.each([
@@ -144,7 +163,7 @@ describe('utils module tests', () => {
         ["notHasClass('editable')", `<span class="b locked c"></span>`, false, `<span class="b locked c editable"></span>`],
         ["notHasClass('editable')", `<span class="b locked c"></span>`, true, `<span class="b locked c"></span>`],
 
-       // ["classRegex('locked-(.*)')", `<span class="locked"></span>`, 'mood', `<span class="locked locked-mood"></span>`],
+        // ["classRegex('locked-(.*)')", `<span class="locked"></span>`, 'mood', `<span class="locked locked-mood"></span>`],
         ["classRegex('locked-(.*)')", `<span class="locked-"></span>`, 'mood', `<span class="locked-mood"></span>`],
         ["classRegex('locked-(.*)')", `<span class="locked-abc"></span>`, 'efg', `<span class="locked-efg"></span>`],
         ["classRegex('locked-([0-9]*)-some(.*)')", `<span class="etc locked--some"></span>`, '789', `<span class="etc locked-789-some"></span>`],
@@ -184,13 +203,20 @@ describe('utils module tests', () => {
         ["styleRegex('width: (.*)px')", `<span style="width: 100px;"></span>`, "700", `<span style="width: 700px;" data-mce-style="width: 700px;"></span>`],
         ["styleRegex('width: (.*)px', null, 'number')", `<span style="width: 100px;"></span>`, 700, `<span style="width: 700px;" data-mce-style="width: 700px;"></span>`],
 
-        [`styleRegex("background-image:url\\\\(['\\"]?([^'\\")]*)['\\"]?\\\\)")`, 
-            `<span class="iedib-background-img" style="background-image:url(http://localhost:4545/pluginfile.php/19/mod_page/content/5/icon.png); padding: 10px;">
-            Quina probabilitat tinc de guanyar els jocs d'atzar?</span>`, 
-            'https://iedib.net/example.png', 
-            `<span class="iedib-background-img" style="background-image: url(&quot;https://iedib.net/example.png&quot;); padding: 10px;" data-mce-style="background-image: url(&quot;https://iedib.net/example.png&quot;); padding: 10px;">
-            Quina probabilitat tinc de guanyar els jocs d'atzar?</span>`]
-              
+        [`styleRegex("background-image:url\\(['\\"]?([^'\\")]*)['\\"]?\\)")`,
+            `<span class="iedib-background-img" style="background-image:url(https://site.net/example.png); padding: 10px;">
+            Lorem ipsum.</span>`,
+            'https://newsite.com/example32.png',
+            `<span class="iedib-background-img" style="background-image: url(&quot;https://newsite.com/example32.png&quot;); padding: 10px;" data-mce-style="background-image: url(&quot;https://newsite.com/example32.png&quot;); padding: 10px;">
+            Lorem ipsum.</span>`],
+
+        ["html()", `<span>Old</span>`, "New", "<span>New</span>"],
+        ["text()", `<span>Old</span>`, "New", "<span>New</span>"],
+        ["attrBS('target')", `<span></span>`, "modal", `<span data-bs-target="modal" data-target="modal"></span>`],
+        ["attrBS('target', null, null, 5)", `<span></span>`, "modal", `<span data-bs-target="modal"></span>`],
+        ["hasAttrBS('target=modal')", `<span></span>`, true, `<span data-bs-target="modal" data-target="modal"></span>`],
+        ["hasAttrBS('target=modal', null, null, 5)", `<span></span>`, true, `<span data-bs-target="modal"></span>`]
+
 
     ])('Create SET binding %s on %s. If sets value %s yields %s', (bindDef, elemDef, value, result) => {
         let elem = U.htmlToElement(document, elemDef)
@@ -212,51 +238,4 @@ describe('utils module tests', () => {
         binding?.setValue(value)
         expect(normalizeStyle(e.querySelector("span")?.outerHTML)).toBe(normalizeStyle(result));
     });
-
-    test('User defined binding using jQuery', () => {
-        const $e = jQuery(`<span></span>`);
-        const bindDef = {
-            get: `(e) => {
-                return e.hasClass('mood') && e.attr('role') !== undefined;
-            }`,
-            set: `(e, v) => {
-                if(v) {
-                    e.addClass('mood').attr('role', 'set');
-                } else {
-                    e.removeClass('mood').removeAttr('role'); 
-                }
-            }`,
-        };
-        const binding = createBinding(bindDef, $e);
-        expect(binding).not.toBeNull();
-        expect(binding?.getValue()).toBe(false);
-        binding?.setValue(true);
-        expect(binding?.getValue()).toBe(true);
-        expect($e.prop('outerHTML')).toBe(`<span class="mood" role="set"></span>`);
-    });
-
-    test('User defined binding using vanilla js', () => {
-        const elem = document.createElement('SPAN');
-        const bindDef = {
-            getValue: `(e) => {
-                return e.classList.contains('mood') && e.getAttribute('role') !== undefined;
-            }`,
-            setValue: `(e, v) => {
-                if(v) {
-                    e.classList.add('mood');
-                    e.setAttribute('role', 'set');
-                } else {
-                    e.classList.remove('mood');
-                    e.removeAttr('role'); 
-                }
-            }`,
-        };
-        const binding = createBinding(bindDef, elem);
-        expect(binding).not.toBeNull();
-        expect(binding?.getValue()).toBe(false);
-        binding?.setValue(true);
-        expect(binding?.getValue()).toBe(true);
-        expect(elem.outerHTML).toBe(`<span class="mood" role="set"></span>`);
-    });
-
 });

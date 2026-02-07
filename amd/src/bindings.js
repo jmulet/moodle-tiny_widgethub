@@ -86,7 +86,7 @@ const xor = function (a, b) {
  * @returns {string}
  */
 const replaceStrPart = function (str, match, replacement) {
-    if (!match.indices) {
+    if (!match?.indices) {
         console.error("RegExp match does not include indices");
         return str;
     }

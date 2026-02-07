@@ -8,7 +8,11 @@ import yaml from 'yaml';
  * @returns {import('./src/options').RawWidget}
  */
 function loadWidget(widgetName) {
-  return yaml.parse(fs.readFileSync(path.resolve(`./mocks/data/${widgetName}.yml`), 'utf-8'));
+  const rawWidget = yaml.parse(fs.readFileSync(path.resolve(`./mocks/data/${widgetName}.yml`), 'utf-8'));
+  rawWidget.isselectable = rawWidget.selectors !== undefined;
+  rawWidget.hasbindings = (rawWidget.parameters ?? []).some((/** @type {*} */ p) => p.bind !== undefined);
+  rawWidget.isfilter = rawWidget.filter !== undefined && rawWidget.templates === undefined;
+  return rawWidget;
 }
 
 /** @type {any} */

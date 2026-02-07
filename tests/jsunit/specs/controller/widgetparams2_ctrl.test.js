@@ -20,7 +20,7 @@ describe("WidgetParamsCtrl Suite II", () => {
     /** @type {any} */
     let formCtrl;
     /** @type {any} */
-    let applyWidgetFilter;
+    let filterSrv;
     /** @type {any} */
     let widget;
     /** @type {any} */
@@ -66,7 +66,9 @@ describe("WidgetParamsCtrl Suite II", () => {
             attachPickers: jest.fn(),
             applyFieldWatchers: jest.fn(),
         };
-        applyWidgetFilter = jest.fn();
+        filterSrv = {
+            applyWidgetFilter: jest.fn(),
+        };
         widget = {
             key: 'w1',
             name: 'Widget 1',
@@ -83,7 +85,7 @@ describe("WidgetParamsCtrl Suite II", () => {
             templateSrv,
             modalSrv,
             formCtrl,
-            applyWidgetFilter,
+            filterSrv,
             widget
         );
     });
@@ -165,10 +167,8 @@ describe("WidgetParamsCtrl Suite II", () => {
 
         it("should apply filter if widget is a filter", async () => {
             widget.isFilter.mockReturnValue(true);
-
             await widgetParamsCtrl.insertWidget({ p1: 'val' });
-
-            expect(applyWidgetFilter).toHaveBeenCalled();
+            expect(filterSrv.applyWidgetFilter).toHaveBeenCalled();
             expect(editor.selection.setContent).not.toHaveBeenCalled();
         });
     });

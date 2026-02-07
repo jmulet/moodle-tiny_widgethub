@@ -465,7 +465,7 @@ export class FormCtrl {
                code: upcomp.condition,
                ctx: newVariables
             });
-            const showme = result.returns;
+            const showme = result?.returns;
             if (upcomp.component) {
                /** @type {HTMLElement | null} */
                const theComponent = upcomp.component.closest('.form-group');

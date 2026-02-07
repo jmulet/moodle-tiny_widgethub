@@ -94,7 +94,7 @@ describe('Context Actions Manager', () => {
         // @ts-ignore
         const editor = global.Mocks.editorFactory();
         editor.options.get = jest.fn().mockImplementation(() => [rawSnpt1]);
-        const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), mockTranslateSrv, widgetCutClipboard);
+        const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), Mocks.modalSrv, mockTranslateSrv, widgetCutClipboard);
         await contextActionsManager.init();
         expect(editor.ui.registry.addIcon).toHaveBeenCalled();
         // Test context menus
@@ -135,8 +135,8 @@ describe('Context Actions Manager', () => {
         // @ts-ignore
         const editor = global.Mocks.editorFactory();
         editor.options.get = jest.fn().mockImplementation(() => [rawSnpt2]);
-        const  {ContextActionsManager } = require('../src/contextactions');
-        const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), mockTranslateSrv, widgetCutClipboard);
+        const { ContextActionsManager } = require('../src/contextactions');
+        const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), Mocks.modalSrv, mockTranslateSrv, widgetCutClipboard);
         await contextActionsManager.init();
         // Test context menus
         expect(editor.ui.registry.addContextMenu).toHaveBeenCalledWith(component, expect.any(Object));
@@ -177,7 +177,7 @@ describe('Context Actions Manager', () => {
         editor.setContent('<div class="w1"><p><span>Hello</span></p></div>')
         const widgetRoot = editor.getBody().querySelector('div.w1');
 
-        const actions = predefinedActionsFactory(editor, domSrv, widgetCutClipboard);
+        const actions = predefinedActionsFactory(editor, domSrv, Mocks.modalSrv, widgetCutClipboard);
 
         const widget = { unwrap: 'div.w1>*', key: 'w1' };
         const path = { elem: widgetRoot, selectedElement: widgetRoot, widget };
@@ -195,7 +195,7 @@ describe('Context Actions Manager', () => {
         const widget = { unwrap: 'div.w1>*', key: 'w1' };
         const widgetRoot = editor.getBody().querySelector('div.w1');
         const selectedElement = widgetRoot.querySelector('p[data-c="2"]');
-        const actions = predefinedActionsFactory(editor, domSrv, widgetCutClipboard);
+        const actions = predefinedActionsFactory(editor, domSrv, Mocks.modalSrv, widgetCutClipboard);
 
         const spyFindReferences = jest.spyOn(domSrv, 'findReferences').mockReturnValue([]);
         const path = { elem: widgetRoot, selectedElement, targetElement: selectedElement, widget };
@@ -212,7 +212,7 @@ describe('Context Actions Manager', () => {
         const widget = { unwrap: 'div.w1>*', key: 'w1' };
         const widgetRoot = editor.getBody().querySelector('div.w1');
         const selectedElement = widgetRoot.querySelector('p[data-c="2"]');
-        const actions = predefinedActionsFactory(editor, domSrv, widgetCutClipboard);
+        const actions = predefinedActionsFactory(editor, domSrv, Mocks.modalSrv, widgetCutClipboard);
 
         const spyFindReferences = jest.spyOn(domSrv, 'findReferences').mockReturnValue([]);
         const path = { elem: widgetRoot, selectedElement, targetElement: selectedElement, widget };
@@ -229,7 +229,7 @@ describe('Context Actions Manager', () => {
         const widget = { unwrap: 'div.w1>*', key: 'w1' };
         const widgetRoot = editor.getBody().querySelector('div.w1');
         const selectedElement = widgetRoot.querySelector('p[data-c="1"]');
-        const actions = predefinedActionsFactory(editor, domSrv, widgetCutClipboard);
+        const actions = predefinedActionsFactory(editor, domSrv, Mocks.modalSrv, widgetCutClipboard);
 
         const spyFindReferences = jest.spyOn(domSrv, 'findReferences').mockReturnValue([]);
         const path = { elem: widgetRoot, selectedElement, targetElement: selectedElement, widget };
@@ -244,7 +244,7 @@ describe('Context Actions Manager', () => {
         const widget = { unwrap: 'div.w1>*', key: 'w1' };
         const widgetRoot = editor.getBody().querySelector('div.w1');
         const selectedElement = widgetRoot.querySelector('p[data-c="2"]');
-        const actions = predefinedActionsFactory(editor, domSrv, widgetCutClipboard);
+        const actions = predefinedActionsFactory(editor, domSrv, Mocks.modalSrv, widgetCutClipboard);
 
         const spyFindReferences = jest.spyOn(domSrv, 'findReferences').mockReturnValue([]);
         const path = { elem: widgetRoot, selectedElement, targetElement: selectedElement, widget };
@@ -261,7 +261,7 @@ describe('Context Actions Manager', () => {
         const widget = { unwrap: 'div.w1>*', key: 'w1' };
         const widgetRoot = editor.getBody().querySelector('div.w1');
         const selectedElement = widgetRoot.querySelector('p[data-c="2"]');
-        const actions = predefinedActionsFactory(editor, domSrv, widgetCutClipboard);
+        const actions = predefinedActionsFactory(editor, domSrv, Mocks.modalSrv, widgetCutClipboard);
 
         const path = { elem: widgetRoot, selectedElement, targetElement: selectedElement, widget };
 
@@ -271,7 +271,7 @@ describe('Context Actions Manager', () => {
         expect(editor.getBody().innerHTML).toBe('<p>before</p>');
         expect(widgetCutClipboard.widget).toBe(widget);
         expect(widgetCutClipboard.html).toBe('<div class="w1"><p data-c="1" class="active show">1</p><p data-c="2">1</p><p data-c="3">3</p></div>');
-    
+
         expect(getListeners).toHaveBeenCalledWith('widgetRemoved');
     });
 
@@ -281,7 +281,7 @@ describe('Context Actions Manager', () => {
         const widget = { unwrap: 'div.w1>*', key: 'w1' };
         widgetCutClipboard.widget = widget;
         widgetCutClipboard.html = '<div class="w1"><p data-c="1" class="active show">1</p><p data-c="2">1</p><p data-c="3">3</p></div>';
-       const actions = predefinedActionsFactory(editor, domSrv, widgetCutClipboard);
+        const actions = predefinedActionsFactory(editor, domSrv, Mocks.modalSrv, widgetCutClipboard);
 
         const path = { elem: undefined, undefined, targetElement: undefined, widget: undefined };
 
@@ -302,8 +302,8 @@ describe('Context Actions Manager', () => {
         editor.selection.getNode = jest.fn().mockReturnValue(selection);
         const { getWidgetPropertiesCtrl } = require('../src/controller/widgetproperties_ctrl');
         const widgetPropertiesCtrl = getWidgetPropertiesCtrl(editor);
-        const  {ContextActionsManager } = require('../src/contextactions');
-        const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), mockTranslateSrv, widgetCutClipboard);
+        const { ContextActionsManager } = require('../src/contextactions');
+        const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), Mocks.modalSrv, mockTranslateSrv, widgetCutClipboard);
         expect(contextActionsManager.ctx.path).toBeFalsy();
 
         await contextActionsManager.showPropertiesAction();
@@ -314,14 +314,14 @@ describe('Context Actions Manager', () => {
     });
 
 
-    it('Generic Action should return an action which determines path if not in current context. It should also call listeners.', async() => {
+    it('Generic Action should return an action which determines path if not in current context. It should also call listeners.', async () => {
         const editor = global.Mocks.editorFactory();
         editor.setContent('<div class="alert alert-danger" role="alert"><p data-c="1" class="active show">1</p></div>');
         const selection = editor.getBody().querySelector('[data-c="1"]');
         editor.options.get = jest.fn().mockImplementation(() => [rawSnpt2]);
         editor.selection.getNode = jest.fn().mockReturnValue(selection);
-        const  {ContextActionsManager } = require('../src/contextactions');
-        const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), mockTranslateSrv, widgetCutClipboard);
+        const { ContextActionsManager } = require('../src/contextactions');
+        const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), Mocks.modalSrv, mockTranslateSrv, widgetCutClipboard);
         await contextActionsManager.init();
         expect(contextActionsManager.ctx.path).toBeFalsy();
         const spyFindWidgetOnEventPath = jest.spyOn(domSrv, 'findWidgetOnEventPath');
@@ -335,7 +335,7 @@ describe('Context Actions Manager', () => {
         expect(path).toBeTruthy();
         expect(path.widget.key).toBe(rawSnpt2.key);
         expect(path.elem).toBe(editor.getBody().querySelector('.alert'));
-        
+
         // Call without any path
         spyFindWidgetOnEventPath.mockClear();
         // @ts-ignore

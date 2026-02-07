@@ -42,7 +42,6 @@ const mockUserStorage = {
 const mockTemplateSrv = {
     render: jest.fn(),
     renderMustache: jest.fn(),
-    renderEJS: jest.fn()
 };
 
 
@@ -64,7 +63,8 @@ const widget1 = {
     ],
     prop: (/** @type {any} */ key) => undefined,
     isUsableInScope: () => true,
-    isFilter: () => false
+    isFilter: () => false,
+    loadDefinition: jest.fn().mockReturnValue(Promise.resolve())
 };
 
 const widget2 = {
@@ -220,7 +220,7 @@ describe("WidgetPickerCtrl", () => {
         expect(ctx.categories[1].buttons).toHaveLength(1);
     });
 
-    it('handlePickModalAction inserts or displays params modal depending on conditions', () => {
+    it('handlePickModalAction inserts or displays params modal depending on conditions', async () => {
         // @ts-ignore
         widgetPickCtrl.modal = {
             hide: jest.fn()
@@ -235,16 +235,19 @@ describe("WidgetPickerCtrl", () => {
             };
         });
 
-        widgetPickCtrl.handlePickModalAction(widget1, true);
+        await widgetPickCtrl.handlePickModalAction(widget1, true);
+
+        expect(widget1.loadDefinition).toHaveBeenCalled();
+        expect(widgetPickCtrl.widgetParamsFactory).toHaveBeenCalledWith(widget1);
         expect(insertWidget).toHaveBeenCalledWith({}, true);
 
-        widgetPickCtrl.handlePickModalAction(widget1, false);
+        await widgetPickCtrl.handlePickModalAction(widget1, false);
         expect(handleAction).toHaveBeenCalled();
 
         insertWidget.mockReset();
         handleAction.mockReset();
         // No parameters and no instructions
-        widgetPickCtrl.handlePickModalAction(widget2, true);
+        await widgetPickCtrl.handlePickModalAction(widget2, true);
         expect(insertWidget).toHaveBeenCalled();
     });
 
@@ -273,7 +276,8 @@ describe("WidgetPickerCtrl", () => {
 
         widgetPickCtrl.generatePreview = jest.fn().mockReturnValue("The preview");
 
-        await widgetPickCtrl.onMouseEnterButton({ target: btnGroup.querySelector("i") });
+        const mouseEvt = /** @type {any} */ ({ target: btnGroup.querySelector("i") });
+        await widgetPickCtrl.onMouseEnterButton(mouseEvt);
         expect(widgetPickCtrl.generatePreview).toHaveBeenCalledWith(widget1);
         expect(widgetPickCtrl.body?.innerHTML).toContain("The preview");
         // @ts-ignore
@@ -343,7 +347,7 @@ describe("WidgetPickerCtrl", () => {
 
     test("handlePickModalClick", async () => {
         /** @type {*} */
-        const templateSrv = getTemplateSrv();
+        const templateSrv = getTemplateSrv(mockEditor);
         // Create a more realistic instance, with less mocks
         widgetPickCtrl = new WidgetPickerCtrl(mockEditor, mockEditorOptions,
             mockWidgetParamsFactory, global.Mocks.modalSrv, templateSrv, mockUserStorage);
@@ -376,6 +380,7 @@ describe("WidgetPickerCtrl", () => {
         widget1.isUsableInScope = () => true;
         mockEditor.windowManager.confirm.mockReset();
         modal.body.find('.tiny_widgethub-btn-group button').first().trigger('click');
+        await wait(500);
         expect(modal.hide).toHaveBeenCalled();
         expect(modal.destroy).not.toHaveBeenCalled();
         expect(mockEditor.windowManager.confirm).not.toHaveBeenCalled();

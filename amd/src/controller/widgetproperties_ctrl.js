@@ -56,6 +56,73 @@ export class WidgetPropertiesCtrl {
         this.modalSrv = modalSrv;
     }
 
+
+    /**
+     * @param {*} widget
+     * @param {Map<string, import('../bindings').Binding>} localBindings 
+     * @param {import('../options').Param[]} parametersWithBindings
+     * @param {{name: string, value: any}[]} valuesFromDom
+     */
+    async _modalActionPerformed(widget, localBindings, parametersWithBindings, valuesFromDom) {
+        if (!this.modal) {
+            return;
+        }
+        let updatedValues;
+        const formElem = this.modal.body.find('form')[0];
+        if (formElem) {
+            updatedValues = this.formCtrl.extractFormParameters(widget, formElem, true);
+        } else {
+            return;
+        }
+
+        // Patch local bindings first
+        localBindings.forEach((binder, name) => {
+            const val = updatedValues[name];
+            const oldValue = valuesFromDom.find(res => res.name === name)?.value;
+            if (val !== undefined && val !== oldValue && val !== oldValue) {
+                binder.setValue(val);
+            }
+        });
+        if (!this.remoteDom || !this.vdomId) {
+            // We are done. Close the modal.
+            this.close();
+            return;
+        }
+
+        // Update parameter values to remote DOM.
+        /** @type {Array<Promise<any>>} */
+        const pendingUpdates = [];
+        parametersWithBindings.filter(param => typeof param.bind === 'object')
+            .forEach((param) => {
+                if (this.remoteDom === null || this.vdomId === null) {
+                    return;
+                }
+                const oldValue = valuesFromDom.find(res => res.name === param.name)?.value;
+                const val = updatedValues[param.name];
+                if (val === undefined || val === oldValue || typeof param.bind !== 'object') {
+                    return;
+                }
+                /** @type {string | {name: string, args: Array<any>}} */
+                const instructions = param.bind.getValue || param.bind.get || '';
+                const useJQuery = param.bind.get !== undefined;
+                pendingUpdates.push(this.remoteDom.updateRemoteDomValue({
+                    vid: this.vdomId,
+                    name: param.name,
+                    value: val,
+                    instructions,
+                    useJQuery
+                }));
+            });
+
+        // Wait for all updates to complete on remote DOM.
+        await Promise.all(pendingUpdates);
+        // Retrieve the patches from remote DOM.
+        await this.remoteDom.applyPatches(this.vdomId);
+
+        // Do not close until remoteDom can be disposed.
+        this.close();
+    }
+
     /**
      * Displays a modal dialog for editing the currentContext
      * based on contextual
@@ -78,6 +145,7 @@ export class WidgetPropertiesCtrl {
         }
 
         // Parameters that contain bindings.
+        /** @type {import('../options').Param[]} */
         const parametersWithBindings = widget.parameters.filter(param => {
             return param.bind !== undefined;
         });
@@ -88,6 +156,9 @@ export class WidgetPropertiesCtrl {
             this.vdomId = await this.remoteDom.createRemoteDom(elem);
         }
 
+        /**
+         * @type {Map<string, import('../bindings').Binding>}
+         */
         const localBindings = new Map();
 
         /** @type {Array<Promise<any>>} */
@@ -134,6 +205,7 @@ export class WidgetPropertiesCtrl {
         /** @type {Object.<string, any>} Empty object {} without prototype */
         const paramValues = Object.create(null);
 
+        /** @type {{name: string, value: string, param: import('../options').Param}[]} */
         const valuesFromDom = await Promise.all(pendingValuePromises);
         valuesFromDom.forEach(res => {
             paramValues[res.name] = res.value;
@@ -142,7 +214,17 @@ export class WidgetPropertiesCtrl {
         // Create parameters form controls
         /** @type {string[]} */
         const controls = valuesFromDom
-            .map(res => this.formCtrl.createControlHTML(hostId, res.name, res.value));
+            .filter(res => res.name !== undefined && res.value !== undefined)
+            .map(res => {
+                const param = (widget.parameters ?? []).find(p => p.name === res.name);
+                return {
+                    ...res,
+                    param
+                };
+            })
+            .filter(res => res.param !== undefined)
+            // @ts-ignore
+            .map(res => this.formCtrl.createControlHTML(hostId, res.param, res.value));
 
         const ctxData = {
             name: widget.name,
@@ -159,7 +241,6 @@ export class WidgetPropertiesCtrl {
             this.modal?.twhRegisterListener(el, evType, handler);
         };
         const bodyElem = this.modal.body[0];
-        const formElem = this.modal.body.find('form')[0];
         // Bind actions on image and color pickers
         this.formCtrl.attachPickers(bodyElem, listenerTracker);
         // Applying watchers to the form elements
@@ -169,60 +250,9 @@ export class WidgetPropertiesCtrl {
         this.modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", () => {
             this.close();
         });
-        this.modal.footer.find("button.tiny_widgethub-btn-primary").on("click", async () => {
-            let updatedValues = paramValues;
-            if (formElem) {
-                updatedValues = this.formCtrl.extractFormParameters(widget, formElem, true);
-            }
-
-            // Patch local bindings first
-            localBindings.forEach((binder, name) => {
-                const val = updatedValues[name];
-                const oldValue = valuesFromDom.find(res => res.name === name)?.value;
-                if (val !== undefined && val !== oldValue && val !== oldValue) {
-                    binder.setValue(val);
-                }
-            });
-            if (!this.remoteDom || !this.vdomId) {
-                // We are done. Close the modal.
-                this.close();
-                return;
-            }
-
-            // Update parameter values to remote DOM.
-            /** @type {Array<Promise<any>>} */
-            const pendingUpdates = [];
-            parametersWithBindings.filter(param => typeof param.bind === 'object')
-                .forEach((param) => {
-                    if (this.remoteDom === null || this.vdomId === null) {
-                        return;
-                    }
-                    const oldValue = valuesFromDom.find(res => res.name === param.name)?.value;
-                    const val = updatedValues[param.name];
-                    if (val === undefined || val === oldValue || typeof param.bind !== 'object') {
-                        return;
-                    }
-                    /** @type {string | {name: string, args: Array<any>}} */
-                    const instructions = param.bind.getValue || param.bind.get || '';
-                    const useJQuery = param.bind.get !== undefined;
-                    pendingUpdates.push(this.remoteDom.updateRemoteDomValue({
-                        vid: this.vdomId,
-                        name: param.name,
-                        value: val,
-                        instructions,
-                        useJQuery
-                    }));
-                });
-
-            // Wait for all updates to complete on remote DOM.
-            await Promise.all(pendingUpdates);
-            // Retrieve the patches from remote DOM.
-            await this.remoteDom.applyPatches(this.vdomId);
-
-            // Do not close until remoteDom can be disposed.
-            this.close();
+        this.modal.footer.find("button.tiny_widgethub-btn-primary").on("click", () => {
+            this._modalActionPerformed(widget, localBindings, parametersWithBindings, valuesFromDom);
         });
-
         // Help circles require popover
         try {
             // @ts-ignore

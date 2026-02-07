@@ -8,7 +8,6 @@
  */
 
 const { ModalSrv } = require('../../src/service/modal_service');
-console.log(ModalSrv);
 
 /** @type {ModalSrv | undefined} */
 let modalSrv;
@@ -54,7 +53,6 @@ describe('ModalTracker functionality', () => {
         modalSrv = new ModalSrv();
         // Create a real modal instance (using one of the registered types)
         modal = await modalSrv.create('picker', {});
-        console.log(modal);
     });
 
     it('should register a listener and remove it on destroy', () => {

@@ -131,14 +131,12 @@ module.exports = function applyMocks() {
         displayFilepicker: jest.fn()
     }), { virtual: true });
 
-
-    jest.mock('editor_tiny/utils', () => ({
+    jest.mock('editor_tiny/editor', () => ({
         __esModule: true,
-        displayFilepicker: jest.fn()
+        getInstanceForElementId: jest.fn()
     }), { virtual: true });
 
-
-    // Modal mock virtual modules
+    // Modal mock virtual modules.
     jest.mock("core/modal", () => ({
         __esModule: true,
         default: class {
@@ -206,4 +204,46 @@ module.exports = function applyMocks() {
             hidden: "hidden"
         }
     }), { virtual: true });
+
+    // Mock template module.
+    jest.mock("core/templates", () => ({
+        __esModule: true,
+        default: {
+            render: jest.fn()
+        }
+    }), { virtual: true });
+
+    jest.mock("../src/service/sandbox", () => {
+        const mockExecute = jest.fn();
+        const mockDestroy = jest.fn();
+        // Template for a mocked Sandbox/RemoteDom instance
+        const createMockInstance = () => ({
+            execute: mockExecute,
+            destroy: mockDestroy,
+            createRemoteDom: jest.fn().mockResolvedValue('vid-123'),
+            applyWidgetFilters: jest.fn().mockResolvedValue({
+                hasChanges: false,
+                html: '',
+                msg: '',
+                error: null
+            }),
+            queryOnRemoteDom: jest.fn().mockResolvedValue({ name: '', value: null }),
+            updateRemoteDomValue: jest.fn().mockResolvedValue({}),
+            applyPatches: jest.fn().mockResolvedValue(undefined),
+            destroyRemoteDom: jest.fn().mockResolvedValue(undefined),
+        });
+        const mockSandboxInstance = createMockInstance();
+        const mockRemoteDomInstance = createMockInstance();
+        return {
+            __esModule: true,
+            Sandbox: Object.assign(jest.fn().mockImplementation(() => mockSandboxInstance), {
+                getInstance: jest.fn().mockResolvedValue(mockSandboxInstance),
+                EXECUTE_TIMEOUT: 6000
+            }),
+            RemoteDom: {
+                getInstance: jest.fn().mockResolvedValue(mockRemoteDomInstance),
+                vdomNodeCounter: 0
+            }
+        };
+    }, { virtual: true });
 };

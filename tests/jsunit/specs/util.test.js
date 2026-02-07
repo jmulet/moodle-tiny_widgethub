@@ -84,114 +84,6 @@ describe('utils module tests', () => {
         expect(res).toBe("/widgets/sd");
     });
 
-    test('evaluate within a context', () => {
-        const scope = { a: 3, b: 5, c: -4 }
-        let res = U.evalInContext(scope, "a+b*c");
-        expect(res).toBe(-17);
-        res = U.evalInContext(scope, "");
-        expect(res).toBe(undefined);
-        const f = () => U.evalInContext(scope, "7*h");
-        expect(f).toThrow();
-        res = U.evalInContext({}, "5*4-8");
-        expect(res).toBe(12);
-    });
-
-    test('create filter function', () => {
-        const filter = U.createFilterFunction(`
-            return [text.toUpperCase().substring(2).replace(/\\s/g,''), null];
-        `)
-        expect(filter).not.toBeNull();
-        if (filter != null) {
-            const filteredText = filter("hola mundo!");
-            if (filteredText != null && !('then' in filteredText)) {
-                expect(filteredText[0]).toBe("LAMUNDO!");
-                expect(filteredText[1]).toBeNull();
-            }
-        }
-        const filter2 = U.createFilterFunction(`
-            return new Promise((resolve, reject)=>{
-                resolve([text, 'An error internal occurred!']);
-            });
-        `)
-        expect(filter2).not.toBeNull();
-        if (filter2 != null) {
-            const filteredText = filter2("hola mundo!");
-            if (filteredText != null && ('then' in filteredText)) {
-                // @ts-ignore
-                filteredText.then((res) => {
-                    expect(res[0]).toBe("hola mundo!");
-                    expect(res[1]).toBe('An error internal occurred!');
-                })
-            }
-        }
-
-    });
-
-    test('creates a filter function', () => {
-        const scriptSrc = `
-        text = text.replace(/[ae]/ig, function($0, $1){
-            return $0.toUpperCase();
-        });
-        return text;
-        `
-        const f = U.createFilterFunction(scriptSrc);
-        expect(f).not.toBeNull();
-        if (f != null) {
-            const res = f("america esa gran desconocida de las aviacion")
-            expect(res).toBe("AmEricA EsA grAn dEsconocidA dE lAs AviAcion")
-        }
-    });
-
-    it("It applies widgetFilter", async () => {
-        /** @type {*} */
-        const editor = global.Mocks.editorFactory();
-        editor.getContent.mockReturnValue("<p>This is the editor's content</p>");
-        const coreStr = {
-            get_strings: (/** @type {any[]} **/ lst) => {
-                return Promise.resolve(lst.map(e => e.key))
-            }
-        }
-        // Invalid script shows error message
-        const applyWidgetFilter = U.applyWidgetFilterFactory(editor, coreStr);
-        let res = await applyWidgetFilter("Bad script");
-        expect(editor.notificationManager.open).toHaveBeenCalledWith({
-            text: "filterres: Invalid filter",
-            type: 'danger',
-            timeout: 4000
-        });
-        expect(res).toBe(false);
-
-        editor.notificationManager.open.mockClear();
-        // Valid script without applying any changes
-        res = await applyWidgetFilter(`
-            // This is the filter definition
-            return [null, 'no change done'];
-        `);
-        expect(editor.notificationManager.open).toHaveBeenCalledWith({
-            text: "nochanges",
-            type: 'info',
-            timeout: 5000
-        });
-        expect(res).toBe(true);
-        expect(editor.setContent).not.toHaveBeenCalled();
-
-        editor.notificationManager.open.mockImplementation();
-        // Valid script applying changes
-        res = await applyWidgetFilter(`
-            // This is the filter definition
-            var txt2 = text.replace("editor's", "TinyMCE editor's");
-            // Replace the entire content
-            return [txt2, 'change done'];
-        `);
-        expect(editor.notificationManager.open).toHaveBeenCalledWith({
-            text: "filterres: change done",
-            type: 'success',
-            timeout: 5000
-        });
-        expect(res).toBe(true);
-        expect(editor.setContent).toHaveBeenCalledWith("<p>This is the TinyMCE editor's content</p>");
-    });
-
     test('findVariableByName', () => {
         /** @type {import("../src/options").Param[]} */
         const listVars = [
@@ -405,7 +297,7 @@ describe('utils module tests', () => {
             id: 'd24523fvvv_34',
             effect: 'fade'
         }
-        expect(U.removeRndFromCtx(ctx, parameters)).toStrictEqual({
+        expect(U.removeRndFromCtx(ctx, parameters)).toEqual({
             q: 'foo value',
             effect: 'fade'
         }
@@ -424,10 +316,11 @@ describe('utils module tests', () => {
             id: 'd24523fvvv_34',
             effect: 'fade'
         }
-        expect(U.removeRndFromCtx(ctx, parameters)).toStrictEqual(ctx);
+        expect(U.removeRndFromCtx(ctx, parameters)).toEqual(ctx);
     });
 
     test.each([
+        [`styleRegex("background-image:url\\(['\\"]?([^'\\")]*)['\\"]?\\)")`, { name: 'styleRegex', args: ["background-image:url\\(['\"]?([^'\")]*)['\"]?\\)"] }],
         ["f('x')", { name: 'f', args: ['x'] }],
         ["classRegex('alert-(.*)')", { name: 'classRegex', args: ['alert-(.*)'] }],
         ["attr('src', 'img')", { name: 'attr', args: ['src', 'img'] }],

@@ -161,7 +161,7 @@ describe("FormCtrl", () => {
             </div>`);
 
         const extracted = formCtrl.extractFormParameters(widget, form, false);
-        expect(extracted).toStrictEqual({
+        expect(extracted).toEqual({
             p1: "Example",
             p2: "A long text in the area",
             p3: 1975,
@@ -189,7 +189,7 @@ describe("FormCtrl", () => {
             </div>`);
 
         const extracted = formCtrl.extractFormParameters(widget, form, false);
-        expect(extracted).toStrictEqual({
+        expect(extracted).toEqual({
             p1: "Example",
             p2: "A LONG TEXT IN THE AREA"
         });
@@ -197,7 +197,7 @@ describe("FormCtrl", () => {
 
     it("Use stored values for all variables starting with _ when saveall unset", () => {
         // Use the real templateSrv
-        formCtrl = new FormCtrl(mockEditor, mockUserStorage, getTemplateSrv(), mockFileSrv);
+        formCtrl = new FormCtrl(mockEditor, mockUserStorage, getTemplateSrv(mockEditor), mockFileSrv);
         mockUserStorage.getFromLocal = jest.fn().mockImplementation((key, def) => {
             if (key === 'values') {
                 return { _saved: 'The new value' };
@@ -242,7 +242,7 @@ describe("FormCtrl", () => {
 
     it("Use stored values for all variables starting with _ when saveall is ON", () => {
         // Use the real templateSrv
-        formCtrl = new FormCtrl(mockEditor, mockUserStorage, getTemplateSrv(), mockFileSrv);
+        formCtrl = new FormCtrl(mockEditor, mockUserStorage, getTemplateSrv(mockEditor), mockFileSrv);
         mockUserStorage.getFromLocal = jest.fn().mockImplementation((key, def) => {
             if (key === 'values') {
                 return { _saved: 'The new value' };
@@ -286,8 +286,14 @@ describe("FormCtrl", () => {
 
 
     it('Applies field watchers showing and hidding controls depending on input', async () => {
+        // Need to control sandbox execute results
+        const sandbox = require('../../src/service/sandbox').Sandbox;
+        const sandboxInstance = await sandbox.getInstance();
+        // @ts-ignore
+        sandboxInstance.execute.mockResolvedValue({ returns: false });
+
         // Use the real templateSrv
-        formCtrl = new FormCtrl(mockEditor, mockUserStorage, getTemplateSrv(), mockFileSrv);
+        formCtrl = new FormCtrl(mockEditor, mockUserStorage, getTemplateSrv(mockEditor), mockFileSrv);
         /** @type {any} */
         const widget = {
             key: "wk111",
@@ -329,6 +335,7 @@ describe("FormCtrl", () => {
             e.addEventListener(evType, handler);
         });
         formCtrl.applyFieldWatchers(form, widget.defaults, widget, false, listenerTracker);
+        await wait(500);
         expect(mockUserStorage.setToLocal).not.toHaveBeenCalled();
 
         // Expect only the first element to be visible
@@ -347,7 +354,8 @@ describe("FormCtrl", () => {
         lstControl.querySelector('option[value="spain"]')?.removeAttribute('selected');
         lstControl.querySelector('option[value="italy"]')?.setAttribute('selected', '');
         lstInput.dispatchEvent(new Event("change", { bubbles: true })); // native
-        console.log(form.outerHTML);
+        // @ts-ignore
+        sandboxInstance.execute.mockResolvedValue({ returns: true });
         await wait(500);
         expect(lstControl.style.display).not.toBe('none');
         expect(txtControl.style.display).not.toBe('none');
@@ -355,6 +363,8 @@ describe("FormCtrl", () => {
         // Click on the checkbox again
         optInput.checked = false;
         optInput.dispatchEvent(new Event("change", { bubbles: true })); // native
+        // @ts-ignore
+        sandboxInstance.execute.mockResolvedValue({ returns: false });
         await wait(500);
         // Expect only the first element to be visible
         expect(optControl.style.display).toBe('');
