@@ -97,6 +97,14 @@ abstract class storagefactory {
     }
 
     /**
+     * Reset the storage singleton instance.
+     * This is useful for tests.
+     */
+    public static function reset_instance(): void {
+        self::$instance = null;
+    }
+
+    /**
      * Get the editor data.
      *
      * @return array

@@ -103,7 +103,6 @@ describe('bindings module tests', () => {
         [`styleRegex("background-image:url\\(['\\"]?([^'\\")]*)['\\"]?\\)")`,
             `<span class="iedib-background-img" style="background-image:url(http://localhost:4545/pluginfile.php/19/mod_page/content/5/icon.png); padding: 10px; min-height: 40px; background-repeat: no-repeat; background-size: cover; background-position: 50% 50%;">
             Quina probabilitat tinc de guanyar els jocs d'atzar?</span>`, 'http://localhost:4545/pluginfile.php/19/mod_page/content/5/icon.png'],
-        ["html()", `<span><b>Content</b></span>`, "<b>Content</b>"],
         ["text()", `<span>Content</span>`, "Content"],
         ["attrBS('target')", `<span data-target="modal"></span>`, "modal"],
         ["attrBS('target', null, null, 5)", `<span data-bs-target="modal"></span>`, "modal"],
@@ -210,7 +209,6 @@ describe('bindings module tests', () => {
             `<span class="iedib-background-img" style="background-image: url(&quot;https://newsite.com/example32.png&quot;); padding: 10px;" data-mce-style="background-image: url(&quot;https://newsite.com/example32.png&quot;); padding: 10px;">
             Lorem ipsum.</span>`],
 
-        ["html()", `<span>Old <i>...</i></span>`, "New <b>bold</b>", "<span>New <b>bold</b></span>"],
         ["text()", `<span>Old <b>old</b></span>`, "New content", "<span>New content</span>"],
         ["attrBS('target')", `<span></span>`, "modal", `<span data-bs-target="modal" data-target="modal"></span>`],
         ["attrBS('target', null, null, 5)", `<span></span>`, "modal", `<span data-bs-target="modal"></span>`],

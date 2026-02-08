@@ -270,12 +270,17 @@ class widgetstorageimpl implements widgetstorage {
             if ($includeother) {
                 $yml = $this->documentstorage->get($id, 'yml');
             }
-            $widgetdocs[] = [
+            $row = [
                 'id' => $id,
                 'key' => $this->index[$id]['key'],
-                'json' => $json,
-                'yml' => $yml,
             ];
+            if ($json !== null) {
+                $row['json'] = $json;
+            }
+            if ($yml !== null) {
+                $row['yml'] = $yml;
+            }
+            $widgetdocs[] = $row;
         }
         return $widgetdocs;
     }

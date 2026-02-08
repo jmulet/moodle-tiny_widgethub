@@ -565,28 +565,6 @@ export const bindingsFactoryAPI = Object.freeze(
          * @param {string=} query
          * @returns {Binding}
          */
-        html: (el, query) => {
-            /** @type {Element | null} */
-            let elem = el;
-            if (query) {
-                elem = el.querySelector(query);
-            }
-            return {
-                getValue() {
-                    return elem?.innerHTML ?? '';
-                },
-                setValue(val) {
-                    if (elem) {
-                        elem.innerHTML = val + '';
-                    }
-                }
-            };
-        },
-        /**
-         * @param {Element} el
-         * @param {string=} query
-         * @returns {Binding}
-         */
         text: (el, query) => {
             /** @type {Element | null} */
             let elem = el;
