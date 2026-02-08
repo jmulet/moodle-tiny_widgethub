@@ -26,6 +26,6 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'tiny_widgethub';
 $plugin->release = '1.5.0';
-$plugin->requires = 2022112800;
+$plugin->requires = 2023042400;  // Moodle 4.2+.
 $plugin->maturity = MATURITY_STABLE;
 $plugin->version = 2026020300;
