@@ -464,7 +464,7 @@ async function vdomFilter(html, filters) {
 
     const channel = new MessageChannel();
     window.parent.postMessage({
-        type: 'tiny_widgethub_remotedom_init',
+        type: 'tiny_widgethub_dom_sandbox_init',
         status: 'ready'
     }, '*', [channel.port2]);
     port1 = channel.port1;

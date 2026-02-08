@@ -41,7 +41,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>WidgetHub Sandbox</title>
+    <title>WidgetHub Render Sandbox</title>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="
     default-src 'none';
@@ -57,11 +57,11 @@
     base-uri 'none';
     form-action 'none';
     ">
-    <link rel="workersrc" id="urlworker_mustache" href="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/worker_mustache">
-    <link rel="workersrc" id="urlworker_liquid" href="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/worker_liquid">
-    <link rel="workersrc" id="urlworker_ejs" href="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/worker_ejs">
-    <link rel="workersrc" id="urlworker_eval" href="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/worker_eval">
-    <script src="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/remoterender"></script>
+    <link rel="workersrc" id="urlworker_mustache" href="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/mustache_worker">
+    <link rel="workersrc" id="urlworker_liquid" href="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/liquid_worker">
+    <link rel="workersrc" id="urlworker_ejs" href="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/ejs_worker">
+    <link rel="workersrc" id="urlworker_eval" href="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/eval_worker">
+    <script src="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/render_sandbox"></script>
 </head>
  <body>
 </body>

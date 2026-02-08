@@ -65,7 +65,7 @@ export class Sandbox {
      */
     static async getInstance() {
         if (!Sandbox._instance) {
-            Sandbox._instance = new Sandbox('sandbox');
+            Sandbox._instance = new Sandbox('dom_sandbox');
             await Sandbox._instance._createSandboxedIframe();
         }
         return Sandbox._instance;
@@ -224,7 +224,7 @@ export class RemoteDom extends Sandbox {
      */
     static async getInstance() {
         if (!RemoteDom._instance) {
-            RemoteDom._instance = new RemoteDom('remotedom');
+            RemoteDom._instance = new RemoteDom('render_sandbox');
             await RemoteDom._instance._createSandboxedIframe();
         }
         return RemoteDom._instance;

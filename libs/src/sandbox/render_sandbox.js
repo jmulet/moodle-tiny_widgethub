@@ -280,7 +280,7 @@ function onChannelMessage(e) {
 const channel = new MessageChannel();
 window.parent.postMessage(
     Object.assign(Object.create(null), {
-        type: 'tiny_widgethub_sandbox_init',
+        type: 'tiny_widgethub_render_sandbox_init',
         status: 'ready'
     }),
     '*',

@@ -58,12 +58,8 @@ if ($rev < -1 || empty($name)) {
 }
 
 // Performance Headers & Security.
-if ($type === 'css') {
-    $mimetype = 'text/css';
-} else if ($type === 'js') {
+if ($type === 'js') {
     $mimetype = 'application/javascript';
-} else if ($type === 'html') {
-    $mimetype = 'text/html';
 } else {
     header("HTTP/1.1 400 Bad Request");
     die('Invalid type');
@@ -76,7 +72,7 @@ header("Cache-Control: public, max-age=$expires, immutable");
 header("Expires: " . gmdate("D, d M Y H:i:s", time() + $expires) . " GMT");
 
 // Dynamic content from cache.
-$cachefile = __DIR__ . '/libs/' . $type . '/' . $name . '.' . $type;
+$cachefile = __DIR__ . '/js/' . $name . '.min.js';
 
 if (file_exists($cachefile)) {
     // Check ETag for 304 Not Modified.

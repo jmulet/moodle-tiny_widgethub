@@ -19,8 +19,8 @@
  * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import { blacklist, protoNullify } from "./worker_common.js";
-import { disableWorkerAPIs } from "./worker_common.js";
+import { blacklist, protoNullify } from "./common_worker.js";
+import { disableWorkerAPIs } from "./common_worker.js";
 import './ejs.min.js';
 
 const _postMessage = self.postMessage;

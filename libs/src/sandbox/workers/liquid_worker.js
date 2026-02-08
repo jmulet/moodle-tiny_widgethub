@@ -1,4 +1,5 @@
-/* global self, postMessage */
+/* eslint-disable no-restricted-globals */
+/* global self, importScripts, postMessage */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -20,34 +21,33 @@
  * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import { protoNullify } from "./worker_common.js";
-import { evalInContext } from "./worker_common.js";
-import { disableWorkerAPIs } from "./worker_common.js";
+import { protoNullify } from "./common_worker.js";
+import { disableWorkerAPIs } from "./common_worker.js";
+import 'liquidjs/dist/liquid.browser.min.js';
 
+// @ts-ignore
+const engine = new self.liquidjs.Liquid(protoNullify({ cache: false }));
+const _postMessage = self.postMessage;
 disableWorkerAPIs();
 
-const _postMessage = self.postMessage;
-
-self.onmessage = function (e) {
+self.onmessage = async function (e) {
     const data = e.data;
     const payload = data.payload || protoNullify({});
     try {
-        const result = evalInContext(payload.ctx, payload.code, false);
+        const ctx = payload.ctx || protoNullify({});
+        const result = await engine.parseAndRender(payload.template, ctx);
         _postMessage(protoNullify({
             requestId: data.requestId,
-            result: {
-                returns: result,
-                ctx: payload.ctx
-            }
+            result: result
         }));
     } catch (e) {
-        console.error('Failed to evaluate code: ' + e);
+        console.error('Failed to render template: ' + e);
         _postMessage(protoNullify({
             requestId: data.requestId,
-            error: 'Failed to evaluate code: ' + e
+            error: 'Failed to render template: ' + e
         }));
     }
 };
 _postMessage(protoNullify({
-    type: typeof evalInContext === 'function' ? 'worker_ready' : 'worker_error',
+    type: !!engine ? 'worker_ready' : 'worker_error',
 }));

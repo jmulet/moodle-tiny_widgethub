@@ -15,10 +15,10 @@ const banner = `
 
 export default [
     {
-        input: './codemirror6/cmeditor.mjs',
+        input: './src/cmeditor/cmeditor.mjs',
         output: {
             sourcemap: false,
-            file: path.resolve(__dirname, '../amd/src/libs/cmeditor-lazy.js'),
+            file: path.resolve(__dirname, '../../amd/src/libs/cmeditor-lazy.js'),
             format: 'esm',
             name: 'cmeditor',
             plugins: [],
@@ -38,10 +38,10 @@ export default [
         ]
     },
     {
-        input: './codemirror6/yaml.mjs',
+        input: './src/cmeditor/yaml.mjs',
         output: {
             sourcemap: false,
-            file: path.resolve(__dirname, '../amd/src/libs/yaml-lazy.js'),
+            file: path.resolve(__dirname, '../../amd/src/libs/yaml-lazy.js'),
             format: 'esm',
             name: 'yaml',
             plugins: [],
@@ -52,12 +52,13 @@ export default [
         ]
     },
     {
-        input: './sandbox/remoterender.js',
+        input: './src/sandbox/render_sandbox.js',
         output: {
             sourcemap: false,
-            file: path.resolve(__dirname, './js/remoterender.js'),
+            file: path.resolve(__dirname, '../js/render_sandbox.min.js'),
             format: 'iife',
             plugins: [],
+            banner
         },
         plugins: [
             nodeResolve({
@@ -68,12 +69,13 @@ export default [
         ]
     },
     {
-        input: './sandbox/remotedom.js',
+        input: './src/sandbox/dom_sandbox.js',
         output: {
             sourcemap: false,
-            file: path.resolve(__dirname, './js/remotedom.js'),
+            file: path.resolve(__dirname, '../js/dom_sandbox.min.js'),
             format: 'iife',
             plugins: [],
+            banner
         },
         plugins: [
             nodeResolve({
@@ -84,12 +86,13 @@ export default [
         ]
     },
     {
-        input: './sandbox/workers/worker_eval.js',
+        input: './src/sandbox/workers/eval_worker.js',
         output: {
             sourcemap: false,
-            file: path.resolve(__dirname, './js/worker_eval.js'),
+            file: path.resolve(__dirname, '../js/eval_worker.min.js'),
             format: 'iife',
             plugins: [],
+            banner
         },
         plugins: [
             nodeResolve({
@@ -100,12 +103,13 @@ export default [
         ]
     },
     {
-        input: './sandbox/workers/worker_ejs.js',
+        input: './src/sandbox/workers/ejs_worker.js',
         output: {
             sourcemap: false,
-            file: path.resolve(__dirname, './js/worker_ejs.js'),
+            file: path.resolve(__dirname, '../js/ejs_worker.min.js'),
             format: 'iife',
             plugins: [],
+            banner
         },
         plugins: [
             nodeResolve({
@@ -116,13 +120,14 @@ export default [
         ]
     },
     {
-        input: './sandbox/workers/worker_liquid.js',
+        input: './src/sandbox/workers/liquid_worker.js',
         context: 'self',
         output: {
             sourcemap: false,
-            file: path.resolve(__dirname, './js/worker_liquid.js'),
+            file: path.resolve(__dirname, '../js/liquid_worker.min.js'),
             format: 'iife',
             plugins: [],
+            banner
         },
         plugins: [
             nodeResolve({
@@ -133,12 +138,13 @@ export default [
         ]
     },
     {
-        input: './sandbox/workers/worker_mustache.js',
+        input: './src/sandbox/workers/mustache_worker.js',
         output: {
             sourcemap: false,
-            file: path.resolve(__dirname, './js/worker_mustache.js'),
+            file: path.resolve(__dirname, '../js/mustache_worker.min.js'),
             format: 'iife',
             plugins: [],
+            banner
         },
         plugins: [
             nodeResolve({
