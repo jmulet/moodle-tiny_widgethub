@@ -55,15 +55,9 @@ function tiny_widgethub_storedocument($widgetid, $raw, $ext = 'json') {
         'filename' => 'data.' . $ext,
     ];
     if (is_array($raw)) {
-        if (isset($raw['author'])) {
-            $fileinfo['author'] = core_text::substr($raw['author'] ?? '', 0, 255);
-        }
-        if (isset($raw['version'])) {
-            $fileinfo['license'] = core_text::substr($raw['version'] ?? '', 0, 255);
-        }
         $source = [
-            "key" => $raw['key'] ?? $widgetid . '',
-            "name" => $raw['name'] ?? $raw['key'] ?? '',
+            "k" => $raw['key'] ?? $widgetid . '',
+            "n" => $raw['name'] ?? $raw['key'] ?? '',
             "c" => $raw['category'] ?? '',
             "h" => ($raw['hidden'] ?? false) ? 1 : 0,
         ];

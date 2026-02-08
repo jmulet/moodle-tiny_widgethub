@@ -96,11 +96,9 @@ class documentstorageimpl implements documentstorage {
             'filename' => 'data.' . $ext,
         ];
         if ($doc !== null && is_array($doc) && $ext === 'json') {
-            $fileinfo['author'] = \core_text::substr($doc['author'] ?? '', 0, 255);
-            $fileinfo['license'] = \core_text::substr($doc['version'] ?? '', 0, 255);
             $source = [
-                'key' => $doc['key'] ?? $id . '',
-                'name' => $doc['name'] ?? $doc['key'] ?? '',
+                'k' => $doc['key'] ?? $id . '',
+                'n' => $doc['name'] ?? $doc['key'] ?? '',
                 'c' => $doc['category'] ?? 'other',
                 'h' => ($doc['hidden'] ?? false) ? 1 : 0,
             ];

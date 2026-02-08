@@ -27,22 +27,6 @@ namespace tiny_widgethub\local\storage;
 use tiny_widgethub\local\storage\storagefactory;
 
 /**
- * Function to search for the index by the 'key' property.
- * @param array $array
- * @param string $searchkey
- * @return mixed
- */
-function tiny_widgethub_searchbykey($array, $searchkey) {
-    foreach ($array as $index => $value) {
-        if ($value['key'] === $searchkey) {
-            return $index;
-        }
-    }
-    // Return null if not found.
-    return null;
-}
-
-/**
  * Class widgetstorageimpl
  *
  * Legacy implementation of the widgetstorage interface using Moodle config.
@@ -104,7 +88,7 @@ class widgetstorageimpl implements widgetstorage {
     /**
      * Get the index of the widgets
      * Load the property in which the index of the widgets is stored
-     * {1: {key: 'WD1', name: 'Name1', h: 0, c: 'category'}, 5: {key: 'WD2', name: 'Name2', h: 0, c: 'category'}, ...]
+     * {1: {k: 'WD1', n: 'Name1', h: 0, c: 'category'}, 5: {k: 'WD2', n: 'Name2', h: 0, c: 'category'}, ...]
      *
      * @return array
      */
@@ -159,8 +143,8 @@ class widgetstorageimpl implements widgetstorage {
                 $hidden = ($raw['hidden'] ?? false) ? 1 : 0;
                 $this->index[$id] = [
                     'id' => $id,
-                    'key' => $key,
-                    'name' => $name,
+                    'k' => $key,
+                    'n' => $name,
                     'c' => $category,
                     'h' => $hidden,
                 ];
@@ -225,7 +209,7 @@ class widgetstorageimpl implements widgetstorage {
      */
     public function get_widget_by_key(string $key, string $fields = '*') {
         foreach ($this->index as $id => $info) {
-            if (isset($info['key']) && $info['key'] === $key) {
+            if (($info['k'] ?? null) === $key) {
                 return $this->load_raw_widget($id) ?? false;
             }
         }
@@ -259,7 +243,7 @@ class widgetstorageimpl implements widgetstorage {
         }
         foreach ($ids as $id) {
             $info = $this->index[$id] ?? null;
-            if (!$info || !isset($info['key'])) {
+            if (!$info || !isset($info['k'])) {
                 continue;
             }
             $json = null;
@@ -272,7 +256,7 @@ class widgetstorageimpl implements widgetstorage {
             }
             $row = [
                 'id' => $id,
-                'key' => $this->index[$id]['key'],
+                'key' => $info['k'],
             ];
             if ($json !== null) {
                 $row['json'] = $json;
@@ -346,7 +330,7 @@ class widgetstorageimpl implements widgetstorage {
     ): int {
         // Used widgets keys.
         $usedkeys = array_combine(
-            array_column($this->index, 'key'),
+            array_column($this->index, 'k'),
             array_keys($this->index)
         );
         if (!self::validate_widget($id, $widget, $usedkeys)) {
