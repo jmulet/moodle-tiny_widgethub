@@ -31,6 +31,14 @@ namespace tiny_widgethub\local\storage;
  */
 interface widgetstorage {
     /**
+     * Get the index of widgets.
+     *
+     * @return array Associative array of widgets in the form of
+     * id:int => {k: string, n: string, c: string, h: int}.
+     */
+    public function get_index(): array;
+
+    /**
      * Get all widgets. It does not include partials.
      *
      * @param bool $includehidden Whether to include hidden widgets.

@@ -24,6 +24,30 @@
 
 namespace tiny_widgethub\external;
 
+// Polyfill for Moodle < 4.2.
+if (!class_exists('\core_external\external_api')) {
+    class_alias(
+        '\external_api',
+        '\core_external\external_api'
+    );
+    class_alias(
+        '\external_function_parameters',
+        '\core_external\external_function_parameters'
+    );
+    class_alias(
+        '\external_multiple_structure',
+        '\core_external\external_multiple_structure'
+    );
+    class_alias(
+        '\external_single_structure',
+        '\core_external\external_single_structure'
+    );
+    class_alias(
+        '\external_value',
+        '\core_external\external_value'
+    );
+}
+
 use tiny_widgethub\local\storage\storagefactory;
 use core_external\external_api;
 use core_external\external_function_parameters;

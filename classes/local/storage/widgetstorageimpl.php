@@ -60,6 +60,16 @@ class widgetstorageimpl implements widgetstorage {
     }
 
     /**
+     * Get the index of widgets.
+     *
+     * @return array Associative array of widgets in the form of
+     * id:int => {k: string, n: string, c: string, h: int}.
+     */
+    public function get_index(): array {
+        return $this->index;
+    }
+
+    /**
      * Get the partials for widget expansion.
      *
      * @return array Associative array of partials.

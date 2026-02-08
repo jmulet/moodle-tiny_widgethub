@@ -17,6 +17,10 @@
 namespace tiny_widgethub\external;
 
 defined('MOODLE_INTERNAL') || die();
+// Polyfill for Moodle < 4.2.
+if (!class_exists('\core_external\external_api')) {
+    class_alias('\external_api', '\core_external\external_api');
+}
 
 global $CFG;
 require_once($CFG->dirroot . '/webservice/tests/helpers.php');

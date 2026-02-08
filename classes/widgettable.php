@@ -168,27 +168,24 @@ class widgettable extends \admin_setting {
      * @return \stdClass[] Array of widget objects.
      */
     public static function get_list_widgets_config(): array {
-        global $DB;
-        $sql = "SELECT itemid, source FROM {files}
-        WHERE component = 'tiny_widgethub'
-        AND filename = 'data.json' AND source IS NOT NULL";
-        $records = $DB->get_records_sql($sql);
+        $storage = storagefactory::get_instance();
+        $index = $storage->get_index();
         $widgets = [];
-        foreach ($records as $itemid => $record) {
-            $info = json_decode($record->source, true);
-            if (is_array($info)) {
-                $widgets[] = (object) [
-                    'id' => $itemid,
-                    'key' => $info['key'] ?? 'key' . $itemid,
-                    'name' => $info['name'] ?? 'Unknown ' . $itemid,
-                    'category' => $info['c'] ?? '',
-                    'hidden' => ($info['h'] ?? 0) === 1,
-                    'url' => new \moodle_url(
-                        '/lib/editor/tiny/plugins/widgethub/settingseditorpage.php',
-                        ['id' => $itemid]
-                    ),
-                ];
+        foreach ($index as $itemid => $info) {
+            if (!is_array($info)) {
+                continue;
             }
+            $widgets[] = (object) [
+                'id' => $itemid,
+                'key' => $info['k'] ?? 'key' . $itemid,
+                'name' => $info['n'] ?? 'Unknown ' . $itemid,
+                'category' => $info['c'] ?? '',
+                'hidden' => ($info['h'] ?? 0) === 1,
+                'url' => new \moodle_url(
+                    '/lib/editor/tiny/plugins/widgethub/settingseditorpage.php',
+                    ['id' => $itemid]
+                ),
+            ];
         }
         // Sort the array first by 'category' and then by 'name' property.
         usort($widgets, function ($a, $b) {
