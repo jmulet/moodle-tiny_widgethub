@@ -18,29 +18,6 @@ const { WidgetPropertiesCtrl, getWidgetPropertiesCtrl } =
 let mockEditor;
 
 /** @type {*} */
-const mockUserStorage = {
-    getFromLocal: () => {
-        return undefined;
-    },
-    getFromSession: () => {
-        return undefined;
-    }
-};
-
-/** @type {*} */
-const mockTemplateSrv = {
-    render: jest.fn(),
-    renderMustache: jest.fn(),
-    renderEJS: jest.fn()
-};
-
-/** @type {*} */
-const mockFileSrv = {
-    getImagePicker: jest.fn(),
-    displayImagePicker: jest.fn()
-};
-
-/** @type {*} */
 const widget = {
     key: "key",
     name: "widget-name",
