@@ -94,6 +94,7 @@ $string['bstabs_tabs_tip'] = 'Un nombre excessiu de pestanyes pot causar problem
 $string['cancel'] = 'Cancel·lar';
 $string['category'] = 'Categoria';
 $string['cfg'] = 'Configuració addicional';
+$string['changessaved'] = 'Canvis desats';
 $string['configuration'] = 'Configuració';
 $string['confirmdelete'] = 'Segur que voleu eliminar els widgets seleccionats? Aquesta acció no es pot desfer.';
 $string['confirmusage'] = 'Aquest widget no és adequat per a la pàgina actual. Voleu continuar?';

@@ -59,7 +59,7 @@ describe('TemplateSrv', () => {
                     "es": "gato"
                 },
             }
-            sandbox.execute.mockResolvedValue(expected);
+            sandbox.execute.mockResolvedValue({ result: expected });
             const result = await templateSrv.render(template, ctx, translations, 'ejs')
             expect(result).toBe(expected);
         });
@@ -86,29 +86,29 @@ describe('TemplateSrv', () => {
             ["Simplified matrix notation 2", "{{#each}}[a=2,b=3]{{a}}-{{b}} {{/each}}", "1-1 1-2 1-3 2-1 2-2 2-3 "],
             ["Eval functions", "Hello {{#eval}}4+4{{/eval}}", "Hello 8"]
         ])("%s", async (_, template, rendered) => {
-            sandbox.execute.mockResolvedValue(rendered);
+            sandbox.execute.mockResolvedValue({ result: rendered });
             const out = await templateSrv.render(template, context, translations, 'mustache');
             expect(out).toBe(rendered);
         });
 
         test("Translations", async () => {
             let expected = "Aquest és l'widget Watch out!";
-            sandbox.execute.mockResolvedValue(expected);
+            sandbox.execute.mockResolvedValue({ result: expected });
             let out = await templateSrv.render("Aquest és l'widget {{#I18n}}snptKey{{/I18n}}", context, translations, 'mustache');
             expect(out).toBe(expected);
             context["_lang"] = "ca"
             expected = "Aquest és l'widget Alerta";
-            sandbox.execute.mockResolvedValue(expected);
+            sandbox.execute.mockResolvedValue({ result: expected });
             out = await templateSrv.render("Aquest és l'widget {{#I18n}}snptKey{{/I18n}}", context, translations, 'mustache');
             expect(out).toBe(expected);
             context["_lang"] = "ru"
             expected = "Aquest és l'widget Watch out!";
-            sandbox.execute.mockResolvedValue(expected);
+            sandbox.execute.mockResolvedValue({ result: expected });
             out = await templateSrv.render("Aquest és l'widget {{#I18n}}snptKey{{/I18n}}", context, translations, 'mustache');
             expect(out).toBe(expected);
             context["_lang"] = "ru"
             expected = "Aquest és l'widget notFound";
-            sandbox.execute.mockResolvedValue(expected);
+            sandbox.execute.mockResolvedValue({ result: expected });
             out = await templateSrv.render("Aquest és l'widget {{#I18n}}notFound{{/I18n}}", context, translations, 'mustache');
             expect(out).toBe(expected);
         });

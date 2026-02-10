@@ -17,10 +17,13 @@
 /**
  * Tiny WidgetHub plugin.
  *
- * @module      tiny_widgethub/remotedom
+ * @module      tiny_widgethub/dom_sandbox
  * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+import cash from 'cash-dom';
+const jQuery = cash;
 
 /**
  * Sanitizes the given document.
@@ -142,14 +145,14 @@ function jsonDomSerialize(elem, forceFull) {
 
 /**
  * Creates a new VDOM instance.
- * @param {string} html
+ * @param {{html: string}} payload
  * @returns {{
  *     vid: string
  * }}
  */
-function vdomCreate(html) {
+function vdomCreate(payload) {
     const vid = vdomInstanceCounter++;
-    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const doc = new DOMParser().parseFromString(payload.html, 'text/html');
     sanitize(doc);
     /** @type {VDOMInstance} */
     const instance = {
@@ -207,35 +210,43 @@ function vdomCreate(html) {
         instance.observer.observe(doc.body, observeOptions);
     }
     vdomInstances.set(vid + '', instance);
+    console.log('vdom created with vid: ' + vid);
     return {
         vid: vid + ''
     };
 }
 
 /**
- * @param {{vid: string, instructions: string, useJQuery: boolean}} data
+ * @param {{vid: string, rvnid: string, instructions: string, useJQuery: boolean}} payload
  */
-function vdomQuery(data) {
-    const instance = vdomInstances.get(data.vid);
+function vdomQuery(payload) {
+    console.log('vdom query for vid: ' + payload.vid);
+    const instance = vdomInstances.get(payload.vid);
     if (!instance) {
         return {
-            error: 'vdom node not found for vid: ' + data.vid
+            error: 'vdom node not found for vid: ' + payload.vid
         };
     }
     let result = '';
     let error = undefined;
     const doc = instance.document;
     /** @type {any} */
-    let elem = doc.body.firstElementChild;
+    let elem = doc.body.querySelector('[data-rvn-id="' + payload.rvnid + '"]');
+    if (!elem) {
+        return {
+            error: 'vdom node not found for rvnid: ' + payload.rvnid
+        };
+    }
     try {
-        if (typeof data.instructions === 'string') {
+        if (typeof payload.instructions === 'string') {
             let elemVar = 'elem';
-            if (data.useJQuery) {
+            if (payload.useJQuery) {
+                // @ts-ignore
                 elem = jQuery(elem);
                 elemVar = '$e';
             }
             const executor = new Function(elemVar, 'window', 'document', '$',
-                `var fn = ${data.instructions}; return fn(${elemVar});`);
+                `var fn = ${payload.instructions}; return fn(${elemVar});`);
             result = executor(elem, { document: doc }, doc, jQuery);
         } else {
             error = 'Invalid instructions format';
@@ -243,6 +254,7 @@ function vdomQuery(data) {
     } catch (e) {
         error = e + '';
     }
+    console.log('vdom query result: ', result, error);
     return {
         result: result,
         error: error
@@ -250,35 +262,43 @@ function vdomQuery(data) {
 }
 
 /**
- * @param {{vid: string, value: any, instructions: string, useJQuery: boolean}} data
+ * @param {{vid: string, rvnid: string, value: any, instructions: string, useJQuery: boolean}} payload
  */
-function vdomUpdate(data) {
-    const instance = vdomInstances.get(data.vid);
+function vdomUpdate(payload) {
+    console.log('vdom update for vid: ' + payload.vid);
+    const instance = vdomInstances.get(payload.vid);
     if (!instance) {
         return {
-            error: 'vdom node not found for vid: ' + data.vid
+            error: 'vdom node not found for vid: ' + payload.vid
         };
     }
     let error = undefined;
     const doc = instance.document;
     /** @type {any} */
-    let elem = doc.body.firstElementChild;
+    let elem = doc.body.querySelector('[data-rvn-id="' + payload.rvnid + '"]');
+    if (!elem) {
+        return {
+            error: 'vdom node not found for rvnid: ' + payload.rvnid
+        };
+    }
     try {
-        if (typeof data.instructions === 'string') {
+        if (typeof payload.instructions === 'string') {
             let elemVar = 'elem';
-            if (data.useJQuery) {
+            if (payload.useJQuery) {
+                // @ts-ignore
                 elem = jQuery(elem);
                 elemVar = '$e';
             }
             const executor = new Function(elemVar, 'v', 'window', 'document', '$',
-                `var fn = ${data.instructions}; return fn(${elemVar}, v);`);
-            executor(elem, data.value, { document: doc }, doc, jQuery);
+                `var fn = ${payload.instructions}; return fn(${elemVar}, v);`);
+            executor(elem, payload.value, { document: doc }, doc, jQuery);
         } else {
             error = 'Invalid instructions format';
         }
     } catch (e) {
         error = e + '';
     }
+    console.log('vdom update result: ', error);
     return {
         error: error
     };
@@ -288,16 +308,19 @@ function vdomUpdate(data) {
  * @param {string} vid
  */
 async function vdomGetPatches(vid) {
+
     // Ensure microtask queue is flushed to allow mutations to be processed.
     await new Promise(resolve => setTimeout(resolve, 0));
     const instance = vdomInstances.get(vid);
     if (instance) {
         const patches = instance.patches;
         instance.patches = [];
+        console.log('vdom get patches result: ', patches);
         return {
             patches: patches
         };
     }
+    console.log('vdom get patches result: error');
     return { error: 'vdom node not found for vid: ' + vid };
 }
 
@@ -436,23 +459,25 @@ async function vdomFilter(html, filters) {
      * @param {MessageEvent} e 
      * {type: string, payload: Object} Task received on channel */
     async function onChannelMessage(e) {
+        console.log('onChannelMessage', e);
         const data = e.data;
         if (!data.type || !data.type.startsWith('vdom:')) {
             return;
         }
+        const payload = data.payload ?? Object.create(null);
         let response = undefined;
         if (data.type === 'vdom:create') {
-            response = vdomCreate(data.html);
+            response = vdomCreate(payload);
         } else if (data.type === 'vdom:query') {
-            response = vdomQuery(data);
+            response = vdomQuery(payload);
         } else if (data.type === 'vdom:update') {
-            response = vdomUpdate(data);
+            response = vdomUpdate(payload);
         } else if (data.type === 'vdom:getpatches') {
-            response = await vdomGetPatches(data.vid);
+            response = await vdomGetPatches(payload.vid);
         } else if (data.type === 'vdom:destroy') {
-            response = vdomDestroy(data.vid);
+            response = vdomDestroy(payload.vid);
         } else if (data.type === 'vdom:filter') {
-            response = await vdomFilter(data.html, data.filters);
+            response = await vdomFilter(payload.html, payload.filters);
         } else {
             console.error('Unknown vdom task type: ' + data.type);
         }

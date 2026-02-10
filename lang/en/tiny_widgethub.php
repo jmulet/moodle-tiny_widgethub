@@ -94,6 +94,7 @@ $string['bstabs_tabs_tip'] = 'An excessive number of tabs can cause visualizatio
 $string['cancel'] = 'Cancel';
 $string['category'] = 'Category';
 $string['cfg'] = 'Additional settings';
+$string['changessaved'] = 'Changes saved';
 $string['configuration'] = 'Configuration';
 $string['confirmdelete'] = 'Do you want to delete the selected widgets? This action cannot be undone.';
 $string['confirmusage'] = 'This widget is not suitable for the current page. Do you want to continue?';

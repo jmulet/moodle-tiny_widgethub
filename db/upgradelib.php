@@ -58,7 +58,7 @@ function tiny_widgethub_storedocument($widgetid, $raw, $ext = 'json') {
         $source = [
             "k" => $raw['key'] ?? $widgetid . '',
             "n" => $raw['name'] ?? $raw['key'] ?? '',
-            "c" => $raw['category'] ?? '',
+            "c" => $raw['category'] ?? 'other',
             "h" => ($raw['hidden'] ?? false) ? 1 : 0,
         ];
         $fileinfo['source'] = json_encode($source);
@@ -220,7 +220,7 @@ function tiny_widgethub_migrate_to_filearea_storage() {
         }
 
         // Now it is safe to get rid of the config data.
-        foreach (array_values($index) as $id) {
+        foreach (array_keys($index) as $id) {
             unset_config($componentname, 'def_' . $id);
         }
         unset_config($componentname, 'index');

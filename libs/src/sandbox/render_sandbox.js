@@ -17,23 +17,27 @@
 /**
  * Tiny WidgetHub plugin.
  *
- * @module     tiny_widgethub/remoterender
+ * @module     tiny_widgethub/render_sandbox
  * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// Retrieve worker URLs from link tags
-/** @type {Object<string, string>} */
-const rawUrls = {};
-/** @type {NodeListOf<HTMLLinkElement>} */
-const links = document.querySelectorAll('link[rel="workersrc"]');
-links.forEach((link) => {
-    rawUrls[link.id] = link.href;
-    link.remove();
-});
+/** @ts-ignore */
+import evalWorkerCode from './tmp/eval_worker.inline.js';
+/** @ts-ignore */
+import ejsWorkerCode from './tmp/ejs_worker.inline.js';
+/** @ts-ignore */
+import liquidWorkerCode from './tmp/liquid_worker.inline.js';
+/** @ts-ignore */
+import mustacheWorkerCode from './tmp/mustache_worker.inline.js';
 
-// Create a permanent, read-only configuration
-const WORKER_CONFIG = Object.freeze(rawUrls);
+/** @type {Record<string, string>} */
+const WORKER_CODES = Object.freeze({
+    eval: evalWorkerCode,
+    ejs: ejsWorkerCode,
+    liquid: liquidWorkerCode,
+    mustache: mustacheWorkerCode
+});
 
 /** @typedef {Object} QueuedTask
  * @property {string} type
@@ -111,14 +115,14 @@ function sanitize(renderedHTML) {
  * @returns {WorkerWrap | null} The created worker, or null if the template is not found.
  */
 function createWorker(type) {
-    /** @type {HTMLTemplateElement | null} */
-    // @ts-ignore
-    const template = document.getElementById('worker_' + type);
-    if (!template) {
-        console.error('Worker template not found for type: ' + type);
+    const code = WORKER_CODES[type];
+    if (!code) {
+        console.error('Worker code not found for type: ' + type);
         return null;
     }
-    const workerUrl = WORKER_CONFIG['urlworker_' + type];
+    const blob = new Blob([code], { type: 'application/javascript' });
+    /** @type {string | null} */
+    let workerUrl = URL.createObjectURL(blob);
     const worker = new Worker(workerUrl);
     const workerWrap = Object.seal(Object.assign(Object.create(null), {
         worker,
@@ -128,6 +132,10 @@ function createWorker(type) {
         timeout: null,
     }));
     worker.onmessage = function (e) {
+        if (workerUrl) {
+            URL.revokeObjectURL(workerUrl);
+            workerUrl = null;
+        }
         console.log('Worker message for type: ' + type, e.data);
         if (e.data.type === 'worker_ready') {
             workerWrap.loaded = true;

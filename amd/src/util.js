@@ -779,3 +779,14 @@ export function sanitizeSvg(svgString) {
 export function nullProtofy(obj) {
     return Object.assign(Object.create(null), obj);
 }
+
+/**
+ * @template T
+ * @param {Promise<T>} promise
+ * @returns {Promise<[Error | null, T | null]>}
+ */
+export function safeAwait(promise) {
+    return promise
+        .then((result) => /** @type {[null, T]} */([null, result]))
+        .catch((error) => /** @type {[Error, null]} */([error, null]));
+}

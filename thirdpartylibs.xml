@@ -17,14 +17,14 @@
         <repository>https://github.com/codemirror/basic-setup</repository>
     </library>
     <library>
-        <location>js/ejs_worker.min.js</location>
+        <location>libs/src/sandbox/tmp/ejs_worker.inline.js</location>
         <name>ejs_worker (includes ejs browser)</name>
         <version>3.1.10</version>
         <license>MIT</license>
         <licenseversion></licenseversion>
     </library>
     <library>
-        <location>js/liquid_worker.min.js</location>
+        <location>libs/src/sandbox/tmp/liquid_worker.inline.js</location>
         <name>liquid_worker (includes liquidjs)</name>
         <version>10.8.2</version>
         <license>MIT</license>
@@ -32,7 +32,38 @@
         <repository>https://github.com/harttle/liquidjs</repository>
     </library>
     <library>
-        <location>js/mustache_worker.min.js</location>
+        <location>libs/src/sandbox/tmp/mustache_worker.inline.js</location>
+        <name>mustache_worker (includes mustache.js)</name>
+        <version>4.3.0</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/mustache/mustache.js</repository>
+    </library>
+    <library>
+        <location>js/dom_sandbox.min.js</location>
+        <name>cash-dom</name>
+        <version>8.1.5</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/cash-dom/cash-dom</repository>
+    </library>
+    <library>
+        <location>js/render_sandbox.min.js</location>
+        <name>ejs_worker (includes ejs browser)</name>
+        <version>3.1.10</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>js/render_sandbox.min.js</location>
+        <name>liquid_worker (includes liquidjs)</name>
+        <version>10.8.2</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/harttle/liquidjs</repository>
+    </library>
+    <library>
+        <location>js/render_sandbox.min.js</location>
         <name>mustache_worker (includes mustache.js)</name>
         <version>4.3.0</version>
         <license>MIT</license>

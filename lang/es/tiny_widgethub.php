@@ -94,6 +94,7 @@ $string['bstabs_tabs_tip'] = 'Un número excesivo de pestañas puede causar prob
 $string['cancel'] = 'Cancelar';
 $string['category'] = 'Categoría';
 $string['cfg'] = 'Configuración adicional';
+$string['changessaved'] = 'Cambios guardados';
 $string['configuration'] = 'Configuración';
 $string['confirmdelete'] = '¿Seguro que quiere eliminar los widgets seleccionados? Esta acción no se puede deshacer.';
 $string['confirmusage'] = 'Este widget no es adecuado para la página actual. ¿Deseas continuar?';

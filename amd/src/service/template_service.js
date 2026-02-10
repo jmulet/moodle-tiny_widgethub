@@ -37,13 +37,13 @@ export function sanitize(html, editor) {
         return html;
     }
     const schema = editor.schema;
-    const parser = new editor.editorManager.html.DomParser({
+    const parser = editor.editorManager.html.DomParser({
         validate: true,
         schema: schema,
         allow_script_urls: false
     }, schema);
     const doc = parser.parse(html);
-    return new editor.editorManager.html.Serializer({}, schema).serialize(doc);
+    return editor.editorManager.html.Serializer({}, schema).serialize(doc);
 }
 
 /**
@@ -108,13 +108,19 @@ export class TemplateSrv {
         }
         try {
             const sandbox = await Sandbox.getInstance();
-            const dirtyHtml = await sandbox.execute(engine, { template, ctx, translations });
-            return sanitize(dirtyHtml, this.editor);
+            const response = await sandbox.execute(engine, { template, ctx, translations });
+            return sanitize(response.result, this.editor);
         } catch (/** @type {any} */ ex) {
+            const msg = ex.message || (ex + "");
+            if (msg.startsWith("!!")) {
+                // Silent fail
+                console.error(msg);
+                return '';
+            }
             return `<div class="alert alert-danger">
-            <p>Render ${engine} template</p>
-            <pre>${ex.message || ex}</pre>
-            </div>`;
+                <p>Render ${engine} template</p>
+                <pre>${msg}</pre>
+                </div>`;
         }
     }
 }

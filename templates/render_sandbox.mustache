@@ -45,9 +45,9 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="
     default-src 'none';
-    script-src 'self' {{{origin}}} 'unsafe-eval';
+    script-src 'self' {{{origin}}} 'unsafe-eval' blob:;
     frame-src blob:;
-    worker-src 'self';
+    worker-src 'self' blob:;
     style-src 'self';
     connect-src 'none';
     img-src 'none';
@@ -57,10 +57,6 @@
     base-uri 'none';
     form-action 'none';
     ">
-    <link rel="workersrc" id="urlworker_mustache" href="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/mustache_worker">
-    <link rel="workersrc" id="urlworker_liquid" href="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/liquid_worker">
-    <link rel="workersrc" id="urlworker_ejs" href="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/ejs_worker">
-    <link rel="workersrc" id="urlworker_eval" href="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/eval_worker">
     <script src="{{{wwwroot}}}/lib/editor/tiny/plugins/widgethub/assets.php/js/{{jsrev}}/render_sandbox"></script>
 </head>
  <body>

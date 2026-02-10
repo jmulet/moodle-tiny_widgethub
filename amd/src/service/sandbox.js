@@ -65,7 +65,7 @@ export class Sandbox {
      */
     static async getInstance() {
         if (!Sandbox._instance) {
-            Sandbox._instance = new Sandbox('dom_sandbox');
+            Sandbox._instance = new Sandbox('render_sandbox');
             await Sandbox._instance._createSandboxedIframe();
         }
         return Sandbox._instance;
@@ -84,19 +84,19 @@ export class Sandbox {
      * @param {MessageEvent} event
      */
     _onChannelMessage(event) {
-        const { result, error, requestId } = event.data || {};
-        const task = this._tasks.get(requestId);
-        if (!requestId || !task) {
-            console.error('Invalid sandbox request ID', requestId);
+        const data = event.data || {};
+        const task = this._tasks.get(data.requestId);
+        if (!data.requestId || !task) {
+            console.error('Invalid sandbox request ID', data.requestId);
             return;
         }
         window.clearTimeout(task.timeout);
-        if (error) {
-            task.reject(new Error(error));
+        if (data.error) {
+            task.reject(new Error(data.error));
         } else {
-            task.resolve(result);
+            task.resolve(data);
         }
-        this._tasks.delete(requestId);
+        this._tasks.delete(data.requestId);
     }
 
     /**
@@ -115,17 +115,8 @@ export class Sandbox {
         });
         iframe.style.cssText = 'position:absolute; top:-9999em; left:-9999em; z-index:-1; width:0; height:0; border:none;';
 
-        const moodleOrigin = window.location.origin;
-        const html = await Templates.render(`tiny_widgethub/${this.initEventName}`, {
-            wwwroot: Config.wwwroot,
-            origin: moodleOrigin,
-            jsrev: Config.jsrev || 1,
-            lang: document.documentElement.lang || 'en'
-        });
-        const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
-        iframe.src = url;
-
-        this._readyPromise = new Promise((resolve, reject) => {
+        let url = '';
+        this._readyPromise = new Promise((/** @type {*} */ resolve, /** @type {*} */ reject) => {
             const onPostMessage = (/** @type {MessageEvent} */ event) => {
                 if (event.data?.type !== `tiny_widgethub_${this.initEventName}_init` ||
                     event.source !== iframe.contentWindow || event.origin !== 'null') {
@@ -148,6 +139,16 @@ export class Sandbox {
             this._onPostMessage = onPostMessage;
             window.addEventListener('message', onPostMessage);
         });
+
+        const moodleOrigin = window.location.origin;
+        const html = await Templates.render(`tiny_widgethub/${this.initEventName}`, {
+            wwwroot: Config.wwwroot,
+            origin: moodleOrigin,
+            jsrev: Config.jsrev || 1,
+            lang: document.documentElement.lang || 'en'
+        });
+        url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+        iframe.src = url;
         document.body.appendChild(iframe);
         return this._readyPromise;
     }
@@ -179,20 +180,19 @@ export class Sandbox {
      * @param {Object} payload
      * @returns {Promise<any>} The result of the task execution
      */
-    execute(type, payload = {}) {
+    async execute(type, payload = {}) {
+        if (!this._port2) {
+            throw new Error('!!Sandbox not ready');
+        }
         // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
-            if (!this._port2) {
-                reject(new Error('Sandbox not ready'));
-                return;
-            }
             const requestId = genRequestId();
             const timeout = window.setTimeout(() => {
                 this._tasks.delete(requestId);
                 reject(new Error('Sandbox timeout'));
             }, Sandbox.EXECUTE_TIMEOUT);
             this._tasks.set(requestId, { resolve, reject, timeout });
-            this._port2.postMessage({
+            this._port2?.postMessage({
                 type,
                 payload,
                 requestId
@@ -224,7 +224,7 @@ export class RemoteDom extends Sandbox {
      */
     static async getInstance() {
         if (!RemoteDom._instance) {
-            RemoteDom._instance = new RemoteDom('render_sandbox');
+            RemoteDom._instance = new RemoteDom('dom_sandbox');
             await RemoteDom._instance._createSandboxedIframe();
         }
         return RemoteDom._instance;
@@ -292,6 +292,7 @@ export class RemoteDom extends Sandbox {
      * Executes code on a remote DOM in the sandboxed iframe
      * @param {{
      *     vid: string,
+     *     rvnid: string,
      *     name: string,
      *     type: string,
      *     instructions: string | {name: string, args: Array<any>},
@@ -315,8 +316,11 @@ export class RemoteDom extends Sandbox {
 
     /**
      * Updates a value on a remote DOM in the sandboxed iframe
+     * vid --> Remote document id
+     * rvnid --> Remote node id
      * @param {{
      *     vid: string,
+     *     rvnid: string,
      *     name: string,
      *     value: any,
      *     instructions: string | {name: string, args: Array<any>},

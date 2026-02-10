@@ -39,7 +39,7 @@ export const Templates = Object.freeze(
       IMAGETEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <div class="col-sm-7">
    <input type="text" id="{{elementid}}_ftmpl" class="form-control d-inline-block w-75" name="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
-   <button class="whb-image-picker btn btn-sm btn-secondary d-inline-block" title="Search"><i class="fas fa fa-search"></i></button>
+   <button type="button" class="whb-image-picker btn btn-sm btn-secondary d-inline-block" title="Search"><i class="fas fa fa-search"></i></button>
    </div>
    </div>`,
 
@@ -461,11 +461,11 @@ export class FormCtrl {
             // Add to the new variables the internal variables
             newVariables.SELECT_MODE = selectmode;
             // Eval JS condition for new variables
-            const result = await sandbox.execute('eval', {
+            const response = await sandbox.execute('eval', {
                code: upcomp.condition,
                ctx: newVariables
             });
-            const showme = result?.returns;
+            const showme = response?.returns;
             if (upcomp.component) {
                /** @type {HTMLElement | null} */
                const theComponent = upcomp.component.closest('.form-group');

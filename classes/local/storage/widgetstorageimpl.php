@@ -106,7 +106,7 @@ class widgetstorageimpl implements widgetstorage {
         global $DB;
         $sql = "SELECT itemid, source
         FROM {files}
-        WHERE component = 'tiny_widgethub'
+        WHERE component = 'tiny_widgethub' AND itemid > 0
         AND filename = 'data.json' AND source IS NOT NULL";
         $records = $DB->get_records_sql($sql);
         $index = [];

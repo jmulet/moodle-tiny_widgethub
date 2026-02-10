@@ -45,9 +45,9 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="
     default-src 'none';
-    script-src 'self' {{{origin}}} 'unsafe-eval';
+    script-src 'self' {{{origin}}} 'unsafe-eval' blob:;
     frame-src blob:;
-    worker-src 'self';
+    worker-src 'self' blob:;
     style-src 'self';
     connect-src 'none';
     img-src 'none';

@@ -453,7 +453,7 @@ export default class WidgetSettings {
             applyPartials(jsonObj, partials);
             // Templates cannot have script tags nor style tags
             const template = jsonObj.template ?? jsonObj.filter ?? '';
-            if (template.includes('<script') || template.includes('<style')) {
+            if (template.match(/<\s?script/i) || template.match(/<\s?style/i)) {
                 validation.msg += await get_string('errscript', component) + ' ';
             }
             if (jsonObj.template) {
@@ -545,7 +545,6 @@ export default class WidgetSettings {
         const validation = await this.validate(ymlValue, partials);
 
         if (validation.msg || !validation.json) {
-            this.nodes.previewLog.insertAdjacentHTML('beforeend', `<div class="alert alert-danger">${validation.msg}</div>`);
             this._selectTab('log');
         } else {
             this.nodes.previewLog.insertAdjacentHTML('beforeend', `<div class="alert alert-success">Validation successful</div>`);
@@ -660,7 +659,7 @@ export default class WidgetSettings {
         }
 
         if (validation.msg) {
-            this.nodes.previewLog.innerHTML = validation.msg;
+            this.nodes.previewLog.insertAdjacentHTML('beforeend', `<div class="alert alert-danger">${validation.msg}</div>`);
             this._selectTab('log');
         } else if (validation.html) {
             if (this.nodes.jsonArea) {
