@@ -65,7 +65,6 @@ class documentstorageimpl implements documentstorage {
             try {
                 $content = $file->get_content();
             } catch (\Exception $e) {
-                debugging('Document ' . $ext . ' with ID ' . $id . ' was missing from disk.', DEBUG_DEVELOPER);
                 return null;
             }
             return $content;

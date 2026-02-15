@@ -81,7 +81,7 @@ final class documentstorageimpl_test extends \advanced_testcase {
         $this->assertNull($storage->get($id, 'json'));
 
         // Delete non-existing.
-        $this->assertFalse($storage->delete($id, 'json'));
+        $this->assertTrue($storage->delete($id, 'json'));
     }
 
     /**

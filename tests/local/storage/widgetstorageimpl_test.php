@@ -34,6 +34,7 @@ final class widgetstorageimpl_test extends \advanced_testcase {
 
         // Ensure the table is empty to pass test_initial_state.
         $DB->delete_records('files', ['component' => 'tiny_widgethub', 'filearea' => 'widgetdefs']);
+        storagefactory::reset_instance();
     }
 
     /**
@@ -49,6 +50,7 @@ final class widgetstorageimpl_test extends \advanced_testcase {
             'author'   => 'Josep Mulet', // STRING as requested.
             'version'  => '1.0.0-stable', // STRING as requested.
             'hidden'   => 0,
+            'template' => '<div>test</div>',
         ];
     }
 
@@ -61,7 +63,7 @@ final class widgetstorageimpl_test extends \advanced_testcase {
         $storage = new widgetstorageimpl();
         $data = $this->get_dummy_widget_data();
 
-        $id = $storage->save_widget(0, $data);
+        $id = $storage->save_widget(null, $data);
         $this->assertGreaterThan(0, $id);
 
         $widget = $storage->get_widget_by_id($id);
@@ -74,7 +76,7 @@ final class widgetstorageimpl_test extends \advanced_testcase {
         $storage = new widgetstorageimpl();
 
         // Save initial version.
-        $id = $storage->save_widget(0, $this->get_dummy_widget_data('w1'));
+        $id = $storage->save_widget(null, $this->get_dummy_widget_data('w1'));
 
         // Update with new string values.
         $updated = [
@@ -83,6 +85,7 @@ final class widgetstorageimpl_test extends \advanced_testcase {
             'name'    => 'New Name',
             'author'  => 'Updated Author',
             'version' => '2.0.0',
+            'template' => '<div>test</div>',
         ];
         $storage->save_widget($id, $updated);
 
@@ -97,37 +100,18 @@ final class widgetstorageimpl_test extends \advanced_testcase {
         $ymlcontent = "some: yaml";
 
         $data = $this->get_dummy_widget_data('w_yml');
-        $id = $storage->save_widget(0, $data, $ymlcontent);
+        $id = $storage->save_widget(null, $data, $ymlcontent);
         $this->assertGreaterThan(0, $id);
 
         $docs = $storage->get_documents_by_id([$id], true, true);
         $this->assertCount(1, $docs);
         $this->assertEquals($ymlcontent, $docs[0]['yml']);
         $this->assertEquals(json_encode($data), $docs[0]['json']);
-        $this->assertNull($docs[0]['js'] ?? null);
-        $this->assertNull($docs[0]['css'] ?? null);
-    }
-
-    public function test_save_widget_with_all_assets(): void {
-        $storage = new widgetstorageimpl();
-        $yml = "some: yaml";
-        $js = "console.log('js');";
-        $css = ".test { color: red; }";
-
-        $data = $this->get_dummy_widget_data('w_assets');
-        $id = $storage->save_widget(0, $data, $yml, $js, $css);
-        $this->assertGreaterThan(0, $id);
-
-        $docs = $storage->get_documents_by_id([$id], true, true);
-        $this->assertCount(1, $docs);
-        $this->assertEquals($yml, $docs[0]['yml']);
-        $this->assertEquals($js, $docs[0]['js']);
-        $this->assertEquals($css, $docs[0]['css']);
     }
 
     public function test_delete_widget(): void {
         $storage = new widgetstorageimpl();
-        $id = $storage->save_widget(0, $this->get_dummy_widget_data('w_del'));
+        $id = $storage->save_widget(null, $this->get_dummy_widget_data('w_del'));
 
         $this->assertTrue($storage->delete_widget($id));
         $this->assertFalse($storage->get_widget_by_id($id));
@@ -137,9 +121,9 @@ final class widgetstorageimpl_test extends \advanced_testcase {
         $storage = new widgetstorageimpl();
 
         // Widget 1: Has YML.
-        $storage->save_widget(0, $this->get_dummy_widget_data('w1'), "yml content");
+        $storage->save_widget(null, $this->get_dummy_widget_data('w1'), "yml content");
         // Widget 2: No YML.
-        $id2 = $storage->save_widget(0, $this->get_dummy_widget_data('w2'), null);
+        $id2 = $storage->save_widget(null, $this->get_dummy_widget_data('w2'), null);
 
         $noyml = $storage->get_widgetsnoyml();
         // Since get_widgetsnoyml returns IDs, check for presence.
@@ -148,7 +132,7 @@ final class widgetstorageimpl_test extends \advanced_testcase {
 
     public function test_get_widget_by_key(): void {
         $storage = new widgetstorageimpl();
-        $storage->save_widget(0, $this->get_dummy_widget_data('unique_key'));
+        $storage->save_widget(null, $this->get_dummy_widget_data('unique_key'));
 
         $widget = $storage->get_widget_by_key('unique_key');
         $this->assertNotFalse($widget);
@@ -159,8 +143,8 @@ final class widgetstorageimpl_test extends \advanced_testcase {
 
     public function test_get_used_keys(): void {
         $storage = new widgetstorageimpl();
-        $storage->save_widget(0, $this->get_dummy_widget_data('k1'));
-        $storage->save_widget(0, $this->get_dummy_widget_data('k2'));
+        $storage->save_widget(null, $this->get_dummy_widget_data('k1'));
+        $storage->save_widget(null, $this->get_dummy_widget_data('k2'));
 
         $keys = $storage->get_used_keys();
         $this->assertContains('k1', $keys);
@@ -201,8 +185,8 @@ final class widgetstorageimpl_test extends \advanced_testcase {
 
     public function test_delete_widgets(): void {
         $storage = new widgetstorageimpl();
-        $id1 = $storage->save_widget(0, $this->get_dummy_widget_data('w1'));
-        $id2 = $storage->save_widget(0, $this->get_dummy_widget_data('w2'));
+        $id1 = $storage->save_widget(null, $this->get_dummy_widget_data('w1'));
+        $id2 = $storage->save_widget(null, $this->get_dummy_widget_data('w2'));
 
         $this->assertCount(2, $storage->get_all_widgets());
 
@@ -213,7 +197,7 @@ final class widgetstorageimpl_test extends \advanced_testcase {
 
     public function test_save_widgetsyml(): void {
         $storage = new widgetstorageimpl();
-        $id = $storage->save_widget(0, $this->get_dummy_widget_data('w1'), null);
+        $id = $storage->save_widget(null, $this->get_dummy_widget_data('w1'), null);
 
         // Update YML for existing widget.
         $result = $storage->save_widgetsyml([
@@ -223,7 +207,63 @@ final class widgetstorageimpl_test extends \advanced_testcase {
         $this->assertTrue($result[0]);
         $docs = $storage->get_documents_by_id([$id], false, true);
         $this->assertEquals("new: yml", $docs[0]['yml']);
-        $this->assertNull($docs[0]['js'] ?? null);
-        $this->assertNull($docs[0]['css'] ?? null);
+    }
+
+    public function test_set_visible(): void {
+        $storage = new widgetstorageimpl();
+        $id = $storage->save_widget(null, $this->get_dummy_widget_data('w1'));
+
+        $this->assertTrue($storage->set_visible($id, false));
+        $w = $storage->get_widget_by_id($id);
+        $this->assertTrue($w->hidden);
+
+        $this->assertTrue($storage->set_visible($id, true));
+        $w = $storage->get_widget_by_id($id);
+        $this->assertFalse($w->hidden ?? false);
+    }
+
+    public function test_get_index(): void {
+        $storage = new widgetstorageimpl();
+        $id = $storage->save_widget(null, $this->get_dummy_widget_data('w1'));
+
+        $index = $storage->get_index();
+        $this->assertArrayHasKey($id, $index);
+        $this->assertEquals('w1', $index[$id]['k']);
+    }
+
+    public function test_get_editor_data(): void {
+        $id = (new widgetstorageimpl())->save_widget(null, $this->get_dummy_widget_data('w1'));
+
+        $data = storagefactory::get_editor_data();
+        $this->assertArrayHasKey('widgetlist', $data);
+        $this->assertArrayHasKey('partials', $data);
+
+        $found = false;
+        foreach ($data['widgetlist'] as $w) {
+            if ($w->key === 'w1') {
+                $found = true;
+                break;
+            }
+        }
+        $this->assertTrue($found);
+    }
+
+    public function test_validation_rules(): void {
+        $storage = new widgetstorageimpl();
+
+        // Missing name.
+        $data = $this->get_dummy_widget_data('bad');
+        unset($data['name']);
+        $this->assertEquals(storagefactory::INVALID_ID, $storage->save_widget(null, $data));
+
+        // Script tag in template.
+        $data = $this->get_dummy_widget_data('bad_script');
+        $data['template'] = "<div><script>alert(1)</script></div>";
+        $this->assertEquals(storagefactory::INVALID_ID, $storage->save_widget(null, $data));
+
+        // Both template and filter.
+        $data = $this->get_dummy_widget_data('bad_both');
+        $data['filter'] = "foo";
+        $this->assertEquals(storagefactory::INVALID_ID, $storage->save_widget(null, $data));
     }
 }

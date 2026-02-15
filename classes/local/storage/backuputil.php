@@ -196,7 +196,7 @@ class backuputil {
         for ($i = 0; $i < $zip->numFiles; $i++) {
             $filename = $zip->getNameIndex($i);
             $ext = pathinfo($filename, PATHINFO_EXTENSION);
-            $name = pathinfo($filename, PATHINFO_BASENAME);
+            $name = pathinfo($filename, PATHINFO_FILENAME);
             if ($filename === 'manifest.json') {
                 continue;
             } else if ($filename === 'cfg.txt' && $configenabled) {

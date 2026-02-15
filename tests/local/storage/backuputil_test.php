@@ -24,8 +24,6 @@
 
 namespace tiny_widgethub\local\storage;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Unit tests for backuputil.
  *
@@ -44,6 +42,7 @@ final class backuputil_test extends \advanced_testcase {
         // Initial config.
         set_config('version', 2026010100, 'tiny_widgethub');
         set_config('cfg', 'Initial Config', 'tiny_widgethub');
+        storagefactory::reset_instance();
     }
 
     /**
@@ -58,8 +57,9 @@ final class backuputil_test extends \advanced_testcase {
             'name' => 'Test Widget',
             'author' => 'Author',
             'version' => '1.0',
+            'template' => '<div>test</div>',
         ];
-        $storage->save_widget(0, $widgetdata, 'yml content', 'js content', 'css content');
+        $storage->save_widget(null, $widgetdata, 'yml content');
 
         $partialsdata = ['key' => 'partials', 'p1' => 'v1'];
         $storage->save_widget(null, $partialsdata, 'partials yml content');
@@ -85,7 +85,6 @@ final class backuputil_test extends \advanced_testcase {
         // But backuputil::perform_backup returns a URL that contains it.
         // Let's try to find it via the URL.
         $params = $url->params();
-        // For draft files, the URL usually looks like: .../draftfile.php/contextid/component/filearea/itemid/filename
         $urlpath = $url->get_path();
         preg_match('|/([^/]+)/user/draft/(\d+)/|', $urlpath, $matches);
         $draftitemid = (int)$matches[2];
@@ -111,7 +110,6 @@ final class backuputil_test extends \advanced_testcase {
 
         $this->assertNotFalse($zip->getFromName('testwidget.json'));
         $this->assertNotFalse($zip->getFromName('testwidget.yml'));
-        // css and html/js might not be supported by the current widgetstorageimpl.
 
         $this->assertNotFalse($zip->getFromName('partials.json'));
         $this->assertNotFalse($zip->getFromName('partials.yml'));
@@ -150,6 +148,7 @@ final class backuputil_test extends \advanced_testcase {
             'name' => 'Restored Widget',
             'author' => 'Restored Author',
             'version' => '2.0',
+            'template' => '<div>restored</div>',
         ];
         $zip->addFromString('restoredwidget.json', json_encode($widgetdata));
         $zip->addFromString('restoredwidget.yml', 'restored yml');

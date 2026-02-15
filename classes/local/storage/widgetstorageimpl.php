@@ -125,11 +125,14 @@ class widgetstorageimpl implements widgetstorage {
      * @return int
      */
     private function update_seq() {
+        if (!is_object($this->conf)) {
+            $this->conf = new \stdClass();
+        }
         $seq = $this->conf->seq ?? 0;
         $seq++;
         $this->conf->seq = $seq;
         set_config('seq', $seq, self::COMPONENTNAME);
-        return $seq;
+        return (int)$seq;
     }
 
     /**
@@ -204,7 +207,7 @@ class widgetstorageimpl implements widgetstorage {
             }
             $raw = $this->load_raw_widget($id, true); // True for slim version.
             if ($raw) {
-                $widgets[] = $raw;
+                $widgets[] = (object) $raw;
             }
         }
         return $widgets;
@@ -220,7 +223,8 @@ class widgetstorageimpl implements widgetstorage {
     public function get_widget_by_key(string $key, string $fields = '*') {
         foreach ($this->index as $id => $info) {
             if (($info['k'] ?? null) === $key) {
-                return $this->load_raw_widget($id) ?? false;
+                $raw = $this->load_raw_widget($id);
+                return $raw ? (object) $raw : false;
             }
         }
         return false;
@@ -234,7 +238,8 @@ class widgetstorageimpl implements widgetstorage {
      * @return \StdClass|bool The widget object, or false if not found.
      */
     public function get_widget_by_id(int $id, string $fields = '*') {
-        return $this->load_raw_widget($id) ?? false;
+        $raw = $this->load_raw_widget($id);
+        return $raw ? (object) $raw : false;
     }
 
 
@@ -338,11 +343,15 @@ class widgetstorageimpl implements widgetstorage {
         ?string $css = null,
         int $rev = 1
     ): int {
-        // Used widgets keys.
-        $usedkeys = array_combine(
-            array_column($this->index, 'k'),
-            array_keys($this->index)
-        );
+        if (($widget['key'] ?? '') === 'partials') {
+            $id = storagefactory::PARTIALS_ID;
+        }
+        $usedkeys = [];
+        foreach ($this->index as $idxid => $info) {
+            if (isset($info['k'])) {
+                $usedkeys[$info['k']] = $idxid;
+            }
+        }
         if (!self::validate_widget($id, $widget, $usedkeys)) {
             return storagefactory::INVALID_ID;
         }
@@ -387,7 +396,7 @@ class widgetstorageimpl implements widgetstorage {
                     return storagefactory::FAILURE_ID;
                 }
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return storagefactory::FAILURE_ID;
         }
         return $id;
@@ -420,8 +429,8 @@ class widgetstorageimpl implements widgetstorage {
     public function delete_widgets(array $ids): array {
         $deletedids = [];
         foreach ($ids as $id) {
-            $wiget = $this->load_raw_widget($id);
-            if (!$wiget || $wiget['key'] == 'partials') {
+            $widget = $this->load_raw_widget($id);
+            if (!$widget || $widget['key'] == 'partials') {
                 // Partials cannot be deleted.
                 continue;
             }
@@ -444,7 +453,7 @@ class widgetstorageimpl implements widgetstorage {
             return false;
         }
         $info = $this->index[$id] ?? null;
-        if (!$info || !isset($info['key'])) {
+        if (!$info || !isset($info['k'])) {
             return false;
         }
         $widget = $this->load_raw_widget($id);
@@ -476,8 +485,8 @@ class widgetstorageimpl implements widgetstorage {
     public function get_used_keys(): array {
         $distinctkeys = [];
         foreach ($this->index as $info) {
-            if (!empty($info['key'])) {
-                $distinctkeys[] = $info['key'];
+            if (!empty($info['k'])) {
+                $distinctkeys[] = $info['k'];
             }
         }
         return $distinctkeys;
