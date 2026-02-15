@@ -87,20 +87,21 @@ export class WidgetParamsCtrl {
       this.formCtrl.attachRepeatable(bodyElem, this.widget);
       this.formCtrl.attachPickers(bodyElem, listenerTracker);
       modal.footer.show();
-      modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", async () => {
+      modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", async (evt) => {
+         evt.preventDefault();
          // Go back to main menú
          // TODO detachPicker and detachRepeatable
-         modal.destroy();
+         modal.hide();
          if (this.parentCtrl) {
             await this.parentCtrl.handleAction();
          }
       });
-      modal.footer.find("button.tiny_widgethub-btn-primary").on("click", async () => {
-         // Go back to main menú
+      modal.footer.find("button.tiny_widgethub-btn-primary").on("click", async (evt) => {
+         evt.preventDefault();
+         // Insert widget and close modal.
          const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, formElem, true);
-         modal.hide();
          await this.insertWidget(ctxFromDialogue);
-         modal.destroy();
+         modal.hide();
       });
 
       // Change input fields visibilities upon conditions
@@ -191,7 +192,6 @@ export class WidgetParamsCtrl {
             iframe.src = 'about:blank';
             iframe.remove();
          });
-
          previewPanel.innerHTML = interpoledCode;
       }
    }

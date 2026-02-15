@@ -108,22 +108,27 @@
 
     <div class="d-flex justify-content-between mt-1 mb-6 align-items-center">
         <div>
-            <button id="{{deletebtnid}}" class="btn btn-outline-danger m-2" type="button" disabled>
-                <i class="fa fa-trash"></i> {{#str}} delete, tiny_widgethub {{/str}}
+            <button id="{{deletebtnid}}" class="btn btn-outline-danger m-2" type="button" disabled title="{{#str}} delete, tiny_widgethub {{/str}}">
+                <i class="fa fa-trash"></i>
+                <span class="d-none d-lg-inline-block">{{#str}} delete, tiny_widgethub {{/str}}</span>
             </button>
-            <button id="{{exportid}}" class="btn btn-outline-info m-2" type="button">
-                <i class="fa fa-download"></i> {{#str}} backup, core {{/str}}
+            <button id="{{exportid}}" class="btn btn-outline-info m-2" type="button" title="{{#str}} backup, core {{/str}}">
+                <i class="fa fa-download"></i>
+                <span class="d-none d-lg-inline-block">{{#str}} backup, core {{/str}}</span>
             </button>
-            <a href="{{urls.restore}}" id="restorebtn" class="btn btn-outline-info">
-                <i class="fa fa-upload"></i> {{#str}} restore, core {{/str}}
+            <a href="{{urls.restore}}" id="restorebtn" class="btn btn-outline-info" title="{{#str}} restore, core {{/str}}">
+                <i class="fa fa-upload"></i>
+                <span class="d-none d-lg-inline-block">{{#str}} restore, core {{/str}}</span>
             </a>
         </div>
         <div>
-            <a href="{{urls.partials}}" class="m-2 mr-5">
-                <i class="fa fa-cogs"></i> Partials
+            <a href="{{urls.partials}}" class="m-2 mr-5" title="partials">
+                <i class="fa fa-cogs"></i>
+                <span class="d-none d-lg-inline-block">Partials</span>
             </a>
-            <a href="{{urls.newwidget}}" class="m-2">
-                <i class="fa fa-plus-circle"></i> {{#str}} createwidget, tiny_widgethub {{/str}}
+            <a href="{{urls.newwidget}}" class="m-2" title="{{#str}} createwidget, tiny_widgethub {{/str}}">
+                <i class="fa fa-plus-circle"></i>
+                <span class="d-none d-lg-inline-block">{{#str}} createwidget, tiny_widgethub {{/str}}</span>
             </a>
         </div>
     </div>

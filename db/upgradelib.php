@@ -35,6 +35,43 @@ function tiny_widgethub_getprop($array, $key, $default = null) {
 }
 
 /**
+ * Internal helper to get the icon for a widget.
+ *
+ * @param string $key The widget key.
+ * @return string|null The icon for the widget.
+ */
+function tiny_widgethub_getwidgeticon(string $key): ?string {
+    $icons = [
+        "bs-alert" => "fa fa-exclamation-triangle",
+        "bs-badge" => "fa fa-tag",
+        "bs-card-group" => "fa fa-th-large",
+        "bs-carousel" => "fa fa-images",
+        "bs-collapsible" => "fa fa-caret-square-o-down",
+        "bs-columns" => "fa fa-columns",
+        "bs-figure" => "fa fa-image",
+        "bs-image-overlay" => "fa fa-picture-o",
+        "bs-jumbotron" => "fa fa-bullhorn",
+        "bs-listgroup" => "fa fa-list",
+        "bs-popover" => "fa fa-comment",
+        "bs-table" => "fa fa-table",
+        "bs-tabs" => "fa fa-folder",
+        "ib-colors" => "fa fa-paint-brush",
+        "ib-dedication-time" => "fa fa-clock-o",
+        "ib-filter-cleanfont" => "fa fa-eraser",
+        "ib-textfragment" => "fa fa-puzzle-piece",
+        "ib-iframe" => "fa fa-window-maximize",
+        "ib-image-background" => "fa fa-image",
+        "ib-quote" => "fa fa-quote-left",
+        "ib-section" => "fa fa-columns",
+        "ib-video-gdrive" => "fa fa-google",
+        "ib-vimeo" => "fa fa-vimeo",
+        "ib-wordcounter" => "fa fa-calculator",
+        "ib-youtube" => "fa fa-youtube",
+    ];
+    return $icons[$key] ?? null;
+}
+
+/**
  * Internal helper to store a widget document in the file system.
  *
  * @param int $widgetid The widget id.
@@ -55,13 +92,18 @@ function tiny_widgethub_storedocument($widgetid, $raw, $ext = 'json') {
         'filename' => 'data.' . $ext,
     ];
     if (is_array($raw)) {
+        $key = $raw['key'] ?? $widgetid . '';
         $source = [
-            "k" => $raw['key'] ?? $widgetid . '',
+            "k" => $key,
             "n" => $raw['name'] ?? $raw['key'] ?? '',
             "c" => $raw['category'] ?? 'other',
             "h" => ($raw['hidden'] ?? false) ? 1 : 0,
         ];
         $fileinfo['source'] = json_encode($source);
+        $icon = tiny_widgethub_getwidgeticon($key);
+        if ($icon) {
+            $raw['icon'] = $icon;
+        }
         $doc = json_encode($raw);
     } else {
         $doc = $raw;
