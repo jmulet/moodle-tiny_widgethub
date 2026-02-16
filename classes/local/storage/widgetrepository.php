@@ -49,10 +49,16 @@ class widgetrepository {
 
         $extensions = array_map('strtolower', $extensions);
         // Search in the given directory.
-        $workingdir = $CFG->dirroot . '/lib/editor/tiny/plugins/widgethub/' . $directory;
-        if (file_exists($workingdir)) {
-            $dirs[] = new \DirectoryIterator($workingdir);
+        $pluginpath = \core_component::get_component_directory('tiny_widgethub');
+        $workingdir = $pluginpath . DIRECTORY_SEPARATOR . $directory;
+        // Validate that the path is still inside the plugin.
+        $realworkingdir = realpath($workingdir);
+        $realpluginpath = realpath($pluginpath);
+        if (!$realworkingdir || strpos($realworkingdir, $realpluginpath) !== 0 || !file_exists($realworkingdir)) {
+            debugging('Invalid Widget directory: ' . $workingdir, 'error');
+            return $ret;
         }
+        $dirs[] = new \DirectoryIterator($realworkingdir);
         foreach ($dirs as $dir) {
             foreach ($dir as $fileinfo) {
                 if (!$fileinfo->isDot()) {

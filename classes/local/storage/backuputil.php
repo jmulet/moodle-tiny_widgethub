@@ -163,30 +163,28 @@ class backuputil {
         $file->copy_content_to($tempzip);
         // Unzip the file.
         $zip = new \ZipArchive();
-        if (!$zip->open($tempzip)) {
-            $fs->delete_area_files($context->id, 'user', 'draft', $draftitemid);
-            fulldelete($tempdir);
-            return self::make_log(false, 'Invalid backup file.', 'error');
-        }
+        try {
+            if (!$zip->open($tempzip)) {
+                throw new \Exception('Invalid backup file.');
+            }
 
-        // Validate manifest.json.
-        $manifest = $zip->getFromName('manifest.json');
-        if (empty($manifest)) {
+            // Validate manifest.json.
+            $manifest = $zip->getFromName('manifest.json');
+            if (empty($manifest)) {
+                throw new \Exception('Invalid backup file. No manifest found.');
+            }
+            $manifest = json_decode($manifest, true);
+            if (empty($manifest) || ($manifest['plugin'] ?? '') !== 'tiny_widgethub') {
+                throw new \Exception('Invalid manifest found in the backup.');
+            }
+            $currentversion = get_config('tiny_widgethub', 'version');
+            if ($manifest['version'] > $currentversion) {
+                throw new \Exception('Backup version is higher than the plugin version.');
+            }
+        } catch (\Exception $e) {
             $fs->delete_area_files($context->id, 'user', 'draft', $draftitemid);
             fulldelete($tempdir);
-            return self::make_log(false, 'Invalid backup file. No manifest found.', 'error');
-        }
-        $manifest = json_decode($manifest, true);
-        if (empty($manifest) || ($manifest['plugin'] ?? '') !== 'tiny_widgethub') {
-            $fs->delete_area_files($context->id, 'user', 'draft', $draftitemid);
-            fulldelete($tempdir);
-            return self::make_log(false, 'Invalid manifest found in the backup.', 'error');
-        }
-        $currentversion = get_config('tiny_widgethub', 'version');
-        if ($manifest['version'] < $currentversion) {
-            $fs->delete_area_files($context->id, 'user', 'draft', $draftitemid);
-            fulldelete($tempdir);
-            return self::make_log(false, 'Backup version is lower than the plugin version.', 'error');
+            return self::make_log(false, $e->getMessage(), 'error');
         }
 
         $logs = [];
@@ -195,6 +193,13 @@ class backuputil {
         $storage = storagefactory::get_instance();
         for ($i = 0; $i < $zip->numFiles; $i++) {
             $filename = $zip->getNameIndex($i);
+            if (str_contains($filename, '/') || str_contains($filename, '\\') || str_contains($filename, '..')) {
+                $logs[] = [
+                    'message' => "File skipped due to security or invalid structure: $filename",
+                    'severity' => 'warning'
+                ];
+                continue;
+            }
             $ext = pathinfo($filename, PATHINFO_EXTENSION);
             $name = pathinfo($filename, PATHINFO_FILENAME);
             if ($filename === 'manifest.json') {
@@ -237,10 +242,8 @@ class backuputil {
                     continue;
                 }
                 $yml = $zip->getFromName($name . '.yml') ?? null;
-                $css = $zip->getFromName($name . '.css') ?? null;
-                $html = $zip->getFromName($name . '.html') ?? null;
                 $foundid = $found ? $found->id : null;
-                $res = $storage->save_widget($foundid, $jsondata, $yml, $html, $css);
+                $res = $storage->save_widget($foundid, $jsondata, $yml);
                 $logs[] = [
                     'message' => 'Restoring ' . $filename,
                     'severity' => $res ? '' : 'error',
