@@ -262,7 +262,7 @@ final class backuputil_test extends \advanced_testcase {
 
         $manifest = [
             'plugin' => 'tiny_widgethub',
-            'version' => 2025010100, // Lower than 2026010100 set in setUp.
+            'version' => 2027010100, // Higher than 2026010100 set in setUp.
         ];
         $zip->addFromString('manifest.json', json_encode($manifest));
         $zip->close();
@@ -285,7 +285,7 @@ final class backuputil_test extends \advanced_testcase {
         $result = backuputil::restore_backup($data);
 
         $this->assertFalse($result['success']);
-        $this->assertEquals('Backup version is lower than the plugin version.', $result['logs'][0]['message']);
+        $this->assertEquals('Backup version is higher than the plugin version.', $result['logs'][0]['message']);
 
         fulldelete($tempdir);
     }
