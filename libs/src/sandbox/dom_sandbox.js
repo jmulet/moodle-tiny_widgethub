@@ -144,6 +144,46 @@ function jsonDomSerialize(elem, forceFull) {
 }
 
 /**
+ * @param {string} oldValue
+ * @param {string} currentValue
+ * @returns {{added: string[], removed: string[]}}
+ */
+function diffClasses(oldValue, currentValue) {
+    const oldClasses = oldValue.split(/\s+/).map((cls) => cls.trim());
+    const newClasses = currentValue.split(/\s+/).map((cls) => cls.trim());
+    const added = newClasses.filter((cls) => cls && !oldClasses.includes(cls));
+    const removed = oldClasses.filter((cls) => cls && !newClasses.includes(cls));
+    return { added, removed };
+}
+
+/**
+ * @param {string} styleString
+ * @returns {Record<string, string>}
+ */
+function parseStyleString(styleString) {
+    const div = document.createElement('div');
+    div.style.cssText = styleString;
+    const record = Object.create(null);
+    for (const prop of div.style) {
+        record[prop] = div.style.getPropertyValue(prop);
+    }
+    return record;
+}
+
+/**
+ * @param {string} oldValue
+ * @param {string} currentValue
+ * @returns {{addedOrChanged: [string, string][], removed: string[]}}
+ */
+function diffStyles(oldValue, currentValue) {
+    const oldStyles = parseStyleString(oldValue);
+    const newStyles = parseStyleString(currentValue);
+    const addedOrChanged = Object.entries(newStyles).filter(([key, value]) => !oldStyles.hasOwnProperty(key) || oldStyles[key] !== value);
+    const removed = Object.keys(oldStyles).filter(([key]) => !newStyles.hasOwnProperty(key));
+    return { addedOrChanged, removed };
+}
+
+/**
  * Creates a new VDOM instance.
  * @param {{html: string}} payload
  * @returns {{
@@ -165,6 +205,7 @@ function vdomCreate(payload) {
         characterData: true,
         subtree: true,
         childList: true,
+        attributeOldValue: true,
     };
     instance.observer = new MutationObserver(function (mutations) {
         mutations.forEach(function (mutation) {
@@ -174,14 +215,27 @@ function vdomCreate(payload) {
                 type: mutation.type,
             };
             if (mutation.type === 'attributes') {
-                const attrName = mutation.attributeName;
+                const attrName = mutation.attributeName?.toLowerCase();
                 if (!attrName || attrName === 'data-rvn-id') {
                     return;
                 }
                 const elem = /** @type {Element} */ (target);
                 patch.vid = elem.getAttribute('data-rvn-id');
-                patch.value = elem.getAttribute(attrName);
                 patch.isDeleted = !elem.hasAttribute(attrName);
+                patch.name = attrName;
+                const currentValue = elem.getAttribute(attrName);
+                patch.value = currentValue;
+                if (!patch.isDeleted && attrName === 'class') {
+                    const oldValue = mutation.oldValue ?? '';
+                    const delta = diffClasses(oldValue, currentValue ?? '');
+                    patch.clsAdded = delta.added;
+                    patch.clsRemoved = delta.removed;
+                } else if (!patch.isDeleted && attrName === 'style') {
+                    const oldValue = mutation.oldValue ?? '';
+                    const delta = diffStyles(oldValue, currentValue ?? '');
+                    patch.styleAdded = delta.addedOrChanged;
+                    patch.styleRemoved = delta.removed;
+                }
             } else if (mutation.type === 'characterData') {
                 patch.type = 'text';
                 patch.vid = target.parentElement?.getAttribute('data-rvn-id');

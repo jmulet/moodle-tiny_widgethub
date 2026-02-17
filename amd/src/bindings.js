@@ -624,8 +624,10 @@ export class BindingsAdapter {
             // Repeatable parameters with field object bindings are not supported.
         });
 
+        this.hasLocalBindings = this.parametersWithBindings.some(param => (typeof param.bind === 'string') ||
+            BindingsAdapter.hasFieldBindings(param)
+        );
         this.hasRemoteBindings = this.parametersWithBindings.some(param => typeof param.bind === 'object');
-
 
         /**
          * @type {Map<string, Binding>}
@@ -653,8 +655,10 @@ export class BindingsAdapter {
             return;
         }
         // Create a Virtual Dom for the widget root element
-        this.remoteDom = new RemoteDom('dom_sandbox');
-        await this.remoteDom._createSandboxedIframe();
+        if (!this.remoteDom) {
+            this.remoteDom = new RemoteDom('dom_sandbox');
+            await this.remoteDom._createSandboxedIframe();
+        }
         this.vdomId = await this.remoteDom.createRemoteDom(this.root);
     }
 
@@ -703,10 +707,14 @@ export class BindingsAdapter {
                 itemElems.forEach(item => {
                     const valueObject = Object.create(null);
                     param.fields?.forEach(field => {
-                        const { bindingFactory, args } = parsedBindings[field.name];
-                        if (!bindingFactory) {
+                        if (typeof field.bind !== 'string') {
                             return;
                         }
+                        const bindingInfo = parsedBindings[field.name];
+                        if (!bindingInfo) {
+                            return;
+                        }
+                        const { bindingFactory, args } = bindingInfo;
                         const binder = bindingFactory(item, ...args);
                         const value = binder.getValue();
                         valueObject[field.name] = value;
@@ -734,11 +742,11 @@ export class BindingsAdapter {
         for (const param of this.parametersWithBindings) {
             const paramValueType = typeof (param.value);
             if (typeof param.bind !== 'object' || this.remoteDom === null || this.vdomId === null) {
-                return extractedValues;
+                continue;
             }
             const instructions = param.bind.getValue || param.bind.get || '';
             const useJQuery = param.bind.get !== undefined;
-            const [err, value] = await safeAwait(this.remoteDom.queryOnRemoteDom({
+            const [err, response] = await safeAwait(this.remoteDom.queryOnRemoteDom({
                 vid: this.vdomId,
                 rvnid: this.root.getAttribute('data-rvn-id') ?? '',
                 name: param.name,
@@ -750,6 +758,7 @@ export class BindingsAdapter {
                 console.error("Error retrieving value from remote DOM", err);
                 continue;
             }
+            const value = response?.value;
             if (param?.name !== undefined && value !== undefined) {
                 extractedValues[param.name] = { name: param.name, value, param };
             }
@@ -801,10 +810,14 @@ export class BindingsAdapter {
                     return;
                 }
                 param.fields?.forEach(field => {
-                    const { bindingFactory, args } = parsedBindings[field.name];
-                    if (!bindingFactory) {
+                    if (typeof field.bind !== 'string') {
                         return;
                     }
+                    const bindingInfo = parsedBindings[field.name];
+                    if (!bindingInfo) {
+                        return;
+                    }
+                    const { bindingFactory, args } = bindingInfo;
                     const binder = bindingFactory(item, ...args);
                     const valForItemAndField = valForItem[field.name];
                     const oldValueForItemAndField = oldValueForItem[field.name];
@@ -836,8 +849,8 @@ export class BindingsAdapter {
                 continue;
             }
             /** @type {string | {name: string, args: Array<any>}} */
-            const instructions = param.bind.getValue || param.bind.get || '';
-            const useJQuery = param.bind.get !== undefined;
+            const instructions = param.bind.setValue || param.bind.set || '';
+            const useJQuery = param.bind.set !== undefined;
             const [err] = await safeAwait(this.remoteDom.updateRemoteDomValue({
                 vid: this.vdomId,
                 rvnid: this.root.getAttribute('data-rvn-id') ?? '',
@@ -883,6 +896,11 @@ export class BindingsAdapter {
         }
         this._setLocalValues(newValues);
         if (this.hasRemoteBindings) {
+            if (this.hasLocalBindings && this.remoteDom && this.vdomId !== undefined) {
+                // Should recreate vdom again with local changes applied
+                await this.remoteDom.destroyRemoteDom(this.vdomId);
+                this.vdomId = await this.remoteDom.createRemoteDom(this.root);
+            }
             await this._setRemoteValues(newValues);
         }
     }

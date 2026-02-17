@@ -84,6 +84,7 @@ export class Sandbox {
      * @param {MessageEvent} event
      */
     _onChannelMessage(event) {
+        console.log('sandobox onChannelMessage', event);
         const data = event.data || {};
         const task = this._tasks.get(data.requestId);
         if (!data.requestId || !task) {
@@ -128,13 +129,14 @@ export class Sandbox {
                 if (event.data.status === 'ready') {
                     this._port2 = event.ports[0];
                     this._port2.onmessage = this._onChannelMessage.bind(this);
+                    this._readyPromise = null;
                     resolve(iframe);
                 } else {
                     iframe.src = 'about:blank';
                     iframe.remove();
+                    this._readyPromise = null;
                     reject(new Error(event.data.status));
                 }
-                this._readyPromise = null;
             };
             this._onPostMessage = onPostMessage;
             window.addEventListener('message', onPostMessage);
@@ -181,6 +183,10 @@ export class Sandbox {
      * @returns {Promise<any>} The result of the task execution
      */
     async execute(type, payload = {}) {
+        // If we are currently initializing, wait for that process to finish.
+        if (this._readyPromise) {
+            await this._readyPromise;
+        }
         if (!this._port2) {
             throw new Error('!!Sandbox not ready');
         }
@@ -208,6 +214,10 @@ export class Sandbox {
  * @property {boolean} isDeleted
  * @property {string} name
  * @property {string} value
+ * @property {Array<string>} [clsRemoved]
+ * @property {Array<string>} [clsAdded]
+ * @property {Array<string>} [styleRemoved]
+ * @property {Array<[string, string]>} [styleAdded]
  * @property {Array<VNode>} [nodes]
  */
 
@@ -443,10 +453,28 @@ export class RemoteDom extends Sandbox {
             if (patch.isDeleted || patch.value === undefined) {
                 node.removeAttribute(patch.name);
             } else if (patch.name === 'class') {
-                node.className = patch.value;
+                if (patch.clsRemoved && patch.clsAdded) {
+                    if (patch.clsRemoved.length > 0) {
+                        node.classList.remove(...patch.clsRemoved);
+                    }
+                    if (patch.clsAdded.length > 0) {
+                        node.classList.add(...patch.clsAdded);
+                    }
+                } else {
+                    node.className = patch.value;
+                }
             } else if (patch.name === 'style') {
-                // @ts-ignore
-                node.style.cssText = patch.value;
+                const elem = /** @type {HTMLElement} */ (node);
+                if (patch.styleRemoved && patch.styleAdded) {
+                    for (const prop of patch.styleRemoved) {
+                        elem.style.removeProperty(prop);
+                    }
+                    for (const [prop, value] of patch.styleAdded) {
+                        elem.style.setProperty(prop, value);
+                    }
+                } else {
+                    elem.style.cssText = patch.value;
+                }
             } else {
                 node.setAttribute(patch.name, patch.value);
             }

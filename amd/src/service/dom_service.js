@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+import { Widget } from '../options';
 import { setAttributeMCE } from '../util';
 
 /**
@@ -223,8 +224,19 @@ export class DomSrv {
                 if (!isTag) {
                     tag = parent?.tagName;
                 }
-                /** @ts-ignore */
-                res.widget = { key: `!${tag}`, prop: () => '' };
+                const rawWidget = {
+                    key: `!${tag}`,
+                    name: '!image',
+                    category: '!media',
+                    template: '',
+                    isfilter: false,
+                    isselectcapable: false,
+                    hasbindings: false,
+                    hidden: false,
+                    author: '',
+                    version: ''
+                };
+                res.widget = new Widget(rawWidget);
                 res.targetElement = isTag ? res.selectedElement : parent;
             }
         }

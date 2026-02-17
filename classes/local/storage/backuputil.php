@@ -196,7 +196,7 @@ class backuputil {
             if (str_contains($filename, '/') || str_contains($filename, '\\') || str_contains($filename, '..')) {
                 $logs[] = [
                     'message' => "File skipped due to security or invalid structure: $filename",
-                    'severity' => 'warning'
+                    'severity' => 'warning',
                 ];
                 continue;
             }

@@ -158,7 +158,7 @@ final class backuputil_test extends \advanced_testcase {
 
         $zip->close();
 
-        // Add this: Clear stat cache and check if file is truly ready
+        // Clear stat cache and check if file is truly ready.
         clearstatcache(true, $tempzip);
         if (!is_readable($tempzip)) {
             $this->fail("Temporary zip file was not created or is not readable.");

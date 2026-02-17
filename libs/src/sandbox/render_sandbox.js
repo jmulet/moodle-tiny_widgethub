@@ -84,10 +84,11 @@ function sanitize(renderedHTML) {
     const SAFE_PROTOCOLS = /^(https?:|mailto:|tel:|#)/i;
 
     doc.querySelectorAll('*').forEach(el => {
-        if (FORBIDDEN_TAGS.has(el.tagName)) {
+        const tagName = el.tagName.toUpperCase();
+        if (FORBIDDEN_TAGS.has(tagName)) {
             el.remove();
             return;
-        } else if (el.tagName === 'IFRAME') {
+        } else if (tagName === 'IFRAME') {
             const src = el.getAttribute('src');
             if (!src) {
                 el.remove();
@@ -161,8 +162,8 @@ function createWorker(type) {
         const data = Object.assign(Object.create(null), e.data);
         data.type = type;
         // sanitize data.response
-        if (data.response) {
-            data.response = sanitize(data.response);
+        if (data.result) {
+            data.result = sanitize(data.result);
         }
         port1?.postMessage(data);
         if (workerWrap.timeout) {
