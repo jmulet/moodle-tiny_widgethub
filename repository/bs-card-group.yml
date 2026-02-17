@@ -3,14 +3,14 @@ name: $string.bscardgroup_name
 category: bootstrap
 icon: fa fa-th-large
 instructions: $string.bscardgroup_instructions
-engine: ejs
+engine: liquid
 template: |
   <div class="container">
     <div class="row row-cols-1 row-cols-md-3 g-4">
-    <% for(var i=1; i<=n; i++) { %>
+    {% for i in (1..n) %}
     <div class="col">
     <div class="card h-100">
-      <img class="card-img-top" src="https://picsum.photos/300/100?random=<%=i%>" alt="Card image cap">
+      <img class="card-img-top" src="https://picsum.photos/300/100?random={{i}}" alt="Card image cap">
       <div class="card-body">
         <h5 class="card-title">$string.bscardgroup_cardtitle</h5>
         <p class="card-text">Lorem ipsum 1.</p>
@@ -20,7 +20,7 @@ template: |
       </div>
     </div>
     </div>
-    <% } %>
+    {% endfor %}
     </div>
   </div>
   <p><br></p>
