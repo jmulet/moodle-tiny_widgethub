@@ -120,11 +120,9 @@ div.tiny_widgethub-growl {
   border-radius: 10px;
   border: 1px solid lightgray;
   display: block;
-  overflow: hidden;
 }
 .tiny_widgethub-category button {
   height: 40px;
-  overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }

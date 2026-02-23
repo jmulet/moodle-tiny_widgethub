@@ -201,6 +201,7 @@ $string['saverequired'] = "S'han optimitzat alguns widgets. Cal que deseu en sor
 $string['selectmode'] = 'Mode de selecció';
 $string['settings'] = 'Component de WidgetHub';
 $string['sharecss'] = 'Compartir el CSS del lloc dins de l\'iframe de l\'editor';
+$string['toggleview'] = 'Canviar vista';
 $string['unwrap'] = 'Desempaquetar';
 $string['viewplugin'] = 'Connector WidgetHub visible';
 $string['widget'] = 'Widget';

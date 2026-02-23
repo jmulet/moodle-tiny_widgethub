@@ -110,10 +110,8 @@ export class Sandbox {
         }
         const iframe = document.createElement('iframe');
         this._iframe = iframe;
-        Object.assign(iframe, {
-            referrerPolicy: 'no-referrer',
-            sandbox: 'allow-scripts',
-        });
+        iframe.setAttribute('referrerpolicy', 'no-referrer');
+        iframe.setAttribute('sandbox', 'allow-scripts');
         iframe.style.cssText = 'position:absolute; top:-9999em; left:-9999em; z-index:-1; width:0; height:0; border:none;';
 
         let url = '';
@@ -251,16 +249,18 @@ export class RemoteDom extends Sandbox {
     }
 
     /**
-     * @typedef {[string, Record<string,string>, Array<VNode | string>]} VNode
+     * @typedef {[string, Record<string,string>, VNode[]]} VNodeElement
+     * @typedef {{vId: string} | string | VNodeElement} VNode
      */
 
     /**
      * Adds data-rvn-id to each node in the DOM
      *
      * @param {Node} elem The node to add data-rvn-id to
+     * @param {number} depth Recursion depth limit
      */
-    _addVIds(elem) {
-        if (!elem) {
+    _addVIds(elem, depth = 0) {
+        if (!elem || depth > 512) {
             return;
         }
         // Handle Element Nodes (nodeType 1)
@@ -271,7 +271,7 @@ export class RemoteDom extends Sandbox {
             }
             /** @type {Array<VNode|string>} */
             for (let i = 0; i < element.childNodes.length; i++) {
-                this._addVIds(element.childNodes[i]);
+                this._addVIds(element.childNodes[i], depth + 1);
             }
         }
     }
@@ -371,7 +371,10 @@ export class RemoteDom extends Sandbox {
      * @returns {boolean}
      */
     _isSafeTag(tag) {
-        const forbiddenTags = ['script', 'style', 'object', 'embed', 'link', 'meta', 'base', 'form', 'textarea', 'svg', 'math'];
+        const forbiddenTags = [
+            'script', 'style', 'object', 'embed', 'link', 'meta', 'base',
+            'form', 'textarea', 'svg', 'math', 'iframe', 'frame', 'applet'
+        ];
         return !forbiddenTags.includes(tag.toLowerCase());
     }
 
@@ -381,26 +384,82 @@ export class RemoteDom extends Sandbox {
      * @param {string} value
      * @returns {boolean}
      */
-    _isSafeAttribute(name, value) {
-        const lowerName = name.toLowerCase();
-        if (lowerName.startsWith('on') || lowerName.startsWith('form')) {
+    /**
+     * Checks if a string contains dangerous protocols like javascript:
+     * @param {string} value
+     * @returns {boolean}
+     */
+    _hasDangerousProtocol(value) {
+        if (typeof value !== 'string') {
             return false;
-        } else if (lowerName === 'href' || lowerName === 'src') {
-            const lowerValue = (value || '').toLowerCase().trim();
-            if (lowerValue.startsWith('javascript' + ':') || lowerValue.startsWith('data:text/html')) {
-                return false;
-            }
         }
-        return true;
+        // eslint-disable-next-line no-control-regex
+        const sanitizedValue = value.replace(/[\x00-\x20\s]/g, '').toLowerCase();
+        // Block javascript:, vbscript:, and any data: that isn't a safe image type.
+        if (sanitizedValue.includes('javas' + 'cript:') ||
+            sanitizedValue.includes('vbsc' + 'ript:') ||
+            sanitizedValue.includes('data:text/html') ||
+            sanitizedValue.includes('data:text/javascript')) {
+            return true;
+        }
+        // General check for data: protocols if they don't look like safe images.
+        if (sanitizedValue.includes('data:') && !sanitizedValue.match(/data:image\/(png|jpeg|gif|webp);/)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Checks if an attribute is safe to be applied to the host DOM.
+     * @param {string} name
+     * @param {string} value
+     * @returns {boolean}
+     */
+    _isSafeAttribute(name, value) {
+        if (!name || typeof name !== 'string') {
+            return false;
+        }
+        const lowerName = name.toLowerCase().trim();
+        // Forbid event handlers, form-related hijacking attributes, and srcdoc.
+        // Also forbid id and our internal data-rvn-id to avoid hijacking.
+        if (lowerName.startsWith('on') ||
+            lowerName.startsWith('form') ||
+            lowerName === 'srcdoc' ||
+            lowerName === 'id' ||
+            lowerName === 'data-rvn-id') {
+            return false;
+        }
+        return !this._hasDangerousProtocol(value);
+    }
+
+    /**
+     * Checks if a style property is safe to be applied.
+     * @param {string} name
+     * @param {string} value
+     * @returns {boolean}
+     */
+    _isSafeStyle(name, value) {
+        if (!name || typeof name !== 'string') {
+            return false;
+        }
+        // CSS specific dangerous patterns (e.g. IE expressions or Firefox bindings)
+        const lowerValue = (value || '').toLowerCase();
+        if (lowerValue.includes('expression(') ||
+            lowerValue.includes('-moz-binding') ||
+            lowerValue.includes('@import')) {
+            return false;
+        }
+        return !this._hasDangerousProtocol(value);
     }
 
     /**
      * Deserializes a VNode into a DOM Node
      * @param {VNode | string | null} vNode
+     * @param {number} depth Recursion depth limit
      * @returns {Node | null}
      */
-    _deserializeVNode(vNode) {
-        if (vNode === null) {
+    _deserializeVNode(vNode, depth = 0) {
+        if (vNode === null || depth > 512) {
             return null;
         }
         if (typeof vNode === 'string') {
@@ -409,6 +468,7 @@ export class RemoteDom extends Sandbox {
         if (Array.isArray(vNode)) {
             const [tag, attrs, children] = vNode;
             if (!this._isSafeTag(tag)) {
+                console.warn('Insecure tag ignored', tag);
                 return null;
             }
             const element = document.createElement(tag);
@@ -418,7 +478,7 @@ export class RemoteDom extends Sandbox {
                 }
             }
             children.forEach(childVNode => {
-                const childNode = this._deserializeVNode(childVNode);
+                const childNode = this._deserializeVNode(childVNode, depth + 1);
                 if (childNode) {
                     element.appendChild(childNode);
                 }
@@ -435,10 +495,11 @@ export class RemoteDom extends Sandbox {
      */
     _applyMutation(rootElement, patch) {
         let node;
+        const safeVid = (patch.vid || '').replace(/[\\"]/g, '\\$&');
         if (rootElement.getAttribute('data-rvn-id') === patch.vid) {
             node = rootElement;
         } else {
-            node = rootElement.querySelector(`[data-rvn-id="${patch.vid}"]`);
+            node = rootElement.querySelector(`[data-rvn-id="${safeVid}"]`);
         }
         if (!node) {
             console.log('Apply mutation: Node not found', patch.vid);
@@ -470,10 +531,18 @@ export class RemoteDom extends Sandbox {
                         elem.style.removeProperty(prop);
                     }
                     for (const [prop, value] of patch.styleAdded) {
-                        elem.style.setProperty(prop, value);
+                        if (this._isSafeStyle(prop, value)) {
+                            elem.style.setProperty(prop, value);
+                        } else {
+                            console.warn('Insecure style property ignored', prop);
+                        }
                     }
                 } else {
-                    elem.style.cssText = patch.value;
+                    if (this._isSafeStyle('style', patch.value)) {
+                        elem.style.cssText = patch.value;
+                    } else {
+                        console.warn('Insecure style ignored', patch.value);
+                    }
                 }
             } else {
                 node.setAttribute(patch.name, patch.value);
@@ -506,7 +575,6 @@ export class RemoteDom extends Sandbox {
                     // It's a new node definition (string or VNode array)
                     childNode = this._deserializeVNode(vNode);
                 }
-
                 if (childNode) {
                     newChildren.push(childNode);
                     node.appendChild(childNode); // Moves it to the end, effectively sorting them

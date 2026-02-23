@@ -155,11 +155,9 @@ div.tiny_widgethub-growl {
     border-radius: $border-radius-lg;
     border: 1px solid $lightgray;
     display: block;
-    overflow: hidden;
 
     button {
         height: 40px;
-        overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
     }

@@ -201,6 +201,7 @@ $string['saverequired'] = "Algunos widgets se han optimizado. Debe guardar cambi
 $string['selectmode'] = 'Modo de selección';
 $string['settings'] = 'Componente de WidgetHub';
 $string['sharecss'] = 'Compartir el CSS del sitio dentro del iframe del editor';
+$string['toggleview'] = 'Cambiar vista';
 $string['unwrap'] = 'Desempaquetar';
 $string['viewplugin'] = 'Plugin de WidgetHub visible';
 $string['widget'] = 'Widget';
