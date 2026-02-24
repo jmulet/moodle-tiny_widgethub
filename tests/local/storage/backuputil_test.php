@@ -172,8 +172,10 @@ final class backuputil_test extends \advanced_testcase {
             'itemid' => $draftitemid,
             'filepath' => '/',
             'filename' => 'restore.whz',
+            'userid' => $USER->id,
         ];
-        $fs->create_file_from_pathname($filerecord, $tempzip);
+        $storedfile = $fs->create_file_from_pathname($filerecord, $tempzip);
+        $this->assertNotEmpty($storedfile);
 
         $data = new \stdClass();
         $data->zipfile = $draftitemid;
