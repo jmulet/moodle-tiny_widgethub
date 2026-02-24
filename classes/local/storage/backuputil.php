@@ -157,33 +157,23 @@ class backuputil {
         if (empty($files)) {
             return self::make_log(false, 'No files found in the draft area.', 'error');
         }
-
-        $file = null;
-        foreach ($files as $f) {
-            if (!$f->is_directory()) {
-                $file = $f;
-                break;
-            }
-        }
-
-        if (!$file) {
-            return self::make_log(false, 'No valid backup file found.', 'error');
-        }
-
+        $file = reset($files); // Get the first file.
         $tempdir = make_temp_directory('tiny_widgethub_backup');
-        $packer = get_file_packer('application/zip');
-        if (!$packer->extract_to_pathname($file, $tempdir)) {
-            fulldelete($tempdir);
-            return self::make_log(false, 'Failed to extract backup file.', 'error');
-        }
-
+        $tempzip = $tempdir . '/b' . $file->get_contenthash();
+        $file->copy_content_to($tempzip);
+        // Unzip the file.
+        $zip = new \ZipArchive();
         try {
+            if (!$zip->open($tempzip)) {
+                throw new \Exception('Invalid backup file.');
+            }
+
             // Validate manifest.json.
-            $manifestpath = $tempdir . '/manifest.json';
-            if (!file_exists($manifestpath)) {
+            $manifest = $zip->getFromName('manifest.json');
+            if (empty($manifest)) {
                 throw new \Exception('Invalid backup file. No manifest found.');
             }
-            $manifest = json_decode(file_get_contents($manifestpath), true);
+            $manifest = json_decode($manifest, true);
             if (empty($manifest) || ($manifest['plugin'] ?? '') !== 'tiny_widgethub') {
                 throw new \Exception('Invalid manifest found in the backup.');
             }
@@ -199,35 +189,31 @@ class backuputil {
 
         $logs = [];
 
-        // List all files in the extracted directory.
+        // List all files in the zip.
         $storage = storagefactory::get_instance();
-        $directory = new \RecursiveDirectoryIterator($tempdir, \RecursiveDirectoryIterator::SKIP_DOTS);
-        $allfiles = new \RecursiveIteratorIterator($directory);
-        foreach ($allfiles as $fileinfo) {
-            $filename = $fileinfo->getFilename();
-            // Get path relative to $tempdir.
-            $relativepath = substr($fileinfo->getPathname(), strlen($tempdir) + 1);
-
-            if (str_contains($relativepath, '/') || str_contains($relativepath, '\\') || str_contains($relativepath, '..')) {
-                // We keep the skip logic but note that extract_to_pathname should have handled basics.
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $filename = $zip->getNameIndex($i);
+            if (str_contains($filename, '/') || str_contains($filename, '\\') || str_contains($filename, '..')) {
+                $logs[] = [
+                    'message' => "File skipped due to security or invalid structure: $filename",
+                    'severity' => 'warning',
+                ];
                 continue;
             }
-
             $ext = pathinfo($filename, PATHINFO_EXTENSION);
             $name = pathinfo($filename, PATHINFO_FILENAME);
-
             if ($filename === 'manifest.json') {
                 continue;
             } else if ($filename === 'cfg.txt' && $configenabled) {
                 $logs[] = ['message' => 'Restoring ' . $filename];
-                $cfgdata = fix_utf8(file_get_contents($fileinfo->getPathname()));
+                $cfgdata = fix_utf8($zip->getFromName($filename));
                 set_config('cfg', $cfgdata, 'tiny_widgethub');
             } else if ($filename === 'additionalcss.txt' && $configenabled) {
                 $logs[] = ['message' => 'Restoring ' . $filename];
-                $additionalcss = fix_utf8(file_get_contents($fileinfo->getPathname()));
+                $additionalcss = fix_utf8($zip->getFromName($filename));
                 set_config('additionalcss', $additionalcss, 'tiny_widgethub');
             } else if ($ext === 'json') {
-                $jsondata = fix_utf8(file_get_contents($fileinfo->getPathname()));
+                $jsondata = fix_utf8($zip->getFromName($filename));
                 $jsondata = json_decode($jsondata);
                 if (!is_object($jsondata) || empty($jsondata) || !isset($jsondata->key)) {
                     $logs[] = [
@@ -255,8 +241,7 @@ class backuputil {
                     ];
                     continue;
                 }
-                $ymlfile = $tempdir . '/' . $name . '.yml';
-                $yml = file_exists($ymlfile) ? file_get_contents($ymlfile) : null;
+                $yml = $zip->getFromName($name . '.yml') ?? null;
                 $foundid = $found ? $found->id : null;
                 $res = $storage->save_widget($foundid, $jsondata, $yml);
                 $logs[] = [
@@ -266,6 +251,7 @@ class backuputil {
             }
         }
 
+        $zip->close();
         // Remove the draft file.
         $fs->delete_area_files($context->id, 'user', 'draft', $draftitemid);
         fulldelete($tempdir);
