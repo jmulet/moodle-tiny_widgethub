@@ -20,6 +20,6 @@ Feature: Tiny widgethub
     When I open my profile in edit mode
     And I set the field "Description" to "Hello tiny!"
     And I click on the "WidgetHub" button for the "Description" TinyMCE editor
-    And I should see "Select a widget" in the "div.modal.show" "css_element"
-    And I set the field "widgethub_search_textfield" to "xsdsd 233 esddflkdsjf"
+    And I should see "Select a widget" in the ".modal-header" "css_element"
+    And I set the field "widgethub_search_textfield" to "unexistent widget"
     Then I should see "No widgets have been found for the search criteria" in the "Select a widget" "dialogue"
