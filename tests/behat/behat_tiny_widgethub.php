@@ -27,7 +27,6 @@
  * Custom Behat steps for tiny_widgethub.
  */
 class behat_tiny_widgethub extends behat_base {
-
     /**
      * Changes the window size to a specific resolution.
      * Note: This is particularly useful for testing Moodle's
