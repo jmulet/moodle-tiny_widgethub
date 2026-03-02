@@ -20,7 +20,9 @@ Feature: Tiny widgethub
     And I set the window size to "1920"x"1080"
     When I open my profile in edit mode
     And I set the field "Description" to "Hello tiny!"
-    And I click on the "WidgetHub" button for the "Description" TinyMCE editor
+    And I click on ".tox-mbtn:contains('Insert')" "css_element"
+    And I wait "1" seconds
+    And I click on ".tox-collection__item-label:contains('WidgetHub component')" "css_element"
     And I wait "2" seconds
     And I wait until "[role='dialog']" "css_element" exists
     And I should see "Select a widget"
