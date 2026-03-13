@@ -81,7 +81,7 @@ const configureToolbar = (toolbar) => {
  * @returns {string}
  */
 const configureContextMenu = (contextmenu) => {
-    return contextmenu + ' ' + component;
+    return `${contextmenu} ${component}_cm`;
 };
 
 /**

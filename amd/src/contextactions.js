@@ -761,7 +761,7 @@ export class ContextActionsManager {
 
     registerContextMenus() {
         // Creates the actual context menu items.
-        this.editor.ui.registry.addContextMenu(component, {
+        this.editor.ui.registry.addContextMenu(component + '_cm', {
             /** @param {HTMLElement} element */
             update: (element) => this.contextMenuUpdate(element).join(' ')
         });
