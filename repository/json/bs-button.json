@@ -1,0 +1,42 @@
+{
+    "key": "bs-button",
+    "name": "$string.bsbutton_name",
+    "category": "bootstrap",
+    "icon": "fa fa-hand-pointer",
+    "instructions": "$string.bsbutton_instructions",
+    "template": "<a href=\"{{url}}\" class=\"btn btn-{{severity}}\"><i class=\"fa fa-{{icon}}\"></i>Lorem ipsum</a>&nbsp;\n",
+    "selectors": "a.btn",
+    "unwrap": "*",
+    "parameters": [
+        {
+            "name": "url",
+            "title": "$string.bsbutton_url_title",
+            "bind": "attr('href')",
+            "value": "#"
+        },
+        {
+            "name": "severity",
+            "title": "$string.bsbadge_severity_title",
+            "bind": "classRegex('btn-(.*)')",
+            "value": "primary",
+            "options": [
+                "primary",
+                "secondary",
+                "success",
+                "info",
+                "warning",
+                "danger",
+                "light",
+                "dark"
+            ]
+        },
+        {
+            "name": "icon",
+            "title": "$string.bsbutton_icon_title",
+            "bind": "classRegex('fa-(.*)')",
+            "value": "tag"
+        }
+    ],
+    "author": "Josep Mulet <pep.mulet@gmail.com>",
+    "version": "1.0.0"
+}
