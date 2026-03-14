@@ -362,7 +362,7 @@ function initializeEditor(editor) {
             if (adminCss.trim()) {
                 // Manually create the style tag in the correct position
                 // It must go after the shared css
-                const style = editor.dom.create('style', { type: 'text/css', id: "twhAdminStyles" });
+                const style = editor.dom.create('style', { type: 'text/css', id: "twh_admin_styles" });
                 style.textContent = adminCss;
                 const doc = editor.getDoc();
                 doc?.head?.appendChild(style);

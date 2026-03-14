@@ -259,7 +259,11 @@ class widgetstorageimpl implements widgetstorage {
         foreach ($ids as $id) {
             $info = $this->index[$id] ?? null;
             if (!$info || !isset($info['k'])) {
-                continue;
+                if ($id === 0) {
+                    $info = ['k' => 'partials'];
+                } else {
+                    continue;
+                }
             }
             $json = null;
             if ($includejson) {
@@ -355,7 +359,7 @@ class widgetstorageimpl implements widgetstorage {
         if (!self::validate_widget($id, $widget, $usedkeys)) {
             return storagefactory::INVALID_ID;
         }
-        if ($id === storagefactory::BLANK_ID) {
+        if ($id === null || $id === storagefactory::BLANK_ID) {
             $id = $this->update_seq();
         }
         try {
@@ -430,7 +434,7 @@ class widgetstorageimpl implements widgetstorage {
         $deletedids = [];
         foreach ($ids as $id) {
             $widget = $this->load_raw_widget($id);
-            if (!$widget || $widget['key'] == 'partials') {
+            if ($id === 0 || !$widget || $widget['key'] == 'partials') {
                 // Partials cannot be deleted.
                 continue;
             }

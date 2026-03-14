@@ -137,7 +137,20 @@ class documentstorageimpl implements documentstorage {
      * @return ?string Document content.
      */
     public function get(int $id, string $ext = 'json'): ?string {
-        return self::load_filearea_document($id, $ext);
+        $doc = self::load_filearea_document($id, $ext);
+        // Partials must always return a document.
+        if ($doc === null && $id === 0) {
+            if ($ext === 'json' || $ext === 'slim.json') {
+                return json_encode([
+                    'key' => 'partials',
+                    'LOREM' => 'Lorem ipsum'
+                ]);
+            } else if ($ext === 'yml') {
+                return "key: partials\nLOREM: Lorem ipsum";
+            }
+            return null;
+        }
+        return $doc;
     }
 
     /**

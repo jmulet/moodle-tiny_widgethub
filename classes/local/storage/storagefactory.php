@@ -33,7 +33,7 @@ abstract class storagefactory {
     /**
      * The blank widget id.
      */
-    public const BLANK_ID = null;
+    public const BLANK_ID = -1;
     /**
      * The partials widget id.
      */

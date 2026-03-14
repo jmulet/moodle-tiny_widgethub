@@ -69,11 +69,12 @@ function createBody(id, partials) {
     <div id="p-html"><div></div></div>
     <div id="p-tiny"><textarea id="tiny-editor"></textarea></div>
     <div id="p-preview"><iframe></iframe></div>
-    <div id="p-log"></div>
+    <div id="p-log">
+        <button id="id_widget_clearlog">Clear</button>
+        <div id="id_widget_previewlog"></div>
+    </div>
     <form>
         <textarea class="yml-area"></textarea>
-        <textarea class="css-area"></textarea>
-        <textarea class="html-area"></textarea>
         <textarea class="json-area"></textarea>
         <textarea class="partial-area">${JSON.stringify(partials ?? {})}</textarea>
         <input class="save-btn" type="submit" name="save">
@@ -90,12 +91,12 @@ describe('widget_settings', () => {
 
     test.each([
         ['Invalid yml', 'key: key2\na:\n    - a\n  - !as', 'Yaml syntax error', []],
-        ['Missing key', 'name: hello\ntemplate: here', "The properties 'key' are required ", []],
-        ['Missing name', 'key: hello\ntemplate: here', "The properties 'name' are required ", []],
-        ['Repeated key', 'key: key1\nname: name\ntemplate: here', "Key key1 is already in use. Please rename it ", ['key1', 'key2']],
-        ['Repeated key', 'key: key0\nname: name\ntemplate: here\nfilter: filter', "The properties 'template' & 'filter' cannot be used simultaneously ", ['key1', 'key2']],
+        ['Missing key', 'name: hello\ntemplate: here', "The properties 'key' are required", []],
+        ['Missing name', 'key: hello\ntemplate: here', "The properties 'name' are required", []],
+        ['Repeated key', 'key: key1\nname: name\ntemplate: here', "Key key1 is already in use. Please rename it", ['key1', 'key2']],
+        ['Repeated key', 'key: key0\nname: name\ntemplate: here\nfilter: filter', "The properties 'template' & 'filter' cannot be used simultaneously", ['key1', 'key2']],
         ['Missing author', 'key: key3\nname: name\ntemplate: here', "The properties 'author' & 'version' are required", ['key1', 'key2']],
-        ['Missing version', 'key: key3\nname: name\ntemplate: here\nauthor: pep', "The properties 'author' & 'version' are required ", ['key1', 'key2']],
+        ['Missing version', 'key: key3\nname: name\ntemplate: here\nauthor: pep', "The properties 'author' & 'version' are required", ['key1', 'key2']],
         ['Valid definition', 'key: key3\nname: name\ntemplate: here\nauthor: pep\nversion: 1.0', '', ['key1', 'key2']],
     ])
         ('%s widget definition', async (issue, yml, msg, keys) => {

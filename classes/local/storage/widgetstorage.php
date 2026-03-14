@@ -86,7 +86,7 @@ interface widgetstorage {
      * @param string|null $js The widget js string.
      * @param string|null $css The widget css string.
      * @param int $rev The widget revision.
-     * @return int The widget ID > 0 on success, -1 for partials, -2 on failure.
+     * @return int The widget ID > 0 on success, 0 for partials, -1 on invalid widget, -2 on failure.
      */
     public function save_widget(
         ?int $id,

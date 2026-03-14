@@ -25,7 +25,6 @@
 import { CmEditor, YAML } from './libs/cmeditor-lazy';
 // eslint-disable-next-line camelcase
 import { get_string } from 'core/str';
-import Templates from 'core/templates';
 import { getTemplateSrv, createDefaultsForParam } from './service/template_service';
 import { applyPartials } from './options';
 import common from './common';
@@ -199,8 +198,6 @@ class PreviewStrategyTiny {
  * @typedef {Object} Selectors
  * @property {string} json Selector for JSON textarea.
  * @property {string} yml Selector for YAML textarea.
- * @property {string} css Selector for CSS textarea.
- * @property {string} html Selector for HTML textarea.
  * @property {string} partials Selector for partials textarea.
  * @property {string} save Selector for save button.
  * @property {string} saveandclose Selector for save and close button.
@@ -210,14 +207,12 @@ class PreviewStrategyTiny {
 /**
  * @typedef {Object} SettingsNodes
  * @property {HTMLDivElement} editorAreayml - Place where to attach CM editor
- * @property {HTMLDivElement|null} [editorAreacss] - Place where to attach CM editor
- * @property {HTMLDivElement|null} [editorAreahtml] - Place where to attach CM editor
  * @property {HTMLTextAreaElement|null} [previewTiny] - Place where to attach TinyMCE
  * @property {HTMLIFrameElement|null} [previewPanel] - Place where to attach preview iframe
  * @property {HTMLDivElement} previewLog - Place where to attach preview log
+ * @property {HTMLDivElement} alertLog - Place where to attach alert log
+ * @property {HTMLButtonElement} clearLogBtn - Button type
  * @property {HTMLTextAreaElement} ymlArea - Form field
- * @property {HTMLTextAreaElement} cssArea - Form field
- * @property {HTMLTextAreaElement} htmlArea - Form field
  * @property {HTMLTextAreaElement} jsonArea - Form field
  * @property {HTMLTextAreaElement} partialArea - Form field
  * @property {HTMLInputElement} saveBtn - Form field
@@ -252,7 +247,7 @@ export default class WidgetSettings {
 
     /**
      * @param {Object} opts
-     * @param {number|null} opts.id The widget ID (null for new, 0 for partial)
+     * @param {number} opts.id The widget ID (<0 for new, 0 for partial)
      * @param {string[]} opts.keys Array of existing widget keys
      * @param {Selectors} opts.selectors Selectors for various form elements
      */
@@ -264,11 +259,7 @@ export default class WidgetSettings {
         // Configuration for validation
         const nodeDefinitions = {
             editorAreayml: { selector: '#p-yml > div', type: HTMLDivElement, required: true },
-            editorAreacss: { selector: '#p-css > div', type: HTMLDivElement, required: false },
-            editorAreahtml: { selector: '#p-html > div', type: HTMLDivElement, required: false },
             ymlArea: { selector: this.selectors.yml, type: HTMLTextAreaElement, required: true },
-            cssArea: { selector: this.selectors.css, type: HTMLTextAreaElement, required: true },
-            htmlArea: { selector: this.selectors.html, type: HTMLTextAreaElement, required: true },
             jsonArea: { selector: this.selectors.json, type: HTMLTextAreaElement, required: true },
             partialArea: { selector: this.selectors.partials, type: HTMLTextAreaElement, required: true },
             saveBtn: { selector: this.selectors.save, type: HTMLInputElement, required: true },
@@ -277,6 +268,8 @@ export default class WidgetSettings {
             previewTiny: { selector: '#p-tiny > textarea', type: HTMLTextAreaElement, required: false },
             previewPanel: { selector: '#p-preview > iframe', type: HTMLIFrameElement, required: false },
             previewLog: { selector: '#p-log', type: HTMLDivElement, required: true },
+            alertLog: { selector: '#id_widget_previewlog', type: HTMLDivElement, required: true },
+            clearLogBtn: { selector: '#id_widget_clearlog', type: HTMLButtonElement, required: true },
         };
 
         /** @type {Partial<SettingsNodes> & Record<string, any>} */
@@ -359,6 +352,11 @@ export default class WidgetSettings {
         this.originalKey = parsed.key;
 
         if (this.id !== null && this.id >= 0) { // Not a blank new widget
+            if (this.id === 0 && !ymlValue && (!jsonValue || jsonValue === '{}')) {
+                // If it's a new partials that hasn't been saved yet
+                this.editors.yml.setValue("key: partials\nLOREM: Lorem ipsum");
+                return;
+            }
             if (ymlValue) {
                 this.editors.yml.setValue(ymlValue);
                 return;
@@ -426,40 +424,41 @@ export default class WidgetSettings {
 
             // Basic key validation
             if (!jsonObj.key?.trim()) {
-                validation.msg = await get_string('errproprequired', component, "'key'") + ' ';
+                validation.msg = await get_string('errproprequired', component, "'key'") + '\n';
             } else if (jsonObj.key !== 'partials') {
                 if (this.id === 0) {
                     // This is a partials and it should have key: partials
-                    validation.msg += await get_string('errproprequired', component, "'key: partials'") + ' ';
+                    validation.msg += await get_string('errproprequired', component, "'key: partials'") + '\n';
                 }
                 // Widget structure validation
                 if (!jsonObj.name) {
-                    validation.msg += await get_string('errproprequired', component, "'name'") + ' ';
+                    validation.msg += await get_string('errproprequired', component, "'name'") + '\n';
                 } else if (!(jsonObj.template || jsonObj.filter)) {
-                    validation.msg += await get_string('errproprequired', component, "'template' | 'filter'") + ' ';
+                    validation.msg += await get_string('errproprequired', component, "'template' | 'filter'") + '\n';
                 } else if (jsonObj.template && jsonObj.filter) {
-                    validation.msg += await get_string('errpropincompatible', component, "'template' & 'filter'") + ' ';
+                    validation.msg += await get_string('errpropincompatible', component, "'template' & 'filter'") + '\n';
                 } else if (!jsonObj.author || !jsonObj.version) {
-                    validation.msg += await get_string('errproprequired', component, "'author' & 'version'") + ' ';
+                    validation.msg += await get_string('errproprequired', component, "'author' & 'version'") + '\n';
                 }
             }
 
-            // check duplicate keys for new widgets
             if (this.id !== null && this.id >= 0 && jsonObj.key && jsonObj.key !== this.originalKey && this.keys.includes(jsonObj.key)) {
-                validation.msg += await get_string('errkeyinuse', component, jsonObj.key) + ' ';
+                validation.msg += await get_string('errkeyinuse', component, jsonObj.key) + '\n';
             }
 
-            // Partial and Template validation
-            applyPartials(jsonObj, partials);
+            // If not partials, apply partial and Template validation
+            if (jsonObj.key !== 'partials') {
+                applyPartials(jsonObj, partials);
+            }
             // Templates cannot have script tags nor style tags
             const template = jsonObj.template ?? jsonObj.filter ?? '';
             if (template.match(/<\s?script/i) || template.match(/<\s?style/i)) {
-                validation.msg += await get_string('errscript', component) + ' ';
+                validation.msg += await get_string('errscript', component) + '\n';
             }
             if (jsonObj.template) {
                 const stack = unbalancedHTMLWithEJS(jsonObj.template);
                 if (stack.length > 0) {
-                    validation.msg += await get_string('errunbalancedhtml', component) + ': ' + stack;
+                    validation.msg += await get_string('errunbalancedhtml', component) + ': ' + stack + '\n';
                     return validation;
                 }
 
@@ -470,28 +469,14 @@ export default class WidgetSettings {
                     ctx[param.name] = createDefaultsForParam(param, true);
                 });
 
-                try {
-                    const tinyinstance = getInstanceForElementId(this.nodes.previewTiny?.id ?? '');
-                    const templateSrv = getTemplateSrv(tinyinstance);
-                    validation.html = await templateSrv.render(jsonObj.template, ctx, translations, jsonObj.engine);
-                    const tabSelector = document.querySelector('a[data-toggle="tab"][href="#p-html"]')?.parentElement;
-                    if (tabSelector) {
-                        // Only widgets that define data-widget="key" or aria-widget="key" and data-widget-embed="iframe" or
-                        // aria-widget-embed="iframe" allow embedding tab active.
-                        const includesDataWidget = validation.html.includes('data-widget="' + jsonObj.key + '"') ||
-                            validation.html.includes('aria-widget="' + jsonObj.key + '"');
-                        const includesDataWidgetEmbed = validation.html.includes('data-widget-embed="iframe"') ||
-                            validation.html.includes('aria-widget-embed="iframe"');
-                        const includesSelector = jsonObj.selectors !== undefined;
-                        if (includesDataWidget && includesDataWidgetEmbed && includesSelector) {
-                            tabSelector.classList.remove('d-none');
-                        } else {
-                            this._selectTab('p-yml');
-                            tabSelector.classList.add('d-none');
-                        }
+                if (jsonObj.template && this.id && this.id > 0) {
+                    try {
+                        const tinyinstance = getInstanceForElementId(this.nodes.previewTiny?.id ?? '');
+                        const templateSrv = getTemplateSrv(tinyinstance);
+                        validation.html = await templateSrv.render(jsonObj.template, ctx, translations, jsonObj.engine);
+                    } catch (ex0) {
+                        validation.msg += await get_string('errpreview', component) + ':: ' + ex0 + '\n';
                     }
-                } catch (ex0) {
-                    validation.msg = await get_string('errpreview', component) + ':: ' + ex0;
                 }
             }
 
@@ -504,13 +489,13 @@ export default class WidgetSettings {
                     .filter(p => p.type === 'select' || p.type === 'autocomplete' || p.options)
                     .forEach(p => {
                         if (!p.options || !Array.isArray(p.options)) {
-                            validation.msg += replacePlaceholders(errStr1, p.name + '.options', 'Array');
+                            validation.msg += replacePlaceholders(errStr1, p.name + '.options', 'Array') + '\n';
                             return;
                         }
                         if (p.type === 'select') {
                             const options = p.options.map(o => typeof (o) === 'string' ? o : o.v);
                             if (p.value === undefined || options.indexOf(p.value) < 0) {
-                                validation.msg += replacePlaceholders(errStr2, p.name + '.value', 'in options');
+                                validation.msg += replacePlaceholders(errStr2, p.name + '.value', 'in options') + '\n';
                             }
                         }
                     });
@@ -521,11 +506,11 @@ export default class WidgetSettings {
                 validation.msg += await get_string('errversionmismatch', component, {
                     required: jsonObj.plugin_release,
                     installed: common.currentRelease
-                });
+                }) + '\n';
             }
 
         } catch (ex) {
-            validation.msg = await get_string('errunexpected', component) + ':: ' + ex;
+            validation.msg = await get_string('errunexpected', component) + ':: ' + ex + '\n';
         }
         return validation;
     }
@@ -546,8 +531,10 @@ export default class WidgetSettings {
 
         if (validation.msg || !validation.json) {
             this._selectTab('log');
+            validation.msg = validation.msg.replace(/\n/g, '<br>');
+            this.nodes.alertLog.insertAdjacentHTML('afterbegin', `<div class="alert alert-danger">${validation.msg}</div>`);
         } else {
-            this.nodes.previewLog.insertAdjacentHTML('beforeend', `<div class="alert alert-success">Validation successful</div>`);
+            this.nodes.alertLog.insertAdjacentHTML('afterbegin', `<div class="alert alert-success">Validation successful</div>`);
             // Sync hidden textareas for FormAPI submission
             this.nodes.ymlArea.value = ymlValue;
             this.nodes.jsonArea.value = validation.json;
@@ -593,43 +580,6 @@ export default class WidgetSettings {
     }
 
     /**
-     * Extracts the CSS content between start: @tiny and end: @tiny or the end of the file.
-     * @param {boolean} isEditorOnly - Whether to extract only the editor CSS.
-     * @returns {string}
-     */
-    getCssValue(isEditorOnly = false) {
-        const css = this.editors.css?.getValue() ?? this.nodes.cssArea.value ?? '';
-        const lines = css.split('\n');
-        let isInsideBlock = false;
-        let extractedLines = [];
-
-        // Regex explained:
-        // \/\* -> matches the opening /*
-        // \s* -> matches 0 or more spaces
-        // start:    -> matches the literal text
-        // @tiny     -> matches the literal tag
-        // \*\/      -> matches the closing */
-        const startPattern = /\/\*\s*start:\s*@tiny\s*\*\//i;
-        const endPattern = /\/\*\s*end:\s*@tiny\s*\*\//i;
-
-        for (let line of lines) {
-            if (startPattern.test(line)) {
-                isInsideBlock = true;
-                continue;
-            }
-            if (endPattern.test(line)) {
-                isInsideBlock = false;
-                continue;
-            }
-            if ((isInsideBlock && isEditorOnly) || (!isInsideBlock && !isEditorOnly)) {
-                extractedLines.push(line);
-            }
-        }
-
-        return extractedLines.join('\n').trim();
-    }
-
-    /**
      * Handles the refresh button click event.
      */
     async _onRefreshBtnClick() {
@@ -659,7 +609,7 @@ export default class WidgetSettings {
         }
 
         if (validation.msg) {
-            this.nodes.previewLog.insertAdjacentHTML('beforeend', `<div class="alert alert-danger">${validation.msg}</div>`);
+            this.nodes.alertLog.insertAdjacentHTML('afterbegin', `<div class="alert alert-danger">${validation.msg}</div>`);
             this._selectTab('log');
         } else if (validation.html) {
             if (this.nodes.jsonArea) {
@@ -671,7 +621,7 @@ export default class WidgetSettings {
             this.tinyPreviewStrategy?.render(
                 validation.html ?? '<p></p>',
                 validation.obj,
-                this.getCssValue(true)
+                ''
             );
         }
         this.nodes.refreshBtn.disabled = false;
@@ -688,6 +638,13 @@ export default class WidgetSettings {
             this._onRefreshBtnClick();
         });
 
+        // Clear log button event
+        if (this.nodes.clearLogBtn) {
+            this.nodes.clearLogBtn.addEventListener('click', (ev) => {
+                ev.preventDefault();
+                this.nodes.alertLog?.querySelectorAll('.alert').forEach(e => e.remove());
+            });
+        }
 
         // Action to be performed before submission
         const form = this.nodes.saveBtn.closest('form');
@@ -744,7 +701,7 @@ export default class WidgetSettings {
                 if (this.tinyPreviewStrategy?.init()) {
                     // Now it is safe to create preview
                     clearInterval(interval);
-                    if (this.id !== null && this.id > 0) {
+                    if (this.id !== null && this.id >= 0) {
                         this.nodes.refreshBtn?.click();
                     }
                 }
@@ -786,80 +743,14 @@ export default class WidgetSettings {
 
         iframe.style.width = '100%';
         iframe.style.border = 'none';
-        iframe.setAttribute('sandbox', 'allow-scripts');
+        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
 
-        let cssCode = this.getCssValue(false);
-        if (cssCode) {
-            cssCode = `<style>\n${cssCode}\n</style>`;
-        }
-        const userIframeContent = this.editors.html?.getValue() || this.nodes.htmlArea.value.trim() || '';
-        let tinyContent = this.tinyPreviewStrategy?.getValue();
-
-        /** @type {Record<string, {id: string, elem: string}>} */
-        const contextMap = {};
-        if (tinyContent) {
-            // Embed required widgets into their iframes.
-            tinyContent = `<div>\n${tinyContent}\n</div>`;
-            const tinyDom = new DOMParser().parseFromString(tinyContent, 'text/html');
-            const widgetSelector = '[data-widget][data-widget-embed="iframe"], [aria-widget][aria-widget-embed="iframe"]';
-            const widgets = Array.from(tinyDom.querySelectorAll(widgetSelector));
-            for (const node of widgets) {
-                /** @type {HTMLIFrameElement} */
-                const iframe = document.createElement('iframe');
-                const id = `whub-${Math.random().toString(36).substring(2, 9)}`;
-                iframe.id = id;
-                iframe.name = id;
-                iframe.style.width = '100%';
-                iframe.style.height = '100%';
-                iframe.style.border = 'none';
-                iframe.style.overflow = 'hidden';
-                contextMap[id] = {
-                    id,
-                    elem: node.outerHTML,
-                };
-                const widgetEmbedTemplate = await Templates.render('tiny_widgethub/widget_embed', {
-                    cssurl: allCss,
-                    linksblock: cssCode,
-                    usercontent: userIframeContent,
-                });
-                iframe.srcdoc = widgetEmbedTemplate;
-
-                node.appendChild(iframe);
-            }
-            tinyContent = tinyDom.body.innerHTML;
-        }
-
+        const tinyContent = this.tinyPreviewStrategy?.getValue();
         // Display the preview in an iframe.
         const iframeContent = `
         <html>
             <head>
                 <link rel="stylesheet" href="${allCss}">
-                ${cssCode}
-                <script>
-                    var ctxMap = ${JSON.stringify(contextMap)};
-                    window.addEventListener('message', function(event) {                         
-                        var iframe = document.querySelector('#' + event.data.id);
-                        if (!iframe) {
-                            console.error("iframe not found");
-                            return;
-                        }
-                        if (event.data.type === 'tiny_widgethub_setheight') {
-                            iframe.style.height = event.data.height + 'px';
-                        } else if (event.data.type === 'tiny_widgethub_context') {
-                            var ctxData = ctxMap[event.data.id];
-                            if (!ctxData) {
-                                console.error("context not found");
-                                return;
-                            }
-                            var dataResponse = {
-                                type: 'tiny_widgethub_context',
-                                id: ctxData.id,
-                                elem: ctxData.elem,
-                            };
-                            iframe.contentWindow.postMessage(dataResponse, '*');
-                        }
-                    });
-                </script>
             </head>
             <body>
                 ${tinyContent}

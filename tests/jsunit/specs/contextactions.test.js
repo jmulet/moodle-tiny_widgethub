@@ -98,7 +98,7 @@ describe('Context Actions Manager', () => {
         await contextActionsManager.init();
         expect(editor.ui.registry.addIcon).toHaveBeenCalled();
         // Test context menus
-        expect(editor.ui.registry.addContextMenu).toHaveBeenCalledWith(component, expect.any(Object));
+        expect(editor.ui.registry.addContextMenu).toHaveBeenCalledWith(component + '_cm', expect.any(Object));
         const contextMenuUpdate = editor.ui.registry.addContextMenu.mock.calls[0][1].update;
         expect(typeof contextMenuUpdate).toBe('function');
 
@@ -139,7 +139,7 @@ describe('Context Actions Manager', () => {
         const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), Mocks.modalSrv, mockTranslateSrv, widgetCutClipboard);
         await contextActionsManager.init();
         // Test context menus
-        expect(editor.ui.registry.addContextMenu).toHaveBeenCalledWith(component, expect.any(Object));
+        expect(editor.ui.registry.addContextMenu).toHaveBeenCalledWith(component + '_cm', expect.any(Object));
         const contextMenuUpdate = editor.ui.registry.addContextMenu.mock.calls[0][1].update;
         expect(typeof contextMenuUpdate).toBe('function');
 

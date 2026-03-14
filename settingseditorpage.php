@@ -30,17 +30,18 @@ use tiny_widgethub\local\storage\storagefactory;
 use tiny_widgethub\form\settingseditorform;
 
 // Get the required parameters. Assume new widget if no id is provided.
-// Use id = 0 as an alias for new widget.
-// Use id = -1 as an alias for partials.
-$widgetid = optional_param('id', -1, PARAM_INT);
+// Use id = 0 as an alias for partials.
+// Use id = null as an alias for new widget.
+$widgetid = optional_param('id', storagefactory::BLANK_ID, PARAM_INT);
 if ($widgetid < 0) {
-    $widgetid = null;
+    // Regard invalid negative id as new widget.
+    $widgetid = storagefactory::BLANK_ID;
 }
 
 $pageid = 'tinywidgethubeditor';
 // Displays the page.
 $params = [];
-if ($widgetid !== null) {
+if ($widgetid !== storagefactory::BLANK_ID) {
     $params['id'] = $widgetid;
 }
 admin_externalpage_setup($pageid, '', $params, '', ['pagelayout' => 'embedded']);
@@ -69,7 +70,7 @@ if ($mform->is_cancelled()) {
         redirect(new moodle_url('/admin/settings.php', ['section' => 'tiny_widgethub_settings'], 'widgettable'));
     }
     // PHP Save logic.
-    $id = $data->id;
+    $id = $data->id < 0 ? storagefactory::BLANK_ID : (int)$data->id;
     $widget = json_decode($data->widget_json, true) ?: [];
     $newid = $storage->save_widget($id, $widget, $data->widget_yml, $data->widget_html, $data->widget_css);
 
@@ -80,10 +81,8 @@ if ($mform->is_cancelled()) {
         if (isset($data->action) && $data->action === 'saveandclose') {
             redirect(new moodle_url('/admin/settings.php', ['section' => 'tiny_widgethub_settings'], 'widgettable'));
         }
-        // If saving a new widget, it will redirect to the correct page.
-        if ($widgetid === storagefactory::BLANK_ID) {
-            redirect(new moodle_url($currenturl, ['id' => $newid]));
-        }
+        // Always redirect so the URL gets updated with the ID and POST-Redirect-GET is enforced.
+        redirect(new moodle_url($currenturl, ['id' => $newid]));
     }
 }
 
@@ -93,7 +92,7 @@ $htmldoc = '';
 $cssdoc = '';
 // Prepare initial data if not POSTed.
 if (!$mform->is_submitted()) {
-    if ($widgetid !== null && $widgetid >= 0) {
+    if ($widgetid >= 0) {
         $entry = $storage->get_documents_by_id([$widgetid], true, true);
         if ($entry) {
             $entry = (array) $entry[0];
@@ -142,7 +141,7 @@ echo "
 </nav>";
 
 $title = '';
-if ($widgetid !== null && $widgetid >= 0) {
+if ($widgetid >= 0) {
     if (!isset($entry)) {
         // Simply get the key of widgetid if not set.
         $entry = $storage->get_documents_by_id([$widgetid], false, false);

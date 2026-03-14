@@ -16,3 +16,4 @@ repository/lang
 repository/lang/en
 repository/lang/es
 repository/lang/ca
+scripts/.hashes-presets-local.json

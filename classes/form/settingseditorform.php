@@ -38,7 +38,7 @@ class settingseditorform extends \moodleform {
      */
     public function definition() {
         $mform = $this->_form;
-        $widgetid = $this->_customdata['id'] ?? 0;
+        $widgetid = $this->_customdata['id'] ?? \tiny_widgethub\local\storage\storagefactory::BLANK_ID;
 
         $mform->addElement('hidden', 'id', $widgetid);
         $mform->setType('id', PARAM_INT);

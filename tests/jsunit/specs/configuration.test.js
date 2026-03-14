@@ -7,7 +7,7 @@
  */
 
 const Common = require('../src/common').default;
-const {component} = Common;
+const { component } = Common;
 const cfg = require('../src/configuration');
 
 describe('Configuration', () => {
@@ -22,7 +22,7 @@ describe('Configuration', () => {
                 file: {
                     items: 'open'
                 },
-                insert: {                    
+                insert: {
                     items: 'image link h5p'
                 },
             },
@@ -39,11 +39,11 @@ describe('Configuration', () => {
             contextmenu: 'bold image'
         };
         const instanceConfig2 = cfg.configure(instanceConfig);
-        
+
         // Assert that the configuration has been added
         expect(instanceConfig2.menu.insert.items).toContain(component);
-        expect(instanceConfig2.toolbar.filter((/** @type {*} */ e) => e.name==='content')[0].items).toContain(component);
-        expect(instanceConfig2.contextmenu).toBe(`bold image ${component}`);
+        expect(instanceConfig2.toolbar.filter((/** @type {*} */ e) => e.name === 'content')[0].items).toContain(component);
+        expect(instanceConfig2.contextmenu).toBe(`bold image ${component}_cm`);
     });
 
 });
