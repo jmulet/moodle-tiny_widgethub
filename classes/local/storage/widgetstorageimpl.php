@@ -347,7 +347,7 @@ class widgetstorageimpl implements widgetstorage {
         ?string $css = null,
         int $rev = 1
     ): int {
-        if (($widget['key'] ?? '') === 'partials') {
+        if (!$id && ($widget['key'] ?? '') === 'partials') {
             $id = storagefactory::PARTIALS_ID;
         }
         $usedkeys = [];

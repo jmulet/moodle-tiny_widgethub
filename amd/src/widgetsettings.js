@@ -220,12 +220,63 @@ class PreviewStrategyTiny {
  * @property {HTMLButtonElement|null} [refreshBtn] - Button type
  */
 
+class WidgetLog {
+    /**
+     * @param {SettingsNodes & Object.<string, any>} nodes
+     * @param {Function} selectTabFn
+     */
+    constructor(nodes, selectTabFn) {
+        this.nodes = nodes;
+        this.selectTabFn = selectTabFn;
+
+        if (this.nodes.clearLogBtn) {
+            this.nodes.clearLogBtn.addEventListener('click', (ev) => {
+                ev.preventDefault();
+                this.clear();
+            });
+        }
+    }
+
+    /**
+     * Clear all logs.
+     */
+    clear() {
+        this.nodes.alertLog?.querySelectorAll('.alert').forEach(e => e.remove());
+    }
+
+    /**
+     * Add a success message.
+     * @param {string} msg
+     */
+    success(msg) {
+        if (this.nodes.alertLog) {
+            this.nodes.alertLog.insertAdjacentHTML('afterbegin', `<div class="alert alert-success">${msg}</div>`);
+        }
+        this.selectTabFn('log');
+    }
+
+    /**
+     * Add an error message and switch to the log tab.
+     * @param {string} msg
+     */
+    error(msg) {
+        if (this.nodes.alertLog) {
+            const formatted = (msg || 'Error').replace(/\n/g, '<br>');
+            this.nodes.alertLog.insertAdjacentHTML('afterbegin', `<div class="alert alert-danger">${formatted}</div>`);
+        }
+        this.selectTabFn('log');
+    }
+}
+
 /**
  * Main class for managing widget settings and editors.
  */
 export default class WidgetSettings {
     /** @type {PreviewStrategyTiny | null} */
     tinyPreviewStrategy = null;
+
+    /** @type {WidgetLog} */
+    log;
 
     /** @type {Record<string, CmEditor>} */
     editors = {};
@@ -299,6 +350,9 @@ export default class WidgetSettings {
          * @type {SettingsNodes & Object.<string, any>}
          */
         this.nodes = /** @type {SettingsNodes & Object.<string, any>} */ (validatedNodes);
+
+        this.log = new WidgetLog(this.nodes, (/** @type {string} */ tab) => this._selectTab(tab));
+
         if (this.nodes.previewTiny) {
             this.tinyPreviewStrategy = new PreviewStrategyTiny(this.nodes.previewTiny);
         }
@@ -440,6 +494,8 @@ export default class WidgetSettings {
                 } else if (!jsonObj.author || !jsonObj.version) {
                     validation.msg += await get_string('errproprequired', component, "'author' & 'version'") + '\n';
                 }
+            } else if (jsonObj.key === 'partials' && this.id !== 0) {
+                validation.msg += await get_string('errproprequired', component, "'key: partials'") + '\n';
             }
 
             if (this.id !== null && this.id >= 0 && jsonObj.key && jsonObj.key !== this.originalKey && this.keys.includes(jsonObj.key)) {
@@ -469,7 +525,7 @@ export default class WidgetSettings {
                     ctx[param.name] = createDefaultsForParam(param, true);
                 });
 
-                if (jsonObj.template && this.id && this.id > 0) {
+                if (jsonObj.template && this.id && this.id !== 0) {
                     try {
                         const tinyinstance = getInstanceForElementId(this.nodes.previewTiny?.id ?? '');
                         const templateSrv = getTemplateSrv(tinyinstance);
@@ -530,11 +586,9 @@ export default class WidgetSettings {
         const validation = await this.validate(ymlValue, partials);
 
         if (validation.msg || !validation.json) {
-            this._selectTab('log');
-            validation.msg = validation.msg.replace(/\n/g, '<br>');
-            this.nodes.alertLog.insertAdjacentHTML('afterbegin', `<div class="alert alert-danger">${validation.msg}</div>`);
+            this.log.error(validation.msg);
         } else {
-            this.nodes.alertLog.insertAdjacentHTML('afterbegin', `<div class="alert alert-success">Validation successful</div>`);
+            this.log.success('Validation successful');
             // Sync hidden textareas for FormAPI submission
             this.nodes.ymlArea.value = ymlValue;
             this.nodes.jsonArea.value = validation.json;
@@ -609,8 +663,7 @@ export default class WidgetSettings {
         }
 
         if (validation.msg) {
-            this.nodes.alertLog.insertAdjacentHTML('afterbegin', `<div class="alert alert-danger">${validation.msg}</div>`);
-            this._selectTab('log');
+            this.log.error(validation.msg);
         } else if (validation.html) {
             if (this.nodes.jsonArea) {
                 this.nodes.jsonArea.value = validation.json ?? '';
@@ -637,14 +690,6 @@ export default class WidgetSettings {
             ev.preventDefault();
             this._onRefreshBtnClick();
         });
-
-        // Clear log button event
-        if (this.nodes.clearLogBtn) {
-            this.nodes.clearLogBtn.addEventListener('click', (ev) => {
-                ev.preventDefault();
-                this.nodes.alertLog?.querySelectorAll('.alert').forEach(e => e.remove());
-            });
-        }
 
         // Action to be performed before submission
         const form = this.nodes.saveBtn.closest('form');
@@ -701,7 +746,7 @@ export default class WidgetSettings {
                 if (this.tinyPreviewStrategy?.init()) {
                     // Now it is safe to create preview
                     clearInterval(interval);
-                    if (this.id !== null && this.id >= 0) {
+                    if (this.id !== null && this.id !== 0) {
                         this.nodes.refreshBtn?.click();
                     }
                 }
@@ -722,7 +767,6 @@ export default class WidgetSettings {
             });
         }, 5000); // 5 seconds delay
 
-        //document.body.classList.remove(`${component}-loader`);
     }
 
     /**

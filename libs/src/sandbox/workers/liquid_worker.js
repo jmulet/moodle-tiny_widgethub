@@ -25,7 +25,6 @@ import { protoNullify } from "./common_worker.js";
 import { disableWorkerAPIs } from "./common_worker.js";
 import { Liquid } from 'liquidjs/dist/liquid.browser.mjs';
 
-console.log('Liquid worker loaded', Liquid);
 const engine = new Liquid({ cache: false });
 const _postMessage = self.postMessage;
 disableWorkerAPIs();
