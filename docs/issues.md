@@ -1,97 +1,79 @@
-# Known issues and workarounds
+# Troubleshooting and Editorial Guidelines
 
-## Tiny editor limitations
+This document outlines common behaviors observed when using WidgetHub within Moodle's TinyMCE editor and provides technical workarounds to ensure a consistent user experience.
 
-**Issue:**
-Moodle’s Tiny editor automatically strips out certain HTML tags such as `<span>` and `<li>` when they are empty.
+---
 
-**Impact:**
-This causes elements like control icons or custom formatting to disappear unexpectedly in your plugin’s UI.
+## 🏗️ Structural Integrity
 
-**Workaround:**
-To prevent this, insert a non-breaking space (`&nbsp;`) or another HTML entity inside the otherwise-empty tags. This preserves the tags and allows them to render correctly.
+### HTML Element Stripping
+**Behavior:** TinyMCE automatically removes certain HTML tags (like `<span>` or `<li>`) if they do not contain visible text or children.  
+**Impact:** Control icons, badges, or list items used for layout might disappear unexpectedly.
+
+**Recommended Solution:**
+Insert a non-breaking space (`&nbsp;`) or a zero-width space inside the element to ensure it is treated as "contentful" by the editor.
 
 ```html
-<!-- Correct usage -->
-<span class="icon">&nbsp;</span>
-<li class="item">&nbsp;</li>
+<!-- Recommended -->
+<span class="icon-placeholder">&nbsp;</span>
+<li class="empty-layout-row">&nbsp;</li>
+```
+
+### Comment Wrapping in `<p>` Tags
+**Behavior:** When a template contains HTML comments (e.g., `<!-- label -->`), TinyMCE may attempt to "correct" the markup by wrapping the comment in a paragraph tag.  
+**Impact:** This can introduce unwanted vertical whitespace and disrupt CSS grid or flex layouts.
+
+**Recommended Solution:**
+Avoid using standard HTML comments for structural labeling. Instead, use a `<template>` tag with a data attribute, which is ignored by the renderer but visible in the source code.
+
+```html
+<!-- Use this instead of <!-- label --> -->
+<template data-comment="Widget Boundary Marker"></template>
 ```
 
 ---
 
+## 🎨 Layout and Interaction
 
-**Issue:** HTML Comments Wrapped in `<p>` Tags in TinyMCE
+### Unexpected Page Scrolling
+**Behavior:** Clicking on non-editable zones (non-editable blocks) within a widget may occasionally cause the browser to scroll to the top of the page.  
+**Cause:** This typically occurs when global CSS rules (like `height: 100%` on `html` or `body`) conflict with the TinyMCE iframe's internal calculation.
 
-When inserting a WidgetHub template into TinyMCE that includes HTML comments (e.g. `<!-- Start of Box-Activity -->`), TinyMCE may wrap these comments in `<p>` tags. This only happens to some comments (typically the first one) and not others. Additionally, TinyMCE may insert extra empty `<p>` elements.
-
-```yaml
-template: |
-  <p><!-- Start of Box-Activity --></p>
-  <div class="card">
-    <div class="card-body">
-      <h4>{{title}}</h4>
-      <p>{{description}}</p>
-    </div>
-  </div>
-  <p><!-- End of Box-Activity --></p>
-  ```
-
-**Impact:**
-- Unwanted `<p>` tags affect layout and spacing.
-- Extra whitespace is introduced.
-- Code readability is reduced, especially when using source-view plugins.
-
-**Workaround:**
-- Avoid using HTML comments inside templates if possible.
-- Use `<template>` tags to simulate comments without triggering TinyMCE’s wrapping behavior:
-
-````html
-<template data-comment="Start of Box-Activity"></template>
-````
-
-
-## Page scrolls to top when clicking non-editable zones
-
-**Issue:**
-When clicking over non-editable areas inside the editor (where the cursor changes to an arrow), the page unexpectedly scrolls back to the top of the document.
-
-**Impact:**
-This behavior disrupts the editing workflow, forcing users to manually scroll back to their previous position each time they click outside editable regions.
-
-**Cause:**
-The issue is linked to custom CSS rules added via shareCss. In particular, setting html and body elements to height: 100% triggers this problem within the Tiny editor iframe.
-
-**Workaround / Solution:**
-Override the conflicting rule by applying the following CSS through iframe's customCss when the related option or checkbox is enabled:
+**Recommended Solution:**
+Ensure that your widget's custom CSS resets the height for the editor environment.
 
 ```css
+/* Add this to your widget's CSS if scrolling issues occur */
 html, body {
- height: initial!important;
+  height: initial !important;
 }
 ```
 
-## Image editing inside Tiny editor
-**Issue:**
-Using the image button within Moodle’s Tiny editor can break the underlying HTML structure of some components.
+---
 
-**Impact:**
-Modifying images directly through the Tiny editor interface can get rid of the classes which were originally present in the `<img>` tag.
+## 🖼️ Media Handling
 
-**Workaround:**
-Avoid using the Tiny editor’s image button. Instead:
+### Maintaining Image Attributes
+**Behavior:** Using the standard TinyMCE "Image" button to modify images inside a widget can sometimes strip away custom CSS classes or data attributes required by your widget's logic.  
+**Impact:** The image may lose its styling (e.g., rounded corners, shadows) or break its responsive behavior.
 
-- Edit image references directly in the HTML code, or
+**Recommended Solution:**
+Leverage WidgetHub's **Image Parameters**. By defining your `src` as a parameter and using a binding, you allow users to change images via the WidgetHub context menu, which preserves all underlying HTML attributes.
 
-- Use a parameter of type image with its corresponding bindings, as shown in the plugin’s example configuration.
-
-```yml
-selectors: "css query to the root of the widget"
+```yaml
+# Highly Recommended configuration
+selectors: ".my-widget-container"
 parameters: 
-  - name: carouselImage
-    title: Slide Image
-    value: "https://example.com/image.jpg"
+  - name: widgetImage
+    title: "Change Image"
     type: image
-    bind: attr("src", "img")
+    bind: attr("src", "img.main-photo")
 ```
 
-This will enable a context menu when clicking over the widget and the user will be able to modify the images without breaking the widget.
+---
+
+## 💡 Pro-Tips for Widget Developers
+
+1.  **Use Semantic Classes**: Always use specific classes for your widget elements to avoid collisions with Moodle's core styles.
+2.  **Define Non-Editable Regions**: If your widget has a complex layout, use the `contenteditable="false"` attribute on structural containers to prevent users from accidentally breaking the HTML.
+3.  **Test in Fullscreen**: Always verify your widget's behavior in the TinyMCE fullscreen mode, as this changes how coordinate-based interactions (like popups) behave.

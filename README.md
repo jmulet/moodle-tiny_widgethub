@@ -6,15 +6,22 @@
 > [!IMPORTANT]
 > This plugin needs a Moodle theme based on Boost since some widgets rely on Bootstrap.
 
+> [!WARNING]
+> **Backup Recommended**: It is strongly recommended to backup your custom widgets before updating to version 1.5.x to safeguard your data integrity during the migration.
+
 <div class="alert alert-info d-flex align-items-center" role="alert" style="gap: 0.5rem;">
    
   <div>
-    <a href="https://chatgpt.com/g/g-68512f2f3ce4819182441c429f5b8673-widgethub-yml-builder"
+    <a href="https://chatgpt.com/g/g-694018e49b888191b04b90e7c7a77a59-widgethub-for-tinymce-gpt-beta"
        target="_blank" rel="noopener noreferrer" style="text-decoration: none; font-weight: 500; color: inherit;">
-      Introducing <strong>WidgetHub GTP</strong> — your new assistant for building and inserting widgets effortlessly!
+      NEW WidgetHub GPT (Beta):
+
+      🔗 Your AI assistant for building awesome widgets effortlessly.
+
+      Feedback is welcome • Credits: Andreas Giesen
     </a>
   </div>
-</div>
+</div>    
 
 ## Features
 
@@ -48,7 +55,7 @@ The widget picker now features a **Grid View** mode, offering a more visual and 
 - [Yaml API reference.](docs/api.md)
 - [Known issues and workarounds.](docs/issues.md)
 
-## Migration from Moodle 4x to Moodle 5.0
+## Migration from Moodle 4.x to Moodle 5.0
 
 > [!IMPORTANT]
 > To ensure Bootstrap components that rely on JavaScript function correctly in both Moodle 4.x and Moodle 5.0, we recommend using both `data-xxx` and `data-bs-xxx` attributes in your widget templates. While this makes the templates slightly more verbose, it eliminates the need for custom JavaScript to handle attribute differences.
@@ -80,22 +87,22 @@ The options available are:
 
 - **cfg**: This allows additional configuration using the syntax `property=value`, with one configuration per line:  
   
-  - *disable.plugin.pages*: A **comma-separated** list of body IDs for which the plugin will not be loaded.  
+  - *disable.plugin.pages*: A **comma-separated** list of body IDs where the plugin will not be loaded.  
 
-  - *disable.plugin.pages.regex*: A **regular expression** that matches those body IDs for which the plugin will not be loaded.  
+  - *disable.plugin.pages.regex*: A **regular expression** matching those body IDs where the plugin will not be loaded.  
 
   - *enable.contextmenu.level*: Enable (`1`) or disable (`0`) context menus used by the plugin.
 
   - *category.order=misc:a1,deprecated:z1*: Overrides the default alphabetical category ordering. Provide a comma-separated string using the format `categoryName:sortingName`. The `sortingName` is used to determine the sort order among the listed categories. Categories not included in this list will maintain their default alphabetical order.
 
-  - *oninit.refractor.bs5=0* - Enable (`1`) or disable (`0`) automatic refractoring of Bootstrap 5 `data-bs-xxx` attributes when the editor opens (default: 0).
+  - *oninit.refactor.bs5=0* - Enable (`1`) or disable (`0`) automatic refactoring of Bootstrap 5 `data-bs-xxx` attributes when the editor opens (default: 0).
 
   - *jsBaseUrl* - If specified, this **base URL** will be prepended to the `requires` property in the widget definition — *unless* `requires` already starts with `http`, in which case the base URL will be ignored. This feature is useful for dynamically changing the location of the JavaScript assets required by the widgets.
-  **CAUTION**: You must only include trusted sources from trusted origins (preferrably from your own site). Otherwise you may introduce security vulnerabilities.
+  **CAUTION**: You must only include trusted sources from trusted origins (preferably from your own site); otherwise, you may introduce security vulnerabilities.
 
   - *tiny.iframe.jquery.url* The jQuery version that should be injected into the editor's iFrame. It defaults to your site's version and "none" for Moodle 5.x. If the value is "none", no jQuery will be injected. Please note that Bootstrap 4.x requires jQuery to work properly. Provide your own (on-premises) URL if you want to use a different version. 
  
-  - *tiny.iframe.jsbootstrap.url* The version of the javascript bundle of Bootstrap that should be injected into the editor's iFrame. It defaults to "https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" for Moodle 4.x and "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" for Moodle 5.x. If the value is "none", no Bootstrap javascript bundle will be injected. Provide your own (on-premises) URL if you want to use a different version or if you want to avoid being tracked by a CDN. Disabling this option will make the editing of some widgets that rely on Bootstrap's JavaScript components harder.
+  - *tiny.iframe.jsbootstrap.url* The version of the JavaScript Bootstrap bundle that should be injected into the editor's iFrame. It defaults to "https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" for Moodle 4.x and "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" for Moodle 5.x. If the value is "none", no Bootstrap JavaScript bundle will be injected. Provide your own (on-premises) URL if you want to use a different version or avoid being tracked by a CDN. Disabling this option makes editing widgets that rely on Bootstrap's JavaScript components more difficult.
 
   - *tiny.contextmenu.iframes=1* Enable (`1`) or disable (`0`) right clicks on iFrames that trigger context menus. Interaction with iframes, like YouTube videos, can be temporarily enabled by clicking on the iframe while holding Alt/Option key.
 
@@ -138,7 +145,7 @@ Each insert mechanism can be configured with one of the following modes:
     Controls the behavior of the *Quick Button* (that with a ray icon) next to the main widget button.  
     **Options:** `none` | `default` | `lastused` | `ctrlclick`
 
-The capability 'tiny/widgethub:viewplugin' allows to set the plugin visibility for any role. Keep in mind that, by default, the role student is prevented from using the plugin.
+The capability 'tiny/widgethub:viewplugin' allows you to set the plugin visibility for any role. Keep in mind that, by default, the Student role is prevented from using the plugin.
 
  
  
@@ -152,17 +159,17 @@ In order to generate the compiled code in `/amd/build` from sources in `/amd/src
 npx grunt amd
 ```
 
-### Generate yalm editor dependency
+### Generate YAML editor dependency
 
-Please refer to the documentation in libs/codemirror.
+Please refer to the documentation in `libs/codemirror`.
 
 
 ## Thanks
 
 This plugin was originally inspired by the plugin [Snippet](https://moodle.org/plugins/atto_snippet) by Justin Hunt.
 
-A version for the editor Atto of this plugin has been used in the institution [https://iedib.net/](IEDIB) since several years ago.
-The modified version of this plugin, with the extensions and widgets used at IEDIB, is available at the the repository [IEDIB/moodle-tiny_ibwidgethub](https://github.com/IEDIB/moodle-tiny_ibwidgethub)
+A version of this plugin for the Atto editor has been used at [IEDIB](https://iedib.net/) for several years.
+The modified version of this plugin, including the extensions and widgets used at IEDIB, is available at the repository [IEDIB/moodle-tiny_ibwidgethub](https://github.com/IEDIB/moodle-tiny_ibwidgethub).
 
 
 Icons by [Fontawesome 6.4](https://fontawesome.com/icons/file-code?f=classic&s=light).

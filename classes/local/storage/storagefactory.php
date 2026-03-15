@@ -105,16 +105,16 @@ abstract class storagefactory {
     }
 
     /**
-     * Get the editor data.
+     * Get the data required during editor load.
      *
      * @return array
      */
     public static function get_editor_data(): array {
-        $storage = self::get_instance();
         // Try to get the widget index from cache.
         $widgetindexcache = \cache::make('tiny_widgethub', 'index');
         $cached = $widgetindexcache->get('geteditordata');
         if (!$cached) {
+            $storage = self::get_instance();
             // Cache miss, get from storage.
             $cached = [
                 'widgetlist' => $storage->get_all_widgets(),

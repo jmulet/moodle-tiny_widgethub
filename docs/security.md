@@ -1,85 +1,49 @@
-# Security considerations
+# Security Architecture and Best Practices
 
-Version 1.5.0 of the WidgetHub plugin includes enhanced security measures. However, no web technology is completely risk-free. Users should carefully review the widgets they use and rely on multiple layers of security to mitigate risks associated with untrusted code.
+WidgetHub is designed with a "defense-in-depth" philosophy. Version 1.5.0 introduces multiple layers of security to ensure that while the plugin provides powerful customization, it maintains the integrity of your Moodle environment.
 
-## The `manager` role
-Those Moodle roles which have the capability `moodle/widgethub:manage` will be able to create, edit and delete widgets. This flexibility provides powerful functionality but also may introduce security risks. While core widgets are considered safe, widget managers must not blindly trust custom or third-party widgets or arbitrary code.
+## Administrative Governance (Manage Capability)
 
-According to the principle of least privilege, access to the `moodle/widgethub:manage` capability should be restricted to only those users who require it to perform their duties. Avoid using Moodle’s administrator account for routine widget management tasks. While this may seem like common sense, it is important to emphasise it. If a user account were to be compromised, applying the least privilege principle helps minimise potential damage and reduces security risks.
+The `tiny_widgethub:manage` capability is a powerful administrative tool that allows designated users to define the behavior and structure of widgets. Like other administrative capabilities in Moodle, this should be assigned to trusted individuals who understand the site's content guidelines.
 
-**Where these attacks can be launched from?**
+### Secure Customization Principles
 
-Attacks can be launched from javascript code that is inserted within the widget definition. Tiny WidgetHub plugin sandboxes any user-provided code to mitigate risks, but this is not foolproof. Widget managers must still carefully review all widget definitions.
+WidgetHub provides a robust sandbox environment for custom logic. To maintain a secure and stable environment, administrators should follow these professional guidelines:
 
-In particular, you must take into account the potential attack vectors:
+1. **Trusted Resource Loading**: When using the `requires` property to load external libraries, ensure they originate from trusted, high-availability CDNs or your own secure infrastructure.
+2. **Standardized Bindings**: Prefer using the built-in, predefined parameter bindings. These are optimized for security and performance. Custom JavaScript bindings should be reserved for unique requirements and reviewed by a technical lead.
+3. **Optimized Logic**: The `filter` and `bind` properties allow for precise UI interactions. While the plugin sandboxes these executions, keeping logic simple and focused improves both security and maintainability.
 
-- The `requires` property can point to an arbitrary URL with JavaScript code.
+### Choosing the Right Template Engine
 
-- The `filter` property can include arbitrary JavaScript interacting with the editor iframe DOM.
+WidgetHub supports various template engines to balance flexibility and security:
 
-- The `bind` property can include arbitrary JavaScript interacting with the editor iframe DOM.
+*   **Mustache (Recommended)**: The industry standard for "logic-less" templates. It is safe by design because it focuses on data display rather than execution.
+    *   *Tip*: Always use double curly braces `{{foo}}` to ensure automatic HTML escaping. Use triple braces `{{{foo}}}` only when you explicitly intend to render pre-sanitized HTML.
+*   **Liquid**: A safe and flexible engine that supports simple conditional logic and loops without allowing arbitrary code execution.
+*   **EJS**: An advanced engine for complex dynamic requirements. Due to its power, it should be used in scenarios where high-level logic is necessary and should be reviewed according to your organization's script development standards.
 
-- The `template` HTML code may contain executable logic depending on the engine used.
+---
 
-You should also audit the `template` HTML code that is included within the widget definition.
+## Editor Integration (View Capability)
 
-- While `ejs` template engine is extremely powerful, it can run arbitrary js code and can be used to inject malicious code. Keep this in mind and ask yourself if you really need this engine.
+For standard content creators (typically those with the `teacher` role), the user experience is streamlined and protected. Users with the `tiny_widgethub:view` capability can interact with widgets but cannot modify their underlying logic or structural definitions.
 
-- In the `mustache` engine, avoid using triple curly braces `{{{ }}}` to render variables, as they output unescaped content by default. Although TinyMCE and Moodle sanitize DOM content on save, it is best practice to avoid inserting unescaped content in the first place. This makes it easier for subsequent security layers to protect your site.
+### Automated Content Protection
 
-```yml
-    engine: 'mustache'
-    template: |
-       <p>This parameter interpolation {{foo}} is safe.</p>
-       <p>However, you should avoid this {{{foo}}} since arbitrary HTML could be injected into the page.</p>    
-```
+WidgetHub prioritizes "Security by Default" for all content creators:
 
+*   **Automatic Sanitization**: All data entered into widget parameters is automatically escaped and sanitized before it is rendered in the editor.
+*   **Layered Validation**: In addition to WidgetHub's internal protections, TinyMCE and Moodle's core security layers perform secondary sanitization upon saving. This multi-stage process ensures that even if a user attempts to paste complex or malformed code, the final output remains safe for all users.
+*   **Consistent Experience**: By automating these security checks, the plugin allows creators to focus on building engaging content without needing to worry about the underlying technical safety of the markup.
 
-### Recommendations
+---
 
-If you need to include external js code, use the `requires` or `filter` property in the widget definition and point to a trusted origin only.
+## Summary of Recommendations
 
-When defining parameter bindings, always prefer predefined bindings, as they are safer by design. If it is necessary, the `bind` object property should only be used with thoroughly reviewed and trusted code to avoid introducing security vulnerabilities.
-
-Please note taht this code 
-
-```yml
-    parameters:
-        - name: foo
-          title: A parameter
-          value: false
-          bind: hasClass('foo')
-```
-
-is safer than
-
-```yml
-    parameters:
-        - name: foo
-          title: A parameter
-          value: false
-          bind: 
-            getValue: (elem) => elem.classList.contains('foo')
-            setValue: (elem, v) => {/* Malicious code could go here */}
-```
-
-**Template engine guidelines:**
-
-- Prefer `mustache` over `ejs` whenever possible. Mustache is logic-less and safer by design.
-
-- Use double curly braces `{{ }}` in Mustache to automatically escape content; avoid triple curly braces `{{{ }}}`.
-
-- Use `liquid` engine if simple conditional or looping logic is required. Avoid `ejs` unless advanced dynamic behavior is absolutely necessary.
-
-## The `view` role
-Moodle roles with the capability `moodle/widgethub:view` will be able to insert widgets in the editor. In most cases this will be content creators using roles such as `teacher`.
-
-The security risks here are the same mentioned above but in this case the user can only insert widgets, not create or edit them. 
-
-In the process of inserting a widget, the user can provide values for the parameters of the widget. These values can be arbitrary HTML code, which, if not escaped and sanitized properly, can be used to inject malicious code into the page. 
-
-For example, if a widget has a parameter `title` and the user provides the value `<script>alert('XSS')</script>`, the widget will be inserted into the page with the title `<script>alert('XSS')</script>`. When the page is loaded, the script will be executed and the user will see an alert box with the message "XSS". 
-
-To mitigate this risk, the `widgethub` plugin will automatically escape and sanitize all parameter values when inserting the widget into the editor. In addition TinyMCE and Moodle will also sanitize the content when saving it. This helps prevent injection of malicious code through widget parameters. Nevertheless, it is a good practice to teach content creators about the risks of injecting malicious code into the page.
-
-
+| Feature | Best Practice |
+| :--- | :--- |
+| **Capabilities** | Apply the Principle of Least Privilege by assigning management roles only to necessary staff. |
+| **Templates** | Default to **Mustache** for standard content for maximum safety. |
+| **External JS** | Use the `requires` property only with verified and trusted sources. |
+| **User Input** | Trust the automated sanitization, but encourage creators to use clear, standard text for parameters. |

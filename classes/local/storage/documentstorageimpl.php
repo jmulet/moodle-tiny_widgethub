@@ -102,6 +102,8 @@ class documentstorageimpl implements documentstorage {
                 'h' => ($doc['hidden'] ?? false) ? 1 : 0,
             ];
             $fileinfo['source'] = json_encode($source);
+        }
+        if ($doc !== null && is_array($doc)) {
             $doc = json_encode($doc);
         }
         $file = $fs->get_file(
@@ -137,18 +139,28 @@ class documentstorageimpl implements documentstorage {
      * @return ?string Document content.
      */
     public function get(int $id, string $ext = 'json'): ?string {
-        $doc = self::load_filearea_document($id, $ext);
+        $cache = \cache::make('tiny_widgethub', 'documents');
+        $key = $id . '_' . $ext;
+        $doc = $cache->get($key);
+        if ($doc === false) {
+            $doc = self::load_filearea_document($id, $ext);
+            if ($doc !== null) {
+                $cache->set($key, $doc);
+            }
+        }
+
         // Partials must always return a document.
         if ($doc === null && $id === 0) {
             if ($ext === 'json' || $ext === 'slim.json') {
-                return json_encode([
-                    'key' => 'partials',
-                    'LOREM' => 'Lorem ipsum'
+                $doc = json_encode([
+                    'key' => 'partials'
                 ]);
             } else if ($ext === 'yml') {
-                return "key: partials\nLOREM: Lorem ipsum";
+                $doc = "key: partials";
             }
-            return null;
+            if ($doc !== null) {
+                $cache->set($key, $doc);
+            }
         }
         return $doc;
     }
@@ -163,8 +175,11 @@ class documentstorageimpl implements documentstorage {
      */
     public function save(int $id, $doc, string $ext = 'json'): bool {
         $result = self::save_filearea_document($id, $doc, $ext);
-        if ($result && $ext === 'json') {
-            \cache::make('tiny_widgethub', 'index')->delete('geteditordata');
+        if ($result) {
+            \cache::make('tiny_widgethub', 'documents')->delete($id . '_' . $ext);
+            if ($ext === 'json' || $ext === 'slim.json') {
+                \cache::make('tiny_widgethub', 'index')->delete('geteditordata');
+            }
         }
         return $result;
     }
@@ -178,8 +193,11 @@ class documentstorageimpl implements documentstorage {
      */
     public function delete(int $id, string $ext = 'json'): bool {
         $result = self::save_filearea_document($id, null, $ext);
-        if ($result && $ext === 'json') {
-            \cache::make('tiny_widgethub', 'index')->delete('geteditordata');
+        if ($result) {
+            \cache::make('tiny_widgethub', 'documents')->delete($id . '_' . $ext);
+            if ($ext === 'json' || $ext === 'slim.json') {
+                \cache::make('tiny_widgethub', 'index')->delete('geteditordata');
+            }
         }
         return $result;
     }
@@ -191,8 +209,10 @@ class documentstorageimpl implements documentstorage {
      * @param bool $emptycache If true, it will empty the cache.
      */
     public function delete_all(int $id, bool $emptycache = true): void {
+        $cachedocuments = \cache::make('tiny_widgethub', 'documents');
         foreach (self::VALID_DOCUMENT_TYPES as $ext) {
             self::save_filearea_document($id, null, $ext);
+            $cachedocuments->delete($id . '_' . $ext);
         }
         if ($emptycache) {
             \cache::make('tiny_widgethub', 'index')->delete('geteditordata');

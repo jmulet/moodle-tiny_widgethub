@@ -103,6 +103,12 @@ class widgetstorageimpl implements widgetstorage {
      * @return array
      */
     private function load_index(): array {
+        $cache = \cache::make('tiny_widgethub', 'index');
+        $index = $cache->get('fullindex');
+        if ($index !== false) {
+            return $index;
+        }
+
         global $DB;
         $sql = "SELECT itemid, source
         FROM {files}
@@ -117,6 +123,7 @@ class widgetstorageimpl implements widgetstorage {
                 $index[$id] = $data;
             }
         }
+        $cache->set('fullindex', $index);
         return $index;
     }
 
@@ -139,10 +146,9 @@ class widgetstorageimpl implements widgetstorage {
      * The entry id has changed, update the index.
      * @param int $id
      * @param array $raw
-     * @return int - The id if a new widget is created and 0 otherwise.
      */
     private function update_index($id, $raw) {
-        $newid = 0;
+        \cache::make('tiny_widgethub', 'index')->delete('fullindex');
         if ($raw === null || (empty($raw['key']) && empty($raw['name']))) {
             // Remove the widget from the index.
             unset($this->index[$id]);
@@ -163,7 +169,6 @@ class widgetstorageimpl implements widgetstorage {
                 ];
             }
         }
-        return $newid;
     }
 
 
@@ -304,6 +309,10 @@ class widgetstorageimpl implements widgetstorage {
         if ($ispartials) {
             return $id === storagefactory::PARTIALS_ID;
         }
+        if ($id === storagefactory::PARTIALS_ID) {
+            // Non partials key cannot be stored in partials id.
+            return false;
+        }
         if (isset($usedkeys[$key]) && $usedkeys[$key] !== $id) {
             return false;
         }
@@ -376,8 +385,8 @@ class widgetstorageimpl implements widgetstorage {
             if (!$success) {
                 return storagefactory::FAILURE_ID;
             }
-            $this->update_index($id, $widget);
             if ($id !== storagefactory::PARTIALS_ID) {
+                $this->update_index($id, $widget);
                 // Store a slim version of the widget for quick loading.
                 $slimdoc = $widget;
                 // Computed records must be manually set.
@@ -419,8 +428,8 @@ class widgetstorageimpl implements widgetstorage {
             // Partials cannot be deleted.
             return false;
         }
-        unset($this->index[$id]);
-        $this->documentstorage->delete_all($id);
+        $this->update_index($id, null);
+        \cache::make('tiny_widgethub', 'index')->delete('geteditordata');
         return true;
     }
 
@@ -439,8 +448,11 @@ class widgetstorageimpl implements widgetstorage {
                 continue;
             }
             unset($this->index[$id]);
-            $this->documentstorage->delete_all($id);
+            $this->documentstorage->delete_all($id, false);
             $deletedids[] = $id;
+        }
+        if (!empty($deletedids)) {
+            \cache::make('tiny_widgethub', 'index')->delete_many(['fullindex', 'geteditordata']);
         }
         return $deletedids;
     }
@@ -474,7 +486,23 @@ class widgetstorageimpl implements widgetstorage {
         } else {
             $widget['hidden'] = true;
         }
+        unset($widget['id']);
+
         $this->documentstorage->save($id, $widget, 'json');
+
+        $slimdocjson = $this->documentstorage->get($id, 'slim.json');
+        if ($slimdocjson) {
+            $slimdoc = json_decode($slimdocjson, true);
+            if ($slimdoc && is_array($slimdoc)) {
+                if ($visible) {
+                    unset($slimdoc['hidden']);
+                } else {
+                    $slimdoc['hidden'] = true;
+                }
+                $this->documentstorage->save($id, json_encode($slimdoc), 'slim.json');
+            }
+        }
+
         // Must delete yml document to mantain consistency.
         $this->documentstorage->delete($id, 'yml');
         $this->update_index($id, $widget);
