@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 $definitions = [
     'documents' => [
         'mode' => cache_store::MODE_APPLICATION,
-        'simplekeys' => true,
+        'simplekeys' => false,
         'simpledata' => true,
         'ttl' => 3600,
     ],

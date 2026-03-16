@@ -153,7 +153,7 @@ class documentstorageimpl implements documentstorage {
         if ($doc === null && $id === 0) {
             if ($ext === 'json' || $ext === 'slim.json') {
                 $doc = json_encode([
-                    'key' => 'partials'
+                    'key' => 'partials',
                 ]);
             } else if ($ext === 'yml') {
                 $doc = "key: partials";
