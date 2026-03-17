@@ -139,6 +139,10 @@ class documentstorageimpl implements documentstorage {
      * @return ?string Document content.
      */
     public function get(int $id, string $ext = 'json'): ?string {
+        // partials are not stored in slim.json.
+        if ($id === 0 && $ext === 'slim.json') {
+            $ext = 'json';
+        }
         $cache = \cache::make('tiny_widgethub', 'documents');
         $key = $id . '_' . $ext;
         $doc = $cache->get($key);
@@ -146,19 +150,10 @@ class documentstorageimpl implements documentstorage {
             $doc = self::load_filearea_document($id, $ext);
             if ($doc !== null) {
                 $cache->set($key, $doc);
-            }
-        }
-
-        // Partials must always return a document.
-        if ($doc === null && $id === 0) {
-            if ($ext === 'json' || $ext === 'slim.json') {
+            } else if ($id === 0 && $ext === 'json') {
                 $doc = json_encode([
                     'key' => 'partials',
                 ]);
-            } else if ($ext === 'yml') {
-                $doc = "key: partials";
-            }
-            if ($doc !== null) {
                 $cache->set($key, $doc);
             }
         }

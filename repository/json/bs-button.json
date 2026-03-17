@@ -41,7 +41,7 @@
             "name": "icon",
             "title": "$string.bsbutton_icon_title",
             "tip": "fa fa-*",
-            "bind": "classRegex('fa-(.*)')",
+            "bind": "classRegex('fa-(.*)', 'i')",
             "value": "tag"
         }
     ],

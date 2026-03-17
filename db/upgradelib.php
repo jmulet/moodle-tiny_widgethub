@@ -22,6 +22,8 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use tiny_widgethub\local\storage\storagefactory;
+
 /**
  * Internal helper to get a property from the widget array with a default value.
  *
@@ -232,7 +234,7 @@ function tiny_widgethub_migrate_to_filearea_storage() {
             $numwidgets++;
         }
         // Store partials.
-        $res = tiny_widgethub_storedocument(0, $mergedpartials, 'json');
+        $res = tiny_widgethub_storedocument(storagefactory::PARTIALS_ID, $mergedpartials, 'json');
         if (!$res) {
             throw new \moodle_exception(
                 'datamigrationfailed',
