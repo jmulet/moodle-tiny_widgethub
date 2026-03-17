@@ -139,7 +139,7 @@ class documentstorageimpl implements documentstorage {
      * @return ?string Document content.
      */
     public function get(int $id, string $ext = 'json'): ?string {
-        // partials are not stored in slim.json.
+        // Partials are never stored in slim.json.
         if ($id === 0 && $ext === 'slim.json') {
             $ext = 'json';
         }
