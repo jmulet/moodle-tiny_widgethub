@@ -42,6 +42,12 @@ $functions = [
         'type'        => 'read',
         'ajax'        => true,
     ],
+    'tiny_widgethub_get_editordata' => [
+        'classname'   => 'tiny_widgethub\external\get_editordata',
+        'description' => 'Gets the widgets and partials for the editor',
+        'type'        => 'read',
+        'ajax'        => true,
+    ],
     'tiny_widgethub_get_widgetsnoyml' => [
         'classname'   => 'tiny_widgethub\external\get_widgetsnoyml',
         'description' => 'Gets list of widgets that are missing yml',

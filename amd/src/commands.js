@@ -34,8 +34,10 @@ import {
     getEditorOptions,
     getMoodleVersion,
     isShareCss,
-    isPlaygroundMode
+    isPlaygroundMode,
+    fetchEditorData
 } from './options';
+
 import { getWidgetPickCtrl } from './controller/widgetpicker_ctrl';
 import { getListeners } from './extension';
 import { getUserStorage } from './service/userstorage_service';
@@ -64,6 +66,10 @@ export const getSetup = async () => {
             // No capabilities required.
             return;
         }
+
+        // Start fetch early, no await here because setup must be sync.
+        fetchEditorData();
+
 
         getListeners('setup').forEach(listener => listener(editor));
 
@@ -96,7 +102,6 @@ export const getSetup = async () => {
         editor.ui.registry.addIcon(Common.icon, buttonImage.html);
 
         const storage = getUserStorage(editor);
-        const widgetsDict = getWidgetDict(editor);
 
         /**
          * This helper function makes adjustments to the context required for the widget.
@@ -125,7 +130,9 @@ export const getSetup = async () => {
         // Hook for administrator widget editor page.
 
         // Click on button directly opens the only registered widget options.
-        const defaultAction = () => {
+        // Click on button directly opens the only registered widget options.
+        const defaultAction = async () => {
+            await fetchEditorData();
             if (isInPlaygroundMode) {
                 // Click on button directly opens the only registered widget options.
                 const factory = getWidgetParamsFactory(editor);
@@ -141,6 +148,7 @@ export const getSetup = async () => {
                 widgetPickCtrl.handleAction();
             }
         };
+
         const toolbarButtonSpec = {
             icon: Common.icon,
             tooltip: widgetNameTitle,
@@ -154,7 +162,9 @@ export const getSetup = async () => {
              *
              * @param {((items: *[]) => void) } callback
              */
-            const splitbuttonFetch = (callback) => {
+            const splitbuttonFetch = async (callback) => {
+                await fetchEditorData();
+                const widgetsDict = getWidgetDict(editor);
                 const isSelectMode = editor.selection.getContent().trim().length > 0;
                 const items = storage.getRecentUsed()
                     .filter(e => {
@@ -168,11 +178,14 @@ export const getSetup = async () => {
                     }));
                 callback(items);
             };
+
             /**
              * @param {*} api
              * @param {string} key
              */
-            const splitbuttonAction = (api, key) => {
+            const splitbuttonAction = async (api, key) => {
+                await fetchEditorData();
+                const widgetsDict = getWidgetDict(editor);
                 const widgetPickCtrl = getWidgetPickCtrl(editor);
                 const widget = widgetsDict[key];
                 if (!widget) {
@@ -198,6 +211,7 @@ export const getSetup = async () => {
         });
 
         const getMatchedWidgets = (/** @type {string} */ pattern) => {
+            const widgetsDict = getWidgetDict(editor);
             return Object.values(widgetsDict).filter((w) => !w.isFilter() && searchComp(w.name, pattern));
         };
 
@@ -209,8 +223,10 @@ export const getSetup = async () => {
              * @param {string} pattern
              * @returns {Promise<{type: string, value: string, text: string}[]>}
              */
-            const autocompleterFetch = (pattern) => {
+            const autocompleterFetch = async (pattern) => {
+                await fetchEditorData();
                 const resultPromises = getMatchedWidgets(pattern).map(async (/** @type {import('./options').Widget} */ w) => {
+
                     const varname = w.prop('autocomplete')?.trim();
                     // Widgets that have autocomplete need to be fully loaded
                     let param;
@@ -254,6 +270,7 @@ export const getSetup = async () => {
                 rng = rng || api.getRange();
                 const pair = value.split('|');
                 const key = pair[0].trim();
+                const widgetsDict = getWidgetDict(editor);
                 const widget = widgetsDict[key];
                 if (!widget) {
                     return;
@@ -288,7 +305,9 @@ export const getSetup = async () => {
  * @param {import('./plugin').TinyMCE} editor
  */
 const applyAutoFilters = async (editor) => {
+    await fetchEditorData();
     const storage = getUserStorage(editor);
+
     const requiresFilter = storage.getFromLocal("startup.filters", "").split(",");
 
     if (requiresFilter.length > 0) {
@@ -351,7 +370,7 @@ function initializeEditor(editor) {
         }
 
         // Inject css from site Admin textarea.
-        let adminCss = (getAdditionalCss(editor) ?? '').trim();
+        let adminCss = (getAdditionalCss() ?? '').trim();
         if (adminCss) {
             // Commented URLs are interpreted as loadCss
             const regex = /\/\*{2}\s+(http(s?):\/\/.*)\s+\*{2}\//gm;

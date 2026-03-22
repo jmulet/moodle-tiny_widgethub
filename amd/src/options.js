@@ -29,28 +29,55 @@ import { compareVersion, genID } from './util';
 import { createDefaultsForParam } from './service/template_service';
 import { FetchDocumentsBatch } from './service/fetchdocumentsbatch';
 import { getContextMenuManager } from './contextactions';
+import { getExternalService } from './service/external_service';
+
 const pluginName = Common.pluginName;
 
 const showPluginOptName = getPluginOptionName(pluginName, 'showplugin');
 const userInfoOptName = getPluginOptionName(pluginName, 'user');
 const courseIdOptName = getPluginOptionName(pluginName, 'courseid');
-const widgetListOptName = getPluginOptionName(pluginName, 'widgetlist');
-const partialsOptName = getPluginOptionName(pluginName, 'partials');
 const shareCssOptName = getPluginOptionName(pluginName, 'sharecss');
-const additionalCssOptName = getPluginOptionName(pluginName, 'additionalcss');
-const globalConfigOptName = getPluginOptionName(pluginName, 'cfg');
 const userPrefsOptName = getPluginOptionName(pluginName, 'userprefs');
 const moodleVersionOptName = getPluginOptionName(pluginName, 'moodleversion');
 
 /**
  * Wrapped version of the widget definitions shared among all editors in page
- * @type {{widgetDict: Record<string, Widget> | undefined}}
+ * Store widgetlist and partials as shared among editors in page.
+ * @type {{widgetDict: Record<string, Widget> | undefined, widgetList: RawWidget[] | undefined, partials: Record<string, any> | undefined, additionalcss: string | undefined, cfg: Record<string, any> | undefined}}
  */
+
 const _cache = Object.seal(
     Object.assign(Object.create(null), {
         widgetDict: undefined,
+        widgetList: undefined,
+        partials: undefined,
+        additionalcss: undefined,
+        cfg: undefined,
     })
 );
+
+/** @type {Promise<void> | null} */
+let _fetchPromise = null;
+
+
+/**
+ * Singleton fetch for editor data.
+ * @returns {Promise<void>}
+ */
+export const fetchEditorData = () => {
+    if (_fetchPromise) {
+        return _fetchPromise;
+    }
+    _fetchPromise = getExternalService().getEditorData().then(data => {
+        _cache.widgetList = data.widgetlist;
+        _cache.partials = data.partials;
+        _cache.additionalcss = data.additionalcss;
+        _cache.cfg = data.cfg;
+        _cache.widgetDict = undefined;
+    });
+    return _fetchPromise;
+};
+
 
 /**
  * @param {import('./plugin').TinyMCE} editor
@@ -77,29 +104,9 @@ export const register = (editor) => {
         "default": "-1",
     });
 
-    registerOption(widgetListOptName, {
-        processor: 'array',
-        "default": [],
-    });
-
-    registerOption(partialsOptName, {
-        processor: 'object',
-        "default": {},
-    });
-
     registerOption(shareCssOptName, {
         processor: 'boolean',
         "default": true,
-    });
-
-    registerOption(additionalCssOptName, {
-        processor: 'string',
-        "default": "",
-    });
-
-    registerOption(globalConfigOptName, {
-        processor: 'object',
-        "default": {},
     });
 
     registerOption(userPrefsOptName, {
@@ -126,8 +133,9 @@ export function setWidgetDefinitions(editor, widget, css) {
         getEmbedRevs(editor);
     }
     editor.mode.set(widget ? 'design' : 'readonly');
-    editor.options.set(widgetListOptName, widget ? [widget] : []);
+    _cache.widgetList = widget ? [widget] : [];
     // Clear cache.
+
     _cache.widgetDict = undefined;
     // Add css into editor's iframe.
     const styleNode = editor.dom.get('tiny_widgethub-playground-style');
@@ -151,11 +159,10 @@ export function setWidgetDefinitions(editor, widget, css) {
 export const isPluginVisible = (editor) => editor.options.get(showPluginOptName);
 
 /**
- * @param {import('./plugin').TinyMCE} editor
  * @returns {string} - additional css that must be included in a <style> tag in editor's iframe
  */
-export const getAdditionalCss = (editor) => {
-    return editor.options.get(additionalCssOptName);
+export const getAdditionalCss = () => {
+    return _cache.additionalcss ?? '';
 };
 
 /**
@@ -180,17 +187,17 @@ export const isPlaygroundMode = () => {
  * @returns {string} - An object with the key/value properties
  */
 export const getGlobalConfig = (editor, key, defaultValue) => {
-    const dict = editor.options.get(globalConfigOptName) ?? {};
+    const dict = _cache.cfg ?? {};
     return dict[key]?.trim() ?? defaultValue;
 };
 
 /**
- * @param {import('./plugin').TinyMCE} editor
  * @returns {Object<string, string>} - An object with the key/value properties
  */
-export const getPartials = (editor) => {
-    return editor.options.get(partialsOptName) ?? {};
+export const getPartials = () => {
+    return _cache.partials ?? {};
 };
+
 
 /**
  * @param {import('./plugin').TinyMCE} editor
@@ -217,11 +224,12 @@ export const getWidgetDict = (editor) => {
         return _cache.widgetDict;
     }
     /** @type {RawWidget[]} */
-    const rawWidgets = editor.options.get(widgetListOptName) ?? [];
+    const rawWidgets = _cache.widgetList ?? [];
     /** @type {Record<string, Widget>} */
     const widgetDict = Object.create(null);
     // Partials is a special widget that is used to define common parameters shared by other widgets
-    const partials = getPartials(editor);
+    const partials = getPartials();
+
     // Create a wrapper for the widget to handle operations
     const wrappedWidgets = rawWidgets.map(w => new Widget(w, partials));
 

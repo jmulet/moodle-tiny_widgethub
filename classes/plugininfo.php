@@ -29,26 +29,6 @@ use editor_tiny\plugin;
 use editor_tiny\plugin_with_buttons;
 use editor_tiny\plugin_with_configuration;
 use editor_tiny\plugin_with_menuitems;
-use tiny_widgethub\local\storage\storagefactory;
-
-/**
- * Function to parse the configuration.
- * @param string $configstr
- * @return string[]
- */
-function tiny_widgethub_parseconfig($configstr) {
-    $config = [];
-    $lines = explode("\n", trim($configstr)); // Split into lines.
-    foreach ($lines as $line) {
-        if (strpos($line, '=') !== false) {
-            $parts = explode('=', $line, 2);
-            $key = trim($parts[0]);
-            $value = isset($parts[1]) ? trim($parts[1]) : '';
-            $config[$key] = $value;
-        }
-    }
-    return $config;
-}
 
 /**
  * Tiny WidgetHub plugin version details.
@@ -121,15 +101,8 @@ class plugininfo extends plugin implements
             $params['courseid'] = $COURSE->id;
             $params['moodleversion'] = $CFG->release;
 
-            $data = storagefactory::get_editor_data();
-            $params['widgetlist'] = $data['widgetlist'] ?? [];
-            $params['partials'] = $data['partials'] ?? (object)[];
-
             // Configuration.
             $params['sharecss'] = get_config('tiny_widgethub', 'sharecss') === '1';
-            $params['additionalcss'] = get_config('tiny_widgethub', 'additionalcss') ?? '';
-            // Syntax key=value per line.
-            $params['cfg'] = tiny_widgethub_parseconfig(get_config('tiny_widgethub', 'cfg') ?? '');
         }
         return $params;
     }

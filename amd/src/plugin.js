@@ -30,6 +30,8 @@ import { getPluginMetadata } from 'editor_tiny/utils';
 
 import Common from './common';
 import { register as registerOptions, setWidgetDefinitions } from './options';
+
+
 import { getSetup as getCommandSetup } from './commands';
 import * as Configuration from './configuration';
 import { subscribe } from './extension';

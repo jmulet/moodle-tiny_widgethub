@@ -41,6 +41,34 @@ export class ExternalService {
         }])[0];
     }
     /**
+     * @returns {Promise<{
+     * widgetlist: import('../options').RawWidget[],
+     * partials: Record<string, any>,
+     * additionalcss: string,
+     * cfg: Record<string, any>
+     * }>}
+     */
+    async getEditorData() {
+        try {
+            const data = await this._fetch('tiny_widgethub_get_editordata', nullProtofy({}));
+            return {
+                widgetlist: JSON.parse(data.widgetlist),
+                partials: JSON.parse(data.partials),
+                additionalcss: data.additionalcss,
+                cfg: JSON.parse(data.cfg),
+            };
+        } catch (e) {
+            // eslint-disable-next-line no-console
+            console.error(e);
+            return {
+                widgetlist: [],
+                partials: nullProtofy({}),
+                additionalcss: '',
+                cfg: nullProtofy({}),
+            };
+        }
+    }
+    /**
      *
      * @param {number[]} ids
      * @returns Promise<number[]>
