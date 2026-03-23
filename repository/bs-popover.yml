@@ -4,7 +4,7 @@ category: bootstrap
 icon: fa fa-comment
 instructions: $string.bspopover_instructions
 template: |
-  <a href="javascript:void(0)" data-toggle="popover" data-bs-toggle="popover" data-trigger="click" data-bs-trigger="click" 
+  <a href="javascript:void(0)" role="button" aria-haspopup="true" data-toggle="popover" data-bs-toggle="popover" data-trigger="click" data-bs-trigger="click" 
   data-original-title="{{title}}" data-bs-original-title="{{title}}" data-content="{{{anotation}}}" data-bs-content="{{{anotation}}}" 
   data-html="true" data-bs-html="true" data-container="body" data-bs-container="body"
   data-placement="{{placement}}" data-bs-placement="{{placement}}"><span class="whb-inspoint">{{word}}</span></a>

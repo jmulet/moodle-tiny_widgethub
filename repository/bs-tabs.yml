@@ -6,20 +6,22 @@ instructions: $string.bstabs_instructions
 engine: ejs
 template: |
   <div class="whb-tabmenu">
-  <ul class="nav nav-tabs" role="tablist">
-  <% for(var i=1; i<=tabs; i++) { %>
-  <li class="nav-item">
-    <a class="nav-link<%= i==1 ? ' active' : '' %>" href="#<%=ID%>_<%=i%>" data-toggle="tab" data-bs-toggle="tab" role="tab"><span>&nbsp;</span><span>Tab<%=i%></span></a>
-  </li> 
-  <% } %>
-  </ul>
-  <div class="tab-content">
-  <% for(var i=1; i<=tabs; i++) { %>
-  <div class="tab-pane<%= effect ? ' ' + effect : '' %><%= i==1 ? ' show active' : '' %>" id="<%=ID%>_<%=i%>" role="tabpanel">
-  <p><%=i%> __LOREM__</p>
-  </div>
-  <% } %>
-  </div>
+    <ul class="nav nav-tabs" role="tablist">
+    <% for(var i=1; i<=tabs; i++) { %>
+      <li class="nav-item" role="presentation">
+        <a class="nav-link<%= i==1 ? ' active' : '' %>" id="<%=ID%>_<%=i%>-tab" href="#<%=ID%>_<%=i%>" data-toggle="tab" data-bs-toggle="tab" role="tab" aria-controls="<%=ID%>_<%=i%>" aria-selected="<%= i==1 ? 'true' : 'false' %>">
+          <span>&nbsp;</span><span>Tab<%=i%></span>
+        </a>
+      </li> 
+    <% } %>
+    </ul>
+    <div class="tab-content">
+    <% for(var i=1; i<=tabs; i++) { %>
+      <div class="tab-pane<%= effect ? ' ' + effect : '' %><%= i==1 ? ' show active' : '' %>" id="<%=ID%>_<%=i%>" role="tabpanel" aria-labelledby="<%=ID%>_<%=i%>-tab">
+        <p><%=i%> __LOREM__</p>
+      </div>
+    <% } %>
+    </div>
   </div> 
   <p><br></p>
 selectors: div.whb-tabmenu

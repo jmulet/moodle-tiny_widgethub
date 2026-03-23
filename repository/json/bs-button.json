@@ -4,7 +4,7 @@
     "category": "bootstrap",
     "icon": "fa fa-hand-pointer",
     "instructions": "$string.bsbutton_instructions",
-    "template": "<a href=\"{{url}}\" class=\"btn btn-{{severity}}\"><i class=\"fa fa-{{icon}}\"></i> Lorem ipsum</a>&nbsp;\n",
+    "template": "<a href=\"{{url}}\" class=\"btn btn-{{severity}}\" role=\"button\"><i class=\"fa fa-{{icon}}\" aria-hidden=\"true\"></i> Lorem ipsum</a>&nbsp;\n",
     "selectors": "a.btn",
     "parameters": [
         {

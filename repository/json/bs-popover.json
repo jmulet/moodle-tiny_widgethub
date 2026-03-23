@@ -4,7 +4,7 @@
     "category": "bootstrap",
     "icon": "fa fa-comment",
     "instructions": "$string.bspopover_instructions",
-    "template": "<a href=\"javascript:void(0)\" data-toggle=\"popover\" data-bs-toggle=\"popover\" data-trigger=\"click\" data-bs-trigger=\"click\" \ndata-original-title=\"{{title}}\" data-bs-original-title=\"{{title}}\" data-content=\"{{{anotation}}}\" data-bs-content=\"{{{anotation}}}\" \ndata-html=\"true\" data-bs-html=\"true\" data-container=\"body\" data-bs-container=\"body\"\ndata-placement=\"{{placement}}\" data-bs-placement=\"{{placement}}\"><span class=\"whb-inspoint\">{{word}}</span></a>\n",
+    "template": "<a href=\"javascript:void(0)\" role=\"button\" aria-haspopup=\"true\" data-toggle=\"popover\" data-bs-toggle=\"popover\" data-trigger=\"click\" data-bs-trigger=\"click\" \ndata-original-title=\"{{title}}\" data-bs-original-title=\"{{title}}\" data-content=\"{{{anotation}}}\" data-bs-content=\"{{{anotation}}}\" \ndata-html=\"true\" data-bs-html=\"true\" data-container=\"body\" data-bs-container=\"body\"\ndata-placement=\"{{placement}}\" data-bs-placement=\"{{placement}}\"><span class=\"whb-inspoint\">{{word}}</span></a>\n",
     "selectors": "a[data-toggle=\"popover\"]:not([href^=\"#speak_\"])",
     "unwrap": ".whb-inspoint",
     "insertquery": ".whb-inspoint",
