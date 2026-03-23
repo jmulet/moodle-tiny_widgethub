@@ -22,6 +22,7 @@
  * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+import Notification from 'core/notification';
 import { CmEditor, YAML } from './libs/cmeditor-lazy';
 // eslint-disable-next-line camelcase
 import { get_string } from 'core/str';
@@ -31,27 +32,7 @@ import common from './common';
 import { compareVersion, sanitizeSvg } from './util';
 import { getInstanceForElementId } from 'editor_tiny/editor';
 
-/**
- * Toggles a button to a non loading state.
- * @param {HTMLButtonElement} btn
- * @param {string} toogleclass
- */
-function unspinButton(btn, toogleclass) {
-    const icon = btn.querySelector('fa');
-    icon?.classList?.remove('fa-spin', 'fa-spinner');
-    icon?.classList?.add(toogleclass);
-}
 
-/**
- * Toggles a button to a loading state.
- * @param {HTMLButtonElement} btn
- * @param {string} toogleclass
- */
-function spinButton(btn, toogleclass) {
-    const icon = btn.querySelector('fa');
-    icon?.classList?.add('fa-spin', 'fa-spinner');
-    icon?.classList?.remove(toogleclass);
-}
 
 const { component } = common;
 const randomKey = Math.random().toString(36).substring(2, 8);
@@ -588,7 +569,7 @@ export default class WidgetSettings {
         if (validation.msg || !validation.json) {
             this.log.error(validation.msg);
         } else {
-            this.log.success('Validation successful');
+            this.log.success('Validation successful.');
             // Sync hidden textareas for FormAPI submission
             this.nodes.ymlArea.value = ymlValue;
             this.nodes.jsonArea.value = validation.json;
@@ -598,6 +579,7 @@ export default class WidgetSettings {
             if (this.editors.html) {
                 this.nodes.htmlArea.value = this.editors.html.getValue().trim() ?? '';
             }
+            this.widgetKey = validation.obj?.key ?? '';
             return true;
         }
         return false;
@@ -646,7 +628,6 @@ export default class WidgetSettings {
         // Select tab tiny.
         this._selectTab('tiny');
         this.tinyPreviewStrategy?.render('<p></p>');
-        spinButton(this.nodes.refreshBtn, 'fa-magnifying-glass');
         this.nodes.refreshBtn.disabled = true;
 
         const yml = this.editors.yml?.getValue() || '';
@@ -678,7 +659,6 @@ export default class WidgetSettings {
             );
         }
         this.nodes.refreshBtn.disabled = false;
-        unspinButton(this.nodes.refreshBtn, 'fa-magnifying-glass');
     }
 
     /**
@@ -704,12 +684,36 @@ export default class WidgetSettings {
                 evt.preventDefault();
                 const passed = await this.preSaveAction();
                 if (passed) {
-                    /** @type {HTMLInputElement | null} */
-                    const inputAction = form.querySelector('input[name="action"]');
-                    if (inputAction) {
-                        inputAction.value = actionName;
+                    const doSubmit = () => {
+                        /** @type {HTMLInputElement | null} */
+                        const inputAction = form.querySelector('input[name="action"]');
+                        if (inputAction) {
+                            inputAction.value = actionName;
+                        }
+                        form.submit();
+                    };
+
+                    const trusted = (sessionStorage.getItem('tiny_widgethub_trusted') ?? '').split(',');
+                    if (trusted.includes(this.widgetKey)) {
+                        doSubmit();
+                    } else {
+                        const confirmMsg = await get_string('confirmtrust', component);
+                        Notification.saveCancelPromise(
+                            await get_string('confirm', 'core'),
+                            confirmMsg,
+                            await get_string('yes', 'core'),
+                            await get_string('no', 'core')
+                        ).then(() => {
+                            if (this.widgetKey && !trusted.includes(this.widgetKey)) {
+                                trusted.push(this.widgetKey);
+                                sessionStorage.setItem('tiny_widgethub_trusted', trusted.join(','));
+                            }
+                            doSubmit();
+                            return;
+                        }).catch(() => {
+                            // Cancelled
+                        });
                     }
-                    form.submit();
                 }
             });
         }
@@ -787,7 +791,7 @@ export default class WidgetSettings {
 
         iframe.style.width = '100%';
         iframe.style.border = 'none';
-        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+        iframe.setAttribute('sandbox', 'allow-scripts');
 
         const tinyContent = this.tinyPreviewStrategy?.getValue();
         // Display the preview in an iframe.

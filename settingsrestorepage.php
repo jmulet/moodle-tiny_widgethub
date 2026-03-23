@@ -73,7 +73,7 @@ if ($res) {
             echo '<li class="list-group-item' . $severity . '">' . $log['message'] . '</li>';
         }
         echo '</ul>';
-        echo '<a href="' . $widgettableurl . '" class="btn btn-primary d-block m-4">' . get_string('accept', 'core') . '</a>';
+        echo '<a href="' . $widgettableurl . '" class="btn btn-primary m-4">' . get_string('accept', 'core') . '</a>';
     } else {
         echo $OUTPUT->notification('Backup restoration failed', 'error');
         echo '<ul class="list-group mb-4">';

@@ -790,3 +790,58 @@ export function safeAwait(promise) {
         .then((result) => /** @type {[null, T]} */([null, result]))
         .catch((error) => /** @type {[Error, null]} */([error, null]));
 }
+/**
+ * Toggles an element to a loading state.
+ * @param {HTMLElement} element
+ * @param {string | null} query
+ */
+export function spinElement(element, query = 'i.fa, i.fas, i.far, i.fab, .twh-icon') {
+    if (!element || element.dataset.originalIcon) {
+        return;
+    }
+    /** @type {HTMLElement | null} */
+    let icon = element;
+    if (query) {
+        icon = element.querySelector(query);
+    }
+    if (icon) {
+        icon.dataset.originalIcon = icon.className;
+        icon.dataset.originalHtml = icon.innerHTML;
+        icon.className = 'fa fa-spinner fa-spin';
+        icon.innerHTML = '';
+    }
+    if (element instanceof HTMLButtonElement || element instanceof HTMLAnchorElement) {
+        element.classList.add('disabled');
+        if (element instanceof HTMLButtonElement) {
+            element.disabled = true;
+        }
+    }
+}
+
+/**
+ * Restores an element from a loading state.
+ * @param {HTMLElement} element
+ * @param {string | null} query
+ */
+export function unspinElement(element, query = 'i.fa, i.fas, i.far, i.fab, .twh-icon') {
+    if (!element) {
+        return;
+    }
+    /** @type {HTMLElement | null} */
+    let icon = element;
+    if (query) {
+        icon = element.querySelector(query);
+    }
+    if (icon && icon.dataset.originalIcon) {
+        icon.className = icon.dataset.originalIcon;
+        icon.innerHTML = icon.dataset.originalHtml || '';
+        delete element.dataset.originalIcon;
+        delete element.dataset.originalHtml;
+    }
+    if (element instanceof HTMLButtonElement || element instanceof HTMLAnchorElement) {
+        element.classList.remove('disabled');
+        if (element instanceof HTMLButtonElement) {
+            element.disabled = false;
+        }
+    }
+}

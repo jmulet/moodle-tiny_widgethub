@@ -23,7 +23,7 @@
  */
 import Notification from 'core/notification';
 import { getExternalService } from './service/external_service';
-import { hashCode } from './util';
+import { hashCode, spinElement, unspinElement } from './util';
 import { fromJSON as json2yaml } from './libs/yaml-lazy';
 
 /**
@@ -189,8 +189,10 @@ export default {
                         return;
                     }
                     locks.visibilities.add(id);
+                    spinElement(target, null);
                     const externalService = getExternalService();
                     externalService.setVisibility(parseInt(id), !isVisible).then((/** @type {boolean} */ success) => {
+                        unspinElement(target, null);
                         if (!success) {
                             console.error('Failed to update visibility');
                             return;
@@ -201,6 +203,7 @@ export default {
                         target.setAttribute('data-visible', isVisible ? '0' : '1');
                         locks.visibilities.delete(id);
                     }).catch((err) => {
+                        unspinElement(target, null);
                         console.error('Failed to update visibility', err);
                         locks.visibilities.delete(id);
                     });
@@ -224,8 +227,10 @@ export default {
                 params.confirmMessage,
                 params.confirmBtn,
             ).then(() => {
+                spinElement(deleteBtn);
                 const externalService = getExternalService();
                 externalService.deleteWidgets(ids).then((/** @type {any} */ response) => {
+                    unspinElement(deleteBtn);
                     selectAll.checked = false;
                     deleteBtn.disabled = true;
                     const deletedIds = response.ids;
@@ -237,6 +242,7 @@ export default {
                     });
                     updateFooter(table, tableFooterCell);
                 }).catch((/** @type {any} */ ex) => {
+                    unspinElement(deleteBtn);
                     console.error(ex);
                 });
             }).catch(() => {
@@ -247,28 +253,28 @@ export default {
         });
 
         exportBtn.addEventListener('click', async () => {
-            exportBtn.disabled = true;
-            console.log('Export button clicked');
+            spinElement(exportBtn);
             // Precheck if all documents include yml, if not generate from json.
             const externalService = getExternalService();
-            const missingIds = await externalService.getWidgetsNoYml();
-            if (missingIds.length > 0) {
-                // TODO create batches.
-                const documents = await externalService.getWidgetDocuments(missingIds, true, false);
-                // Generate yml from json.
-                const documentsWithYml = documents.map(doc => {
-                    return {
-                        yml: json2yaml(doc.json ?? ''),
-                        id: doc.id,
-                        key: doc.key
-                    };
-                });
+            try {
+                const missingIds = await externalService.getWidgetsNoYml();
+                if (missingIds.length > 0) {
+                    // TODO create batches.
+                    const documents = await externalService.getWidgetDocuments(missingIds, true, false);
+                    // Generate yml from json.
+                    const documentsWithYml = documents.map(doc => {
+                        return {
+                            yml: json2yaml(doc.json ?? ''),
+                            id: doc.id,
+                            key: doc.key
+                        };
+                    });
 
-                // Save missing yml documents.
-                await externalService.saveWidgetsYml(documentsWithYml);
-            }
+                    // Save missing yml documents.
+                    await externalService.saveWidgetsYml(documentsWithYml);
+                }
 
-            externalService.backupWidgets().then((/** @type {any} */ response) => {
+                const response = /** @type {any} */ (await externalService.backupWidgets());
                 const draftAreaUrl = response.url;
                 const a = document.createElement('a');
                 a.href = draftAreaUrl;
@@ -282,11 +288,11 @@ export default {
                     now.getSeconds().toString().padStart(2, '0');
                 a.download = `tiny_widgethub_backup_${dateString}.whz`;
                 a.click();
-                exportBtn.disabled = false;
-            }).catch((/** @type {any} */ ex) => {
+            } catch (ex) {
                 console.error(ex);
-                exportBtn.disabled = false;
-            });
+            } finally {
+                unspinElement(exportBtn);
+            }
         });
     }
 };
