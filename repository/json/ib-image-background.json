@@ -9,7 +9,7 @@
     "parameters": [
         {
             "name": "url",
-            "value": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Snow_Scene_at_Shipka_Pass_1.JPG/1024px-Snow_Scene_at_Shipka_Pass_1.JPG",
+            "value": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Snow_Scene_at_Shipka_Pass_1.JPG/960px-Snow_Scene_at_Shipka_Pass_1.JPG",
             "title": "$string.ibimgbg_url",
             "type": "image",
             "tip": "$string.ibimgbg_url_tip",

@@ -791,7 +791,7 @@ export default class WidgetSettings {
 
         iframe.style.width = '100%';
         iframe.style.border = 'none';
-        iframe.setAttribute('sandbox', 'allow-scripts');
+        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
 
         const tinyContent = this.tinyPreviewStrategy?.getValue();
         // Display the preview in an iframe.

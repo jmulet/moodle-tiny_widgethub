@@ -605,7 +605,7 @@ export function compareVersion(current, condition) {
         case "<=": return cmp <= 0;
         case "=": return cmp === 0;
         default:
-            console.log("Unknown operator: " + operator);
+            console.warn("Unknown operator: " + operator);
             return true;
     }
 }

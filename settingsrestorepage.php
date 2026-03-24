@@ -35,7 +35,7 @@ admin_externalpage_setup($pageid, '', [], '', ['pagelayout' => 'standard']);
 
 $currenturl = '/lib/editor/tiny/plugins/widgethub/settingsrestorepage.php';
 $PAGE->set_url($currenturl);
-$restorestr = get_string('restore', 'core') . ' widgets';
+$restorestr = get_string('restorewidgets', 'tiny_widgethub');
 $PAGE->set_title($restorestr);
 $PAGE->set_heading($restorestr);
 
@@ -63,7 +63,7 @@ echo $OUTPUT->header();
 
 if ($res) {
     if ($res['success']) {
-        echo $OUTPUT->notification('Backup restored successfully', 'success');
+        echo $OUTPUT->notification(get_string('backuprestoredsuccess', 'tiny_widgethub'), 'success');
         echo '<ul class="list-group">';
         foreach ($res['logs'] as $log) {
             $severity = $log['severity'] ?? '';
@@ -75,7 +75,7 @@ if ($res) {
         echo '</ul>';
         echo '<a href="' . $widgettableurl . '" class="btn btn-primary m-4">' . get_string('accept', 'core') . '</a>';
     } else {
-        echo $OUTPUT->notification('Backup restoration failed', 'error');
+        echo $OUTPUT->notification(get_string('backuprestoredfailed', 'tiny_widgethub'), 'error');
         echo '<ul class="list-group mb-4">';
         foreach ($res['logs'] as $log) {
             $severity = $log['severity'] ?? '';

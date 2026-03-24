@@ -264,7 +264,6 @@ function vdomCreate(payload) {
         instance.observer.observe(doc.body, observeOptions);
     }
     vdomInstances.set(vid + '', instance);
-    //console.log('vdom created with vid: ' + vid);
     return {
         vid: vid + ''
     };
@@ -274,7 +273,6 @@ function vdomCreate(payload) {
  * @param {{vid: string, rvnid: string, instructions: string, useJQuery: boolean}} payload
  */
 function vdomQuery(payload) {
-    //console.log('vdom query for vid: ' + payload.vid);
     const instance = vdomInstances.get(payload.vid);
     if (!instance) {
         return {
@@ -308,7 +306,6 @@ function vdomQuery(payload) {
     } catch (e) {
         error = e + '';
     }
-    //console.log('vdom query result: ', result, error);
     return {
         result: result,
         error: error
@@ -319,7 +316,6 @@ function vdomQuery(payload) {
  * @param {{vid: string, rvnid: string, value: any, instructions: string, useJQuery: boolean}} payload
  */
 function vdomUpdate(payload) {
-    //console.log('vdom update for vid: ' + payload.vid);
     const instance = vdomInstances.get(payload.vid);
     if (!instance) {
         return {
@@ -352,7 +348,6 @@ function vdomUpdate(payload) {
     } catch (e) {
         error = e + '';
     }
-    //console.log('vdom update result: ', error);
     return {
         error: error
     };
@@ -369,12 +364,10 @@ async function vdomGetPatches(vid) {
     if (instance) {
         const patches = instance.patches;
         instance.patches = [];
-        //console.log('vdom get patches result: ', patches);
         return {
             patches: patches
         };
     }
-    //console.log('vdom get patches result: error');
     return { error: 'vdom node not found for vid: ' + vid };
 }
 
@@ -513,7 +506,6 @@ async function vdomFilter(html, filters) {
      * @param {MessageEvent} e 
      * {type: string, payload: Object} Task received on channel */
     async function onChannelMessage(e) {
-        //console.log('onChannelMessage', e);
         const data = e.data;
         if (!data.type || !data.type.startsWith('vdom:')) {
             return;

@@ -137,10 +137,8 @@ function createWorker(type) {
             URL.revokeObjectURL(workerUrl);
             workerUrl = null;
         }
-        //console.log('Worker message for type: ' + type, e.data);
         if (e.data.type === 'worker_ready') {
             workerWrap.loaded = true;
-            //console.log('Worker ready for type: ' + type);
             processNextTask(type);
             return;
         } else if (e.data.type === 'worker_error') {
@@ -217,22 +215,18 @@ function createWorker(type) {
 function processNextTask(type) {
     const queue = queues.get(type);
     if (!queue || queue.length === 0) {
-        //console.log('No tasks for type: ' + type);
         return;
     }
     const task = queue[0];
     if (!task) {
-        //console.log('No task for type: ' + type);
         return;
     }
     let workerWrap = workers.get(type);
     if (workerWrap) {
         if (!workerWrap.loaded || workerWrap.id) {
-            //console.log('Worker not ready or busy for type: ' + type);
             return;
         }
         if (workerWrap.runs >= MAX_WORKER_RUNS) {
-            //console.log('Worker max runs reached for type: ' + type);
             if (workerWrap.timeout) {
                 clearTimeout(workerWrap.timeout);
             }
@@ -242,7 +236,6 @@ function processNextTask(type) {
         }
     }
     if (!workerWrap) {
-        //console.log('Creating worker for type: ' + type);
         workerWrap = createWorker(type);
         workers.set(type, workerWrap);
         return;
@@ -264,7 +257,6 @@ function processNextTask(type) {
     }, MAX_WORKER_TIMEOUT);
     workerWrap.id = task.requestId;
     workerWrap.runs++;
-    //console.log('sending task to worker for type: ' + type, task);
     workerWrap.worker.postMessage(task);
 }
 
@@ -281,7 +273,6 @@ function onChannelMessage(e) {
             queues.set(data.type, queue);
         }
         queue.push(data);
-        //console.log('Task received to iframe for type: ' + data.type, data);
         processNextTask(data.type);
     }
 }

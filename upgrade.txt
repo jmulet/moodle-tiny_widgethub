@@ -66,4 +66,4 @@ Changes:
   - Make the versions of jQuery and Bootstrap injected into the editor's iFrame configurable.
   - Improved mouse leave detection on widget preview.
   - Detect context actions on widgets that include iframe, like YouTube or Vimeo.
-  - Improved administrator widget table. Easy widget deletion.
+  - Improved administrator widget table and widget editor.

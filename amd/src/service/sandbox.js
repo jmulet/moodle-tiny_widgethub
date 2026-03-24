@@ -84,7 +84,6 @@ export class Sandbox {
      * @param {MessageEvent} event
      */
     _onChannelMessage(event) {
-        console.log('sandobox onChannelMessage', event);
         const data = event.data || {};
         const task = this._tasks.get(data.requestId);
         if (!data.requestId || !task) {
@@ -359,7 +358,6 @@ export class RemoteDom extends Sandbox {
         if (!rootElement) {
             throw new Error('Remote DOM not found');
         }
-        console.log('patches', patches, ' to ', rootElement);
         patches.forEach(patch => {
             this._applyMutation(rootElement, patch);
         });
@@ -502,7 +500,7 @@ export class RemoteDom extends Sandbox {
             node = rootElement.querySelector(`[data-rvn-id="${safeVid}"]`);
         }
         if (!node) {
-            console.log('Apply mutation: Node not found', patch.vid);
+            console.warn('Apply mutation: Node not found', patch.vid);
             return;
         }
 

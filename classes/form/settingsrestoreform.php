@@ -54,20 +54,20 @@ class settingsrestoreform extends \moodleform {
         $mform->addElement(
             'selectyesno',
             'override',
-            'Override existing widgets'
+            get_string('overridewidgets', 'tiny_widgethub')
         );
 
         // Import configuration settings.
         $mform->addElement(
             'selectyesno',
             'config',
-            'Import configuration settings'
+            get_string('importconfig', 'tiny_widgethub')
         );
 
         $mform->setType('override', PARAM_INT);
         $mform->setType('config', PARAM_INT);
         $mform->setDefault('override', 1);
-        $mform->setDefault('config', 1);
+        $mform->setDefault('config', 0);
 
         $this->add_action_buttons();
     }
