@@ -68,6 +68,7 @@ export class ExternalService {
             };
         }
     }
+
     /**
      *
      * @param {number[]} ids
@@ -77,13 +78,7 @@ export class ExternalService {
         return this._fetch('tiny_widgethub_delete_widgets',
             nullProtofy({ ids }));
     }
-    /**
-     * @param {{ id: number, yml: string, json: string }[]} widgets
-     * @returns {Promise<{ids: number[]}>}
-     */
-    saveWidgets(widgets) {
-        return this._fetch('tiny_widgethub_save_widgets', nullProtofy({ widgets }));
-    }
+
     /**
      * @param {number[]} ids
      * @param {boolean} [includejson=true] Whether to include the json document in the response.

@@ -44,12 +44,12 @@ export const performCasting = function (value, type) {
                 if (!isNaN(parsed)) {
                     value = parsed;
                 } else {
-                    value = 0;
                     console.error(`Error parsing number ${value}`);
+                    value = 0;
                 }
             } catch (ex) {
-                value = 0;
                 console.error(`Error parsing number ${value}`);
+                value = 0;
             }
             break;
         case ("string"):
@@ -177,13 +177,12 @@ export const bindingsFactoryAPI = Object.freeze(
                 getValue: () => {
                     let ret = '';
                     const classes = Array.from(elem?.classList ?? []);
+                    let classExpr2 = classExpr;
+                    if (typeof classExpr2 === 'string') {
+                        classExpr2 = new RegExp(classExpr2);
+                    }
                     for (const clazz of classes) {
-                        let match;
-                        if (classExpr instanceof RegExp) {
-                            match = classExpr.exec(clazz);
-                        } else {
-                            match = new RegExp(classExpr).exec(clazz);
-                        }
+                        const match = classExpr2.exec(clazz);
                         if (match?.[1] && typeof (match[1]) === "string") {
                             ret = match[1];
                             break;
@@ -194,13 +193,12 @@ export const bindingsFactoryAPI = Object.freeze(
                 setValue: (val) => {
                     const cl = Array.from(elem?.classList ?? []);
                     let found = false;
+                    let classExpr2 = classExpr;
+                    if (typeof classExpr2 === 'string') {
+                        classExpr2 = new RegExp(classExpr2, 'd');
+                    }
                     cl.forEach(c => {
-                        let match;
-                        if (classExpr instanceof RegExp) {
-                            match = classExpr.exec(c);
-                        } else {
-                            match = new RegExp(classExpr, 'd').exec(c);
-                        }
+                        const match = classExpr2.exec(c);
                         if (match === null) {
                             return;
                         }

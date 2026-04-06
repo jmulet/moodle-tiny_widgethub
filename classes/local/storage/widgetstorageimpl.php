@@ -97,7 +97,8 @@ class widgetstorageimpl implements widgetstorage {
 
     /**
      * Get the index of the widgets
-     * Load the property in which the index of the widgets is stored
+     * Load the property in which the index of the widgets is stored.
+     * It does not include partials itemid=0.
      * {1: {k: 'WD1', n: 'Name1', h: 0, c: 'category'}, 5: {k: 'WD2', n: 'Name2', h: 0, c: 'category'}, ...]
      *
      * @return array
@@ -201,10 +202,9 @@ class widgetstorageimpl implements widgetstorage {
      * Get all widgets. It does not include partials.
      *
      * @param bool $includehidden Whether to include hidden widgets.
-     * @param string $fields The fields to retrieve.
      * @return \StdClass[] An array of widgets objects.
      */
-    public function get_all_widgets(bool $includehidden = false, string $fields = '*'): array {
+    public function get_all_widgets(bool $includehidden = false): array {
         $widgets = [];
         foreach ($this->index as $id => $info) {
             if ($info['h'] === 1 && !$includehidden) {
@@ -222,10 +222,9 @@ class widgetstorageimpl implements widgetstorage {
      * Get a widget by its unique key.
      *
      * @param string $key The widget key.
-     * @param string $fields The fields to retrieve.
      * @return \StdClass|bool The widget object, or false if not found.
      */
-    public function get_widget_by_key(string $key, string $fields = '*') {
+    public function get_widget_by_key(string $key) {
         foreach ($this->index as $id => $info) {
             if (($info['k'] ?? null) === $key) {
                 $raw = $this->load_raw_widget($id);
@@ -239,10 +238,9 @@ class widgetstorageimpl implements widgetstorage {
      * Get a widget by its Pseudo ID in legacy.
      *
      * @param int $id The widget ID.
-     * @param string $fields The fields to retrieve.
      * @return \StdClass|bool The widget object, or false if not found.
      */
-    public function get_widget_by_id(int $id, string $fields = '*') {
+    public function get_widget_by_id(int $id) {
         $raw = $this->load_raw_widget($id);
         return $raw ? (object) $raw : false;
     }
@@ -356,7 +354,10 @@ class widgetstorageimpl implements widgetstorage {
         ?string $css = null,
         int $rev = 1
     ): int {
-        if (!$id && ($widget['key'] ?? '') === 'partials') {
+        if (
+            ($id === null || $id === storagefactory::BLANK_ID) &&
+            ($widget['key'] ?? '') === 'partials'
+        ) {
             $id = storagefactory::PARTIALS_ID;
         }
         $usedkeys = [];
@@ -422,15 +423,8 @@ class widgetstorageimpl implements widgetstorage {
      * @return bool True if the widget was deleted, false otherwise.
      */
     public function delete_widget(int $id): bool {
-        $widget = $this->load_raw_widget($id);
-        $key = $widget['key'] ?? '';
-        if (!$widget || $key == 'partials') {
-            // Partials cannot be deleted.
-            return false;
-        }
-        $this->update_index($id, null);
-        \cache::make('tiny_widgethub', 'index')->delete('geteditordata');
-        return true;
+        $result = $this->delete_widgets([$id]);
+        return !empty($result);
     }
 
     /**
@@ -531,10 +525,18 @@ class widgetstorageimpl implements widgetstorage {
      */
     public function get_widgetsnoyml(): array {
         $ret = [];
+        // Check partials (id=0) which is not part of the index.
+        if (
+            $this->documentstorage->exists(storagefactory::PARTIALS_ID, 'json') &&
+            !$this->documentstorage->exists(storagefactory::PARTIALS_ID, 'yml')
+        ) {
+            $ret[] = storagefactory::PARTIALS_ID;
+        }
         foreach (array_keys($this->index) as $id) {
-            $defjson = $this->documentstorage->get($id, 'json');
-            $defyml = $this->documentstorage->get($id, 'yml');
-            if (!empty($defjson) && empty($defyml)) {
+            if (
+                $this->documentstorage->exists($id, 'json') &&
+                !$this->documentstorage->exists($id, 'yml')
+            ) {
                 $ret[] = $id;
             }
         }
@@ -550,8 +552,7 @@ class widgetstorageimpl implements widgetstorage {
     public function save_widgetsyml(array $widgets): array {
         $success = [];
         foreach ($widgets as $widget) {
-            $this->documentstorage->save($widget['id'], $widget['yml'], 'yml');
-            $success[] = true;
+            $success[] = $this->documentstorage->save($widget['id'], $widget['yml'], 'yml');
         }
         return $success;
     }

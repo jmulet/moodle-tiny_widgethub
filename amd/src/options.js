@@ -78,6 +78,23 @@ export const fetchEditorData = () => {
     return _fetchPromise;
 };
 
+/**
+ * Test-only helper to populate the shared cache without an AJAX call.
+ * @param {object} data
+ * @param {RawWidget[]} [data.widgetList]
+ * @param {Record<string, any>} [data.partials]
+ * @param {string} [data.additionalcss]
+ * @param {Record<string, any>} [data.cfg]
+ */
+export function _resetCacheForTesting(data = {}) {
+    _cache.widgetList = data.widgetList ?? undefined;
+    _cache.partials = data.partials ?? undefined;
+    _cache.additionalcss = data.additionalcss ?? undefined;
+    _cache.cfg = data.cfg ?? undefined;
+    _cache.widgetDict = undefined;
+    _fetchPromise = null;
+}
+
 
 /**
  * @param {import('./plugin').TinyMCE} editor
@@ -762,7 +779,7 @@ export class Widget {
 }
 
 
-const editorOptionsInstances = new Map();
+const editorOptionsInstances = new WeakMap();
 /**
  * @param {import('./plugin').TinyMCE} editor
  * @returns {EditorOptions}

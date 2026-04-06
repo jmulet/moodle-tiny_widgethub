@@ -58,23 +58,23 @@ class backuputil {
             $key = $document['key'];
             $filename = trim($key);
             $zipfiles[$filename . '.json'] = [$document['json']];
-            if ($document['yml'] ?? null !== null) {
+            if (($document['yml'] ?? null) !== null) {
                 $zipfiles[$filename . '.yml'] = [$document['yml']];
             }
-            if ($document['html'] ?? null !== null) {
+            if (($document['html'] ?? null) !== null) {
                 $zipfiles[$filename . '.html'] = [$document['html']];
             }
-            if ($document['css'] ?? null !== null) {
+            if (($document['css'] ?? null) !== null) {
                 $zipfiles[$filename . '.css'] = [$document['css']];
             }
         }
         // Add partials (json and yml).
         $partials = $storage->get_partials();
-        if ($partials ?? null !== null) {
+        if (($partials ?? null) !== null) {
             $zipfiles['partials.json'] = [json_encode($partials)];
         }
         $partials = $storage->get_partials_yml();
-        if ($partials ?? null !== null) {
+        if (($partials ?? null) !== null) {
             $zipfiles['partials.yml'] = [$partials];
         }
         // Include configuration data as cfg.txt.

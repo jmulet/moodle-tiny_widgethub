@@ -161,6 +161,31 @@ class documentstorageimpl implements documentstorage {
     }
 
     /**
+     * Check if document exists.
+     *
+     * @param int $id Document id.
+     * @param string $ext Document extension.
+     * @return bool True if document exists, false otherwise.
+     */
+    public function exists(int $id, string $ext = 'json'): bool {
+        // Partials are never stored in slim.json.
+        if ($id === 0 && $ext === 'slim.json') {
+            $ext = 'json';
+        }
+        $systemcontextid = \context_system::instance()->id;
+        $fs = get_file_storage();
+        $file = $fs->get_file(
+            $systemcontextid,
+            self::COMPONENT_NAME,
+            self::FILEAREA,
+            $id,
+            '/',
+            'data.' . $ext
+        );
+        return $file !== false;
+    }
+
+    /**
      * Save document.
      *
      * @param int $id Document id.

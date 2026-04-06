@@ -70,7 +70,7 @@ if ($res) {
             if ($severity) {
                 $severity = ' list-group-item-' . $severity;
             }
-            echo '<li class="list-group-item' . $severity . '">' . $log['message'] . '</li>';
+            echo '<li class="list-group-item' . $severity . '">' . s($log['message']) . '</li>';
         }
         echo '</ul>';
         echo '<a href="' . $widgettableurl . '" class="btn btn-primary m-4">' . get_string('accept', 'core') . '</a>';
@@ -82,7 +82,7 @@ if ($res) {
             if ($severity) {
                 $severity = ' list-group-item-' . $severity;
             }
-            echo '<li class="list-group-item' . $severity . '">' . $log['message'] . '</li>';
+            echo '<li class="list-group-item' . $severity . '">' . s($log['message']) . '</li>';
         }
         echo '</ul>';
     }

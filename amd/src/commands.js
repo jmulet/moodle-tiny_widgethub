@@ -429,9 +429,10 @@ function initializeEditor(editor) {
 
         const requiresJquery = jqUrl !== '' && jqUrl !== 'none';
         const head = editor.getDoc().querySelector("head");
+        const iframeWindow = editor.getWin();
         try {
             // Load jQuery if required
-            if (requiresJquery) {
+            if (requiresJquery && !iframeWindow.jQuery) {
                 await loadScriptAsync(
                     editor,
                     jqUrl,
@@ -440,7 +441,9 @@ function initializeEditor(editor) {
             }
 
             // Load Bootstrap if required (bundle already includes Popper)
-            if (bsUrl !== '' && bsUrl !== 'none') {
+            // BS5 exposes window.bootstrap, BS4 attaches to jQuery.fn
+            const bsAlreadyLoaded = iframeWindow.bootstrap || iframeWindow.jQuery?.fn?.popover;
+            if (bsUrl !== '' && bsUrl !== 'none' && !bsAlreadyLoaded) {
                 await loadScriptAsync(
                     editor,
                     bsUrl,

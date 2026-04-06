@@ -8,7 +8,7 @@
  */
 document?.body?.setAttribute("id", "page-mod-page-mod");
 
-const { register, getWidgetDict, Shared, Widget, applyPartials } = require('../src/options');
+const { register, getWidgetDict, Shared, Widget, applyPartials, _resetCacheForTesting } = require('../src/options');
 
 
 /** @type {import('../src/options').RawWidget} */
@@ -103,6 +103,7 @@ describe('Options', () => {
 
     beforeEach(() => {
         fakeEditor = global.Mocks.editorFactory();
+        _resetCacheForTesting();
     });
 
     test('must register options', () => {
@@ -113,17 +114,13 @@ describe('Options', () => {
         expect(registerOption).toHaveBeenNthCalledWith(1, "showplugin", expect.any(Object));
         expect(registerOption).toHaveBeenNthCalledWith(2, "user", expect.any(Object));
         expect(registerOption).toHaveBeenNthCalledWith(3, "courseid", expect.any(Object));
-        expect(registerOption).toHaveBeenNthCalledWith(4, "widgetlist", expect.any(Object));
-        expect(registerOption).toHaveBeenNthCalledWith(5, "partials", expect.any(Object));
-        expect(registerOption).toHaveBeenNthCalledWith(6, "sharecss", expect.any(Object));
-        expect(registerOption).toHaveBeenNthCalledWith(7, "additionalcss", expect.any(Object));
+        expect(registerOption).toHaveBeenNthCalledWith(4, "sharecss", expect.any(Object));
+        expect(registerOption).toHaveBeenNthCalledWith(5, "userprefs", expect.any(Object));
     });
 
     test('It returns the dictionary of widgets', () => {
         fakeEditor.options.get = jest.fn().mockImplementation((param) => {
-            if (param === "widgetlist") {
-                return [rawSnpt, rawSnpt2, rawSnpt3];
-            } else if (param === "user") {
+            if (param === "user") {
                 return {
                     id: 5,
                     username: 'joe',
@@ -131,6 +128,7 @@ describe('Options', () => {
                 }
             }
         });
+        _resetCacheForTesting({ widgetList: [rawSnpt, rawSnpt2, rawSnpt3] });
 
         const dict1 = getWidgetDict(fakeEditor);
         const dict2 = getWidgetDict(fakeEditor);

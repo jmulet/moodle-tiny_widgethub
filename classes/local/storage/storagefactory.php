@@ -39,34 +39,13 @@ abstract class storagefactory {
      */
     public const PARTIALS_ID = 0;
     /**
-     * The invalid widget id.
-     */
-    public const INVALID_ID = -1;
-    /**
      * The failure widget id.
      */
     public const FAILURE_ID = -2;
     /**
-     * The standard fields including id and key.
+     * The invalid widget id.
      */
-    public const IDKEYFIELDS = 'id, key';
-    /**
-     * The standard fields including id, key, author, version and rev.
-     */
-    public const AUTHORVERSIONFIELDS = self::IDKEYFIELDS . ', author, version, rev, timemodified';
-    /**
-     * The standard fields including basic fields.
-     */
-    public const BASICFIELDS = self::AUTHORVERSIONFIELDS . ', name, category, hidden';
-    /**
-     * The standard fields including usual fields.
-     */
-    public const USUALFIELDS = self::BASICFIELDS .
-        ', order, icon, isfilter, isselectcapable, hasbindings, misc, scope';
-    /**
-     * All fields.
-     */
-    public const ALLFIELDS = '*';
+    public const INVALID_ID = -3;
 
     /** @var widgetstorage|null The singleton instance. */
     private static $instance = null;

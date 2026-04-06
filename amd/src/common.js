@@ -36,5 +36,5 @@ export default {
     jsAreaClassname: `${component}-jsarea`,
     pluginName: `${component}/plugin`,
     icon: component,
-    currentRelease: '1.4.2'
+    currentRelease: '1.5.0'
 };

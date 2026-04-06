@@ -38,6 +38,15 @@ interface documentstorage {
     public function get(int $id, string $ext = 'json'): ?string;
 
     /**
+     * Check if document exists.
+     *
+     * @param int $id Document id.
+     * @param string $ext Document extension.
+     * @return bool True if document exists, false otherwise.
+     */
+    public function exists(int $id, string $ext = 'json'): bool;
+
+    /**
      * Save document.
      *
      * @param int $id Document id.

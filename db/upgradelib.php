@@ -265,9 +265,9 @@ function tiny_widgethub_migrate_to_filearea_storage() {
 
         // Now it is safe to get rid of the config data.
         foreach (array_keys($index) as $id) {
-            unset_config($componentname, 'def_' . $id);
+            unset_config('def_' . $id, $componentname);
         }
-        unset_config($componentname, 'index');
+        unset_config('index', $componentname);
 
         // Commit the transaction.
         $transaction->allow_commit();

@@ -42,28 +42,25 @@ interface widgetstorage {
      * Get all widgets. It does not include partials.
      *
      * @param bool $includehidden Whether to include hidden widgets.
-     * @param string $fields The fields to retrieve.
      * @return \StdClass[] List of widgets.
      */
-    public function get_all_widgets(bool $includehidden = false, string $fields = storagefactory::USUALFIELDS): array;
+    public function get_all_widgets(bool $includehidden = false): array;
 
     /**
      * Get a widget by its unique key.
      *
      * @param string $key The widget key.
-     * @param string $fields The fields to retrieve.
      * @return \StdClass|bool The widget object or array, or false if not found.
      */
-    public function get_widget_by_key(string $key, string $fields = storagefactory::USUALFIELDS);
+    public function get_widget_by_key(string $key);
 
     /**
      * Get a widget by its database ID.
      *
      * @param int $id The widget ID.
-     * @param string $fields The fields to retrieve.
      * @return \StdClass|bool The widget object or array, or false if not found.
      */
-    public function get_widget_by_id(int $id, string $fields = storagefactory::USUALFIELDS);
+    public function get_widget_by_id(int $id);
 
     /**
      * Get the associated documents of widgets by their database IDs.
