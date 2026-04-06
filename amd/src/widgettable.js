@@ -267,7 +267,6 @@ export default {
                     for (let i = 0; i < missingIds.length; i += batchSize) {
                         const batchIds = missingIds.slice(i, i + batchSize);
                         const documents = await externalService.getWidgetDocuments(batchIds, true, false);
-                        
                         // Generate yml from json.
                         const documentsWithYml = documents.map(doc => {
                             return {
