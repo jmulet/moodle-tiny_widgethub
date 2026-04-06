@@ -108,26 +108,30 @@ export default {
                 header.classList.toggle('asc', isAsc);
                 header.classList.toggle('desc', !isAsc);
 
-                // Sorting.
-                rows.sort((rowA, rowB) => {
-                    const cellA = rowA.cells[columnIdx].innerText.trim();
-                    const cellB = rowB.cells[columnIdx].innerText.trim();
+                // Sorting using Schwartzian transform to avoid layout thrashing.
+                const mappedRows = rows.map((row) => {
+                    return {
+                        row,
+                        value: row.cells[columnIdx].textContent?.trim() || ''
+                    };
+                });
 
+                mappedRows.sort((a, b) => {
                     // Detect if it's a number or text.
-                    const aNum = parseFloat(cellA);
-                    const bNum = parseFloat(cellB);
+                    const aNum = parseFloat(a.value);
+                    const bNum = parseFloat(b.value);
 
                     if (!isNaN(aNum) && !isNaN(bNum)) {
                         return isAsc ? aNum - bNum : bNum - aNum;
                     }
 
                     return isAsc
-                        ? cellA.localeCompare(cellB)
-                        : cellB.localeCompare(cellA);
+                        ? a.value.localeCompare(b.value)
+                        : b.value.localeCompare(a.value);
                 });
 
                 // Redraw.
-                rows.forEach(row => tbody.appendChild(row));
+                mappedRows.forEach(mapped => tbody.appendChild(mapped.row));
             });
         });
 
@@ -259,19 +263,23 @@ export default {
             try {
                 const missingIds = await externalService.getWidgetsNoYml();
                 if (missingIds.length > 0) {
-                    // TODO create batches.
-                    const documents = await externalService.getWidgetDocuments(missingIds, true, false);
-                    // Generate yml from json.
-                    const documentsWithYml = documents.map(doc => {
-                        return {
-                            yml: json2yaml(doc.json ?? ''),
-                            id: doc.id,
-                            key: doc.key
-                        };
-                    });
+                    const batchSize = 25;
+                    for (let i = 0; i < missingIds.length; i += batchSize) {
+                        const batchIds = missingIds.slice(i, i + batchSize);
+                        const documents = await externalService.getWidgetDocuments(batchIds, true, false);
+                        
+                        // Generate yml from json.
+                        const documentsWithYml = documents.map(doc => {
+                            return {
+                                yml: json2yaml(doc.json ?? ''),
+                                id: doc.id,
+                                key: doc.key
+                            };
+                        });
 
-                    // Save missing yml documents.
-                    await externalService.saveWidgetsYml(documentsWithYml);
+                        // Save missing yml documents for this batch.
+                        await externalService.saveWidgetsYml(documentsWithYml);
+                    }
                 }
 
                 const response = /** @type {any} */ (await externalService.backupWidgets());
