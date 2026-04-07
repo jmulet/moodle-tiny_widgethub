@@ -71,6 +71,7 @@ function sanitize(doc) {
  * @property {string} vid
  * @property {string} value
  * @property {boolean} isDeleted
+ * @property {number} [textNodeIndex] - Child index of the text node for 'text' patches.
  */
 
 /**
@@ -179,7 +180,7 @@ function diffStyles(oldValue, currentValue) {
     const oldStyles = parseStyleString(oldValue);
     const newStyles = parseStyleString(currentValue);
     const addedOrChanged = Object.entries(newStyles).filter(([key, value]) => !oldStyles.hasOwnProperty(key) || oldStyles[key] !== value);
-    const removed = Object.keys(oldStyles).filter(([key]) => !newStyles.hasOwnProperty(key));
+    const removed = Object.keys(oldStyles).filter((key) => !newStyles.hasOwnProperty(key));
     return { addedOrChanged, removed };
 }
 
@@ -221,6 +222,9 @@ function vdomCreate(payload) {
                 }
                 const elem = /** @type {Element} */ (target);
                 patch.vid = elem.getAttribute('data-rvn-id');
+                if (!patch.vid) {
+                    return;
+                }
                 patch.isDeleted = !elem.hasAttribute(attrName);
                 patch.name = attrName;
                 const currentValue = elem.getAttribute(attrName);
@@ -239,7 +243,13 @@ function vdomCreate(payload) {
             } else if (mutation.type === 'characterData') {
                 patch.type = 'text';
                 patch.vid = target.parentElement?.getAttribute('data-rvn-id');
+                if (!patch.vid) {
+                    return;
+                }
                 patch.value = mutation.target.textContent;
+                // Record the child index so the host can update only this text node
+                // without touching sibling elements.
+                patch.textNodeIndex = Array.from(target.parentNode?.childNodes ?? []).indexOf(/** @type {ChildNode} */ (target));
             } else if (mutation.type === 'childList') {
                 patch.type = 'nodes';
                 if (target.nodeType === 1) {
@@ -247,6 +257,9 @@ function vdomCreate(payload) {
                     patch.vid = elem.getAttribute('data-rvn-id');
                 } else {
                     patch.vid = target.parentElement?.getAttribute('data-rvn-id');
+                }
+                if (!patch.vid) {
+                    return;
                 }
                 const addedNodes = Array.from(mutation.addedNodes);
                 patch.nodes = Array.from(target.childNodes).map(function (node) {
@@ -283,7 +296,7 @@ function vdomQuery(payload) {
     let error = undefined;
     const doc = instance.document;
     /** @type {any} */
-    let elem = doc.body.querySelector('[data-rvn-id="' + payload.rvnid + '"]');
+    let elem = doc.body.querySelector('[data-rvn-id="' + CSS.escape(payload.rvnid) + '"]');
     if (!elem) {
         return {
             error: 'vdom node not found for rvnid: ' + payload.rvnid
@@ -325,7 +338,7 @@ function vdomUpdate(payload) {
     let error = undefined;
     const doc = instance.document;
     /** @type {any} */
-    let elem = doc.body.querySelector('[data-rvn-id="' + payload.rvnid + '"]');
+    let elem = doc.body.querySelector('[data-rvn-id="' + CSS.escape(payload.rvnid) + '"]');
     if (!elem) {
         return {
             error: 'vdom node not found for rvnid: ' + payload.rvnid
@@ -393,16 +406,16 @@ function vdomDestroy(vid) {
 function getTrustedNodes(doc) {
     return Object.freeze(
         Object.assign(Object.create(null), {
-            scripts: new Set(
+            script: new Set(
                 Array.from(doc.querySelectorAll('script'))
             ),
-            styles: new Set(
+            style: new Set(
                 Array.from(doc.querySelectorAll('style'))
             ),
-            maths: new Set(
+            math: new Set(
                 Array.from(doc.querySelectorAll('math'))
             ),
-            svgs: new Set(
+            svg: new Set(
                 Array.from(doc.querySelectorAll('svg'))
             )
         })

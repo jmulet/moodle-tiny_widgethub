@@ -455,7 +455,7 @@ export class FormCtrl {
 
       const doUpdateVisibilities = async () => {
          const sandbox = await Sandbox.getInstance();
-         updatableComponents.forEach(async (upcomp) => {
+         for (const upcomp of updatableComponents) {
             // Evaluate condition
             const newVariables = this.extractFormParameters(widget, formElem, false);
             // Add to the new variables the internal variables
@@ -474,7 +474,7 @@ export class FormCtrl {
                   theComponent.style.display = showme ? '' : 'none';
                }
             }
-         });
+         }
       };
 
       // Apply the watchers

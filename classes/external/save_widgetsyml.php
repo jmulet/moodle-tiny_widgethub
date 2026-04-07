@@ -68,9 +68,9 @@ class save_widgetsyml extends external_api {
         $params = self::validate_parameters(self::execute_parameters(), ['widgets' => $widgets]);
         /** @var \context $context */
         $context = \context_system::instance();
+        self::validate_context($context);
         // Only admins can perform this action.
         require_capability('tiny/widgethub:manage', $context);
-        self::validate_context($context);
 
         $storage = storagefactory::get_instance();
         return $storage->save_widgetsyml($params['widgets']);

@@ -267,6 +267,15 @@ function processNextTask(type) {
 function onChannelMessage(e) {
     const data = e.data;
     if (data.type) {
+        if (!WORKER_CODES[data.type]) {
+            console.error('Unknown sandbox task type: ' + data.type);
+            port1?.postMessage(Object.assign(Object.create(null), {
+                requestId: data.requestId,
+                type: data.type,
+                error: 'Unknown task type: ' + data.type
+            }));
+            return;
+        }
         let queue = queues.get(data.type);
         if (!queue) {
             queue = [];

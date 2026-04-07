@@ -69,7 +69,7 @@ export class FetchDocumentsBatch {
     /**
      * Immediately sends all queued requests to the server.
      */
-    async _flush() {
+    _flush() {
         if (this.timer) {
             clearTimeout(this.timer);
         }

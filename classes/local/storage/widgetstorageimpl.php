@@ -398,7 +398,7 @@ class widgetstorageimpl implements widgetstorage {
                 $hasinsertquery = !empty(storagefactory::get_prop($widget, 'insertquery'));
                 $slimdoc['isselectcapable'] = ($hasselectors && $hasinsertquery);
                 $parameters = storagefactory::get_prop($widget, 'parameters');
-                $slimdoc['hasbindings'] = $parameters !== null && preg_match('/"bind":/', json_encode($parameters));
+                $slimdoc['hasbindings'] = $parameters !== null && preg_match('/"bind":/', json_encode($parameters)) === 1;
                 unset($slimdoc['template']);
                 unset($slimdoc['filter']);
                 unset($slimdoc['instructions']);

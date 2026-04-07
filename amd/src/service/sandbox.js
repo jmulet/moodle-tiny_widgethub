@@ -65,8 +65,14 @@ export class Sandbox {
      */
     static async getInstance() {
         if (!Sandbox._instance) {
-            Sandbox._instance = new Sandbox('render_sandbox');
-            await Sandbox._instance._createSandboxedIframe();
+            const inst = new Sandbox('render_sandbox');
+            Sandbox._instance = inst;
+            try {
+                await inst._createSandboxedIframe();
+            } catch (e) {
+                Sandbox._instance = null;
+                throw e;
+            }
         }
         return Sandbox._instance;
     }
@@ -153,6 +159,11 @@ export class Sandbox {
     }
 
     destroy() {
+        // Reject and clear all pending tasks before tearing down.
+        this._tasks.forEach(task => {
+            window.clearTimeout(task.timeout);
+            task.reject(new Error('Sandbox destroyed'));
+        });
         this._tasks.clear();
         if (this._onPostMessage) {
             // Tear down the message listener
@@ -171,6 +182,13 @@ export class Sandbox {
             this._iframe = null;
             this._readyPromise = null;
         }
+        // Reset the singleton so getInstance() can create a fresh sandbox.
+        if (Sandbox._instance === this) {
+            Sandbox._instance = null;
+        }
+        if (RemoteDom._instance === this) {
+            RemoteDom._instance = null;
+        }
     }
 
     /**
@@ -187,8 +205,7 @@ export class Sandbox {
         if (!this._port2) {
             throw new Error('!!Sandbox not ready');
         }
-        // eslint-disable-next-line no-async-promise-executor
-        return new Promise(async (resolve, reject) => {
+        return new Promise((resolve, reject) => {
             const requestId = genRequestId();
             const timeout = window.setTimeout(() => {
                 this._tasks.delete(requestId);
@@ -216,6 +233,7 @@ export class Sandbox {
  * @property {Array<string>} [styleRemoved]
  * @property {Array<[string, string]>} [styleAdded]
  * @property {Array<VNode>} [nodes]
+ * @property {number} [textNodeIndex] - Child index of the text node for 'text' patches.
  */
 
 export class RemoteDom extends Sandbox {
@@ -231,8 +249,14 @@ export class RemoteDom extends Sandbox {
      */
     static async getInstance() {
         if (!RemoteDom._instance) {
-            RemoteDom._instance = new RemoteDom('dom_sandbox');
-            await RemoteDom._instance._createSandboxedIframe();
+            const inst = new RemoteDom('dom_sandbox');
+            RemoteDom._instance = inst;
+            try {
+                await inst._createSandboxedIframe();
+            } catch (e) {
+                RemoteDom._instance = null;
+                throw e;
+            }
         }
         return RemoteDom._instance;
     }
@@ -493,11 +517,10 @@ export class RemoteDom extends Sandbox {
      */
     _applyMutation(rootElement, patch) {
         let node;
-        const safeVid = (patch.vid || '').replace(/[\\"]/g, '\\$&');
         if (rootElement.getAttribute('data-rvn-id') === patch.vid) {
             node = rootElement;
         } else {
-            node = rootElement.querySelector(`[data-rvn-id="${safeVid}"]`);
+            node = rootElement.querySelector(`[data-rvn-id="${CSS.escape(patch.vid || '')}"]`);
         }
         if (!node) {
             console.warn('Apply mutation: Node not found', patch.vid);
@@ -546,7 +569,16 @@ export class RemoteDom extends Sandbox {
                 node.setAttribute(patch.name, patch.value);
             }
         } else if (patch.type === 'text') {
-            node.textContent = patch.value;
+            // Update only the specific text node by its recorded child index,
+            // leaving sibling elements (icons, spans, etc.) untouched.
+            const idx = patch.textNodeIndex ?? -1;
+            const target = idx >= 0 ? node.childNodes[idx] : null;
+            if (target && target.nodeType === 3) {
+                target.textContent = patch.value;
+            } else {
+                // Fallback for patches without an index (single text-child elements).
+                node.textContent = patch.value;
+            }
         } else if (patch.type === 'nodes') {
             // Smart reconciliation of children
             const existingChildren = new Map();

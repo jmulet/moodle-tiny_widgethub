@@ -47,7 +47,7 @@ final class save_widgetsyml_test extends \externallib_advanced_testcase {
         $widget = ['key' => 'wkw1', 'author' => 'Me', 'version' => '1.0'];
         $id = $storage->save_widget(null, $widget, null); // No YML initially.
         // Test invalid widget (does not pass validation).
-        $this->assertEquals(-1, $id);
+        $this->assertSame(storagefactory::INVALID_ID, $id);
 
         $widget['template'] = 'template';
         $widget['name'] = 'W1';

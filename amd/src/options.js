@@ -539,8 +539,7 @@ export class Widget {
         }
 
         // Define and store the new promise
-        // eslint-disable-next-line no-async-promise-executor
-        this._loadingPromise = new Promise(async (resolve, reject) => {
+        const doLoad = async () => {
             try {
                 editor?.setProgressState(true);
                 const doc = await Widget.documentBatcher.fetchDocument(this._widget.id ?? 0);
@@ -552,17 +551,17 @@ export class Widget {
 
                 applyPartials(this._widget, this.partials);
                 this._fullyLoaded = true;
-                resolve();
             } catch (e) {
                 console.error(e);
-                reject(e);
+                throw e;
             } finally {
                 // Clear the lock so subsequent calls (if failed) can try again
                 this._loadingPromise = null;
                 editor?.setProgressState(false);
             }
-        });
+        };
 
+        this._loadingPromise = doLoad();
         return this._loadingPromise;
     }
 
