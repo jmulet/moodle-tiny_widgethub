@@ -619,7 +619,7 @@ author: Josep Mulet <pep.mulet@gmail.com>
 version: 1.0.0
 ````
 
-### Example 9. Using the Liquid template engine
+### Example 9. Using the Liquid template engine (since version 1.5.0)
 
 In addition to Mustache and EJS, WidgetHub supports the [Liquid](https://liquidjs.com/) template engine. Liquid provides a safe and flexible way to write templates with conditionals, loops, and filters — without allowing arbitrary code execution.
 

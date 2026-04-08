@@ -216,7 +216,7 @@ function tiny_widgethub_migrate_to_filearea_storage() {
             $hasinsertquery = !empty(tiny_widgethub_getprop($raw, 'insertquery'));
             $slimdoc['isselectcapable'] = ($hasselectors && $hasinsertquery);
             $parameters = tiny_widgethub_getprop($raw, 'parameters');
-            $slimdoc['hasbindings'] = $parameters !== null && preg_match('/"bind":/', json_encode($parameters));
+            $slimdoc['hasbindings'] = $parameters !== null && preg_match('/"bind":/', json_encode($parameters)) === 1;
             unset($slimdoc['template']);
             unset($slimdoc['filter']);
             unset($slimdoc['instructions']);

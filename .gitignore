@@ -4,6 +4,7 @@ coverage/
 **/jsunit/src
 presets/*.txt
 TODO
+CLAUDE.md
 .hashes-presets-tiny.*
 package-lock.json
 .DS_Store
