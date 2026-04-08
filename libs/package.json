@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "rollup --config ./codemirror6/rollup.config.js",
+    "build": "rollup --config ./rollup.config.js",
     "serve": "npx http-server ./playground -o index.html"
   },
   "keywords": [],
@@ -14,21 +14,29 @@
   "dependencies": {
     "@codemirror/autocomplete": "^6.18.6",
     "@codemirror/commands": "^6.8.1",
+    "@codemirror/lang-css": "^6.3.1",
+    "@codemirror/lang-html": "^6.4.11",
     "@codemirror/lang-yaml": "^6.1.2",
     "@codemirror/language": "^6.11.2",
     "@codemirror/lint": "^6.8.5",
     "@codemirror/search": "^6.5.11",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.38.1",
+    "cash-dom": "^8.1.5",
     "codemirror": "^6.0.2",
+    "jquery-slim": "^3.0.0",
+    "liquidjs": "^10.24.0",
+    "mustache": "^4.2.0",
     "yaml": "^2.8.1",
-    "zod": "^4.0.16"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-commonjs": "^28.0.9",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-replace": "^6.0.2",
-    "rollup": "^4.46.2"
+    "rollup": "^4.46.2",
+    "rollup-plugin-esbuild": "^6.2.1",
+    "rollup-plugin-string-import": "^1.2.6"
   }
 }

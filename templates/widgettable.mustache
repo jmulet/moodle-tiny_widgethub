@@ -1,0 +1,136 @@
+ {{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template tiny_widgethub/widgettable
+
+    Layout of the widget table.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Context variables required for this template:
+    * tableid: The id of the table.
+    * selectallid: The id of the select all checkbox.
+    * deletebtnid: The id of the delete button.
+    * exportid: The id of the export button.
+    * urls: The urls of the partials and new widget.
+    * widgets: The list of widgets.
+
+    Example context (json):
+    {
+        "tableid": "tiny_widgethub_widgetlist",
+        "selectallid": "tiny_selectall",
+        "deletebtnid": "tiny_deletebtn",
+        "exportid": "tiny_widgethub_export",
+        "urls": {
+            "partials": "/local/widgethub/settingseditorpage.php",
+            "new_widget": "/local/widgethub/settingseditorpage.php"
+        },
+        "widgets": [
+            {
+                "id": 1,
+                "key": "key1",
+                "name": "name1",
+                "hidden": false,
+                "category": "category1",
+                "url": "/local/widgethub/settingseditorpage.php?id=1"
+            }
+        ]
+    }
+}}
+<div class="tiny_widgethub_management">
+    <div id ="widgettable" class="responsive-table" style="max-height: 600px; overflow-y: auto;">
+    <table id="{{tableid}}" class="generaltable table table-hover" style="border-collapse: separate; border-spacing: 0;">
+        <thead class="position-sticky tiny_widgethub-top-0 bg-light z-index-1">
+            <tr>
+                <th class="text-center" style="width: 40px;" scope="col">
+                    <input type="checkbox" id="{{selectallid}}">
+                </th>
+                <th style="cursor: pointer; user-select: none; white-space: nowrap;" data-sort="1" scope="col">
+                    {{#str}} category, tiny_widgethub {{/str}} <i class="fa fa-sort m-1"></i>
+                </th>
+                <th style="cursor: pointer; user-select: none; white-space: nowrap;" data-sort="2" scope="col">
+                    {{#str}} key, tiny_widgethub {{/str}} <i class="fa fa-sort m-1"></i>
+                </th>
+                <th style="cursor: pointer; user-select: none; white-space: nowrap;" data-sort="3" scope="col">
+                    {{#str}} name, tiny_widgethub {{/str}} <i class="fa fa-sort m-1"></i>
+                </th>
+                <th scope="col">{{#str}} actions, core {{/str}}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#widgets}}
+            <tr data-id="{{id}}">
+                <td class="text-center">
+                    <input type="checkbox" class="tiny_widgethub-check" value="{{id}}">
+                </td>
+                <td>
+                    <span class="badge bg-secondary text-capitalize">{{category}}</span>
+                </td>
+                <td>
+                    {{key}}
+                </td>
+                <td>{{name}}</td>
+                <td>
+                    <i class="fa fa-eye{{#hidden}}-slash btn-warning{{/hidden}}" role="button" style="cursor: pointer; margin-right: 1rem !important;"
+                    data-visible="{{#hidden}}0{{/hidden}}{{^hidden}}1{{/hidden}}"></i>
+
+                    <a href="{{url}}" title="{{#str}} edit, tiny_widgethub {{/str}} id={{id}}"><i class="fa fa-pencil"></i></a>
+                </td>
+            </tr>
+            {{/widgets}}
+        </tbody>
+        <tfoot class="position-sticky tiny_widgethub-bottom-0 bg-light z-index-1">
+            <tr>
+                <td colspan="5" class="text-right">
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+    </div>
+
+    <div class="d-flex justify-content-between mt-1 mb-6 align-items-center">
+        <div>
+            <button id="{{deletebtnid}}" class="btn btn-outline-danger m-2" type="button" disabled title="{{#str}} delete, tiny_widgethub {{/str}}">
+                <i class="fa fa-trash"></i>
+                <span class="d-none d-xl-inline-block">{{#str}} delete, tiny_widgethub {{/str}}</span>
+            </button>
+            <button id="{{exportid}}" class="btn btn-outline-info m-2" type="button" title="{{#str}} backup, core {{/str}}">
+                <i class="fa fa-download"></i>
+                <span class="d-none d-xl-inline-block">{{#str}} backup, core {{/str}}</span>
+            </button>
+            <a href="{{urls.restore}}" id="restorebtn" class="btn btn-outline-info" title="{{#str}} restore, core {{/str}}">
+                <i class="fa fa-upload"></i>
+                <span class="d-none d-xl-inline-block">{{#str}} restore, core {{/str}}</span>
+            </a>
+        </div>
+        <div>
+            <a href="{{urls.partials}}" class="m-2 mr-5" title="partials">
+                <i class="fa fa-cogs"></i>
+                <span class="d-none d-xl-inline-block">Partials</span>
+            </a>
+            <a href="{{urls.newwidget}}" class="m-2" title="{{#str}} createwidget, tiny_widgethub {{/str}}">
+                <i class="fa fa-plus-circle"></i>
+                <span class="d-none d-xl-inline-block">{{#str}} createwidget, tiny_widgethub {{/str}}</span>
+            </a>
+        </div>
+    </div>
+
+</div>

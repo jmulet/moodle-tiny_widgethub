@@ -8,13 +8,10 @@
 const { TemplateSrv } = require("../../src/service/template_service");
 const Mustache = require("mustache");
 
-const EJS = require('ejs');
-/** @type {*} */
-const ejsLoader = () => Promise.resolve(EJS);
 /**
  * @type {TemplateSrv}
  */
-let templateSrv; 
+let templateSrv;
 
 const context = {
     lastname: "Josep",
@@ -34,19 +31,27 @@ const translations = {
         "en": "Watch out!"
     }
 };
+/** @type {*} */
+let sandbox;
 
 describe('TemplateSrv', () => {
 
-    beforeEach( ()=> {
-        templateSrv = new TemplateSrv(Mustache, ejsLoader);
+    beforeEach(async () => {
+        const Sandbox = require('../../src/service/sandbox').Sandbox;
+        sandbox = await Sandbox.getInstance();
+        templateSrv = new TemplateSrv(Mustache, null); // Do not pass editor (avoid sanitization)
+    });
+
+    afterEach(() => {
+        sandbox.destroy();
     });
 
     describe("EJS tests", () => {
         test.each([
-            ['Hi <%= name %>!', {name: 'Moodle'}, "Hi Moodle!"],
-            ["<%= name === 'Moodle' ? 'LMS' : 'Not' %>", {name: 'Moodle'}, "LMS"],
-            ["<%= I18n['animal'] %>", {_lang: 'es'}, "gato"],
-            ["{{#I18n}}animal{{/I18n}}", {_lang: 'en'}, "cat"],
+            ['Hi <%= name %>!', { name: 'Moodle' }, "Hi Moodle!"],
+            ["<%= name === 'Moodle' ? 'LMS' : 'Not' %>", { name: 'Moodle' }, "LMS"],
+            ["<%= I18n['animal'] %>", { _lang: 'es' }, "gato"],
+            ["{{#I18n}}animal{{/I18n}}", { _lang: 'en' }, "cat"],
         ])('Test ejs template renderer', async (template, ctx, expected) => {
             const translations = {
                 "animal": {
@@ -54,7 +59,8 @@ describe('TemplateSrv', () => {
                     "es": "gato"
                 },
             }
-            const result = await templateSrv.render(template, ctx, translations)
+            sandbox.execute.mockResolvedValue({ result: expected });
+            const result = await templateSrv.render(template, ctx, translations, 'ejs')
             expect(result).toBe(expected);
         });
     });
@@ -62,9 +68,9 @@ describe('TemplateSrv', () => {
     describe('Mustache Extended tests', () => {
 
         test("Mocked mustache works as expected", () => {
-            expect(Mustache.render('Hello {{w}}!', {w: 'World'})).toBe('Hello World!');
+            expect(Mustache.render('Hello {{w}}!', { w: 'World' })).toBe('Hello World!');
         });
-        
+
         test.each([
             ["Simple test", "Hello {{lastname}}{{#showMe}}Not shown{{/showMe}} {{#n}}YES{{/n}}", "Hello Josep YES"],
             ["Simple numeric if", "Hello {{#k}}shown{{/k}}", "Hello shown"],
@@ -79,23 +85,32 @@ describe('TemplateSrv', () => {
             ["Simplified matrix notation 1", "{{#each}}[2,3]{{i}}-{{j}} {{/each}}", "1-1 1-2 1-3 2-1 2-2 2-3 "],
             ["Simplified matrix notation 2", "{{#each}}[a=2,b=3]{{a}}-{{b}} {{/each}}", "1-1 1-2 1-3 2-1 2-2 2-3 "],
             ["Eval functions", "Hello {{#eval}}4+4{{/eval}}", "Hello 8"]
-        ])("%s", (_, template, rendered) => {
-            const out = templateSrv.renderMustache(template, context, translations);
+        ])("%s", async (_, template, rendered) => {
+            sandbox.execute.mockResolvedValue({ result: rendered });
+            const out = await templateSrv.render(template, context, translations, 'mustache');
             expect(out).toBe(rendered);
         });
-         
-        test("Translations", ()=> {
-            let out = templateSrv.renderMustache("Aquest és l'widget {{#I18n}}snptKey{{/I18n}}", context, translations);
-            expect(out).toBe("Aquest és l'widget Watch out!");
+
+        test("Translations", async () => {
+            let expected = "Aquest és l'widget Watch out!";
+            sandbox.execute.mockResolvedValue({ result: expected });
+            let out = await templateSrv.render("Aquest és l'widget {{#I18n}}snptKey{{/I18n}}", context, translations, 'mustache');
+            expect(out).toBe(expected);
             context["_lang"] = "ca"
-            out = templateSrv.renderMustache("Aquest és l'widget {{#I18n}}snptKey{{/I18n}}", context, translations);
-            expect(out).toBe("Aquest és l'widget Alerta");
+            expected = "Aquest és l'widget Alerta";
+            sandbox.execute.mockResolvedValue({ result: expected });
+            out = await templateSrv.render("Aquest és l'widget {{#I18n}}snptKey{{/I18n}}", context, translations, 'mustache');
+            expect(out).toBe(expected);
             context["_lang"] = "ru"
-            out = templateSrv.renderMustache("Aquest és l'widget {{#I18n}}snptKey{{/I18n}}", context, translations);
-            expect(out).toBe("Aquest és l'widget Watch out!");
+            expected = "Aquest és l'widget Watch out!";
+            sandbox.execute.mockResolvedValue({ result: expected });
+            out = await templateSrv.render("Aquest és l'widget {{#I18n}}snptKey{{/I18n}}", context, translations, 'mustache');
+            expect(out).toBe(expected);
             context["_lang"] = "ru"
-            out = templateSrv.renderMustache("Aquest és l'widget {{#I18n}}notFound{{/I18n}}", context, translations);
-            expect(out).toBe("Aquest és l'widget notFound");
+            expected = "Aquest és l'widget notFound";
+            sandbox.execute.mockResolvedValue({ result: expected });
+            out = await templateSrv.render("Aquest és l'widget {{#I18n}}notFound{{/I18n}}", context, translations, 'mustache');
+            expect(out).toBe(expected);
         });
     });
 })

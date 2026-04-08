@@ -15,25 +15,26 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny WidgetHub plugin.
+ * Local WidgetHub plugin.
  *
- * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @module      tiny_widgethub/widgettable
+ * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import Notification from 'core/notification';
-import Ajax from 'core/ajax';
-import { hashCode } from './util';
+import { getExternalService } from './service/external_service';
+import { hashCode, spinElement, unspinElement } from './util';
+import { fromJSON as json2yaml } from './libs/yaml-lazy';
 
 /**
  * Update the footer of the table.
  * @param {HTMLTableElement} table - The table element.
  * @param {HTMLTableCellElement} tableFooterCell - The footer cell element.
  */
-const updateFooter = function (table, tableFooterCell) {
+function updateFooter(table, tableFooterCell) {
     const nrows = table.querySelectorAll('tbody tr').length;
     tableFooterCell.innerHTML = `${nrows} widgets`;
-};
+}
 
 export default {
     /**
@@ -51,26 +52,24 @@ export default {
         /** @type {HTMLTableElement | null} */
         // @ts-ignore
         const table = document.getElementById(params.tableId);
+        /** @type {HTMLTableCellElement | null} */
+        // @ts-ignore
+        const tableFooterCell = table.querySelector('tfoot td');
         /** @type {HTMLInputElement | null} */
         // @ts-ignore
         const selectAll = document.getElementById(params.selectAllId);
         /** @type {HTMLButtonElement | null} */
         // @ts-ignore
         const deleteBtn = document.getElementById(params.deleteBtnId);
+        /** @type {HTMLButtonElement | null} */
+        // @ts-ignore
+        const exportBtn = document.getElementById(params.exportBtnId);
 
-        if (!table || !selectAll || !deleteBtn) {
+        if (!table || !tableFooterCell || !selectAll || !deleteBtn || !exportBtn) {
             return;
         }
 
         // Add a footer to the table
-        const tableFooter = document.createElement('tfoot');
-        const tableFooterRow = document.createElement('tr');
-        const tableFooterCell = document.createElement('td');
-        tableFooterCell.classList.add('text-right', 'position-sticky', 'tiny_widgethub-bottom-0', 'bg-light', 'z-index-1');
-        tableFooterCell.colSpan = table.rows[0].cells.length;
-        tableFooterRow.appendChild(tableFooterCell);
-        tableFooter.appendChild(tableFooterRow);
-        table.appendChild(tableFooter);
         updateFooter(table, tableFooterCell);
 
         // Add colors to category badges
@@ -87,32 +86,10 @@ export default {
             badge.style.setProperty('color', 'white');
         });
 
-        /** @type {HTMLElement | null} */
-        const parent = table.parentElement;
-        const isAlreadyWrapped = parent &&
-            parent.classList.contains('table-responsive');
-        if (!isAlreadyWrapped) {
-            const tableContainer = document.createElement('div');
-            tableContainer.classList.add('table-responsive');
-            table.replaceWith(tableContainer);
-            tableContainer.appendChild(table);
-            tableContainer.style.maxHeight = '600px';
-            tableContainer.style.overflowY = 'auto';
-        } else {
-            parent.style.maxHeight = '600px';
-            parent.style.overflowY = 'auto';
-        }
-
         document.querySelector('#admin-widgettable div.form-defaultinfo')?.classList?.add('d-none');
-        /** @type {NodeListOf<HTMLTableCellElement>} */
-        const allHeaders = table.querySelectorAll('thead th');
-        allHeaders.forEach(header => {
-            header.setAttribute('scope', 'col');
-            header.classList.add('position-sticky', 'tiny_widgethub-top-0', 'bg-light', 'z-index-1');
-        });
 
         /** @type {NodeListOf<HTMLTableCellElement>} */
-        const headers = table.querySelectorAll('th span[data-sort]');
+        const headers = table.querySelectorAll('th[data-sort]');
         headers.forEach(header => {
             header.addEventListener('click', () => {
                 const columnIdxStr = header.getAttribute('data-sort');
@@ -131,26 +108,30 @@ export default {
                 header.classList.toggle('asc', isAsc);
                 header.classList.toggle('desc', !isAsc);
 
-                // Sorting.
-                rows.sort((rowA, rowB) => {
-                    const cellA = rowA.cells[columnIdx].innerText.trim();
-                    const cellB = rowB.cells[columnIdx].innerText.trim();
+                // Sorting using Schwartzian transform to avoid layout thrashing.
+                const mappedRows = rows.map((row) => {
+                    return {
+                        row,
+                        value: row.cells[columnIdx].textContent?.trim() || ''
+                    };
+                });
 
+                mappedRows.sort((a, b) => {
                     // Detect if it's a number or text.
-                    const aNum = parseFloat(cellA);
-                    const bNum = parseFloat(cellB);
+                    const aNum = parseFloat(a.value);
+                    const bNum = parseFloat(b.value);
 
                     if (!isNaN(aNum) && !isNaN(bNum)) {
                         return isAsc ? aNum - bNum : bNum - aNum;
                     }
 
                     return isAsc
-                        ? cellA.localeCompare(cellB)
-                        : cellB.localeCompare(cellA);
+                        ? a.value.localeCompare(b.value)
+                        : b.value.localeCompare(a.value);
                 });
 
                 // Redraw.
-                rows.forEach(row => tbody.appendChild(row));
+                mappedRows.forEach(mapped => tbody.appendChild(mapped.row));
             });
         });
 
@@ -197,6 +178,43 @@ export default {
             }
         });
 
+        const locks = {
+            visibilities: new Set(),
+        };
+        table.addEventListener('click', (e) => {
+            /** @type {HTMLElement | null} */
+            // @ts-ignore
+            const target = e.target?.closest('i[data-visible]');
+            if (target) {
+                const isVisible = target.getAttribute('data-visible') === '1';
+                const id = target.closest('tr')?.getAttribute('data-id');
+                if (id) {
+                    if (locks.visibilities.has(id)) {
+                        return;
+                    }
+                    locks.visibilities.add(id);
+                    spinElement(target, null);
+                    const externalService = getExternalService();
+                    externalService.setVisibility(parseInt(id), !isVisible).then((/** @type {boolean} */ success) => {
+                        unspinElement(target, null);
+                        if (!success) {
+                            console.error('Failed to update visibility');
+                            return;
+                        }
+                        target.classList.toggle('fa-eye');
+                        target.classList.toggle('fa-eye-slash');
+                        target.classList.toggle('btn-warning');
+                        target.setAttribute('data-visible', isVisible ? '0' : '1');
+                        locks.visibilities.delete(id);
+                    }).catch((err) => {
+                        unspinElement(target, null);
+                        console.error('Failed to update visibility', err);
+                        locks.visibilities.delete(id);
+                    });
+                }
+            }
+        });
+
         // 3. DELETION LOGIC (With Moodle confirmation)
         deleteBtn.addEventListener('click', () => {
             /** @type {NodeListOf<HTMLInputElement>} */
@@ -213,11 +231,10 @@ export default {
                 params.confirmMessage,
                 params.confirmBtn,
             ).then(() => {
-                // @ts-ignore
-                Ajax.call([{
-                    methodname: 'tiny_widgethub_delete_widgets',
-                    args: { ids }
-                }])[0].then((/** @type {any} */ response) => {
+                spinElement(deleteBtn);
+                const externalService = getExternalService();
+                externalService.deleteWidgets(ids).then((/** @type {any} */ response) => {
+                    unspinElement(deleteBtn);
                     selectAll.checked = false;
                     deleteBtn.disabled = true;
                     const deletedIds = response.ids;
@@ -229,6 +246,7 @@ export default {
                     });
                     updateFooter(table, tableFooterCell);
                 }).catch((/** @type {any} */ ex) => {
+                    unspinElement(deleteBtn);
                     console.error(ex);
                 });
             }).catch(() => {
@@ -236,6 +254,52 @@ export default {
                 selectAll.dispatchEvent(new Event('change'));
                 updateFooter(table, tableFooterCell);
             });
+        });
+
+        exportBtn.addEventListener('click', async () => {
+            spinElement(exportBtn);
+            // Precheck if all documents include yml, if not generate from json.
+            const externalService = getExternalService();
+            try {
+                const missingIds = await externalService.getWidgetsNoYml();
+                if (missingIds.length > 0) {
+                    const batchSize = 25;
+                    for (let i = 0; i < missingIds.length; i += batchSize) {
+                        const batchIds = missingIds.slice(i, i + batchSize);
+                        const documents = await externalService.getWidgetDocuments(batchIds, true, false);
+                        // Generate yml from json.
+                        const documentsWithYml = documents.map(doc => {
+                            return {
+                                yml: json2yaml(doc.json ?? ''),
+                                id: doc.id,
+                                key: doc.key
+                            };
+                        });
+
+                        // Save missing yml documents for this batch.
+                        await externalService.saveWidgetsYml(documentsWithYml);
+                    }
+                }
+
+                const response = /** @type {any} */ (await externalService.backupWidgets());
+                const draftAreaUrl = response.url;
+                const a = document.createElement('a');
+                a.href = draftAreaUrl;
+                const now = new Date();
+                const dateString =
+                    now.getFullYear().toString() +
+                    (now.getMonth() + 1).toString().padStart(2, '0') +
+                    now.getDate().toString().padStart(2, '0') +
+                    now.getHours().toString().padStart(2, '0') +
+                    now.getMinutes().toString().padStart(2, '0') +
+                    now.getSeconds().toString().padStart(2, '0');
+                a.download = `tiny_widgethub_backup_${dateString}.whz`;
+                a.click();
+            } catch (ex) {
+                console.error(ex);
+            } finally {
+                unspinElement(exportBtn);
+            }
         });
     }
 };

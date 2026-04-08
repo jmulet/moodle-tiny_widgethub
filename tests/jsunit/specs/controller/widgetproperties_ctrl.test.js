@@ -18,40 +18,17 @@ const { WidgetPropertiesCtrl, getWidgetPropertiesCtrl } =
 let mockEditor;
 
 /** @type {*} */
-const mockUserStorage = {
-    getFromLocal: () => {
-        return undefined;
-    },
-    getFromSession: () => {
-        return undefined;
-    }
-};
-
-/** @type {*} */
-const mockTemplateSrv = {
-    render: jest.fn(),
-    renderMustache: jest.fn(),
-    renderEJS: jest.fn()
-};
-
-/** @type {*} */
-const mockFileSrv = {
-    getImagePicker: jest.fn(),
-    displayImagePicker: jest.fn()
-};
-
-/** @type {*} */
 const widget = {
     key: "key",
     name: "widget-name",
-    defaults: { p1: "a", p2: 11 },
+    defaults: { p1: "a", p2: "11", p3: 0, p4: false, p5: "#000000", p6: "a" },
     parameters: [
-        { name: "p1", value: "", type: "textfield", bind: "attr('title')" },
-        { name: "p2", value: "", type: "textarea" },
+        { name: "p1", value: "a", type: "textfield", bind: "attr('title')" },
+        { name: "p2", value: "11", type: "textarea" },
         { name: "p3", value: 0, type: "numeric" },
         { name: "p4", value: false, type: "checkbox", bind: "hasClass('somecls')" },
         { name: "p5", value: "#000000", type: "color" },
-        { name: "p6", value: "", type: "select", options: ["a", "b", "c"] },
+        { name: "p6", value: "a", type: "select", options: ["a", "b", "c"] },
     ],
     isFilter: () => false,
     hasBindings: () => true
@@ -89,7 +66,7 @@ describe("WidgetPickerCtrl", () => {
         const consoleSpy = jest.spyOn(global.console, 'error');
 
         currentContext = {}
-        widgetPropertiesCtrl.show(currentContext);
+        await widgetPropertiesCtrl.show(currentContext);
         expect(consoleSpy).toHaveBeenCalledWith("Missing widget on currentContext");
         expect(mockModalSrv.create).not.toHaveBeenCalled();
 
@@ -99,8 +76,8 @@ describe("WidgetPickerCtrl", () => {
             },
             elem: htmlToElement(document, '<span></span>')
         };
-        widgetPropertiesCtrl.show(currentContext);
-        expect(consoleSpy).toHaveBeenCalledWith("Invalid widget definition ", currentContext.widget);
+        await widgetPropertiesCtrl.show(currentContext);
+        expect(consoleSpy).toHaveBeenCalledWith("Widget has no bindings ", currentContext.widget);
         expect(mockModalSrv.create).not.toHaveBeenCalled();
 
         consoleSpy.mockClear();
@@ -126,6 +103,7 @@ describe("WidgetPickerCtrl", () => {
 
         // Accept the form
         widgetPropertiesCtrl.modal?.footer.find("button.tiny_widgethub-btn-primary").trigger('click');
+        // 
         // Check that the elem has been updated accordingly
         expect(elem.title).toBe('The title here');
         expect(elem.classList.contains('somecls')).toBe(true);
@@ -159,7 +137,7 @@ describe("WidgetPickerCtrl", () => {
             p4: true
         });
 
-        // Accept the form
+        // Cancel the form
         widgetPropertiesCtrl.modal?.footer.find("button.btn-secondary").trigger('click');
         // Check that the elem has been not been updated
         expect(elem.title).toBe('none');

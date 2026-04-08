@@ -1,7 +1,5 @@
 /* eslint-disable no-console */
-/* eslint-disable no-eq-null */
 /* eslint-disable no-bitwise */
-/* eslint-disable no-new-func */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -21,11 +19,9 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import Common from './common';
-const { component } = Common;
 
 /**
  * @param {string} [prefix]
@@ -38,47 +34,202 @@ export function genID(prefix = 'g') {
 }
 
 /**
- * @param {Object.<string, any>} ctx
- * @param {string} expr
- * @param {boolean=} keepFns - Keep or not the funcions in the ctx
- * @returns {any} The evaluated expression within the context ctx
+ * @param {string} val
+ * @returns {any}
  */
-export function evalInContext(ctx, expr, keepFns) {
-    const listArgs = [];
-    const listVals = [];
-
-    if (ctx) {
-        Object.keys(ctx).forEach((key) => {
-            // Remove functions from ctx
-            if (keepFns || typeof ctx[key] !== "function") {
-                listArgs.push(key);
-                listVals.push(ctx[key]);
-            }
-        });
+const castValue = (val) => {
+    val = val.trim();
+    if (val === '') {
+        return undefined;
     }
-    listArgs.push('expr');
-    listArgs.push('return eval(expr)');
-    listVals.push(expr);
-    const evaluator = new Function(...listArgs);
-    return evaluator(...listVals);
-}
-
-/**
- * @param {string} s - string to be hashed
- * @returns {number}
- */
-export function hashCode(s) {
-    s = s || "";
-    let h = 0;
-    const l = s.length;
-    let i = 0;
-    if (l > 0) {
-        while (i < l) {
-            h = (h << 6) + ((s.charCodeAt(i) - 65) | 0);
-            i++;
+    if (val === 'true') {
+        return true;
+    }
+    if (val === 'false') {
+        return false;
+    }
+    if (val === 'null') {
+        return null;
+    }
+    if (val === 'undefined') {
+        return undefined;
+    }
+    // Regex Support: /pattern/flags
+    if (val.startsWith('/')) {
+        const lastSlashIndex = val.lastIndexOf('/');
+        if (lastSlashIndex > 0) {
+            const pattern = val.slice(1, lastSlashIndex);
+            const flags = val.slice(lastSlashIndex + 1);
+            return new RegExp(pattern, flags);
         }
     }
-    return Math.abs(h);
+    const num = Number(val);
+    if (!isNaN(num)) {
+        return num;
+    }
+    throw new Error(`Invalid argument type: ${val}`);
+};
+
+/**
+ * Parses a function call like fnname(true, null, 'arg2\'etc', ...)
+ * into an object {name: 'fnname', args: [true, null, "arg2'etc", ...]}
+ * Supported argument types are string, boolean, number, null, undefined and regexp.
+ * It uses a FSA with memory to parse the expression.
+ * It throws an error if the expression is not valid.
+ * @param {string} expr - The function call to parse
+ * @throws {Error} If the expression is not valid
+ * @returns {{name: string, args: any[]}} An object with the function name and arguments
+ */
+export function fnCallParser(expr) {
+    /** @type {{name: string, args: any[]}} **/
+    const result = { name: '', args: [] };
+
+    // Numerical State Constants
+    const S_NAME = 0; // Reading function name
+    const S_BEFORE = 1; // Between name and '('
+    const S_ARG = 2; // Reading non-string argument
+    const S_STRING = 3; // Inside a string literal
+    const S_REGEX = 4; // Inside a regex literal
+    const S_END = 5; // After ')'
+
+    let state = S_NAME;
+    let currentArg = '';
+    let quoteChar = '';
+    let pendingToken = false;
+    let i = 0;
+
+    while (i < expr.length) {
+        const char = expr[i];
+
+        switch (state) {
+            case S_NAME:
+                if (/[a-zA-Z_$]/.test(char)) {
+                    result.name += char;
+                }
+                else if (/[0-9]/.test(char)) {
+                    if (result.name.length === 0) {
+                        throw new Error("Name cannot start with number");
+                    }
+                    result.name += char;
+                } else if (char === '(') {
+                    state = S_ARG;
+                } else if (/\s/.test(char) && result.name.length > 0) {
+                    state = S_BEFORE;
+                } else if (!/\s/.test(char)) {
+                    throw new Error("Illegal character in name: " + char);
+                }
+                break;
+
+            case S_BEFORE:
+                if (char === '(') {
+                    state = S_ARG;
+                }
+                else if (!/\s/.test(char)) {
+                    throw new Error("Expected (");
+                }
+                break;
+
+            case S_ARG:
+                if (result.name.trim() === '') {
+                    throw new Error("Expected name");
+                }
+                if (char === "'" || char === '"') {
+                    // If we just finished a string/regex and see another quote without a comma
+                    if (pendingToken) {
+                        throw new Error("Expected delimiter");
+                    }
+                    quoteChar = char;
+                    state = S_STRING;
+                    currentArg = '';
+                } else if (char === '/' && (currentArg.trim() === '')) {
+                    // Enter Regex state if we see a / at the start of an arg
+                    state = S_REGEX;
+                    currentArg = char;
+                } else if (char === ',') {
+                    if (!pendingToken) {
+                        result.args.push(castValue(currentArg));
+                    }
+                    currentArg = '';
+                    pendingToken = false;
+                } else if (char === ')') {
+                    if (!pendingToken) {
+                        const trimmed = currentArg.trim();
+                        if (trimmed !== '' || result.args.length > 0) {
+                            result.args.push(castValue(currentArg));
+                        }
+                    }
+                    state = S_END;
+                } else {
+                    if (!pendingToken) {
+                        currentArg += char;
+                    } else if (!/\s/.test(char)) {
+                        throw new Error("Expected delimiter");
+                    }
+                }
+                break;
+
+            case S_STRING:
+                if (char === '\\' && i + 1 < expr.length && expr[i + 1] === quoteChar) {
+                    currentArg += quoteChar;
+                    i++;
+                } else if (char === quoteChar) {
+                    result.args.push(currentArg);
+                    currentArg = '';
+                    pendingToken = true;
+                    state = S_ARG;
+                } else {
+                    currentArg += char;
+                }
+                break;
+
+            case S_REGEX:
+                currentArg += char;
+                // Check for closing slash (not escaped)
+                if (char === '/' && expr[i - 1] !== '\\') {
+                    // Regex isn't finished yet! We need to capture flags (gim...)
+                    // We'll peek ahead in the next iterations of S_ARG via castValue
+                    // or stay here to grab letters? Let's stay to grab flags.
+                    let j = i + 1;
+                    while (j < expr.length && /[a-z]/.test(expr[j])) {
+                        currentArg += expr[j];
+                        j++;
+                    }
+                    i = j - 1; // Advance main pointer
+                    result.args.push(castValue(currentArg));
+                    currentArg = '';
+                    pendingToken = true;
+                    state = S_ARG;
+                }
+                break;
+
+            case S_END:
+                if (!/\s/.test(char)) {
+                    throw new Error("Trailing data");
+                }
+                break;
+        }
+        i++;
+    }
+
+    if (state !== S_END) {
+        throw new Error("Incomplete call");
+    }
+    return result;
+}
+
+
+/**
+ * Simple fast string hash (djb2 variant)
+ * @param {string} s - string to be hashed
+ * @returns {number} non-negative 32-bit integer
+ */
+export function hashCode(s) {
+    let hash = 5381; // magic initial prime
+    for (let i = 0; i < s.length; i++) {
+        hash = ((hash << 5) + hash) + s.charCodeAt(i); // hash * 33 + c
+        hash |= 0; // force 32-bit integer
+    }
+    return hash >>> 0; // convert to non-negative
 }
 
 /**
@@ -95,70 +246,71 @@ export function searchComp(str1, needle) {
 }
 
 /** Default transformers */
-const Transformers = {
-    /** @param {string} txt */
-    toUpperCase: function (txt) {
-        return (txt + "").toUpperCase();
-    },
-    /** @param {string} txt */
-    toLowerCase: function (txt) {
-        return (txt + "").toLowerCase();
-    },
-    /** @param {string} txt */
-    trim: function (txt) {
-        return (txt + "").trim();
-    },
-    /** @param {string} txt */
-    ytId: function (txt) {
-        // Finds the youtubeId in a text
-        const rx = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/;
-        const r = (txt || '').match(rx);
-        if (r?.length) {
-            return r[1];
+const Transformers = Object.freeze(
+    Object.assign(Object.create(null), {
+        /** @param {string} txt */
+        toUpperCase: function (txt) {
+            return (txt + "").toUpperCase();
+        },
+        /** @param {string} txt */
+        toLowerCase: function (txt) {
+            return (txt + "").toLowerCase();
+        },
+        /** @param {string} txt */
+        trim: function (txt) {
+            return (txt + "").trim();
+        },
+        /** @param {string} txt */
+        ytId: function (txt) {
+            // Finds the youtubeId in a text
+            const rx = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/;
+            const r = (txt || '').match(rx);
+            if (r?.length) {
+                return r[1];
+            }
+            return txt;
+        },
+        /** @param {string} txt */
+        vimeoId: function (txt) {
+            const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?(\d+)/;
+            const match = new RegExp(regExp).exec(txt || "");
+            if (match?.[5]) {
+                return match[5];
+            }
+            return txt;
+        },
+        /** @param {string} txt */
+        serveGDrive: function (txt) {
+            // Expecting https://drive.google.com/file/d/1DDUzcFrOlzWb3CBdFPJ1NCNXClvPbm5B/preview
+            const res = (txt + "").match(/https:\/\/drive.google.com\/file\/d\/([a-zA-Z0-9_]+)\//);
+            if (res?.length) {
+                const driveId = res[1];
+                return "https://docs.google.com/uc?export=open&id=" + driveId;
+            }
+            return txt;
+        },
+        /** @param {string} txt */
+        removeHTML: function (txt) {
+            return (txt || '').replace(/<[^>]*>?/gm, '');
+        },
+        /** @param {string} txt */
+        escapeHTML: function (txt) {
+            return (txt || '').replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        },
+        /** @param {string} txt */
+        encodeHTML: function (txt) {
+            // @ts-ignore
+            return encodeURIComponent(txt || "");
+        },
+        /** @param {string} txt */
+        escapeQuotes: function (txt) {
+            return (txt || '').replace(/"/gm, "'");
         }
-        return txt;
-    },
-    /** @param {string} txt */
-    vimeoId: function (txt) {
-        const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?(\d+)/;
-        const match = new RegExp(regExp).exec(txt || "");
-        if (match?.[5]) {
-            return match[5];
-        }
-        return txt;
-    },
-    /** @param {string} txt */
-    serveGDrive: function (txt) {
-        // Expecting https://drive.google.com/file/d/1DDUzcFrOlzWb3CBdFPJ1NCNXClvPbm5B/preview
-        const res = (txt + "").match(/https:\/\/drive.google.com\/file\/d\/([a-zA-Z0-9_]+)\//);
-        if (res?.length) {
-            const driveId = res[1];
-            return "https://docs.google.com/uc?export=open&id=" + driveId;
-        }
-        return txt;
-    },
-    /** @param {string} txt */
-    removeHTML: function (txt) {
-        return (txt || '').replace(/<[^>]*>?/gm, '');
-    },
-    /** @param {string} txt */
-    escapeHTML: function (txt) {
-        return (txt || '').replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    },
-    /** @param {string} txt */
-    encodeHTML: function (txt) {
-        // @ts-ignore
-        return encodeURIComponent(txt || "");
-    },
-    /** @param {string} txt */
-    escapeQuotes: function (txt) {
-        return (txt || '').replace(/"/gm, "'");
-    }
-};
+    }));
 
 
 class Builder {
@@ -171,7 +323,7 @@ class Builder {
             const prts = parts[j].trim();
             // @ts-ignore
             const transfunc = Transformers[prts];
-            if (transfunc != null) {
+            if (transfunc !== undefined) {
                 this.transSeq.push(transfunc);
             } else {
                 console.error("Cannot find transformer named " + prts);
@@ -202,98 +354,7 @@ export function stream(transformStr) {
  * @returns {string} Replaces $ apperences by _ to make the name compatible by data attributes
  */
 export function cleanParameterName(name) {
-    return name.replace(/\$/g, '_');
-}
-
-/**
- * Creates a filter funcion from filterCode
- * @param {string} filterCode
- * @returns {Function?}
- */
-export function createFilterFunction(filterCode) {
-    let userWidgetFilter = null;
-    try {
-        userWidgetFilter = new Function('text', 'editor', 'opts', filterCode);
-    } catch (ex) {
-        userWidgetFilter = null;
-        console.error(ex);
-    }
-    return userWidgetFilter;
-}
-
-/**
- * @param {import('./plugin').TinyMCE} editor
- * @param {{get_strings: (keyComponent: any[]) => Promise<string[]>}} coreStr - dependency on core/str
- * @returns {*}
- */
-export function applyWidgetFilterFactory(editor, coreStr) {
-    /**
-     * @param {string} widgetTemplate
-     * @param {boolean} silent
-     * @param {object?} mergevars
-     * @returns {Promise<boolean>} - True if the filter can be compiled
-     */
-    return async (widgetTemplate, silent, mergevars) => {
-        const translations = await coreStr.get_strings([
-            { key: 'filterres', component },
-            { key: 'nochanges', component }
-        ]);
-        // Es tracta d'un filtre, no d'un widget i s'ha de tractar de forma diferent
-        const userWidgetFilter = createFilterFunction(widgetTemplate);
-
-        if (!userWidgetFilter) {
-            editor.notificationManager.open({
-                text: translations[0] + ": Invalid filter",
-                type: 'danger',
-                timeout: 4000
-            });
-            return false;
-        }
-        // @ts-ignore
-        const handleFilterResult = function (res) {
-            const out = res[0];
-            let msg = res[1];
-            if (out != null) {
-                if (typeof out === "string") {
-                    editor.setContent(out);
-                    editor.notificationManager.open({
-                        text: translations[0] + ": " + msg,
-                        type: 'success',
-                        timeout: 5000
-                    });
-                } else if (out === true) {
-                    editor.notificationManager.open({
-                        text: translations[0] + ": " + msg,
-                        type: 'success',
-                        timeout: 5000
-                    });
-                } else if (out === false && !silent) {
-                    editor.notificationManager.open({
-                        text: translations[1],
-                        type: 'info',
-                        timeout: 5000
-                    });
-                }
-            } else if (!silent) {
-                editor.notificationManager.open({
-                    text: translations[1],
-                    type: 'info',
-                    timeout: 5000
-                });
-            }
-        };
-
-        const initialHTML = editor.getContent();
-        const filteredResult = userWidgetFilter(initialHTML, editor, mergevars);
-        // Hi ha la possibilitat que el filtre retorni una promesa o un array
-        const isPromise = filteredResult != null && typeof (filteredResult) === 'object' && ('then' in filteredResult);
-        if (isPromise) {
-            filteredResult.then(handleFilterResult).catch((/** @type {any} */ err) => console.error(err));
-        } else {
-            handleFilterResult(filteredResult || [null, translations[1]]);
-        }
-        return true;
-    };
+    return name?.replace(/\$/g, '_');
 }
 
 /**
@@ -544,7 +605,7 @@ export function compareVersion(current, condition) {
         case "<=": return cmp <= 0;
         case "=": return cmp === 0;
         default:
-            console.log("Unknown operator: " + operator);
+            console.warn("Unknown operator: " + operator);
             return true;
     }
 }
@@ -557,24 +618,32 @@ export function compareVersion(current, condition) {
  * @returns {Record<string, any>}
  */
 export function removeRndFromCtx(ctx, parameters) {
-    return Object.fromEntries(
-        Object.entries(ctx).filter(([k]) => {
-            const val = parameters.find(p => p.name === k)?.value;
-            return val !== '$RND';
-        })
-    );
+    const result = Object.create(null);
+    Object.entries(ctx).forEach(([k, v]) => {
+        const val = parameters.find(p => p.name === k)?.value;
+        if (val !== undefined && val !== '$RND') {
+            result[k] = v;
+        }
+    });
+    return result;
 }
 
 /**
  * Helper to load scripts
  * @param {import('./plugin').TinyMCE} editor
  * @param {string} src
+ * @param {string} [integrity]
  * @returns {Promise<void>}
  */
-export function loadScriptAsync(editor, src) {
+export function loadScriptAsync(editor, src, integrity) {
     return new Promise((resolve, reject) => {
         const s = editor.dom.create('script', { src });
         s.onload = () => resolve();
+        s.referrerPolicy = 'no-referrer';
+        if (integrity) {
+            s.crossOrigin = 'anonymous';
+            s.integrity = integrity;
+        }
         s.onerror = reject;
         const head = editor.getDoc().querySelector("head");
         head.appendChild(s);
@@ -623,6 +692,17 @@ export function removeStyleMCE(target, propName) {
     target.setAttribute('data-mce-style', target.getAttribute('style') ?? '');
 }
 
+/**
+ * @param {Element} target
+ * @param {string} propName
+ * @param {string} propValue
+ */
+export function setAttributeMCE(target, propName, propValue) {
+    target.setAttribute(propName, propValue);
+    if (propName === 'href' || propName === 'src') {
+        target.setAttribute(`data-mce-${propName}`, propValue);
+    }
+}
 
 /**
  * Any menu item, different from |, is prefixed by componentName_ and ended with _item.
@@ -636,3 +716,132 @@ export function prefixItemsWith(items, prefix, skipItems = [], separator = '_') 
     return items.map(e => skipItems.includes(e) ? e : `${prefix}${separator}${e}`);
 }
 
+/**
+ * Simple SVG Sanitizer
+ * @param {string} svgString
+ * @returns {string} Clean SVG
+ */
+export function sanitizeSvg(svgString) {
+    const isDataUrl = svgString.startsWith('data:image/svg+xml;base64,');
+    if (isDataUrl) {
+        svgString = atob(svgString.replace('data:image/svg+xml;base64,', ''));
+    }
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgString, 'image/svg+xml');
+    const svg = doc.querySelector('svg');
+
+    if (!svg) {
+        return '';
+    }
+
+    // Whitelist of safe tags
+    const allowedTags = ['svg', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon',
+        'g', 'defs', 'lineargradient', 'stop'];
+    // Whitelist of safe attributes
+    const allowedAttrs = ['viewbox', 'd', 'cx', 'cy', 'r', 'x', 'y', 'width', 'height',
+        'fill', 'stroke', 'stroke-width', 'points', 'transform', 'class', 'id', 'opacity'];
+
+    /**
+     * @param {Element} el
+     */
+    const cleanElement = (el) => {
+        // 1. Remove script/event tags
+        if (!allowedTags.includes(el.tagName.toLowerCase())) {
+            el.remove();
+            return;
+        }
+
+        // 2. Remove non-whitelisted attributes (including on*)
+        Array.from(el.attributes).forEach(attr => {
+            const name = attr.name.toLowerCase();
+            if (!allowedAttrs.includes(name)) {
+                el.removeAttribute(attr.name);
+            }
+        });
+
+        // 3. Recurse
+        Array.from(el.children).forEach(cleanElement);
+    };
+
+    cleanElement(svg);
+    const cleanSvg = svg.outerHTML;
+    if (isDataUrl) {
+        return 'data:image/svg+xml;base64,' + btoa(cleanSvg);
+    }
+    return cleanSvg;
+}
+
+/**
+ * Creates an object with null prototype.
+ * @param {object} obj
+ * @returns {object}
+ */
+export function nullProtofy(obj) {
+    return Object.assign(Object.create(null), obj);
+}
+
+/**
+ * @template T
+ * @param {Promise<T>} promise
+ * @returns {Promise<[Error | null, T | null]>}
+ */
+export function safeAwait(promise) {
+    return promise
+        .then((result) => /** @type {[null, T]} */([null, result]))
+        .catch((error) => /** @type {[Error, null]} */([error, null]));
+}
+/**
+ * Toggles an element to a loading state.
+ * @param {HTMLElement} element
+ * @param {string | null} query
+ */
+export function spinElement(element, query = 'i.fa, i.fas, i.far, i.fab, .twh-icon') {
+    if (!element || element.dataset.originalIcon) {
+        return;
+    }
+    /** @type {HTMLElement | null} */
+    let icon = element;
+    if (query) {
+        icon = element.querySelector(query);
+    }
+    if (icon) {
+        icon.dataset.originalIcon = icon.className;
+        icon.dataset.originalHtml = icon.innerHTML;
+        icon.className = 'fa fa-spinner fa-spin';
+        icon.innerHTML = '';
+    }
+    if (element instanceof HTMLButtonElement || element instanceof HTMLAnchorElement) {
+        element.classList.add('disabled');
+        if (element instanceof HTMLButtonElement) {
+            element.disabled = true;
+        }
+    }
+}
+
+/**
+ * Restores an element from a loading state.
+ * @param {HTMLElement} element
+ * @param {string | null} query
+ */
+export function unspinElement(element, query = 'i.fa, i.fas, i.far, i.fab, .twh-icon') {
+    if (!element) {
+        return;
+    }
+    /** @type {HTMLElement | null} */
+    let icon = element;
+    if (query) {
+        icon = element.querySelector(query);
+    }
+    if (icon && icon.dataset.originalIcon) {
+        icon.className = icon.dataset.originalIcon;
+        icon.innerHTML = icon.dataset.originalHtml || '';
+        delete element.dataset.originalIcon;
+        delete element.dataset.originalHtml;
+    }
+    if (element instanceof HTMLButtonElement || element instanceof HTMLAnchorElement) {
+        element.classList.remove('disabled');
+        if (element instanceof HTMLButtonElement) {
+            element.disabled = false;
+        }
+    }
+}

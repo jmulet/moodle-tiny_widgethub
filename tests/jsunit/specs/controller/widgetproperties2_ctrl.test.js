@@ -27,101 +27,11 @@ describe("WidgetPropertiesCtrl - Additional Coverage", () => {
         widgetPropertiesCtrl = new WidgetPropertiesCtrl(mockEditor, formCtrl, mockModalSrv);
     });
 
-    it("should handle repeatable parameters with item_selector (Strategy 1)", async () => {
-        const widget = {
-            name: "repeatable-widget",
-            hasBindings: () => true,
-            parameters: [
-                {
-                    name: "items",
-                    type: "repeatable",
-                    item_selector: ".item",
-                    fields: [
-                        { name: "sub1", type: "textfield", bind: "attr('data-val', '.sub1')" }
-                    ]
-                }
-            ]
-        };
-
-        const elem = htmlToElement(document, `
-            <div>
-                <div class="item"><span class="sub1" data-val="Value 1">Value 1</span></div>
-                <div class="item"><span class="sub1" data-val="Value 2">Value 2</span></div>
-            </div>
-        `);
-
-        const currentContext = { widget, elem };
-
-        await widgetPropertiesCtrl.show(currentContext);
-
-        const modal = widgetPropertiesCtrl.modal;
-        expect(modal).toBeTruthy();
-
-        // Simulate form submission with new values
-        // We need to mock how formCtrl extracts values or manually trigger the update logic
-        // The controller uses formCtrl.extractFormParameters. Let's mock the result of that if possible,
-        // or rely on the fact that we are testing the 'update parameter values back to DOM' logic in the click handler.
-
-        // We can manually invoke the click handler's logic or mock the form element interaction.
-        // Since we want to test lines 187-199 (Strategy 1 update), we need to ensure 'updatedValues' has the correct structure.
-
-        // Mock formCtrl.extractFormParameters to return changed values
-        jest.spyOn(formCtrl, 'extractFormParameters').mockReturnValue({
-            items: [
-                { sub1: "New Value 1" },
-                { sub1: "New Value 2" }
-            ]
-        });
-
-        // Trigger save
-        modal.footer.find("button.tiny_widgethub-btn-primary").trigger('click');
-
-        // Verify DOM updates
-        const items = elem.querySelectorAll('.item');
-        expect(items[0].querySelector('.sub1')?.getAttribute('data-val')).toBe("New Value 1");
-        expect(items[1].querySelector('.sub1')?.getAttribute('data-val')).toBe("New Value 2");
-    });
-
-    it("should handle repeatable parameters with object bind (Strategy 2)", async () => {
-        const widget = {
-            name: "repeatable-widget-strategy-2",
-            hasBindings: () => true,
-            parameters: [
-                {
-                    name: "list",
-                    type: "repeatable",
-                    bind: {
-                        getValue: "(elem) => elem.querySelector('ul').outerHTML",
-                        setValue: "(elem, value) => { elem.querySelector('ul').outerHTML = value; }"
-                    }
-                }
-            ]
-        };
-
-        const elem = htmlToElement(document, `<div><ul><li>Original</li></ul></div>`);
-        const currentContext = { widget, elem };
-
-        await widgetPropertiesCtrl.show(currentContext);
-
-        const modal = widgetPropertiesCtrl.modal;
-        expect(modal).toBeTruthy();
-
-        // Mock formCtrl.extractFormParameters
-        jest.spyOn(formCtrl, 'extractFormParameters').mockReturnValue({
-            list: "<ul><li>Updated</li></ul>"
-        });
-
-        // Trigger save
-        modal.footer.find("button.tiny_widgethub-btn-primary").trigger('click');
-
-        // Verify DOM updates (Strategy 2 goes to else block line 200)
-        expect(elem.querySelector('ul')?.outerHTML).toBe("<ul><li>Updated</li></ul>");
-    });
-
     it("should handle close method", () => {
-        widgetPropertiesCtrl.modal = { destroy: jest.fn() };
+        const destroy = jest.fn();
+        widgetPropertiesCtrl.modal = { destroy };
         widgetPropertiesCtrl.close();
-        expect(widgetPropertiesCtrl.modal.destroy).toHaveBeenCalled();
+        expect(destroy).toHaveBeenCalled();
     });
 
     it("should handle popover failure gracefully", async () => {

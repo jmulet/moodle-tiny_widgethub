@@ -27,7 +27,7 @@ import ModalRegistry from 'core/modal_registry';
 import ModalFactory from 'core/modal_factory';
 import ModalEvents from 'core/modal_events';
 import Common from '../common';
-const {component} = Common;
+const { component } = Common;
 
 /**
  * Tracks event listeners for cleanup. Can auto-attach or just register.
@@ -47,39 +47,39 @@ class ModalTracker extends Modal {
         super.destroy();
     }
 
-  /**
-   * Add a listener and optionally attach it immediately.
-   * @param {Element} el The DOM element
-   * @param {string} event The event type
-   * @param {EventListener} handler The listener function
-   */
-  twhRegisterListener(el, event, handler) {
-    // Avoid duplicates
-    if (!this._twhListeners.some(([e, ev, h]) => e === el && ev === event && h === handler)) {
-      this._twhListeners.push([el, event, handler]);
-      el.addEventListener(event, handler);
+    /**
+     * Add a listener and optionally attach it immediately.
+     * @param {Element} el The DOM element
+     * @param {string} event The event type
+     * @param {EventListener} handler The listener function
+     */
+    twhRegisterListener(el, event, handler) {
+        // Avoid duplicates
+        if (!this._twhListeners.some(([e, ev, h]) => e === el && ev === event && h === handler)) {
+            this._twhListeners.push([el, event, handler]);
+            el.addEventListener(event, handler);
+        }
     }
-  }
 
-  /**
-   * Add a listener by selector inside a container.
-   * @param {Element} container The parent container
-   * @param {string} selector CSS selector for target element
-   * @param {string} event Event type
-   * @param {EventListener} handler Listener function
-   */
-  twhRegisterListenerBySelector(container, selector, event, handler) {
-    const el = container.querySelector(selector);
-    if (el) {
-        this.twhRegisterListener(el, event, handler);
+    /**
+     * Add a listener by selector inside a container.
+     * @param {Element} container The parent container
+     * @param {string} selector CSS selector for target element
+     * @param {string} event Event type
+     * @param {EventListener} handler Listener function
+     */
+    twhRegisterListenerBySelector(container, selector, event, handler) {
+        const el = container.querySelector(selector);
+        if (el) {
+            this.twhRegisterListener(el, event, handler);
+        }
     }
-  }
 
-  /** Remove all tracked listeners */
-  _twhRemoveListeners() {
-    this._twhListeners.forEach(([el, event, handler]) => el.removeEventListener(event, handler));
-    this._twhListeners = [];
-  }
+    /** Remove all tracked listeners */
+    _twhRemoveListeners() {
+        this._twhListeners.forEach(([el, event, handler]) => el.removeEventListener(event, handler));
+        this._twhListeners = [];
+    }
 }
 
 
@@ -122,6 +122,19 @@ class IBContextModal extends ModalTracker {
 
 ModalRegistry.register(IBContextModal.TYPE, IBContextModal, IBContextModal.TEMPLATE);
 
+
+class IBPreviewModal extends ModalTracker {
+    static TYPE = `${component}/preview_modal`;
+    static TEMPLATE = `${component}/preview_modal`;
+
+    registerEventListeners() {
+        // Call the parent registration.
+        super.registerEventListeners();
+    }
+}
+
+ModalRegistry.register(IBPreviewModal.TYPE, IBPreviewModal, IBPreviewModal.TEMPLATE);
+
 /**
  * @typedef {(el: Element, event: string, handler: EventListener) => void} ListenerTracker
  * @typedef {JQuery<HTMLElement> & {header: JQuery<HTMLElement>, body: JQuery<HTMLElement>, footer: JQuery<HTMLElement>, destroy: () => void, show: () => void, getRoot: () => {on: () => void}, twhRegisterListener: ListenerTracker, twhRegisterListenerBySelector: (container: string, selector: string, event: string, handler: EventListener) => void }} ModalDialogue
@@ -133,7 +146,7 @@ ModalRegistry.register(IBContextModal.TYPE, IBContextModal, IBContextModal.TEMPL
 
 export class ModalSrv {
     /**
-     * @param {'picker' | 'params' | 'context'} name
+     * @param {'picker' | 'params' | 'context' | 'preview'} name
      * @param {object} templateContext
      * @param {()=>void} [onHidden]
      * @returns {Promise<ModalDialogue>}
@@ -144,6 +157,7 @@ export class ModalSrv {
             case ('picker'): cls = IBPickerModal; break;
             case ('params'): cls = IBParamsModal; break;
             case ('context'): cls = IBContextModal; break;
+            case ('preview'): cls = IBPreviewModal; break;
         }
         // On versions of Moodle beyond 4.3, call create directly on Modal class
         const options = {

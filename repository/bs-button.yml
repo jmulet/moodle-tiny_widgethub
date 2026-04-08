@@ -1,0 +1,41 @@
+key: bs-button
+name: $string.bsbutton_name
+category: bootstrap
+icon: fa fa-hand-pointer
+instructions: $string.bsbutton_instructions
+template: |
+  <a href="{{url}}" class="btn btn-{{severity}}" role="button"><i class="fa fa-{{icon}}" aria-hidden="true"></i> Lorem ipsum</a>&nbsp;
+selectors: a.btn
+parameters:
+  - name: url
+    title: $string.bsbutton_url_title
+    bind: attr('href')
+    value: '#'
+  - name: severity
+    title: $string.bsbadge_severity_title
+    bind: classRegex('btn-(.*)')
+    value: outline-info
+    options:
+      - primary
+      - secondary
+      - success
+      - info
+      - warning
+      - danger
+      - light
+      - dark
+      - outline-primary
+      - outline-secondary
+      - outline-success
+      - outline-info
+      - outline-warning
+      - outline-danger
+      - outline-light
+      - outline-dark
+  - name: icon
+    title: $string.bsbutton_icon_title
+    tip: fa fa-*
+    bind: classRegex('fa-(.*)', 'i')
+    value: tag
+author: Josep Mulet <pep.mulet@gmail.com>
+version: 1.0.0

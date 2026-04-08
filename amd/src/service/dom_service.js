@@ -13,11 +13,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+import { Widget } from '../options';
+import { setAttributeMCE } from '../util';
+
 /**
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2025 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -57,9 +60,9 @@ export class DomSrv {
                             newId = oldId + ext;
                             idMap[oldId] = newId;
                         }
-                        el.setAttribute(dataX, "#" + newId);
+                        setAttributeMCE(el, dataX, "#" + newId);
                     } else {
-                       // Generar un ID único
+                        // Generar un ID único
                         const newId = 'd' + Math.random().toString(32).substring(2);
 
                         // Clonar el elemento (deep clone si quieres incluir hijos)
@@ -70,7 +73,7 @@ export class DomSrv {
                         clonedRef.id = newId;
 
                         // Actualizar el atributo/data en el elemento original
-                        el.setAttribute(dataX, "#" + newId);
+                        setAttributeMCE(el, dataX, "#" + newId);
 
                         // Compatibilidad con Bootstrap: actualizar el otro atributo
                         if (dataX === 'data-bs-target') {
@@ -130,8 +133,8 @@ export class DomSrv {
             // Look in descendants
             el.querySelectorAll(searchFor).forEach(desc => {
                 const attr = desc.getAttribute('data-target')
-                        ?? desc.getAttribute('data-bs-target')
-                        ?? desc.getAttribute('href');
+                    ?? desc.getAttribute('data-bs-target')
+                    ?? desc.getAttribute('href');
 
                 if (attr && attr !== '#') {
                     found.push(...root.querySelectorAll(attr));
@@ -221,8 +224,19 @@ export class DomSrv {
                 if (!isTag) {
                     tag = parent?.tagName;
                 }
-                /** @ts-ignore */
-                res.widget = {key: `!${tag}`, prop: () => ''};
+                const rawWidget = {
+                    key: `!${tag}`,
+                    name: '!image',
+                    category: '!media',
+                    template: '',
+                    isfilter: false,
+                    isselectcapable: false,
+                    hasbindings: false,
+                    hidden: false,
+                    author: '',
+                    version: ''
+                };
+                res.widget = new Widget(rawWidget);
                 res.targetElement = isTag ? res.selectedElement : parent;
             }
         }

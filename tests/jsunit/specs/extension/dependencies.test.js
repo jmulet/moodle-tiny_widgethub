@@ -9,6 +9,7 @@
 // Mock virtual modules 
 const Common = require('../../src/common');
 const { addRequires, cleanUnusedRequires } = require('../../src/extension/dependencies');
+const { _resetCacheForTesting } = require('../../src/options');
 const JSAREACLASSNAME = Common.default.jsAreaClassname;
 const jsareaSelector = `div.${JSAREACLASSNAME}`;
 
@@ -50,7 +51,7 @@ const rawWidgets = [widget1, widget2, widget3, widget4, widget5];
 const createEditor = (html) => {
     const editor = global.Mocks.editorFactory();
     editor.setContent(html);
-    editor.options.get = jest.fn().mockReturnValue(rawWidgets)
+    _resetCacheForTesting({ widgetList: rawWidgets });
     return editor;
 };
 
@@ -281,7 +282,7 @@ describe('dependencies', () => {
         const badWidget = { key: 'w4', requires: 'https://p.es/q.js' };
         const editor = createEditor('<div class="w1"></div><div class="w4"></div>');
 
-        editor.options.get = jest.fn().mockReturnValue([widget1, badWidget]);
+        _resetCacheForTesting({ widgetList: [widget1, badWidget] });
 
         const added = addRequires(editor, undefined);
         expect(added).toBe(1);

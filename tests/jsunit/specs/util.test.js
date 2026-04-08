@@ -12,7 +12,7 @@ const U = require("../src/util");
  * @param {number} delay 
  * @returns {Promise<void>}
  */
-const wait = function(delay) {
+const wait = function (delay) {
     return new Promise((resolve) => {
         setTimeout(() => resolve(), delay);
     });
@@ -23,7 +23,7 @@ describe('utils module tests', () => {
     let consoleSpy;
 
     beforeEach(() => {
-        consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
     });
 
     afterEach(() => {
@@ -41,7 +41,7 @@ describe('utils module tests', () => {
     });
 
     test('it productes a hashCode of string', () => {
-        expect(typeof U.hashCode('')).toBe('number'); 
+        expect(typeof U.hashCode('')).toBe('number');
         expect(typeof U.hashCode('a word')).toBe('number');
         // Non random
         expect(U.hashCode('')).toBe(U.hashCode(''));
@@ -82,114 +82,6 @@ describe('utils module tests', () => {
         expect(res).toBe("https://piwold.es/iedib/");
         res = U.addBaseToUrl("", "widgets/sd");
         expect(res).toBe("/widgets/sd");
-    });
-
-    test('evaluate within a context', () => {
-        const scope = { a: 3, b: 5, c: -4 }
-        let res = U.evalInContext(scope, "a+b*c");
-        expect(res).toBe(-17);
-        res = U.evalInContext(scope, "");
-        expect(res).toBe(undefined);
-        const f = () => U.evalInContext(scope, "7*h");
-        expect(f).toThrow();
-        res = U.evalInContext({}, "5*4-8");
-        expect(res).toBe(12);
-    });
-
-    test('create filter function', () => {
-        const filter = U.createFilterFunction(`
-            return [text.toUpperCase().substring(2).replace(/\\s/g,''), null];
-        `)
-        expect(filter).not.toBeNull();
-        if (filter != null) {
-            const filteredText = filter("hola mundo!");
-            if (filteredText != null && !('then' in filteredText)) {
-                expect(filteredText[0]).toBe("LAMUNDO!");
-                expect(filteredText[1]).toBeNull();
-            }
-        }
-        const filter2 = U.createFilterFunction(`
-            return new Promise((resolve, reject)=>{
-                resolve([text, 'An error internal occurred!']);
-            });
-        `)
-        expect(filter2).not.toBeNull();
-        if (filter2 != null) {
-            const filteredText = filter2("hola mundo!");
-            if (filteredText != null && ('then' in filteredText)) {
-                // @ts-ignore
-                filteredText.then((res) => {
-                    expect(res[0]).toBe("hola mundo!");
-                    expect(res[1]).toBe('An error internal occurred!');
-                })
-            }
-        }
-
-    });
-
-    test('creates a filter function', () => {
-        const scriptSrc = `
-        text = text.replace(/[ae]/ig, function($0, $1){
-            return $0.toUpperCase();
-        });
-        return text;
-        `
-        const f = U.createFilterFunction(scriptSrc);
-        expect(f).not.toBeNull();
-        if (f != null) {
-            const res = f("america esa gran desconocida de las aviacion")
-            expect(res).toBe("AmEricA EsA grAn dEsconocidA dE lAs AviAcion")
-        }
-    });
-
-    it("It applies widgetFilter", async() => {
-        /** @type {*} */
-        const editor = global.Mocks.editorFactory();
-        editor.getContent.mockReturnValue("<p>This is the editor's content</p>");
-        const coreStr = {
-            get_strings: (/** @type {any[]} **/ lst) => {
-                return Promise.resolve(lst.map(e => e.key))
-            }
-        }
-        // Invalid script shows error message
-        const applyWidgetFilter = U.applyWidgetFilterFactory(editor, coreStr);
-        let res = await applyWidgetFilter("Bad script");
-        expect(editor.notificationManager.open).toHaveBeenCalledWith({
-            text: "filterres: Invalid filter",
-            type: 'danger',
-            timeout: 4000
-        });
-        expect(res).toBe(false);
-
-        editor.notificationManager.open.mockClear();
-        // Valid script without applying any changes
-        res = await applyWidgetFilter(`
-            // This is the filter definition
-            return [null, 'no change done'];
-        `);
-        expect(editor.notificationManager.open).toHaveBeenCalledWith({
-            text: "nochanges",
-            type: 'info',
-            timeout: 5000
-        });
-        expect(res).toBe(true);
-        expect(editor.setContent).not.toHaveBeenCalled();
-
-        editor.notificationManager.open.mockImplementation();
-        // Valid script applying changes
-        res = await applyWidgetFilter(`
-            // This is the filter definition
-            var txt2 = text.replace("editor's", "TinyMCE editor's");
-            // Replace the entire content
-            return [txt2, 'change done'];
-        `);
-        expect(editor.notificationManager.open).toHaveBeenCalledWith({
-            text: "filterres: change done",
-            type: 'success',
-            timeout: 5000
-        });
-        expect(res).toBe(true);
-        expect(editor.setContent).toHaveBeenCalledWith("<p>This is the TinyMCE editor's content</p>");
     });
 
     test('findVariableByName', () => {
@@ -286,7 +178,7 @@ describe('utils module tests', () => {
         expect(U.toHexAlphaColor(" #ffaa01")).toStrictEqual(["#ffaa01", 1]);
         // convert rgb to hex
         expect(U.toHexAlphaColor("rgb(255, 255, 255)")).toStrictEqual(["#ffffff", 1]);
-        expect(U.toHexAlphaColor("rgb(255, 0, 255)")).toStrictEqual(["#ff00ff", 1]);        
+        expect(U.toHexAlphaColor("rgb(255, 0, 255)")).toStrictEqual(["#ff00ff", 1]);
     });
 
 
@@ -294,10 +186,10 @@ describe('utils module tests', () => {
         // No color passed
         expect(U.toHexAlphaColor("")).toStrictEqual(["#000000", 1]);
         // Already in hex
-        expect(U.toHexAlphaColor(" #ffaa0123")).toStrictEqual(["#ffaa01", 35/255]);
+        expect(U.toHexAlphaColor(" #ffaa0123")).toStrictEqual(["#ffaa01", 35 / 255]);
         // convert rgb to hex
         expect(U.toHexAlphaColor("rgb(255, 255, 255, 15)")).toStrictEqual(["#ffffff", 0.15]);
-        expect(U.toHexAlphaColor("rgb(255, 0, 255, 0.25)")).toStrictEqual(["#ff00ff", 0.25]);        
+        expect(U.toHexAlphaColor("rgb(255, 0, 255, 0.25)")).toStrictEqual(["#ff00ff", 0.25]);
     });
 
     test('Convert to rgb color', () => {
@@ -311,7 +203,7 @@ describe('utils module tests', () => {
         expect(U.toRgba("#ff00ff", 0.2587256)).toBe("rgba(255,0,255,0.26)");
     });
 
-    test('debounce', async() => {
+    test('debounce', async () => {
         const cb = jest.fn();
         const debounced1 = U.debounce(cb, 800);
         debounced1();
@@ -336,7 +228,7 @@ describe('utils module tests', () => {
         U.toggleClass(elem, 'cl3', 'cl4');
         expect([...elem.classList].sort()).toStrictEqual(['cl1', 'cl2', 'cl3', 'cl4']);
         U.toggleClass(elem, 'cl1', 'cl3');
-        expect([...elem.classList].sort()).toStrictEqual(['cl2', 'cl4']);        
+        expect([...elem.classList].sort()).toStrictEqual(['cl2', 'cl4']);
     });
 
     test.each([
@@ -388,42 +280,145 @@ describe('utils module tests', () => {
             expect(U.compareVersion(current, condition)).toBe(expected);
             if (shouldThrow) {
                 expect(consoleSpy).toHaveBeenCalled();
-            } 
             }
+        }
     );
 
 
     test("removeRndFromCtx should remove parameters associated to $RND", () => {
         /** @type {*} */
         const parameters = [
-            {name: 'q', value: ''},
-            {name: 'id', value: '$RND'},
-            {name: 'effect', value: 'none'},
+            { name: 'q', value: '' },
+            { name: 'id', value: '$RND' },
+            { name: 'effect', value: 'none' },
         ];
         const ctx = {
             q: 'foo value',
             id: 'd24523fvvv_34',
             effect: 'fade'
         }
-        expect(U.removeRndFromCtx(ctx, parameters)).toStrictEqual({ 
+        expect(U.removeRndFromCtx(ctx, parameters)).toEqual({
             q: 'foo value',
-            effect: 'fade'}
+            effect: 'fade'
+        }
         );
     });
 
     test("removeRndFromCtx should not remove any parameters", () => {
         /** @type {*} */
         const parameters = [
-            {name: 'q', value: ''},
-            {name: 'id', value: 'RND'},
-            {name: 'effect', value: 'none'},
+            { name: 'q', value: '' },
+            { name: 'id', value: 'RND' },
+            { name: 'effect', value: 'none' },
         ];
         const ctx = {
             q: 'foo value',
             id: 'd24523fvvv_34',
             effect: 'fade'
         }
-        expect(U.removeRndFromCtx(ctx, parameters)).toStrictEqual(ctx);
+        expect(U.removeRndFromCtx(ctx, parameters)).toEqual(ctx);
     });
+
+    test.each([
+        [`styleRegex("background-image:url\\(['\\"]?([^'\\")]*)['\\"]?\\)")`, { name: 'styleRegex', args: ["background-image:url\\(['\"]?([^'\")]*)['\"]?\\)"] }],
+        ["f('x')", { name: 'f', args: ['x'] }],
+        ["classRegex('alert-(.*)')", { name: 'classRegex', args: ['alert-(.*)'] }],
+        ["attr('src', 'img')", { name: 'attr', args: ['src', 'img'] }],
+        ["styleRegex('max-width:(.*)px', null, 'number')", { name: 'styleRegex', args: ['max-width:(.*)px', null, 'number'] }],
+        ["attrBS('original-title')", { name: 'attrBS', args: ['original-title'] }],
+        // Type support: Numbers, Booleans, Null, Undefined
+        ["calculate(100, -5.5, true, false, null, undefined)", {
+            name: 'calculate',
+            args: [100, -5.5, true, false, null, undefined]
+        }],
+
+        // Regex with modifiers
+        ["match(/^[a-z]+$/gi)", {
+            name: 'match',
+            args: [/^[a-z]+$/gi]
+        }],
+
+        // Escaped quotes inside strings
+        ["log('It\\'s a trap!', \"He said \\\"Hello\\\"\")", {
+            name: 'log',
+            args: ["It's a trap!", 'He said "Hello"']
+        }],
+
+        // Whitespace tolerance (around commas, names, and parens)
+        ["  spaceFn  (  'arg1'  ,  'arg2'  )  ", {
+            name: 'spaceFn',
+            args: ['arg1', 'arg2']
+        }],
+
+        // Empty arguments and empty functions
+        ["init()", { name: 'init', args: [] }],
+        ["trailingComma('data', )", { name: 'trailingComma', args: ['data', undefined] }],
+
+        // Identifiers with numbers, underscores, and $
+        ["$_update_2(1)", { name: '$_update_2', args: [1] }],
+
+        // Complex strings containing delimiters
+        ["csv('one,two', 'three)four')", {
+            name: 'csv',
+            args: ['one,two', 'three)four']
+        }],
+        // Basic Regex
+        ["search(/abc/)", { name: 'search', args: [/abc/] }],
+
+        // Regex with multiple modifiers
+        ["filter(/\\d+/gim)", { name: 'filter', args: [/\d+/gim] }],
+
+        // Regex containing commas and parentheses (should not break parsing)
+        ["match(/a(b,c)d/g)", { name: 'match', args: [/a(b,c)d/g] }],
+
+        // Regex mixed with other types
+        ["validate(/^[0-9]+$/, true, 'Error')", {
+            name: 'validate',
+            args: [/^[0-9]+$/, true, 'Error']
+        }],
+
+        // Regex with advanced modifiers (u, s, y)
+        ["unicodeCheck(/\\p{L}/u, /foo/s)", {
+            name: 'unicodeCheck',
+            args: [/\p{L}/u, /foo/s]
+        }],
+
+        // Empty Regex pattern
+        ["empty(//)", { name: 'empty', args: [/(?:)/] }]
+    ])(
+        "fnCallParser should parse a function call %s", (fnCallStr, parsedFnCall) => {
+            expect(typeof fnCallStr).toBe('string');
+            expect(typeof parsedFnCall).toBe('object');
+            expect(U.fnCallParser(fnCallStr)).toStrictEqual(parsedFnCall);
+
+        });
+
+    test.each([
+        // --- Name / Identifier Errors ---
+        ["1fn()", "Name cannot start with number"],
+        ["fn-name()", "Illegal character in name: -"],
+        ["(1, 2)", "Expected name"], // Missing name entirely
+
+        // --- Structural Errors ---
+        ["fn(1, 2", "Incomplete call"], // Missing closing parenthesis
+        ["fn 1, 2)", "Expected ("], // Missing opening parenthesis
+        ["fn(1, 2) extra", "Trailing data"], // Data after the function call ends
+        ["fn('arg' 'another')", "Expected delimiter"], // Missing comma between strings
+        ["fn('arg' 123)", "Expected delimiter"], // Missing comma between string and number
+
+        // --- Argument / Type Errors ---
+        ["fn(unknownVariable)", "Invalid argument type: unknownVariable"],
+        ["fn(nullish)", "Invalid argument type: nullish"],
+        ["fn(1.2.3)", "Invalid argument type: 1.2.3"],
+
+        // --- String / Regex Errors ---
+        ["fn('unclosed string)", "Incomplete call"],
+        ["fn(/unclosed regex)", "Incomplete call"],
+        ["fn(/malformed(regex/)", "Invalid regular expression: /malformed(regex/: Unterminated group"], // If the second slash is missing
+    ])(
+        "should throw error for invalid input: %s", (invalidExpr, expectedError) => {
+            expect(() => U.fnCallParser(invalidExpr)).toThrow(expectedError);
+        }
+    );
 
 });

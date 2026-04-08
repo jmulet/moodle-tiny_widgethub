@@ -17,8 +17,14 @@ Feature: Tiny widgethub
   @javascript @external
   Scenario: View the widgethub dialog searchs yields no widgets in TinyMCE editor
     Given I log in as "admin"
+    And I set the window size to "1920"x"1080"
     When I open my profile in edit mode
     And I set the field "Description" to "Hello tiny!"
-    And I click on the "WidgetHub" button for the "Description" TinyMCE editor
-    And I set the field "widgethub_search_textfield" to "xsdsd 233 esddflkdsjf"
+    And I click on ".tox-mbtn:contains('Insert')" "css_element"
+    And I wait "1" seconds
+    And I click on ".tox-collection__item-label:contains('WidgetHub component')" "css_element"
+    And I wait "2" seconds
+    And I wait until "[role='dialog']" "css_element" exists
+    And I should see "Select a widget"
+    And I set the field "widgethub_search_textfield" to "unexistent widget"
     Then I should see "No widgets have been found for the search criteria" in the "Select a widget" "dialogue"

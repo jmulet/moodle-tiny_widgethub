@@ -18,11 +18,13 @@
  * Tiny WidgetHub plugin.
  *
  * @package     tiny_widgethub
- * @copyright   2024 Josep Mulet <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet <pep.mulet@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace tiny_widgethub;
+
+use tiny_widgethub\local\storage\storagefactory;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -33,6 +35,12 @@ require_once($CFG->libdir . '/adminlib.php');
  */
 class widgettable extends \admin_setting {
     /**
+     * Summary of TINY_CATEGORY
+     * @var string
+     */
+    const TINY_CATEGORY = 'tiny_widgethub';
+
+    /**
      * Summary of visiblename
      * @var string
      */
@@ -42,6 +50,11 @@ class widgettable extends \admin_setting {
      * @var string
      */
     public $information;
+    /**
+     * Summary of nosave
+     * @var bool
+     */
+    public $nosave;
 
     /**
      * Not a setting, just text
@@ -89,90 +102,50 @@ class widgettable extends \admin_setting {
      * @return string Returns an HTML string
      */
     public function output_html($data, $query = '') {
-        global $PAGE;
-        $tinycategory = 'tiny_widgethub';
-        $conf = get_config($tinycategory);
-        $listwidgetconfig = self::get_list_widgets_config($conf);
+        global $PAGE, $OUTPUT;
+        $widgets = self::get_list_widgets_config();
 
         $tableid = 'tiny_widgethub_widgetlist';
         $selectallid = 'tiny_selectall';
         $deletebtnid = 'tiny_deletebtn';
+        $exportid = 'tiny_widgethub_export';
 
-        $table = new \html_table();
-        $table->id = $tableid;
-        $table->attributes['class'] = 'generaltable table table-hover';
-        $thstyle = 'cursor: pointer; user-select: none; white-space: nowrap;';
-        $sorticon = \html_writer::tag('i', '', ['class' => 'fa fa-sort m-1']);
-        $table->head = [
-            \html_writer::checkbox('', 1, false, '', ['id' => $selectallid, 'class' => 'text-center']),
-            \html_writer::span(get_string('category', $tinycategory) . $sorticon, '', ['style' => $thstyle, 'data-sort' => '1']),
-            \html_writer::span(get_string('key', $tinycategory) . $sorticon, '', ['style' => $thstyle, 'data-sort' => '2']),
-            \html_writer::span(get_string('name', $tinycategory) . $sorticon, '', ['style' => $thstyle, 'data-sort' => '3']),
-            get_string('edit', $tinycategory),
+        // Prepare data for the template.
+        $templatedata = [
+            'tableid' => $tableid,
+            'selectallid' => $selectallid,
+            'deletebtnid' => $deletebtnid,
+            'exportid' => $exportid,
+            'widgets' => $widgets,
+            'urls' => [
+                'partials' => (
+                    new \moodle_url(
+                        '/lib/editor/tiny/plugins/widgethub/settingseditorpage.php',
+                        ['id' => 0]
+                    )
+                )->out(false),
+                'newwidget' => (
+                    new \moodle_url('/lib/editor/tiny/plugins/widgethub/settingseditorpage.php')
+                )->out(false),
+                'restore' => (
+                    new \moodle_url('/lib/editor/tiny/plugins/widgethub/settingsrestorepage.php')
+                )->out(false),
+            ],
         ];
-        $table->headspan = [1, 1, 1, 1, 1];
 
-        foreach ($listwidgetconfig as $item) {
-            $row = new \html_table_row();
-            $checkbox = \html_writer::checkbox('', $item->id, false, '', ['class' => 'tiny_widgethub-check']);
-            $checktd = new \html_table_cell($checkbox);
-            $checktd->attributes = ['class' => 'text-center', 'style' => 'width: 40px;'];
-            $categorytd = new \html_table_cell('<span class="badge bg-secondary text-capitalize">' . $item->category . '</span>');
-            $closedeyeicon = $item->hidden == 1 ? \html_writer::tag(
-                'i',
-                '',
-                ['class' => 'btn-warning fa fa-eye-slash mr-1', 'title' => 'Hidden']
-            ) : '';
-            $keytd = new \html_table_cell($closedeyeicon . $item->key);
-            $nametd = new \html_table_cell($item->name);
-            $newlinktext = \html_writer::tag('i', '', ['class' => 'fa fa-pencil']);
-            $editlink = \html_writer::link($item->url, $newlinktext);
-            $edittd = new \html_table_cell($editlink);
-            $edittd->attributes = ['title' => 'Internal id=' . $item->id, 'class' => ''];
-            $row->cells = [
-                $checktd,
-                $categorytd,
-                $keytd,
-                $nametd,
-                $edittd,
-            ];
-            $table->data[] = $row;
-        }
+        // Render the Mustache template.
+        $finalhtml = $OUTPUT->render_from_template('tiny_widgethub/widgettable', $templatedata);
 
-        // Delete button.
-        $deletestr = get_string('delete', $tinycategory);
-        $delbtn = \html_writer::tag(
-            'button',
-            \html_writer::tag('i', '', ['class' => 'fa fa-trash']) . ' ' . $deletestr,
-            ['class' => 'btn btn-outline-danger', 'id' => $deletebtnid, 'disabled' => true, 'type' => 'button']
-        );
-        $deltd = new \html_table_cell($delbtn);
-        $deltd->attributes = ['class' => 'text-center', 'style' => 'width: 40px;'];
-
-        // New widget button.
-        $newurl = new \moodle_url(
-            '/admin/settings.php',
-            ['section' => 'tiny_widgethub_spage_0']
-        );
-        $newlinktext = \html_writer::tag('i', '', ['class' => 'fa fa-plus-circle'])
-            . ' ' . get_string('createwidget', $tinycategory);
-        $newlink = \html_writer::link($newurl, $newlinktext);
-
-        $footer = \html_writer::div(
-            $delbtn . $newlink,
-            'd-flex justify-content-between mt-1 mb-6 align-items-center'
-        );
-
-        $finalhtml = \html_writer::table($table) . $footer;
-
+        $deletestr = get_string('delete', self::TINY_CATEGORY);
         $jsparams = [
             'tableId' => $tableid,
             'selectAllId' => $selectallid,
             'deleteBtnId' => $deletebtnid,
+            'exportBtnId' => $exportid,
             'baseUrl' => $PAGE->url->out(false),
             'sesskey' => sesskey(),
             'confirmTitle' => $deletestr,
-            'confirmMessage' => get_string('confirmdelete', $tinycategory),
+            'confirmMessage' => get_string('confirmdelete', self::TINY_CATEGORY),
             'confirmBtn' => $deletestr,
         ];
 
@@ -190,38 +163,38 @@ class widgettable extends \admin_setting {
         );
     }
 
-
     /**
      * Summary of get_list_widgets_config
-     * @param object $conf
-     * @return \stdClass[]
+     * @return \stdClass[] Array of widget objects.
      */
-    public static function get_list_widgets_config($conf) {
-        $ret = [];
-        $widgetindex = plugininfo::get_widget_index($conf);
-
-        foreach (array_keys($widgetindex) as $id) {
-            $tindex = $widgetindex[$id];
-            $cfg = new \stdClass();
-            $cfg->id = $id;
-            $cfg->key = $tindex['key'];
-            $cfg->name = $tindex['name'];
-            $cfg->category = $tindex['c'] ?? '';
-            $cfg->hidden = $tindex['h'] ?? 0;
-            $cfg->url = new \moodle_url(
-                '/admin/settings.php',
-                ['section' => 'tiny_widgethub_spage_' . $id]
-            );
-            $ret[] = $cfg;
+    public static function get_list_widgets_config(): array {
+        $storage = storagefactory::get_instance();
+        $index = $storage->get_index();
+        $widgets = [];
+        foreach ($index as $itemid => $info) {
+            if (!is_array($info)) {
+                continue;
+            }
+            $widgets[] = (object) [
+                'id' => $itemid,
+                'key' => $info['k'] ?? 'key' . $itemid,
+                'name' => $info['n'] ?? 'Unknown ' . $itemid,
+                'category' => $info['c'] ?? '',
+                'hidden' => ($info['h'] ?? 0) === 1,
+                'url' => new \moodle_url(
+                    '/lib/editor/tiny/plugins/widgethub/settingseditorpage.php',
+                    ['id' => $itemid]
+                ),
+            ];
         }
         // Sort the array first by 'category' and then by 'name' property.
-        usort($ret, function ($a, $b) {
-            $cmp = strcmp($a->category, $b->category);
+        usort($widgets, function ($a, $b) {
+            $cmp = strcmp($a->category ?? '', $b->category ?? '');
             if ($cmp == 0) {
-                return strcmp($a->name, $b->name);
+                return strcmp($a->name ?? '', $b->name ?? '');
             }
             return $cmp;
         });
-        return $ret;
+        return $widgets;
     }
 }

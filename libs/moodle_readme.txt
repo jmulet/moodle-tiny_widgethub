@@ -1,98 +1,46 @@
-===========================================
-WidgetHub - Third-Party Library Information
-===========================================
+Building Libraries for AMD and Workers
+=======================================
 
-The WidgetHub plugin relies on several third-party libraries to enhance its functionality.
+This folder contains the source code for the libraries used in the Tiny WidgetHub plugin, including
+the CodeMirror editor and the Sandboxing environment (which uses Web Workers for rendering).
 
-JS-YAML
-=======
+Pre-requisites
+--------------
+- Node.js and npm installed.
+- Access to the internet to download external dependencies.
 
-Widgets are presented to administrators in YAML syntax, but for optimization purposes, 
-they are stored internally in JSON format. A client-side library is required to convert 
-between these two formats.
+Build Steps
+-----------
 
-Repository: https://github.com/nodeca/js-yaml
-Version: 4.1.0
+1. **Download the EJS browser version**
+   The EJS library is used in a Web Worker and requires a specific browser-compatible minified version.
+   Download an updated version from a CDN and place it in the workers source directory:
+   
+   ```bash
+   curl -L https://cdn.jsdelivr.net/npm/ejs@3.1.10/ejs.min.js -o src/sandbox/workers/ejs.min.js
+   ```
 
-Instructions:
-Download the file from:
-https://github.com/nodeca/js-yaml/blob/master/dist/js-yaml.mjs
+2. **Install Dependencies**
+   From this directory (`libs`), run:
+   
+   ```bash
+   npm install
+   ```
 
-Rename it to js_yaml-lazy.js and move it to the directory amd/src/libs.
+3. **Build the Libraries**
+   Run the build script to generate the AMD-compatible modules and minified worker scripts:
+   
+   ```bash
+   npm run build
+   ```
 
-Add the following lines to the top of the file to disable linting errors:
+Outputs
+-------
+The build process generates files in the following locations:
+- `../../amd/src/libs/`: AMD/ESM modules for Moodle (e.g., `cmeditor-lazy.js`, `yaml-lazy.js`).
+- `../js/`: Minified scripts for the sandbox and workers (e.g., `render_sandbox.min.js`, `ejs_worker.min.js`).
 
-```
-// @ts-nocheck  
-/* eslint-disable */  
-```
-
-EJS
-===
-
-Moodle uses Mustache as a rendering template system, available on both server and client sides.
-While Mustache is designed to be logic-less, it has limitations with loops, math operations, 
-and conditionals. To overcome these limitations, an optional rendering system called EJS has
-been adopted. Although it can be more verbose, EJS offers greater flexibility since it can execute
-arbritry javascript code. The widget designers have freedom to decide which template engine to choose.
-
-Repository: https://github.com/mde/ejs/lib
-Version: 3.1.10
-
-Instructions:
-The two files in the repository have been concatenated and refactored to mock path and fs requires.
-The resulting file has been moved to amd/src/libs and renamed to ejs-lazy.ejs.
-
-
-CODEMIRROR
-==========
-
-This plugin uses CodeMirror as the visual editor for editing the YAML definitions of widgets.
-
-To generate the dependency on CodeMirror (version 6), use Rollup to convert the ES6 modules 
-provided by the library into a UMD bundle. This process creates a wrapper around the CodeMirror
-editor that is imported by the plugin.
-
-Run the following steps:
-
-`cd codemirror6`
-
-Install the npm dependencies:
-
-`npm install`  
-
-Run the job defined in the rollup.config.js file:
-
-`npm run build`  
-
-If everything runs smoothly, the file amd/src/libs/ymleditor-lazy.js will be generated.
-
-Open this file and ensure the following lines are added at the top:
-
-/** @ts-ignore */  
-/* eslint-disable */ 
-
-This is a workaround for an issue that appears when using RequireJS in Moodle 4.1.2.
-
-Search for define([ in the file and make the following replacement:
-
-```
-const defaultHighlightStyle = /*@__PURE__*/HighlightStyle.define([
-```
-
-
-make sure that is not present and it has been change it to:
-
-```
-const HighlightStyleDefs = HighlightStyle.define;  
-const defaultHighlightStyle = /*@__PURE__*/HighlightStyleDefs([
-```
-
-
-
-After modifying any of the libraries, compile them using the command:
-
-`npx grunt amd`
-
-The resulting minified version (in amd/build) of every file will be lazy-loaded on demand 
-when needed.
+Note for Developers
+-------------------
+If you modify any files in `src/`, you MUST run `npm run build` to update the files used by the Moodle plugin. 
+After that, you need to run `npx grunt amd` to update the AMD modules and update `thirdpartylibs.xml` if needed.

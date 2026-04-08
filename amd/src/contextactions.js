@@ -16,15 +16,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-import {getWidgetDict} from './options';
-import {getDomSrv} from './service/dom_service';
-import {getWidgetPropertiesCtrl} from './controller/widgetproperties_ctrl';
-import {getMenuItemProviders, getListeners} from './extension';
-import {get_strings} from 'core/str';
+import { getWidgetDict } from './options';
+import { getDomSrv } from './service/dom_service';
+import { getModalSrv } from './service/modal_service';
+import { getWidgetPropertiesCtrl } from './controller/widgetproperties_ctrl';
+import { getMenuItemProviders, getListeners } from './extension';
+import { get_strings } from 'core/str';
 import Common from './common';
-import {prefixItemsWith} from './util';
+import { prefixItemsWith } from './util';
 
-const {component, componentName} = Common;
+const { component, componentName } = Common;
 
 /**
  * Tiny WidgetHub plugin.
@@ -44,18 +45,20 @@ const {component, componentName} = Common;
  * @property {string} [text] - Descriptive text for nested contextmenus
  */
 
-const ICONS = {
-    gear: 'gear',
-    arrowUpFromBracket: 'arrow-up-from-bracket',
-    arrowUp: 'arrow-up',
-    arrowDown: 'arrow-down',
-    arrowLeft: 'arrow-left',
-    arrowRight: 'arrow-right',
-    remove: 'remove',
-    clone: 'clone',
-    cut: 'cut',
-    paste: 'paste'
-};
+const ICONS = Object.freeze(
+    Object.assign(Object.create(null), {
+        gear: 'gear',
+        arrowUpFromBracket: 'arrow-up-from-bracket',
+        arrowUp: 'arrow-up',
+        arrowDown: 'arrow-down',
+        arrowLeft: 'arrow-left',
+        arrowRight: 'arrow-right',
+        remove: 'remove',
+        clone: 'clone',
+        cut: 'cut',
+        paste: 'paste',
+        preview: 'preview',
+    }));
 
 /**
  * Define icons used by the context menus. Source: FontAwesome 6
@@ -71,7 +74,8 @@ function registerIcons(editor) {
     editor.ui.registry.addIcon(ICONS.arrowRight, '<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 448 512"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg>');
     editor.ui.registry.addIcon(ICONS.clone, '<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 512 512"><path d="M64 464l224 0c8.8 0 16-7.2 16-16l0-64 48 0 0 64c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64L0 224c0-35.3 28.7-64 64-64l64 0 0 48-64 0c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16zM224 304l224 0c8.8 0 16-7.2 16-16l0-224c0-8.8-7.2-16-16-16L224 48c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16zm-64-16l0-224c0-35.3 28.7-64 64-64L448 0c35.3 0 64 28.7 64 64l0 224c0 35.3-28.7 64-64 64l-224 0c-35.3 0-64-28.7-64-64z"/></svg>');
     editor.ui.registry.addIcon(ICONS.cut, '<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 640 640"><path d="M256 320L216.5 359.5C203.9 354.6 190.3 352 176 352C114.1 352 64 402.1 64 464C64 525.9 114.1 576 176 576C237.9 576 288 525.9 288 464C288 449.7 285.3 436.1 280.5 423.5L563.2 140.8C570.3 133.7 570.3 122.3 563.2 115.2C534.9 86.9 489.1 86.9 460.8 115.2L320 256L280.5 216.5C285.4 203.9 288 190.3 288 176C288 114.1 237.9 64 176 64C114.1 64 64 114.1 64 176C64 237.9 114.1 288 176 288C190.3 288 203.9 285.3 216.5 280.5L256 320zM353.9 417.9L460.8 524.8C489.1 553.1 534.9 553.1 563.2 524.8C570.3 517.7 570.3 506.3 563.2 499.2L417.9 353.9L353.9 417.9zM128 176C128 149.5 149.5 128 176 128C202.5 128 224 149.5 224 176C224 202.5 202.5 224 176 224C149.5 224 128 202.5 128 176zM176 416C202.5 416 224 437.5 224 464C224 490.5 202.5 512 176 512C149.5 512 128 490.5 128 464C128 437.5 149.5 416 176 416z"/></svg>');
-    editor.ui.registry.addIcon(ICONS.paste, '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M128 64C92.7 64 64 92.7 64 128L64 448C64 483.3 92.7 512 128 512L240 512L240 288C240 226.1 290.1 176 352 176L416 176L416 128C416 92.7 387.3 64 352 64L128 64zM312 176L168 176C154.7 176 144 165.3 144 152C144 138.7 154.7 128 168 128L312 128C325.3 128 336 138.7 336 152C336 165.3 325.3 176 312 176zM352 224C316.7 224 288 252.7 288 288L288 512C288 547.3 316.7 576 352 576L512 576C547.3 576 576 547.3 576 512L576 346.5C576 329.5 569.3 313.2 557.3 301.2L498.8 242.7C486.8 230.7 470.5 224 453.5 224L352 224z"/></svg>');
+    editor.ui.registry.addIcon(ICONS.paste, '<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 640 640"><path d="M128 64C92.7 64 64 92.7 64 128L64 448C64 483.3 92.7 512 128 512L240 512L240 288C240 226.1 290.1 176 352 176L416 176L416 128C416 92.7 387.3 64 352 64L128 64zM312 176L168 176C154.7 176 144 165.3 144 152C144 138.7 154.7 128 168 128L312 128C325.3 128 336 138.7 336 152C336 165.3 325.3 176 312 176zM352 224C316.7 224 288 252.7 288 288L288 512C288 547.3 316.7 576 352 576L512 576C547.3 576 576 547.3 576 512L576 346.5C576 329.5 569.3 313.2 557.3 301.2L498.8 242.7C486.8 230.7 470.5 224 453.5 224L352 224z"/></svg>');
+    editor.ui.registry.addIcon(ICONS.preview, '<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 512 512"><path d="M128 32l32 0c17.7 0 32 14.3 32 32l0 32-96 0 0-32c0-17.7 14.3-32 32-32zm64 96l0 320c0 17.7-14.3 32-32 32L32 480c-17.7 0-32-14.3-32-32l0-59.1c0-34.6 9.4-68.6 27.2-98.3 13.7-22.8 22.5-48.2 25.8-74.6L60.5 156c2-16 15.6-28 31.8-28l99.8 0zm227.8 0c16.1 0 29.8 12 31.8 28L459 216c3.3 26.4 12.1 51.8 25.8 74.6 17.8 29.7 27.2 63.7 27.2 98.3l0 59.1c0 17.7-14.3 32-32 32l-128 0c-17.7 0-32-14.3-32-32l0-320 99.8 0zM320 64c0-17.7 14.3-32 32-32l32 0c17.7 0 32 14.3 32 32l0 32-96 0 0-32zm-32 64l0 160-64 0 0-160 64 0z"/></svg>');
 }
 
 /**
@@ -96,12 +100,14 @@ export function matchesCondition(condition, value) {
  * Common actions used in context menus
  * @param {import('./plugin').TinyMCE} editor
  * @param {import('./service/dom_service').DomSrv} domSrv
+ * @param {import('./service/modal_service').ModalSrv} modalSrv
  * @param {{widget: import('./options').Widget | undefined, html: string | undefined}} widgetCutClipboard
  * @const widgetCutClipboard
  */
-export const predefinedActionsFactory = function(editor, domSrv, widgetCutClipboard) {
+export const predefinedActionsFactory = function (editor, domSrv, modalSrv, widgetCutClipboard) {
     /** @type {Record<string, Function>} */
-    const factory = {
+    const factory = Object.create(null);
+    Object.assign(factory, {
         /**
          * Unwraps or destroys the contents of a widget
          * @param {PathResult} path
@@ -206,7 +212,7 @@ export const predefinedActionsFactory = function(editor, domSrv, widgetCutClipbo
             }
 
             /** @type {Record<string, string>} */
-            const idMap = {};
+            const idMap = Object.create(null);
             const clone = domSrv.smartClone(el, root, idMap);
 
             // Insert the clone *after* the original element
@@ -278,6 +284,34 @@ export const predefinedActionsFactory = function(editor, domSrv, widgetCutClipbo
             getListeners('widgetRemoved').forEach(listener => listener(editor, path.widget));
         },
 
+        /**
+         * Opens the preview modal for the selected widget
+         * @param {PathResult} path
+         */
+        preview: async (path) => {
+            const el = path?.elem;
+            if (!el || !path?.widget) {
+                return;
+            }
+            // Open preview window
+            const modal = await modalSrv.create("preview",
+                {
+                    content: el.outerHTML,
+                },
+                () => {
+                    modal.body[0].querySelectorAll('iframe').forEach(iframe => {
+                        iframe.src = "about:blank";
+                    });
+                    modal.destroy();
+                });
+            modal.show();
+            modal.footer[0].querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', () => {
+                    modal.hide();
+                });
+            });
+        },
+
         paste: () => {
             const html = widgetCutClipboard?.html;
             const widget = widgetCutClipboard?.widget;
@@ -292,8 +326,8 @@ export const predefinedActionsFactory = function(editor, domSrv, widgetCutClipbo
             getListeners('widgetInserted').forEach(listener => listener(editor, widget));
             widgetCutClipboard.widget = undefined;
             widgetCutClipboard.html = undefined;
-        }
-    };
+        },
+    });
     // Alias.
     factory.moveup = factory.movebefore;
     factory.movedown = factory.moveafter;
@@ -313,7 +347,7 @@ export const predefinedActionsFactory = function(editor, domSrv, widgetCutClipbo
  * @typedef {{
  *   properties: string, unwrap: string, moveup: string, movedown: string,
  *   moveafter: string, movebefore: string, insert: string, remove: string,
- *   printable: string, cut: string, paste: string
+ *   printable: string, cut: string, paste: string, preview: string
  * }} I18n
  */
 
@@ -341,12 +375,14 @@ export class ContextActionsManager {
     /**
      * @param {import('./plugin').TinyMCE} editor
      * @param {import('./service/dom_service').DomSrv} domSrv
+     * @param {import('./service/modal_service').ModalSrv} modalSrv
      * @param {{get_strings: (arg: {key: string, component: string}[]) => Promise<string[]> }} translateSrv
      * @param {{widget: import('./options').Widget | undefined, html: string | undefined}} widgetCutClipboard
      */
-    constructor(editor, domSrv, translateSrv, widgetCutClipboard) {
+    constructor(editor, domSrv, modalSrv, translateSrv, widgetCutClipboard) {
         this.editor = editor;
         this.domSrv = domSrv;
+        this.modalSrv = modalSrv;
         this.translateSrv = translateSrv;
         this.widgetCutClipboard = widgetCutClipboard;
         /**
@@ -363,7 +399,7 @@ export class ContextActionsManager {
 
     async init() {
         this.i18n = await this.loadStrings();
-        this.predefinedActions = predefinedActionsFactory(this.editor, this.domSrv, this.widgetCutClipboard);
+        this.predefinedActions = predefinedActionsFactory(this.editor, this.domSrv, this.modalSrv, this.widgetCutClipboard);
         registerIcons(this.editor);
         this.registerUI();
         await this.registerExtensionMenus();
@@ -377,9 +413,9 @@ export class ContextActionsManager {
     async loadStrings() {
         const keys = [
             'properties', 'unwrap', 'moveup', 'movedown', 'moveafter',
-            'movebefore', 'insert', 'remove', 'printable', 'cut', 'paste'
+            'movebefore', 'insert', 'remove', 'printable', 'cut', 'paste', 'preview'
         ];
-        const values = await this.translateSrv.get_strings(keys.map(key => ({key, component})));
+        const values = await this.translateSrv.get_strings(keys.map(key => ({ key, component })));
         // @ts-ignore
         return Object.fromEntries(keys.map((k, i) => [k, values[i]]));
     }
@@ -392,6 +428,7 @@ export class ContextActionsManager {
         if (!path.widget) {
             return;
         }
+        await path.widget.loadDefinition(this.editor);
         // Display modal dialog on this context
         const widgetPropertiesCtrl = getWidgetPropertiesCtrl(this.editor);
         await widgetPropertiesCtrl.show(path);
@@ -442,7 +479,7 @@ export class ContextActionsManager {
         /**
          * @param {PathResult} [path]
          */
-        return (path) => {
+        return async (path) => {
             path = path ?? this.ctx.path;
             if (!path?.widget) {
                 // Brings the selection to the Tiny's iframe if it is embeded inside inner iframes.
@@ -455,7 +492,7 @@ export class ContextActionsManager {
             if (action) {
                 action(path);
                 // Call any subscriber
-                getListeners('ctxAction').forEach(listener => listener(this.editor, path?.widget));
+                getListeners('ctxAction').forEach(listener => listener(this.editor, path.widget));
             } else {
                 console.error("Cannot find action", name);
             }
@@ -519,6 +556,12 @@ export class ContextActionsManager {
             tooltip: this.i18n.remove,
             onAction: this.genericAction('remove')
         });
+        this.registerUIElement({
+            name: 'preview',
+            icon: ICONS.preview,
+            tooltip: this.i18n.preview,
+            onAction: this.genericAction('preview')
+        });
         // Only one instance allowed. At root level.
         this.registerUIElement({
             name: 'cut',
@@ -542,9 +585,11 @@ export class ContextActionsManager {
         });
     }
 
-
+    /**
+     * Let extensions register additional menuItem and nestedMenuItem.
+     * It is reponsability of the extension actions to call widget.loadDefinition() if needed.
+     */
     async registerExtensionMenus() {
-        // Let extensions register additional menuItem and nestedMenuItem.
         /** @type {import('./extension').UserDefinedItem[]} */
         this.widgetsWithExtensions = (
             await Promise.all(getMenuItemProviders().map(provider => provider(this.ctx)))
@@ -580,14 +625,14 @@ export class ContextActionsManager {
             return menuItems;
         }
         if (path.widget.hasBindings()) {
-            this.ctx.actionPaths.modal.push({...path});
+            this.ctx.actionPaths.modal.push({ ...path });
             menuItems.push('modal');
         }
         // Unwrap action always to the end
         if (path.widget.unwrap) {
             menuItems.push('unwrap');
             this.ctx.actionPaths.unwrap = this.ctx.actionPaths.unwrap || [];
-            this.ctx.actionPaths.unwrap.push({...path});
+            this.ctx.actionPaths.unwrap.push({ ...path });
         }
         // Now look for contextmenu property in widget definition
         /** @type {import('./options').Action[] | undefined} */
@@ -636,7 +681,7 @@ export class ContextActionsManager {
             newActionsToAdd.filter(e => e !== '|').forEach((/** @type {string} */ e) => {
                 path.targetElement = targetElem;
                 this.ctx.actionPaths[e] = this.ctx.actionPaths[e] || [];
-                this.ctx.actionPaths[e].push({...path, text: cm.description});
+                this.ctx.actionPaths[e].push({ ...path, text: cm.description });
             });
         });
         return menuItems;
@@ -656,7 +701,7 @@ export class ContextActionsManager {
             menuItems.add('paste_item');
         }
         // Look for a context
-        const normSelectedElement = this.editor.selection.getNode();
+        const normSelectedElement = element || this.editor.selection.getNode();
         if (!normSelectedElement) {
             return [...menuItems];
         }
@@ -665,11 +710,11 @@ export class ContextActionsManager {
             modal: []
         };
         const widget = this.ctx.path.widget;
+
         if (!widget) {
             // Widget not found in the searchPath.
             return prefixItemsWith([...menuItems], componentName, ['|']);
         }
-
         // Does this widget bubble? Look for a parent widget named widget.bubbles
         /** @type {PathResult | null} */
         let parentPath = null;
@@ -678,7 +723,7 @@ export class ContextActionsManager {
             if (parentElem) {
                 const p = this.domSrv.findWidgetOnEventPath(this.widgetList, parentElem);
                 if (p && p.widget?.key === widget.prop('bubbles')) {
-                    parentPath = {...p};
+                    parentPath = { ...p };
                 }
             }
         }
@@ -716,7 +761,7 @@ export class ContextActionsManager {
 
     registerContextMenus() {
         // Creates the actual context menu items.
-        this.editor.ui.registry.addContextMenu(component, {
+        this.editor.ui.registry.addContextMenu(component + '_cm', {
             /** @param {HTMLElement} element */
             update: (element) => this.contextMenuUpdate(element).join(' ')
         });
@@ -734,15 +779,15 @@ export class ContextActionsManager {
             contextToolbar.filter(ctbSpec => !ctbSpec.predicate).forEach(ctbSpec => {
                 const actionsToAdd = ctbSpec.actions.toLowerCase().split(/\s+/).filter(Boolean)
                     .map(e => e.trim())
-                    .filter(e => ['|', 'cut', 'printable'].includes(e));
-                items.push(actionsToAdd);
+                    .filter(e => !['|', 'cut', 'printable'].includes(e));
+                items.push(...actionsToAdd);
             });
             if (widget.unwrap) {
                 items.push('unwrap');
             }
             this.editor.ui.registry.addContextToolbar(`${componentName}_ctb_${widget.key}`, {
                 /** @param {HTMLElement} node */
-                predicate: function(node) {
+                predicate: (node) => {
                     const path = this.domSrv.findWidgetOnEventPath(this.widgetList, node);
                     // Only activate if the first widget found in path is the current one
                     return path.widget?.key === widget.key;
@@ -757,13 +802,15 @@ export class ContextActionsManager {
 
 
 // Share widgetCutClipboard among serveral editors
- /**
-  * @type {{widget: import('./options').Widget | undefined, html: string | undefined}}
-  */
-const widgetCutClipboard = {
-    widget: undefined,
-    html: undefined
-};
+/**
+ * @type {{widget: import('./options').Widget | undefined, html: string | undefined}}
+ */
+const widgetCutClipboard = Object.seal(
+    Object.assign(Object.create(null), {
+        widget: undefined,
+        html: undefined
+    })
+);
 
 
 const contextMenuManagerInstances = new Map();
@@ -772,11 +819,11 @@ const contextMenuManagerInstances = new Map();
  * @returns {ContextActionsManager}
  */
 export function getContextMenuManager(editor) {
-   let instance = contextMenuManagerInstances.get(editor);
-   if (!instance) {
-      // @ts-ignore
-      instance = new ContextActionsManager(editor, getDomSrv(), {get_strings}, widgetCutClipboard);
-      contextMenuManagerInstances.set(editor, instance);
-   }
-   return instance;
+    let instance = contextMenuManagerInstances.get(editor);
+    if (!instance) {
+        // @ts-ignore
+        instance = new ContextActionsManager(editor, getDomSrv(), getModalSrv(), { get_strings }, widgetCutClipboard);
+        contextMenuManagerInstances.set(editor, instance);
+    }
+    return instance;
 }

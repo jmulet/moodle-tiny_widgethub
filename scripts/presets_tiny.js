@@ -4,9 +4,9 @@
  * Utility Script for the WidgetHub Plugin
  *
  * This script processes widgets located in the `../repository` directory (in YAML format)
- * and converts them into JSON format in the `../presets` directory.
+ * and converts them into JSON format in the `../repository/json` directory.
  *
- * The JSON files in the `presets` directory will be automatically imported
+ * The JSON files in the `repository/json` directory will be automatically imported
  * when the WidgetHub plugin is installed or updated.
  *
  * Usage:
@@ -15,7 +15,7 @@
  * Author: Josep Mulet Pol <pep.mulet@gmail.com>
  */
 
-const {applyPartials} = require("./util");
+const { applyPartials } = require("./util");
 
 const fs = require("fs");
 const path = require("path");
@@ -160,19 +160,19 @@ function checkMustache(parsed) {
     let nerr = 0;
     const str = parsed.template;
 
-     // The context for the template.
-     /** @type {Record<string, *>} */
-     const ctx = {};
-     // Find all {{#var}} {{/var}} occurences in the template
-     const regex0 = /{{#var}}(.*){{\/var}}/gm;
-     let m0;
-     while ((m0 = regex0.exec(str)) !== null) {
+    // The context for the template.
+    /** @type {Record<string, *>} */
+    const ctx = {};
+    // Find all {{#var}} {{/var}} occurences in the template
+    const regex0 = /{{#var}}(.*){{\/var}}/gm;
+    let m0;
+    while ((m0 = regex0.exec(str)) !== null) {
         if (m0.index === regex0.lastIndex) {
             regex0.lastIndex++;
         }
         const varName = m0[1].split('=')[0];
         ctx[varName] = m0[1];
-     }
+    }
 
     // All fields {{}} must have an associated parameter.
     const regex = /\{{2,3}([^}]*)\}{2,3}/gm;
@@ -242,7 +242,7 @@ console.log(`
     *****************************************************
     This is an utility script for the WidgetHub plugin
     It converts widgets from ../repository in yaml format
-    into ../presets in .json format.
+    into ../repository/json in .json format.
 
     Josep Mulet Pol <pep.mulet@gmail.com>
     *****************************************************
@@ -268,9 +268,9 @@ if (helpMode || process.argv.length < 3) {
     console.error(`
     The call requires one argument, either the yaml file name or @, ! to convert all files.
     Examples:
-        node ./presets_tiny.js bs-tabs    # It only treats bs-tabs.yaml
-        node ./presets_tiny.js @          # It treats all files that have been modified (check hash)
-        node ./presets_tiny.js !          # Force transforming all files regardless of its modification.
+        node ./presets_local.js bs-tabs    # It only treats bs-tabs.yaml
+        node ./presets_local.js @          # It treats all files that have been modified (check hash)
+        node ./presets_local.js !          # Force transforming all files regardless of its modification.
     
     Options:
         --test  -t  # Runs in test mode (no changes are written)
@@ -283,14 +283,14 @@ if (helpMode || process.argv.length < 3) {
 /** @type {Record<string, string>} */
 let hashes = {};
 try {
-    const raw = fs.readFileSync("./.hashes-presets-tiny.json", "utf-8");
+    const raw = fs.readFileSync("./.hashes-presets-local.json", "utf-8");
     hashes = JSON.parse(raw);
 } catch (ex) {
     console.info("> Creating empty hash file.");
 }
 
 const sourceDirectory = path.resolve('../repository/');
-const targetDirectory = path.resolve('../presets/');
+const targetDirectory = path.resolve('../repository/json/');
 
 let doFiles = fs.readdirSync(sourceDirectory)
     .filter(e => path.extname(e).endsWith("yaml") || path.extname(e).endsWith("yml"));
@@ -298,6 +298,10 @@ if (filterMode !== '@' && filterMode !== '!') {
     doFiles = doFiles.filter(e => e.endsWith(filterMode));
     console.log('> Treating files ', doFiles);
 }
+
+// Structure to hold the index.json file.
+/** @type {{key: string, name: string, category: string, urls: {json: string, yml: string, css: string | undefined, js: string | undefined}}[]} */
+let indexJson = [];
 
 /** @type {string[]} */
 let usedKeys = [];
@@ -318,6 +322,20 @@ doFiles.forEach((f) => {
         if (parsed) {
             widgets[f] = parsed;
             widgetsExpanded[f] = JSON.parse(JSON.stringify(parsed)); // Deep copy.
+            const hasCss = fs.existsSync(path.join(sourceDirectory, parsed.key + ".css"));
+            const hasJs = fs.existsSync(path.join(sourceDirectory, parsed.key + ".js"));
+            const urls = {
+                json: path.join('json', parsed.key + ".json"),
+                yml: parsed.key + ".yml",
+                css: hasCss ? parsed.key + ".css" : undefined,
+                js: hasJs ? parsed.key + ".js" : undefined
+            };
+            indexJson.push({
+                key: parsed.key,
+                name: parsed.name,
+                category: parsed.category,
+                urls
+            });
         } else {
             console.error(`Error: cannot parse file ${f}`);
             process.exit(1);
@@ -335,7 +353,7 @@ if (partials) {
         .filter((w) => w.key !== "partials" && !isFilter(w))
         .forEach((w) => {
             applyPartials(w, partials);
-    });
+        });
 }
 
 
@@ -362,7 +380,7 @@ Object.entries(widgets).forEach(([f, parsed]) => {
         // Save-it
         const filename = f.replace(".yaml", ".json").replace(".yml", ".json");
         if (!testMode) {
-            fs.writeFileSync(path.join(targetDirectory, filename), output, {encoding: "utf-8"});
+            fs.writeFileSync(path.join(targetDirectory, filename), output, { encoding: "utf-8" });
             console.log(` [Saved] ${filename}`);
         }
     } else {
@@ -375,5 +393,6 @@ checkUniqueKeys(usedKeys);
 
 // Saving hashes for future runs.
 if (!testMode) {
-    fs.writeFileSync(".hashes-presets-tiny.json", JSON.stringify(hashes), "utf-8");
+    // fs.writeFileSync(path.join(sourceDirectory, "index.json"), JSON.stringify(indexJson), "utf-8");
+    fs.writeFileSync(".hashes-presets-local.json", JSON.stringify(hashes), "utf-8");
 }

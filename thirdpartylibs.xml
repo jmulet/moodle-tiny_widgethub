@@ -1,15 +1,7 @@
 <?xml version="1.0"?>
 <libraries>
     <library>
-        <location>amd/src/libs/ejs-lazy.js</location>
-        <name>ejs</name>
-        <version>3.1.10</version>
-        <license>Apache</license>
-        <licenseversion>2.0</licenseversion>
-        <repository>https://github.com/mde/ejs</repository>
-    </library>
-    <library>
-        <location>amd/src/libs/ymleditor-lazy.js</location>
+        <location>amd/src/libs/yaml-lazy.js</location>
         <name>yaml</name>
         <version>2.8.0</version>
         <license>ISC</license>
@@ -17,7 +9,7 @@
         <repository>https://github.com/eemeli/yaml</repository>
     </library>
     <library>
-        <location>amd/src/libs/ymleditor-lazy.js</location>
+        <location>amd/src/libs/cmeditor-lazy.js</location>
         <name>codemirror</name>
         <version>6.0.1</version>
         <license>MIT</license>
@@ -25,11 +17,65 @@
         <repository>https://github.com/codemirror/basic-setup</repository>
     </library>
     <library>
-        <location>amd/src/libs/ymleditor-lazy.js</location>
-        <name>codemirror/lang-yaml</name>
-        <version>6.1.2</version>
+        <location>libs/src/sandbox/tmp/ejs_worker.inline.js</location>
+        <name>ejs_worker (includes ejs browser)</name>
+        <version>3.1.10</version>
         <license>MIT</license>
         <licenseversion></licenseversion>
-        <repository>https://github.com/codemirror/lang-yaml</repository>
+    </library>
+    <library>
+        <location>libs/src/sandbox/tmp/liquid_worker.inline.js</location>
+        <name>liquid_worker (includes liquidjs)</name>
+        <version>10.8.2</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/harttle/liquidjs</repository>
+    </library>
+    <library>
+        <location>libs/src/sandbox/tmp/mustache_worker.inline.js</location>
+        <name>mustache_worker (includes mustache.js)</name>
+        <version>4.3.0</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/mustache/mustache.js</repository>
+    </library>
+    <library>
+        <location>js/dom_sandbox.min.js</location>
+        <name>cash-dom</name>
+        <version>8.1.5</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/cash-dom/cash-dom</repository>
+    </library>
+    <library>
+        <location>js/render_sandbox.min.js</location>
+        <name>ejs_worker (includes ejs browser)</name>
+        <version>3.1.10</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>js/render_sandbox.min.js</location>
+        <name>liquid_worker (includes liquidjs)</name>
+        <version>10.8.2</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/harttle/liquidjs</repository>
+    </library>
+    <library>
+        <location>js/render_sandbox.min.js</location>
+        <name>mustache_worker (includes mustache.js)</name>
+        <version>4.3.0</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/mustache/mustache.js</repository>
+    </library>
+    <library>
+        <location>libs/src/sandbox/workers/ejs.min.js</location>
+        <name>ejs browser</name>
+        <version>3.1.10</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/mde/ejs/releases</repository>
     </library>
 </libraries>

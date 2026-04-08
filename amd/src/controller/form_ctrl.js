@@ -19,33 +19,35 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import { getFileSrv } from '../service/file_service';
 import { getTemplateSrv } from '../service/template_service';
 import { getUserStorage } from '../service/userstorage_service';
-import { capitalize, cleanParameterName, evalInContext, genID, stream, toHexAlphaColor, toRgba } from '../util';
+import { capitalize, cleanParameterName, genID, stream, toHexAlphaColor, toRgba } from '../util';
+import { Sandbox } from '../service/sandbox';
 
-const questionPopover = '{{#tooltip}}<a href="javascript:void(0)" data-toggle="popover" data-trigger="hover" data-content="{{tooltip}}" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-content="{{tooltip}}"><i class="fa fas fa-question-circle text-info"></i></a>{{/tooltip}}';
+const questionPopover = '{{#tooltip}}<button type="button" class="btn btn-link p-0" data-toggle="popover" data-trigger="hover" data-content="{{tooltip}}" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-content="{{tooltip}}"><i class="fa fas fa-question-circle text-info"></i></button>{{/tooltip}}';
 
-export const Templates = {
-   TEXTFIELDTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+export const Templates = Object.freeze(
+   Object.assign(Object.create(null), {
+      TEXTFIELDTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <div class="col-sm-7"><input type="text" id="{{elementid}}_ftmpl" class="form-control" name="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/></div>
    </div>`,
 
-   IMAGETEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+      IMAGETEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <div class="col-sm-7">
    <input type="text" id="{{elementid}}_ftmpl" class="form-control d-inline-block w-75" name="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
-   <button class="whb-image-picker btn btn-sm btn-secondary d-inline-block" title="Search"><i class="fas fa fa-search"></i></button>
+   <button type="button" class="whb-image-picker btn btn-sm btn-secondary d-inline-block" title="Search"><i class="fas fa fa-search"></i></button>
    </div>
    </div>`,
 
-   NUMERICTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}"><label class="col-sm-5 col-form-label"  for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+      NUMERICTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}"><label class="col-sm-5 col-form-label"  for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <div class="col-sm-7"><input type="number" id="{{elementid}}_fntmpl" class="form-control" name="{{varname}}" {{{minMax}}} {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/></div>
    </div>`,
 
-   COLORTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}"><label class="col-sm-5 col-form-label"  for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+      COLORTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}"><label class="col-sm-5 col-form-label"  for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <div class="col-sm-7">
    <span class="w-50 tiny_widgethub-pattern">
       <input type="color" id="{{elementid}}_fctmpl" name="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
@@ -53,17 +55,17 @@ export const Templates = {
    <input type="range" id="{{elementid}}_fcatmpl" title="Opacity" name="{{varname}}_alpha" {{#disabled}}disabled{{/disabled}} value="{{defaultvalueAlpha}}" min="0" max="1" step="0.01"/>
    </div></div>`,
 
-   TEXTAREATEMPLATE: `<div id="{{elementid}}" class="form-group{{#hidden}} d-none{{/hidden}}"><label for="{{elementid}}_tatmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+      TEXTAREATEMPLATE: `<div id="{{elementid}}" class="form-group{{#hidden}} d-none{{/hidden}}"><label for="{{elementid}}_tatmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <textarea id="{{elementid}}_tatmpl" rows="3" class="form-control" name="{{varname}}" {{#disabled}}disabled{{/disabled}} {{#tooltip}}title="{{tooltip}}"{{/tooltip}}>{{defaultvalue}}</textarea>
    </div>`,
 
-   CHECKBOXTEMPLATE: `<div id="{{elementid}}" class="form-group w-75 m-2{{#hidden}} d-none{{/hidden}}">
+      CHECKBOXTEMPLATE: `<div id="{{elementid}}" class="form-group w-75 m-2{{#hidden}} d-none{{/hidden}}">
    <label>
    <input title="{{varname}}" id="{{elementid}}_cbtmpl" {{#disabled}}disabled{{/disabled}} type="checkbox" name="{{varname}}" value="{{defaultvalue}}" {{#defaultvalue}}checked{{/defaultvalue}}/></span>
    {{vartitle}}</label> <span>&nbsp;&nbsp;  ${questionPopover}</span>
    </div>`,
 
-   SELECTTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}">
+      SELECTTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}">
    <label class="col-sm-5 col-form-label" for="{{elementid}}_stmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <div class="col-sm-7">
    <select id="{{elementid}}_stmpl" class="form-control" name="{{varname}}" {{#disabled}}disabled{{/disabled}} {{#tooltip}}title="{{tooltip}}"{{/tooltip}}>
@@ -74,7 +76,7 @@ export const Templates = {
    </div>
    </div>`,
 
-   AUTOCOMPLETETEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+      AUTOCOMPLETETEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <div class="col-sm-7"><input type="text" list="{{elementid}}_aclist" id="{{elementid}}_actmpl" class="form-control" name="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}" autocomplete="off"/>
    <datalist id="{{elementid}}_aclist">
    {{#options}}
@@ -84,11 +86,11 @@ export const Templates = {
    </div>
    </div>`,
 
-   REPEATABLE: `<div id="{{elementid}}" name="{{varname}}" type="repeatable" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}">
+      REPEATABLE: `<div id="{{elementid}}" name="{{varname}}" type="repeatable" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}">
       <span class="form-label" title="{{varname}}">{{vartitle}} ${questionPopover}</span>
       {{{itemControls}}}
    </div>`,
-};
+   }));
 
 
 export class FormCtrl {
@@ -287,9 +289,9 @@ export class FormCtrl {
     */
    extractFormParameters(widget, form, doStore) {
       /** @type {Object.<string, any>}  */
-      const ctx = {};
+      const ctx = Object.create(null);
       /** @type {Object.<string, any>}  */
-      const toPersist = {};
+      const toPersist = Object.create(null);
       const defaults = widget.defaults;
       widget.parameters.forEach(param => {
          const pname = param.name;
@@ -306,7 +308,7 @@ export class FormCtrl {
             const listValue = [];
             elem.querySelectorAll(".list-group-item.tiny_widgethub-regularitem").forEach(subform => {
                /** @type {Record<string, any>} */
-               const itemObj = {};
+               const itemObj = Object.create(null);
                param.fields?.forEach(field => {
                   const cleanFieldname = cleanParameterName(field.name);
                   /** @type {HTMLInputElement | null} */
@@ -451,14 +453,19 @@ export class FormCtrl {
          watchedvars.push(varobj.name);
       }
 
-      const doUpdateVisibilities = () => {
-         updatableComponents.forEach(upcomp => {
+      const doUpdateVisibilities = async () => {
+         const sandbox = await Sandbox.getInstance();
+         for (const upcomp of updatableComponents) {
             // Evaluate condition
             const newVariables = this.extractFormParameters(widget, formElem, false);
             // Add to the new variables the internal variables
             newVariables.SELECT_MODE = selectmode;
             // Eval JS condition for new variables
-            const showme = evalInContext(newVariables, upcomp.condition);
+            const response = await sandbox.execute('eval', {
+               code: upcomp.condition,
+               ctx: newVariables
+            });
+            const showme = response?.returns;
             if (upcomp.component) {
                /** @type {HTMLElement | null} */
                const theComponent = upcomp.component.closest('.form-group');
@@ -467,7 +474,7 @@ export class FormCtrl {
                   theComponent.style.display = showme ? '' : 'none';
                }
             }
-         });
+         }
       };
 
       // Apply the watchers
@@ -716,7 +723,7 @@ export function getFormCtrl(editor) {
    let instance = formCtrlInstances.get(editor);
    if (!instance) {
       // @ts-ignore
-      instance = new FormCtrl(editor, getUserStorage(editor), getTemplateSrv(), getFileSrv(editor));
+      instance = new FormCtrl(editor, getUserStorage(editor), getTemplateSrv(editor), getFileSrv(editor));
       formCtrlInstances.set(editor, instance);
    }
    return instance;

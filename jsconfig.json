@@ -11,6 +11,9 @@
         ],
         "esModuleInterop": true,
         "paths": {
+            "editor_tiny/editor": [
+                "../../amd/src/editor"
+            ],
             "editor_tiny/utils": [
                 "../../amd/src/utils"
             ],

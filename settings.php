@@ -18,27 +18,48 @@
  * Tiny WidgetHub plugin version details.
  *
  * @package     tiny_widgethub
- * @copyright   2024 Josep Mulet <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet <pep.mulet@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
-    $tinycategory = 'tiny_widgethub';
-    $settings = new admin_settingpage('tiny_widgethub_settings', get_string('pluginname', $tinycategory));
+    $plugincategory = 'tiny_widgethub';
 
+    // Create the category node inside editor tiny section.
+    // This MUST be done outside the fulltree check so Moodle knows the hierarchy.
+    $ADMIN->add('editortiny', new admin_category($plugincategory, get_string('pluginname', 'tiny_widgethub')));
+
+    // Register the external pages (hidden from navigation).
+    $externalpage = new admin_externalpage(
+        'tinywidgethubeditor',
+        get_string('pluginname', 'tiny_widgethub'),
+        new moodle_url('/lib/editor/tiny/plugins/widgethub/settingseditorpage.php'),
+        'tiny/widgethub:manage',
+        true // Hidden from the admin menu tree.
+    );
+    $ADMIN->add($plugincategory, $externalpage);
+
+    $externalpage = new admin_externalpage(
+        'tinywidgethubrestore',
+        get_string('pluginname', 'tiny_widgethub'),
+        new moodle_url('/lib/editor/tiny/plugins/widgethub/settingsrestorepage.php'),
+        'tiny/widgethub:manage',
+        true
+    );
+    $ADMIN->add($plugincategory, $externalpage);
+
+    // Load actual settings only when the user is viewing a settings page.
     if ($ADMIN->fulltree) {
-        // Configure component preview.
-        $conf = get_config('tiny_widgethub');
+        // Main settings page definition.
+        $mainsettings = new admin_settingpage(
+            'tiny_widgethub_settings',
+            get_string('pluginname', 'tiny_widgethub'),
+            'tiny/widgethub:manage'
+        );
 
-        // Create a category.
-        $ADMIN->add('editortiny', new admin_category($tinycategory, get_string('pluginname', $tinycategory)));
-
-        // Main settings.
-        $mainsettings = new admin_settingpage($tinycategory . '_settings', get_string('pluginname', $tinycategory));
-
-        // Add basic items to page.
+        // Add basic items to page from the utility class.
         $mainitems = \tiny_widgethub\settingsutil::create_spage_items();
         foreach ($mainitems as $mainitem) {
             $mainsettings->add($mainitem);
@@ -47,26 +68,15 @@ if ($hassiteconfig) {
         // Add table of widgets to page.
         $widgettableitem = new \tiny_widgethub\widgettable(
             'tiny_widgethub/widgettable',
-            get_string('widgets', $tinycategory),
+            get_string('widgets', 'tiny_widgethub'),
             ''
         );
         $mainsettings->add($widgettableitem);
 
-        // Add page to category.
-        $ADMIN->add($tinycategory, $mainsettings);
+        // Add the main settings page to our category.
+        $ADMIN->add($plugincategory, $mainsettings);
 
-        // Add setting pages for every widget to category (hidden from nav).
-        $widgetindex = \tiny_widgethub\plugininfo::get_widget_index($conf);
-        $widgetlist = \tiny_widgethub\plugininfo::get_widget_list($conf, $widgetindex, false);
-        $usedkeys = array_column($widgetindex, 'key');
-        $partials = \tiny_widgethub\plugininfo::get_partials($conf, $widgetindex);
-
-        $spages = \tiny_widgethub\settingsutil::create_widget_setting_pages($widgetlist, $usedkeys, $partials);
-
-        foreach ($spages as $page) {
-            $ADMIN->add($tinycategory, $page);
-        }
-        // Set the default return to null.
+        // Set the default return variable to null as we used $ADMIN->add.
         $settings = null;
     }
 }

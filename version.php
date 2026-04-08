@@ -18,14 +18,14 @@
  * Tiny WidgetHub plugin version details.
  *
  * @package     tiny_widgethub
- * @copyright   2024 Josep Mulet <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet <pep.mulet@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'tiny_widgethub';
-$plugin->release = '1.4.2';
-$plugin->requires = 2022112800;
+$plugin->release = '1.5.0';
+$plugin->requires = 2023042400;  // Moodle 4.2+.
 $plugin->maturity = MATURITY_STABLE;
-$plugin->version = 2025121400;
+$plugin->version = 2026040800;

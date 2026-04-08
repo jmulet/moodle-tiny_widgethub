@@ -18,46 +18,38 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import jQuery from 'jquery';
-import {evalInContext} from './util';
+
+import { fnCallParser, safeAwait } from './util';
+import { RemoteDom } from './service/sandbox';
 
 /**
  * @param {*} value
  * @param {string | undefined} type
  * @returns {*}
  */
-export const performCasting = function(value, type) {
+export const performCasting = function (value, type) {
     if (!type || typeof value === type) {
         return value;
     }
     switch (type) {
         case ("boolean"):
-            if (value === 1 || value === "1" || value === true || value === "true") {
-                value = true;
-            } else {
-                value = false;
-            }
+            value = value === 1 || value === "1" || value === true || value === "true";
             break;
         case ("number"):
             try {
-                let parsed;
-                if ((value + '').indexOf(".") < 0) {
-                    parsed = parseInt(value);
-                } else {
-                    parsed = parseFloat(value);
-                }
+                const parsed = parseFloat(value);
                 if (!isNaN(parsed)) {
                     value = parsed;
                 } else {
-                    value = 0;
                     console.error(`Error parsing number ${value}`);
+                    value = 0;
                 }
             } catch (ex) {
-                value = 0;
                 console.error(`Error parsing number ${value}`);
+                value = 0;
             }
             break;
         case ("string"):
@@ -77,7 +69,7 @@ export const performCasting = function(value, type) {
  * @param {unknown} a
  * @param {unknown} b
  */
-const xor = function(a, b) {
+const xor = function (a, b) {
     return !a !== !b;
 };
 
@@ -87,8 +79,8 @@ const xor = function(a, b) {
  * @param {string} replacement
  * @returns {string}
  */
-const replaceStrPart = function(str, match, replacement) {
-    if (!match.indices) {
+const replaceStrPart = function (str, match, replacement) {
+    if (!match?.indices) {
         console.error("RegExp match does not include indices");
         return str;
     }
@@ -99,11 +91,14 @@ const replaceStrPart = function(str, match, replacement) {
 /**
  * Replaces the first capturing group in regexExpr by replacement,
  * The remaining capturing groups are removed.
- * @param {string} regexExpr
+ * @param {string|RegExp} regexExpr
  * @param {string} replacement
  * @returns {string}
  */
-const getValueFromRegex = function(regexExpr, replacement) {
+const getValueFromRegex = function (regexExpr, replacement) {
+    if (regexExpr instanceof RegExp) {
+        regexExpr = regexExpr.source;
+    }
     const reParser = /\((?!\?:).*?\)/g;
     let capturingGroupCount = 0;
     return regexExpr.replace(reParser, () => {
@@ -116,19 +111,22 @@ const getValueFromRegex = function(regexExpr, replacement) {
 };
 
 /**
- * @param {Element} el - The target element
- * @returns
+ * @typedef {{getValue: () => any, setValue: (value: any) => void}} Binding
  */
-const bindingFactory = function(el) {
-    /** @this {Record<string, Function>} */
-    const methods = {
+/**
+ * Predefined bindings
+ * @type {Record<string, (el: Element, ...args: any[]) => Binding>}
+ */
+export const bindingsFactoryAPI = Object.freeze(
+    Object.assign(Object.create(null), {
         /**
+         * @param {Element} el
          * @param {string} className
          * @param {string=} query
          * @param {boolean=} neg
          * @returns {Binding}
          */
-        hasClass: (className, query, neg) => {
+        hasClass: (el, className, query, neg) => {
             /** @type {Element | null} */
             let elem = el;
             if (query) {
@@ -151,31 +149,40 @@ const bindingFactory = function(el) {
             };
         },
         /**
+         * @param {Element} el
          * @param {string} className
          * @param {string=} query
          * @returns {Binding}
          */
-        notHasClass: (className, query) => {
-            return methods.hasClass(className, query, true);
+        notHasClass: (el, className, query) => {
+            return bindingsFactoryAPI.hasClass(el, className, query, true);
         },
         /**
-         * @param {string} classExpr
+         * @param {Element} el
+         * @param {string|RegExp} classExpr
          * @param {string=} query
          * @param {string=} castTo
          * @returns {Binding}
          */
-        classRegex: (classExpr, query, castTo) => {
+        classRegex: (el, classExpr, query, castTo) => {
             /** @type {Element | null} */
             let elem = el;
             if (query) {
                 elem = el.querySelector(query);
             }
+            if (typeof classExpr === 'string') {
+                classExpr = classExpr.replace(/\\\\/g, '\\');
+            }
             return {
                 getValue: () => {
                     let ret = '';
                     const classes = Array.from(elem?.classList ?? []);
+                    let classExpr2 = classExpr;
+                    if (typeof classExpr2 === 'string') {
+                        classExpr2 = new RegExp(classExpr2);
+                    }
                     for (const clazz of classes) {
-                        const match = new RegExp(classExpr).exec(clazz);
+                        const match = classExpr2.exec(clazz);
                         if (match?.[1] && typeof (match[1]) === "string") {
                             ret = match[1];
                             break;
@@ -186,8 +193,12 @@ const bindingFactory = function(el) {
                 setValue: (val) => {
                     const cl = Array.from(elem?.classList ?? []);
                     let found = false;
+                    let classExpr2 = classExpr;
+                    if (typeof classExpr2 === 'string') {
+                        classExpr2 = new RegExp(classExpr2, 'd');
+                    }
                     cl.forEach(c => {
-                        const match = new RegExp(classExpr, 'd').exec(c);
+                        const match = classExpr2.exec(c);
                         if (match === null) {
                             return;
                         }
@@ -206,12 +217,13 @@ const bindingFactory = function(el) {
             };
         },
         /**
+         * @param {Element} el
          * @param {string} attrName
          * @param {string=} query
          * @param {string=} castTo
          * @returns {Binding}
          */
-        attr: (attrName, query, castTo) => {
+        attr: (el, attrName, query, castTo) => {
             /** @type {Element | null} */
             let elem = el;
             if (query) {
@@ -244,13 +256,14 @@ const bindingFactory = function(el) {
         },
         /**
          * Adapted to take into account both data- and data-bs- for Boostrap 4 & 5 compatibility.
+         * @param {Element} el
          * @param {string} attrName - Name without data- nor data-bs-
          * @param {string=} query
          * @param {string=} castTo
          * @param {number=} version - 4 or 5 depending the version of BS currently using
          * @returns {Binding}
          */
-        attrBS: (attrName, query, castTo, version) => {
+        attrBS: (el, attrName, query, castTo, version) => {
             /** @type {Element | null} */
             let elem = el;
             if (query) {
@@ -287,12 +300,13 @@ const bindingFactory = function(el) {
             };
         },
         /**
+         * @param {Element} el
          * @param {string} attr
          * @param {string=} query
          * @param {boolean=} neg
          * @returns {Binding}
          */
-        hasAttr: (attr, query, neg) => {
+        hasAttr: (el, attr, query, neg) => {
             /** @type {Element | null} */
             let elem = el;
             if (query) {
@@ -330,13 +344,14 @@ const bindingFactory = function(el) {
         },
         /**
          * Variant to check for compatibility between Bootstrap 4 and 5.
+         * @param {Element} el
          * @param {string} attr - attr name without data- nor data-bs-
          * @param {string=} query
          * @param {boolean=} neg
          * @param {number=} version - 4 or 5
          * @returns {Binding}
          */
-        hasAttrBS: (attr, query, neg, version) => {
+        hasAttrBS: (el, attr, query, neg, version) => {
             /** @type {Element | null} */
             let elem = el;
             if (query) {
@@ -382,20 +397,22 @@ const bindingFactory = function(el) {
             };
         },
         /**
+         * @param {Element} el
          * @param {string} attr
          * @param {string=} query
          * @returns {Binding}
          */
-        notHasAttr: (attr, query) => {
-            return methods.hasAttr(attr, query, true);
+        notHasAttr: (el, attr, query) => {
+            return bindingsFactoryAPI.hasAttr(el, attr, query, true);
         },
         /**
+         * @param {Element} el
          * @param {string} attr - Regex of attr
          * @param {string=} query
          * @param {string=} castTo
          * @returns {Binding}
          */
-        attrRegex: function(attr, query, castTo) {
+        attrRegex: (el, attr, query, castTo) => {
             /** @type {Element | null} */
             let elem = el;
             if (query) {
@@ -406,6 +423,9 @@ const bindingFactory = function(el) {
             let attrValue = '';
             if (parts.length > 1) {
                 attrValue = parts[1].trim();
+                if (typeof attrValue === 'string') {
+                    attrValue = attrValue.replace(/\\\\/g, '\\');
+                }
             }
             return {
                 getValue() {
@@ -436,12 +456,13 @@ const bindingFactory = function(el) {
             };
         },
         /**
+         * @param {Element} el
          * @param {string} sty
          * @param {string=} query
          * @param {boolean=} neg
          * @returns {Binding}
          */
-        hasStyle: function(sty, query, neg) {
+        hasStyle: (el, sty, query, neg) => {
             /** @type {Element | null} */
             let elem = el;
             if (query) {
@@ -477,20 +498,22 @@ const bindingFactory = function(el) {
             };
         },
         /**
+         * @param {Element} el
          * @param {string} sty
          * @param {string=} query
          * @returns {Binding}
          */
-        notHasStyle: (sty, query) => {
-            return methods.hasStyle(sty, query, true);
+        notHasStyle: (el, sty, query) => {
+            return bindingsFactoryAPI.hasStyle(el, sty, query, true);
         },
         /**
+         * @param {Element} el
          * @param {string} attr - styName:styValue where styValue is a regex with (.*)
          * @param {string=} query
          * @param {string=} castTo
          * @returns {Binding}
          */
-        styleRegex: function(attr, query, castTo) {
+        styleRegex: (el, attr, query, castTo) => {
             /** @type {Element | null} */
             let elem = el;
             if (query) {
@@ -501,6 +524,9 @@ const bindingFactory = function(el) {
             let styValue = '';
             if (parts.length > 1) {
                 styValue = parts[1].trim();
+                if (typeof styValue === 'string') {
+                    styValue = styValue.replace(/\\\\/g, '\\');
+                }
             }
             return {
                 /** @returns {string | null} */
@@ -544,56 +570,350 @@ const bindingFactory = function(el) {
                     }
                     st?.setProperty(styName, newValue);
                     // TODO: better way to update data-mce-style
-                    elem?.setAttribute('data-mce-style', st?.cssText || '');
+                    elem?.setAttribute('data-mce-style', st?.cssText ?? '');
+                }
+            };
+        },
+        /**
+         * @param {Element} el
+         * @param {string=} query
+         * @returns {Binding}
+         */
+        text: (el, query) => {
+            /** @type {Element | null} */
+            let elem = el;
+            if (query) {
+                elem = el.querySelector(query);
+            }
+            return {
+                getValue() {
+                    return elem?.textContent ?? '';
+                },
+                setValue(val) {
+                    if (elem) {
+                        elem.textContent = val + '';
+                    }
                 }
             };
         }
-    };
-    return methods;
-};
+    }));
 
 /**
- * @typedef {Object} Binding
- * @property {() => unknown} getValue
- * @property {(value: string | boolean | number) => void} setValue
+ * Adapter to get and set values from/to the DOM
+ * according to widget parameter bindings.
+ * Local bindings are based on the BindingFactoryAPI.
+ * Remote bindings are used when binding contains user code and
+ * it requires DomSandbox.
+ *  @class BindingsAdapter
  */
-/**
- * @param {string | {get?: string, set?: string, getValue?: string, setValue?: string}} definition
- * @param {Element} elem  - The root of widget
- * @param {string=} castTo  - The type that must be returned
- * @returns {Binding | null}
- */
-export const createBinding = (definition, elem, castTo) => {
-    /** @type {Binding | null} */
-    let bindFn = null;
-    if (typeof (definition) === 'string') {
-        return evalInContext({...bindingFactory(elem)}, definition, true);
-    } else {
-        // The user provides the get and set functions (for jQuery element) @deprecated
-        // or getValue, setValue (for vanilla JS elements)
-        bindFn = {
-            getValue: () => {
-                let v;
-                if (definition.getValue) {
-                    v = evalInContext({elem}, `(${definition.getValue})(elem)`);
-                } else if (definition.get) {
-                    // @Deprecated. It will be removed in the future.
-                    v = evalInContext({elem: jQuery(elem)}, `(${definition.get})(elem)`);
-                }
-                if (castTo) {
-                    v = performCasting(v, castTo);
-                }
-                return v;
-            },
-            setValue: (v) => {
-                if (definition.setValue) {
-                    evalInContext({elem, v}, `(${definition.setValue})(elem, v)`);
-                } else if (definition.set) {
-                    // @Deprecated. It will be removed in the future.
-                    evalInContext({elem: jQuery(elem), v}, `(${definition.set})(elem, v)`);
-                }
-            }
-        };
+export class BindingsAdapter {
+    /**
+     * @param {Element} root
+     * @param {import('./options').Widget} widget
+     */
+    constructor(root, widget) {
+        this.root = root;
+        this.widget = widget;
+
+        // Parameters that contain bindings.
+        /** @type {import('./options').Param[]} */
+        this.parametersWithBindings = widget.parameters.filter(param => {
+            return param.bind !== undefined || BindingsAdapter.hasFieldBindings(param);
+            // Repeatable parameters with field object bindings are not supported.
+        });
+
+        this.hasLocalBindings = this.parametersWithBindings.some(param => (typeof param.bind === 'string') ||
+            BindingsAdapter.hasFieldBindings(param)
+        );
+        this.hasRemoteBindings = this.parametersWithBindings.some(param => typeof param.bind === 'object');
+
+        /**
+         * @type {Map<string, Binding>}
+         */
+        this.localBindings = new Map();
+
+        /**
+         * @type {Map<string, Object.<string, { bindingFactory: Function, args: any[]}>>}
+         */
+        this.localRepetableBindings = new Map();
     }
-    return bindFn;
-};
+
+    /**
+     * @param {import('./options').Param} param
+     * @returns {boolean}
+     */
+    static hasFieldBindings(param) {
+        return param.type === 'repeatable' &&
+            !!param.item_selector &&
+            !!(param.fields?.some(field => typeof field.bind === 'string'));
+    }
+
+    async _initRemoteDom() {
+        if (!this.hasRemoteBindings || this.vdomId !== undefined) {
+            return;
+        }
+        // Create a Virtual Dom for the widget root element
+        if (!this.remoteDom) {
+            this.remoteDom = new RemoteDom('dom_sandbox');
+            await this.remoteDom._createSandboxedIframe();
+        }
+        this.vdomId = await this.remoteDom.createRemoteDom(this.root);
+    }
+
+    /**
+     * Gets values from local DOM
+     * @returns {Object<string, {name: string, value: any, param: import('./options').Param}>}
+     */
+    _getLocalValues() {
+        /** @type {Object<string, {name: string, value: any, param: import('./options').Param}>} */
+        const extractedValues = Object.create(null);
+
+        for (const param of this.parametersWithBindings) {
+            /** @type {string | {name: string, args: Array<any>}} */
+            if (typeof param.bind === 'string') {
+                // Retrieve the value of this parameter from the Local Dom
+                const { name, args } = fnCallParser(param.bind);
+                const bindingFactory = bindingsFactoryAPI[name];
+                if (!bindingFactory) {
+                    console.error("Binding function not found: ", name);
+                    continue;
+                }
+                const binder = bindingFactory(this.root, ...args);
+                this.localBindings.set(param.name, binder);
+                const value = binder.getValue();
+                extractedValues[param.name] = { name: param.name, value, param };
+            } else if (BindingsAdapter.hasFieldBindings(param)) {
+                // Local dom retrieval only.
+                /** @type {any[]} */
+                const valuesArray = [];
+                // Parse string bindings once
+                const parsedBindings = Object.fromEntries(
+                    (param.fields ?? [])
+                        .filter(field => typeof field.bind === 'string')
+                        .map(field => {
+                            // @ts-ignore
+                            const { name, args } = fnCallParser(field.bind);
+                            const bindingFactory = bindingsFactoryAPI[name];
+                            if (!bindingFactory) {
+                                console.error("Binding function not found: ", name);
+                            }
+                            return [field.name, { bindingFactory, args }];
+                        }));
+                this.localRepetableBindings.set(param.name, parsedBindings);
+                // Find all items
+                const itemElems = this.root.querySelectorAll(param.item_selector || '');
+                itemElems.forEach(item => {
+                    const valueObject = Object.create(null);
+                    param.fields?.forEach(field => {
+                        if (typeof field.bind !== 'string') {
+                            return;
+                        }
+                        const bindingInfo = parsedBindings[field.name];
+                        if (!bindingInfo) {
+                            return;
+                        }
+                        const { bindingFactory, args } = bindingInfo;
+                        const binder = bindingFactory(item, ...args);
+                        const value = binder.getValue();
+                        valueObject[field.name] = value;
+                    });
+                    valuesArray.push(valueObject);
+                });
+                extractedValues[param.name] = { name: param.name, value: valuesArray, param };
+            }
+        }
+        return extractedValues;
+    }
+
+    /**
+     * Gets values from Remote Dom
+     * @returns {Promise<Object.<string, {name: string, value: any, param: import('./options').Param}>>}
+     */
+    async _getRemoteValues() {
+        await this._initRemoteDom();
+        if (!this.remoteDom || !this.vdomId) {
+            return Object.create(null);
+        }
+        /** @type {Object.<string, {name: string, value: any, param: import('./options').Param}>} */
+        const extractedValues = Object.create(null);
+
+        for (const param of this.parametersWithBindings) {
+            const paramValueType = typeof (param.value);
+            if (typeof param.bind !== 'object' || this.remoteDom === null || this.vdomId === null) {
+                continue;
+            }
+            const instructions = param.bind.getValue || param.bind.get || '';
+            const useJQuery = param.bind.get !== undefined;
+            const [err, response] = await safeAwait(this.remoteDom.queryOnRemoteDom({
+                vid: this.vdomId,
+                rvnid: this.root.getAttribute('data-rvn-id') ?? '',
+                name: param.name,
+                type: paramValueType,
+                instructions,
+                useJQuery
+            }));
+            if (err) {
+                console.error("Error retrieving value from remote DOM", err);
+                continue;
+            }
+            const value = response?.value;
+            if (param?.name !== undefined && value !== undefined) {
+                extractedValues[param.name] = { name: param.name, value, param };
+            }
+        }
+        return extractedValues;
+    }
+
+    /**
+     * Gets all values
+     * @param {Object.<string, any>} newValues
+     * @returns {void}
+     */
+    _setLocalValues(newValues) {
+        // Patch local bindings first
+        this.localBindings.forEach((binder, name) => {
+            if (!this.valuesFromDom) {
+                return;
+            }
+            const val = newValues[name];
+            const oldValue = this.valuesFromDom[name]?.value;
+            if (val !== undefined && val !== oldValue && val !== oldValue) {
+                binder.setValue(val);
+            }
+        });
+
+        // Patch local repeatable parameters (if any)
+        this.parametersWithBindings.filter(param => BindingsAdapter.hasFieldBindings(param)).forEach(param => {
+            if (!this.valuesFromDom) {
+                return;
+            }
+            // Local dom patching only.
+            const val = newValues[param.name];
+            const oldValue = this.valuesFromDom[param.name]?.value;
+            if (val === undefined || !Array.isArray(val) || val.length === 0) {
+                return;
+            }
+
+            // Parse string bindings once
+            const parsedBindings = this.localRepetableBindings.get(param.name);
+            if (typeof parsedBindings !== 'object') {
+                return;
+            }
+            // Find all items
+            const itemElems = this.root.querySelectorAll(param.item_selector || '');
+            itemElems.forEach((item, i) => {
+                const valForItem = val[i];
+                const oldValueForItem = oldValue[i];
+                if (valForItem === undefined || valForItem === oldValueForItem) {
+                    return;
+                }
+                param.fields?.forEach(field => {
+                    if (typeof field.bind !== 'string') {
+                        return;
+                    }
+                    const bindingInfo = parsedBindings[field.name];
+                    if (!bindingInfo) {
+                        return;
+                    }
+                    const { bindingFactory, args } = bindingInfo;
+                    const binder = bindingFactory(item, ...args);
+                    const valForItemAndField = valForItem[field.name];
+                    const oldValueForItemAndField = oldValueForItem[field.name];
+                    if (valForItemAndField === undefined || valForItemAndField === oldValueForItemAndField) {
+                        return;
+                    }
+                    binder.setValue(valForItemAndField);
+                });
+            });
+        });
+    }
+
+    /**
+     * Gets all values
+     * @param {Object.<string, any>} newValues
+     * @returns {Promise<void>}
+     */
+    async _setRemoteValues(newValues) {
+        await this._initRemoteDom();
+        if (!this.remoteDom || !this.vdomId || !this.valuesFromDom) {
+            return;
+        }
+        // Update parameter values to remote DOM.
+        const paramsWithObjectBindings = this.parametersWithBindings.filter(param => typeof param.bind === 'object');
+        for (let param of paramsWithObjectBindings) {
+            const oldValue = this.valuesFromDom[param.name]?.value;
+            const val = newValues[param.name];
+            if (val === undefined || val === oldValue || typeof param.bind !== 'object') {
+                continue;
+            }
+            /** @type {string | {name: string, args: Array<any>}} */
+            const instructions = param.bind.setValue || param.bind.set || '';
+            const useJQuery = param.bind.set !== undefined;
+            const [err] = await safeAwait(this.remoteDom.updateRemoteDomValue({
+                vid: this.vdomId,
+                rvnid: this.root.getAttribute('data-rvn-id') ?? '',
+                name: param.name,
+                value: val,
+                instructions,
+                useJQuery
+            }));
+            if (err) {
+                console.error(err);
+            }
+        }
+
+        // Retrieve and apply the patches from remote to local DOM.
+        await this.remoteDom.applyPatches(this.vdomId);
+
+    }
+
+    /**
+     * Gets all values
+     * Extract param values from DOM (indexed by name)
+     * @returns {Promise<Object.<string, {name: string, value: any, param: import('./options').Param}>>}
+     */
+    async getValues() {
+        let values = this._getLocalValues();
+        if (this.hasRemoteBindings) {
+            const remoteValues = await this._getRemoteValues();
+            values = Object.assign(Object.create(null), values, remoteValues);
+        }
+        /** @type {Object.<string, {name: string, value: any, param: import('./options').Param}>} */
+        this.valuesFromDom = values;
+        return values;
+    }
+
+    /**
+     * Sets all values
+     * @param {Object.<string, any>} newValues
+     * @returns {Promise<void>}
+     */
+    async setValues(newValues) {
+        if (!this.valuesFromDom) {
+            await this.getValues();
+        }
+        this._setLocalValues(newValues);
+        if (this.hasRemoteBindings) {
+            if (this.hasLocalBindings && this.remoteDom && this.vdomId !== undefined) {
+                // Should recreate vdom again with local changes applied
+                await this.remoteDom.destroyRemoteDom(this.vdomId);
+                this.vdomId = await this.remoteDom.createRemoteDom(this.root);
+            }
+            await this._setRemoteValues(newValues);
+        }
+    }
+
+    /**
+     * Destroys the bindings
+     */
+    async destroy() {
+        if (this.remoteDom) {
+            if (this.vdomId !== undefined) {
+                await this.remoteDom.destroyRemoteDom(this.vdomId);
+            }
+            this.remoteDom = null;
+            this.vdomId = undefined;
+        }
+    }
+
+}

@@ -4,6 +4,7 @@ coverage/
 **/jsunit/src
 presets/*.txt
 TODO
+CLAUDE.md
 .hashes-presets-tiny.*
 package-lock.json
 .DS_Store
@@ -16,3 +17,4 @@ repository/lang
 repository/lang/en
 repository/lang/es
 repository/lang/ca
+scripts/.hashes-presets-local.json
