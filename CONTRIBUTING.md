@@ -7,7 +7,7 @@ Please review this guide carefully before submitting pull requests or issues.
 
 ## 🧩 Contributing to Widgets
 
-At the present time, the only way to contribute widgets is to send an email to the maintainer with the widget definition files.
+At the present time, no widget contributions are accepted. Please focus on contributing to the plugin's core features and bug fixes.
 
 ---
 

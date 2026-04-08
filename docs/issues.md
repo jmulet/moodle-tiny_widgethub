@@ -75,5 +75,30 @@ parameters:
 ## 💡 Pro-Tips for Widget Developers
 
 1.  **Use Semantic Classes**: Always use specific classes for your widget elements to avoid collisions with Moodle's core styles.
-2.  **Define Non-Editable Regions**: If your widget has a complex layout, use the `contenteditable="false"` attribute on structural containers to prevent users from accidentally breaking the HTML.
+2.  **Define Non-Editable Regions**: If your widget has a complex layout, use the `contenteditable="false"` attribute on structural containers to prevent users from accidentally breaking the HTML. However, be aware of some TinyMCE limitations with non-editable blocks: users may have difficulty placing the cursor immediately before or after the widget, copy/paste behavior may not work as expected inside non-editable areas, and nested `contenteditable="true"` regions within a `contenteditable="false"` container can cause unpredictable behavior in some browsers. Always test thoroughly and consider adding empty `<p><br></p>` elements before and after your widget template to ensure the cursor has a place to land.
 3.  **Test in Fullscreen**: Always verify your widget's behavior in the TinyMCE fullscreen mode, as this changes how coordinate-based interactions (like popups) behave.
+
+---
+
+## Chrome related issues with context menus
+
+### Symptom: Disappearing Menus and Unwanted Scrolling
+**Behavior:** In Google Chrome, right-clicking on a widget can trigger an unexpected jump in the page scroll. This sudden movement often causes the context menu to lose focus and disappear instantly before any action can be taken.
+
+**Causes:**
+The issue is frequently linked to how Chrome handles layout shifts when TinyMCE injects dynamic content (like a context menu) into the DOM. This can conflict with scroll anchoring or fractional scroll calculations, especially in nested iframe scenarios typical of Moodle.
+
+**Technical Workarounds:**
+
+1.  **TinyMCE Fullscreen Mode:**
+    Content creators who experience this behavior should switch the editor to **fullscreen mode**. In this mode, the editor handles positioning and scroll offsets differently, often bypassing the coordinate-tracking conflict present in the standard embedded view.
+
+2.  **Chrome Experimental Features (Browser-Level Fix):**
+    A more permanent fix can often be achieved by adjusting Chrome's internal scroll management flags.
+    - Navigate to `chrome://flags/` in your Chrome browser.
+    - Search for **Scroll Anchoring** (`#enable-scroll-anchoring`) or experimental features related to **Scroll Position** or **Layout Stability**.
+    - Activating or toggling these flags (e.g., ensuring "Scroll Anchoring" is active or experimenting with "Experimental Web Platform features") can stabilize the viewport when the menu opens, preventing focus loss.
+
+> [!NOTE]
+> Since these are browser-level issues that may affect content editors. The final rendered content viewed by students remains unaffected.
+

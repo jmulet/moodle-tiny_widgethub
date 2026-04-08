@@ -54,13 +54,14 @@ The widget picker now features a **Grid View** mode, offering a more visual and 
 - [Examples: Learn how to customize and create widgets.](docs/examples.md)
 - [Yaml API reference.](docs/api.md)
 - [Known issues and workarounds.](docs/issues.md)
+- [Security architecture and best practices.](docs/security.md)
 
 ## Migration from Moodle 4.x to Moodle 5.0
 
 > [!IMPORTANT]
 > To ensure Bootstrap components that rely on JavaScript function correctly in both Moodle 4.x and Moodle 5.0, we recommend using both `data-xxx` and `data-bs-xxx` attributes in your widget templates. While this makes the templates slightly more verbose, it eliminates the need for custom JavaScript to handle attribute differences.
 
-For widgets already present on a page, you can automatically add the missing `data-bs-xxx` attributes. Refer to the `oninit.refractor.bs5` configuration option below for details.
+For widgets already present on a page, you can automatically add the missing `data-bs-xxx` attributes. Refer to the `oninit.refactor.bs5` configuration option below for details.
 
 ## Configuration
 
@@ -71,7 +72,7 @@ Administrators can manage widget definitions by customizing existing ones, creat
   <div class="alert-content">
     <p><strong>Security Warning:</strong> Core widgets provided with this plugin are reviewed and considered secure. However, this plugin also allows Moodle managers to create and install custom or third-party widgets. This flexibility provides powerful functionality but also introduces potential security risks.</p>
     <p>Always carefully review and validate any third-party or custom widget before using it. Do not grant untrusted users (for example, users with the Student role) permission to insert or manage widgets. If a widget template allows arbitrary HTML input, malicious users could inject harmful code, including Cross-Site Scripting (XSS) attacks, potentially compromising user data and system security.</p>
-    <p>For more information read the <a href="docs/api.md">security section</a> in the documentation.</p>
+    <p>For more information read the <a href="docs/security.md">security section</a> in the documentation.</p>
   </div>
 </div>
 
@@ -95,7 +96,7 @@ The options available are:
 
   - *category.order=misc:a1,deprecated:z1*: Overrides the default alphabetical category ordering. Provide a comma-separated string using the format `categoryName:sortingName`. The `sortingName` is used to determine the sort order among the listed categories. Categories not included in this list will maintain their default alphabetical order.
 
-  - *oninit.refactor.bs5=0* - Enable (`1`) or disable (`0`) automatic refactoring of Bootstrap 5 `data-bs-xxx` attributes when the editor opens (default: 0).
+  - *oninit.refactor.bs5* - Set to `1` to enable or `0` to disable automatic refactoring of Bootstrap 5 `data-bs-xxx` attributes when the editor opens. Default: `0` (disabled).
 
   - *jsBaseUrl* - If specified, this **base URL** will be prepended to the `requires` property in the widget definition — *unless* `requires` already starts with `http`, in which case the base URL will be ignored. This feature is useful for dynamically changing the location of the JavaScript assets required by the widgets.
   **CAUTION**: You must only include trusted sources from trusted origins (preferably from your own site); otherwise, you may introduce security vulnerabilities.

@@ -12,7 +12,7 @@ Optional keywords are marked with **[ ]**.
 | **`[icon]`**          | `string`                             | (Optional) The icon to display for the widget. It can be a font-awesome class, a data URL, an SVG or an image URL. |
 | **`[instructions]`**  | `string`                             | (Optional) Detailed explanation of the widget’s purpose and usage.                                       |
 | **`[selectors]`**     | `string` or `string[]` |  (Optional) Required if the widget uses bindings. Defines the CSS selector that identifies the widget root. If an array is used, the remaining selectors apply to the descendants of the root element. |
-| **`[engine]`**        | `'mustache'` or `'ejs'`                 | (Optional) Defaults to `mustache`. Specifies the template engine used to render the template.             |
+| **`[engine]`**        | `'mustache'` or `'ejs'` or `'liquid'`   | (Optional) Defaults to `mustache`. Specifies the template engine used to render the template.             |
 | **`template`**        | `string`                             | HTML markup interpolated and rendered in the Tiny Editor. It cannot be used together with filter.                                                | 
 | **`filter`**        | `string`                             | The code defining the filter. The global variables are `text` and `editor` refering to the initial HTML content and the Tiny editor API respectively. The filter must return an array of two elements `[result: text / boolean, message: string]`. It cannot be used together with template.                                             |
 | **`[unwrap]`**        | `string`                             | (Optional) A query selector for elements to extract from the `selectors` element. Use `'*'` for all.      |
@@ -55,19 +55,20 @@ The type `Parameter` consists of these fields
 | **`title`**           | `string`                             | A human-readable name for the parameter.                                                                 |
 | **`[tooltip]`**       | `string`                             | (Optional) Additional information about the parameter.                                                   |
 | **`[tip]`**       | `string`                             | (Optional) Simply a shortcut for `tooltip`                                               |
-**`[partial]`**       | `string`                             | (Optional) A string with double trailing and leading undercore. This variable must be defined into the `partials` widget.        |
+| **`[partial]`**       | `string`                             | (Optional) A string with double trailing and leading underscore. This variable must be defined into the special `partials` widget.        |
 | **`value`**           | `any`                                | Default value for the parameter. If he type is 'select', then the value must match one of the options.                                                                        |
-| **`[type]`**          | `'textfield' or 'textarea' or 'numeric' or 'select' or 'autocomplete' or 'checkbox' or 'color' or 'repeatable'` | (Optional) In some cases, type can be inferred from `value` or other parameters.                                         |
+| **`[type]`**          | `'textfield' or 'textarea' or 'numeric' or 'select' or 'autocomplete' or 'checkbox' or 'color' or 'image' or 'repeatable'` | (Optional) In some cases, type can be inferred from `value` or other parameters.                                         |
 | **`options`**         | `string[]` or `{l: string, v: string}[]` | Options for `select` type.                                                                |
 | **`[min]`**           | `number`                             | (Optional) Minimum value for numeric controls or the minimum number of items in repeatable parameters (defaults to 1).                                                           |
 | **`[max]`**           | `number`                             | (Optional) Maximum value for numeric controls or the maximum number of items in repeatable parameters.                                                           |
 | **`[bind]`**          | `string` or ` {getValue: (el: HTMLElement) => any, setValue: (el: HTMLElement, value: any) => void}` or `@Deprecated {get: ($e: jQuery) => any, set: ($e: jQuery, value: any) => void}` | (Optional) Binding configuration for parameter values. In repeatable parameters (since v1.4), you can either use the `item_selector` keyword or the format `{getValue: (el) => object[], setValue: (el, value: object[]) => void}`.   |
 | **`[item_selector]`**      | `string` | (Optional) (Since v1.4) In repeatable parameters, it specifies a **css query** that provides a list of DOM elements mapping the list items.    |
- **`[transform]`**          | `string` | (Optional) Applies a pipe of transform functions to the value obtained from the user form. See below for the list of available transform functions.                         
-| **`[when]`**          | `string` | (Optional) A Javascript expression to programatically determine when this control must be shown. The expression can contain the keys of other parameters or the special key `SELECT_MODE` which is set to `selection` when there exists a selection in the Tiny editor and to `insert` otherwise.                          
-| **`[hidden]`**          | `boolean` | (Optional) Whether the control is hidden or visible.                            
+| **`[fields]`**          | `Parameter[]` | (Optional) (Since v1.4) In repeatable parameters, defines the list of fields for each item.    |
+| **`[transform]`**          | `string` | (Optional) Applies a pipe of transform functions to the value obtained from the user form. See below for the list of available transform functions.                         |
+| **`[when]`**          | `string` | (Optional) A Javascript expression to programatically determine when this control must be shown. The expression can contain the keys of other parameters or the special key `SELECT_MODE` which is set to `selection` when there exists a selection in the Tiny editor and to `insert` otherwise.                          |
+| **`[hidden]`**          | `boolean` | (Optional) Whether the control is hidden or visible.                            |
 | **`[editable]`**          | `boolean` | (Optional) Whether the control can be edited or not.                       |
- **`[for]`**          | `string` | (Optional) A comma separated user ids that are allowed to see this parameter control. It defaults to everybody `*`.                          |
+| **`[for]`**          | `string` | (Optional) A comma separated user ids that are allowed to see this parameter control. It defaults to everybody `*`.                          |
 
 ---
 
