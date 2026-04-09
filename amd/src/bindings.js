@@ -777,7 +777,7 @@ export class BindingsAdapter {
             }
             const val = newValues[name];
             const oldValue = this.valuesFromDom[name]?.value;
-            if (val !== undefined && val !== oldValue && val !== oldValue) {
+            if (val !== undefined && val !== oldValue) {
                 binder.setValue(val);
             }
         });

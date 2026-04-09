@@ -231,7 +231,10 @@ class WidgetLog {
      */
     success(msg) {
         if (this.nodes.alertLog) {
-            this.nodes.alertLog.insertAdjacentHTML('afterbegin', `<div class="alert alert-success">${msg}</div>`);
+            const div = document.createElement('div');
+            div.className = 'alert alert-success';
+            div.textContent = msg;
+            this.nodes.alertLog.insertAdjacentElement('afterbegin', div);
         }
         this.selectTabFn('log');
     }
@@ -242,8 +245,10 @@ class WidgetLog {
      */
     error(msg) {
         if (this.nodes.alertLog) {
-            const formatted = (msg || 'Error').replace(/\n/g, '<br>');
-            this.nodes.alertLog.insertAdjacentHTML('afterbegin', `<div class="alert alert-danger">${formatted}</div>`);
+            const div = document.createElement('div');
+            div.className = 'alert alert-danger';
+            div.textContent = msg || 'Error';
+            this.nodes.alertLog.insertAdjacentElement('afterbegin', div);
         }
         this.selectTabFn('log');
     }

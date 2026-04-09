@@ -494,6 +494,7 @@ h4.tiny_widgethub-headertext {
   }
 }
 /********************************** Specific Widget definitions styles */
+/* Pastel colors (Low saturation) for ibcallout widget */
 /** subsection **/
 h4.twh-subsub {
   position: relative;
@@ -701,6 +702,83 @@ i.fad.fa-stopwatch::before {
 div.notranslate,
 span.notranslate {
   border: 1px dotted orange;
+}
+
+/* Estructura Base */
+.twh-callout {
+  display: flex;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  border-left: 5px solid #4b5563;
+  background-color: #f9fafb;
+  font-family: sans-serif;
+}
+
+.twh-callout-content {
+  flex: 1;
+}
+
+.twh-callout-title {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.twh-callout-body {
+  color: #374151;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.twh-callout-icon {
+  margin-left: 1rem;
+  font-size: 1.25rem;
+  align-self: flex-start;
+}
+
+/* Variantes */
+.twh-callout-important {
+  background-color: #fff9e6;
+  border-left-color: #d97706;
+}
+
+.twh-callout-important .twh-callout-title,
+.twh-callout-important .twh-callout-icon {
+  color: #d97706;
+}
+
+.twh-callout-warning {
+  background-color: #fef2f2;
+  border-left-color: #dc2626;
+}
+
+.twh-callout-warning .twh-callout-title,
+.twh-callout-warning .twh-callout-icon {
+  color: #dc2626;
+}
+
+.twh-callout-example {
+  background-color: #f0fdf4;
+  border-left-color: #16a34a;
+}
+
+.twh-callout-example .twh-callout-title,
+.twh-callout-example .twh-callout-icon {
+  color: #16a34a;
+}
+
+.twh-callout-extension {
+  background-color: #eff6ff;
+  border-left-color: #2563eb;
+}
+
+.twh-callout-extension .twh-callout-title,
+.twh-callout-extension .twh-callout-icon {
+  color: #2563eb;
 }
 
 /** Compatibility carousel in bs 4 and 5 */

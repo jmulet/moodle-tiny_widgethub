@@ -411,6 +411,7 @@ class widgetstorageimpl implements widgetstorage {
                 }
             }
         } catch (\Throwable $e) {
+            debugging($e->getMessage(), DEBUG_DEVELOPER);
             return storagefactory::FAILURE_ID;
         }
         return $id;
@@ -437,7 +438,7 @@ class widgetstorageimpl implements widgetstorage {
         $deletedids = [];
         foreach ($ids as $id) {
             $widget = $this->load_raw_widget($id);
-            if ($id === 0 || !$widget || $widget['key'] == 'partials') {
+            if ($id === 0 || !$widget || $widget['key'] === 'partials') {
                 // Partials cannot be deleted.
                 continue;
             }

@@ -4,7 +4,7 @@
     "category": "bootstrap",
     "icon": "fa fa-image",
     "instructions": "$string.bsfigure_instructions",
-    "template": "<figure class=\"figure\">\n  <img src=\"https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Moodle-logo.svg/2880px-Moodle-logo.svg.png\" class=\"figure-img img-fluid rounded\" alt=\"Image\">\n  <figcaption class=\"figure-caption\">$string.bsfigure_caption</figcaption>\n</figure>\n",
+    "template": "<figure class=\"figure\">\n  <img src=\"https://picsum.photos/600/400?random=0\" class=\"figure-img img-fluid rounded\" alt=\"Image\">\n  <figcaption class=\"figure-caption\">$string.bsfigure_caption</figcaption>\n</figure>\n",
     "author": "Josep Mulet <pep.mulet@gmail.com>",
     "version": "2.0.1"
 }

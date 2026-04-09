@@ -1,0 +1,95 @@
+key: ib-callout-liquid
+name: $string.ibcallout_name
+category: misc
+icon: fa fa-lightbulb-o
+engine: liquid
+template: |
+  <!-- Callout Component -->
+  <div class="twh-callout twh-callout-{{type}} d-flex p-4" data-widget="ib-callout-liquid" role="alert">
+    <div class="flex-grow-1">
+        <div class="twh-callout-title mb-1">
+          {%- if type == 'important' -%} $string.ibcallout_important
+          {%- elsif type == 'warning' -%} $string.ibcallout_warning
+          {%- elsif type == 'introduction' -%} $string.ibcallout_introduction
+          {%- elsif type == 'example' -%} $string.ibcallout_example
+          {%- elsif type == 'extension' -%} $string.ibcallout_extension
+          {%- endif -%}
+        </div>
+        <div class="twh-callout-body">
+            <div class="twh-iq">
+                {% if content != "" %}
+                  <p class="mb-0">{{ content }}</p>
+                {% else %}
+                  <p class="mb-0">__LOREM__</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="twh-callout-icon ml-4 align-self-start">
+      {%- if type == 'important' -%}
+        <i class="fa fa-thumbtack">&nbsp;</i>
+      {%- elsif type == 'warning' -%}
+        <i class="fa fa-warning">&nbsp;</i>
+      {%- elsif type == 'introduction' -%}
+        <i class="fa fa-info-circle">&nbsp;</i>
+      {%- elsif type == 'example' -%}
+        <i class="fa fa-lightbulb-o">&nbsp;</i>
+      {%- elsif type == 'extension' -%}
+        <i class="fa fa-plus-circle">&nbsp;</i>
+      {%- endif -%}
+    </div>
+  </div>
+  <p><br></p>
+selectors: div[data-widget="ib-callout-liquid"]
+insertquery: div.twh-callout-body > div.twh-iq
+unwrap: div.twh-iq > *
+parameters:
+  - name: type
+    title: $string.ibcallout_type
+    value: important
+    options:
+      - {l: "📌 $string.ibcallout_important", v: important}
+      - {l: "⚠️ $string.ibcallout_warning", v: warning}
+      - {l: "📘 $string.ibcallout_introduction", v: introduction}
+      - {l: "💡 $string.ibcallout_example", v: example}
+      - {l: "📐 $string.ibcallout_extension", v: extension}
+    bind:
+      getValue: |
+        function(e) {
+          return e.className.match(/twh-callout-(.*)/)[1] ?? 'important';
+        }
+      setValue: |
+        function(e, v) {
+          e.classList.remove('twh-callout-important', 'twh-callout-warning', 'twh-callout-introduction', 'twh-callout-example', 'twh-callout-extension');
+          e.classList.add('twh-callout-' + v);
+          const titles = {
+            'important': '$string.ibcallout_important',
+            'warning': '$string.ibcallout_warning',
+            'introduction': '$string.ibcallout_introduction',
+            'example': '$string.ibcallout_example',
+            'extension': '$string.ibcallout_extension'
+          };
+          const icons = {
+            'important': 'thumbtack',
+            'warning': 'warning',
+            'introduction': 'info-circle',
+            'example': 'lightbulb-o',
+            'extension': 'plus-circle'
+          };
+          const titleElem = e.querySelector('.twh-callout-title');
+          if (titleElem) {
+            titleElem.textContent = titles[v];
+          }
+          const iconElem = e.querySelector('.twh-callout-icon i');
+          if (iconElem) {
+            iconElem.className = 'fa fa-' + icons[v];
+          }
+        }
+  - name: content
+    title: $string.ibcallout_content
+    type: textarea
+    value: ""
+    when: "SELECT_MODE == 'insert'"
+autocomplete: type
+author: Josep Mulet <pep.mulet@gmail.com>
+version: 1.1.0
