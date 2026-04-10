@@ -50,6 +50,15 @@ if ($hassiteconfig) {
     );
     $ADMIN->add($plugincategory, $externalpage);
 
+    $externalpage = new admin_externalpage(
+        'tinywidgethubsync',
+        get_string('syncrepository', 'tiny_widgethub'),
+        new moodle_url('/lib/editor/tiny/plugins/widgethub/settingssyncpage.php'),
+        'tiny/widgethub:manage',
+        true
+    );
+    $ADMIN->add($plugincategory, $externalpage);
+
     // Load actual settings only when the user is viewing a settings page.
     if ($ADMIN->fulltree) {
         // Main settings page definition.

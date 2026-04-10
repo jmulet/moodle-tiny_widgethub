@@ -42,9 +42,10 @@ interface widgetstorage {
      * Get all widgets. It does not include partials.
      *
      * @param bool $includehidden Whether to include hidden widgets.
+     * @param bool $slim Whether to return slim widgets (only most important fields).
      * @return \StdClass[] List of widgets.
      */
-    public function get_all_widgets(bool $includehidden = false): array;
+    public function get_all_widgets(bool $includehidden = false, bool $slim = true): array;
 
     /**
      * Get a widget by its unique key.

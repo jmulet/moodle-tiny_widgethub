@@ -130,6 +130,9 @@ class widgettable extends \admin_setting {
                 'restore' => (
                     new \moodle_url('/lib/editor/tiny/plugins/widgethub/settingsrestorepage.php')
                 )->out(false),
+                'sync' => (
+                    new \moodle_url('/lib/editor/tiny/plugins/widgethub/settingssyncpage.php')
+                )->out(false),
             ],
         ];
 

@@ -148,7 +148,10 @@ Each insert mechanism can be configured with one of the following modes:
 
 The capability 'tiny/widgethub:viewplugin' allows you to set the plugin visibility for any role. Keep in mind that, by default, the Student role is prevented from using the plugin.
 
- 
+ > [!IMPORTANT]
+> **Widget Updates**: Starting with version 1.5.0, widget definitions are no longer updated automatically when the plugin is updated. This ensures that any custom modifications or fine-tuning you've made to the widgets are preserved. Administrators must manually update widgets via the management page ("Update widgets" button) if they wish to install newer versions.
+
+<img src="./img/update_widgets.png" width="400" style="margin:auto;max-width:400px">
  
 ## How to build
 

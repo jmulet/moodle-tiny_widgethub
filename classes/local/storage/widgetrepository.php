@@ -220,4 +220,126 @@ class widgetrepository {
             $storage->save_widget(storagefactory::PARTIALS_ID, $combinedpartials, null, null, null);
         }
     }
+
+    /**
+     * Get the synchronization status of widgets.
+     *
+     * @return array Array of sync status objects.
+     */
+    public static function getsyncstatus(): array {
+        $storage = storagefactory::get_instance();
+        $allstrings = self::load_all_strings();
+        $jsonentries = self::load_json_tiny_files($allstrings);
+
+        $dbwidgets = [];
+        // Important: Explicitly load full widgets to have version and author.
+        foreach ($storage->get_all_widgets(true, false) as $dbwidget) {
+            if (isset($dbwidget->key)) {
+                $dbwidgets[$dbwidget->key] = $dbwidget;
+            }
+        }
+
+        $syncstatus = [];
+        $matchedkeys = [];
+
+        foreach ($jsonentries as $filename => $repoentry) {
+            $key = $repoentry['key'] ?? null;
+            if ($key === null || $key === 'partials') {
+                continue;
+            }
+
+            $dbwidget = $dbwidgets[$key] ?? null;
+            $matchedkeys[$key] = true;
+
+            $status = 'statusuptodate';
+            $installedversion = $dbwidget ? ($dbwidget->version ?? '0.0.0') : '----';
+            $repoversion = $repoentry['version'] ?? '0.0.0';
+            $authormismatch = false;
+
+            if (!$dbwidget) {
+                $status = 'statusnew';
+            } else {
+                if (version_compare($repoversion, $installedversion, '>')) {
+                    $status = 'statusupdateavailable';
+                }
+                if (preg_replace('/\s+/', '', $dbwidget->author ?? '') !== preg_replace('/\s+/', '', $repoentry['author'] ?? '')) {
+                    $authormismatch = true;
+                }
+            }
+
+            $syncstatus[] = (object) [
+                'key' => $key,
+                'name' => $repoentry['name'] ?? $key,
+                'status' => $status,
+                'statusname' => get_string($status, self::COMPONENT),
+                'installedversion' => $installedversion,
+                'repoversion' => $repoversion,
+                'author' => $repoentry['author'] ?? '',
+                'authormismatch' => $authormismatch,
+                'canupdate' => ($status !== 'statusuptodate'),
+                'isnew' => ($status === 'statusnew'),
+            ];
+        }
+
+        // Add Local-only widgets (in DB but not in Repo).
+        foreach ($dbwidgets as $key => $dbwidget) {
+            if (!isset($matchedkeys[$key])) {
+                $status = 'statuslocalonly';
+                $syncstatus[] = (object) [
+                    'key' => $key,
+                    'name' => $dbwidget->name ?? $key,
+                    'status' => $status,
+                    'statusname' => get_string($status, self::COMPONENT),
+                    'installedversion' => $dbwidget->version ?? '0.0.0',
+                    'repoversion' => '----',
+                    'author' => $dbwidget->author ?? '',
+                    'authormismatch' => false,
+                    'canupdate' => false,
+                ];
+            }
+        }
+
+        return $syncstatus;
+    }
+
+    /**
+     * Sync selected widgets from repository to storage.
+     *
+     * @param array $keys Array of widget keys to sync.
+     * @return array Array of results [key => success].
+     */
+    public static function syncwidgets(array $keys): array {
+        $storage = storagefactory::get_instance();
+        $allstrings = self::load_all_strings();
+        $jsonentries = self::load_json_tiny_files($allstrings);
+        $ymlentries = self::load_yml_tiny_files($allstrings);
+
+        // Map keys to filenames.
+        $keytofile = [];
+        foreach ($jsonentries as $filename => $entry) {
+            if (isset($entry['key'])) {
+                $keytofile[$entry['key']] = $filename;
+            }
+        }
+
+        $results = [];
+        foreach ($keys as $key) {
+            $filename = $keytofile[$key] ?? null;
+            if (!$filename) {
+                $results[$key] = false;
+                continue;
+            }
+
+            $preset = $jsonentries[$filename];
+            $yml = $ymlentries[$filename] ?? null;
+
+            $dbwidget = $storage->get_widget_by_key($key);
+            $id = $dbwidget ? (int) $dbwidget->id : storagefactory::BLANK_ID;
+
+            $res = $storage->save_widget($id, $preset, $yml, null, null);
+            $results[$key] = ($res >= 0);
+        }
+
+        return $results;
+    }
 }

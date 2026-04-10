@@ -202,15 +202,16 @@ class widgetstorageimpl implements widgetstorage {
      * Get all widgets. It does not include partials.
      *
      * @param bool $includehidden Whether to include hidden widgets.
+     * @param bool $slim Whether to return slim widgets (only most important fields).
      * @return \StdClass[] An array of widgets objects.
      */
-    public function get_all_widgets(bool $includehidden = false): array {
+    public function get_all_widgets(bool $includehidden = false, bool $slim = true): array {
         $widgets = [];
         foreach ($this->index as $id => $info) {
             if ($info['h'] === 1 && !$includehidden) {
                 continue;
             }
-            $raw = $this->load_raw_widget($id, true); // True for slim version.
+            $raw = $this->load_raw_widget($id, $slim);
             if ($raw) {
                 $widgets[] = (object) $raw;
             }

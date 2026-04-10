@@ -67,3 +67,6 @@ Changes:
   - Improved mouse leave detection on widget preview.
   - Detect context actions on widgets that include iframe, like YouTube or Vimeo.
   - Improved administrator widget table and widget editor.
+  - Widget definitions are no longer updated automatically during plugin upgrades.
+    Administrators must manually update widgets via the management page ("Update widgets" button)
+    to allow for manual fine-tuning and to prevent overwriting custom changes.
