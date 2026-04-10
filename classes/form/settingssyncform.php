@@ -47,7 +47,10 @@ class settingssyncform extends \moodleform {
 
         $buttonarray = [];
         $buttonarray[] = &$mform->createElement(
-            'submit', 'submitbutton', get_string('syncrepository', 'tiny_widgethub'), ['disabled' => 'disabled']
+            'submit',
+            'submitbutton',
+            get_string('syncrepository', 'tiny_widgethub'),
+            ['disabled' => 'disabled']
         );
         $buttonarray[] = &$mform->createElement('cancel');
         $mform->addGroup($buttonarray, 'buttonar', '', [' '], false);
