@@ -17,20 +17,24 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import * as Config from 'core/config';
 
-// @ts-ignore
-const baseUrl = `${Config.wwwroot}/lib/editor/tiny/plugins/widgethub`;
-const component = 'tiny_widgethub';
+const componentName = 'widgethub';
+const component = `tiny_${componentName}`;
 
 export default {
-    baseUrl,
+    // @ts-ignore
+    baseUrl: `${Config.wwwroot}/lib/editor/tiny/plugins/${componentName}`,
+    documentationUrl: 'https://github.com/jmulet/moodle-tiny_widgethub',
     component,
+    componentName,
+    jsURL: '',
+    jsAreaClassname: `${component}-jsarea`,
     pluginName: `${component}/plugin`,
-    icon: `${component}`,
-    currentRelease: '1.4.1'
+    icon: component,
+    currentRelease: '1.5.0'
 };

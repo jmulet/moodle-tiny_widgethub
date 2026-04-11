@@ -18,73 +18,76 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2025 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {getGlobalConfig} from "../options";
-import {subscribe} from "../extension";
-import {getWidgetDict} from "../options";
-import {evalInContext, addBaseToUrl} from "../util";
-
-const JSAREACLASSNAME = 'tiny_widgethub-jsarea';
+import { getGlobalConfig } from "../options";
+import { subscribe } from "../extension";
+import { getWidgetDict } from "../options";
+import { addBaseToUrl } from "../util";
+import Common from '../common';
+const { jsAreaClassname, jsURL } = Common;
 /**
 /**
  * Adds the required scripts defined in the list
  * @param {import("../plugin").TinyMCE} editor
- * @param {string[] | undefined} requireList
+ * @param {import("../options").RequiresSpec[] | undefined} [requireList]
  * @returns {number}
  */
 export function addRequires(editor, requireList) {
-    const jsBaseUrl = getGlobalConfig(editor, 'jsBaseUrl', '');
+    const imgBaseUrl = getGlobalConfig(editor, 'imgBaseUrl', jsURL);
+    const jsBaseUrl = getGlobalConfig(editor, 'jsBaseUrl', imgBaseUrl);
+
     let dependenciesUpdated = 0;
     try {
-    const jsareaSelector = `div.${JSAREACLASSNAME}`;
-    const affectedWidgets = Object.values(getWidgetDict(editor)).filter(w => w.selectors && w.prop('requires'));
+        const jsareaSelector = `div.${jsAreaClassname}`;
+        const affectedWidgets = Object.values(getWidgetDict(editor)).filter(w => w.selectors && w.requires);
 
-    const tiny = editor.getBody();
-    let jsArea = tiny.querySelector(jsareaSelector);
+        /** @type {HTMLElement} */
+        const tiny = editor.getBody();
+        let jsArea = tiny.querySelector(jsareaSelector);
 
-    // If no requireList is passed, then analyze the page and add requires that must be there!
-    if (!requireList) {
-        requireList = [];
-        affectedWidgets.forEach(w => {
-            if (anyMatchesSelectors(tiny, w.selectors || [])) {
-                requireList?.push(w.prop('requires')?.trim());
-            }
-        });
-    }
-
-    // Clear unused requires first
-    cleanUnusedRequires(editor, affectedWidgets);
-    jsArea = tiny.querySelector(jsareaSelector);
-
-    // Check the existence of script area
-    if (!jsArea && requireList.length > 0) {
-        const spacer = editor.dom.create('p', {}, '<br>');
-        jsArea = editor.dom.create('div', {"class": JSAREACLASSNAME});
-        tiny.append(spacer);
-        tiny.append(jsArea);
-    }
-
-    // Check which scripts must be created
-    const scriptsToInsert = requireList.filter((scriptUrl) => {
-        if (!scriptUrl.endsWith(".js")) {
-            return false;
+        // If no requireList is passed, then analyze the page and add requires that must be there!
+        if (!requireList) {
+            requireList = affectedWidgets
+                .filter(w => anyMatchesSelectors(tiny, w.selectors || []))
+                .map(w => w.requires ?? { url: '' });
         }
-        const realSrc = addBaseToUrl(jsBaseUrl, scriptUrl);
-        return jsArea?.querySelector(`script[src="${realSrc}"]`) === null;
-    });
 
-    if (jsArea && scriptsToInsert.length > 0) {
-        // Insert the scripts in the area
-        scriptsToInsert.forEach(scriptUrl => {
-            const realSrc = addBaseToUrl(jsBaseUrl, scriptUrl);
-            const scriptNode = editor.dom.create("script",
-                {src: realSrc, type: "mce-no/type", "data-mce-src": realSrc});
-            jsArea.append(scriptNode);
-            dependenciesUpdated++;
+        // Clear unused requires first
+        cleanUnusedRequires(editor, affectedWidgets);
+
+        // Check which scripts must be created
+        const scriptsToInsert = requireList.filter((req) => {
+            if (!req.url?.endsWith(".js") ||
+                // Check conditional insert
+                (req.query && !tiny.querySelector(req.query))) {
+                return false;
+            }
+            // Does the page already contain this dependency?
+            const realSrc = addBaseToUrl(jsBaseUrl, req.url);
+            return !jsArea?.querySelector(`script[src="${realSrc}"]`);
         });
-    }
+
+        // Check the existence of script area
+        if (!jsArea && scriptsToInsert.length > 0) {
+            const spacer = editor.dom.create('p', {}, '<br>');
+            jsArea = editor.dom.create('div', { "class": jsAreaClassname });
+            tiny.appendChild(spacer);
+            // @ts-ignore
+            tiny.appendChild(jsArea);
+        }
+
+        if (jsArea && scriptsToInsert.length > 0) {
+            // Insert the scripts in the area
+            scriptsToInsert.forEach(req => {
+                const realSrc = addBaseToUrl(jsBaseUrl, req.url);
+                const scriptNode = editor.dom.create("script",
+                    { src: realSrc, type: "mce-no/type", "data-mce-src": realSrc });
+                jsArea.appendChild(scriptNode);
+                dependenciesUpdated++;
+            });
+        }
     } catch (ex) {
         console.error("A problem occurred adding dependencies:", ex);
     }
@@ -127,55 +130,62 @@ function anyMatchesSelectors(tiny, selectors) {
  * Removes those scripts that are not longer required
  * @param {import("../plugin").TinyMCE} editor
  * @param {import("../options").Widget[]} [affectedWidgets]
- * @returns {number}
+ * @returns {number} - The number of scripts removed
  */
 export function cleanUnusedRequires(editor, affectedWidgets) {
     let changes = 0;
     try {
-    const tiny = editor.getBody();
-    const jsArea = tiny.querySelector(`div.${JSAREACLASSNAME}`);
-    if (!jsArea) {
-       return 0;
-    }
-
-    if (!affectedWidgets) {
-        affectedWidgets = Object.values(getWidgetDict(editor)).filter(w => w.selectors && w.prop('requires'));
-    }
-    const jsBaseUrl = getGlobalConfig(editor, 'jsBaseUrl', '');
-    // All scripts in jsArea
-    /** @type {NodeListOf<HTMLScriptElement>} */
-    const allScripts = jsArea.querySelectorAll("script");
-    allScripts.forEach((scriptElem) => {
-        const src = (scriptElem.src || '')?.trim();
-        if (!src) {
-            scriptElem.remove();
-            changes++;
-            return;
+        const tiny = editor.getBody();
+        const jsArea = tiny.querySelector(`div.${jsAreaClassname}`);
+        if (!jsArea) {
+            return 0;
         }
 
-        // Match the widget with this src
-        // @ts-ignore
-        const widgetFound = affectedWidgets.filter(w => {
-            const realSrc = addBaseToUrl(jsBaseUrl, w.prop('requires')?.trim() || '');
-            return realSrc === src;
-        })[0];
-        if (!widgetFound) {
-            scriptElem.remove();
-            changes++;
-            return;
+        if (!affectedWidgets) {
+            affectedWidgets = Object.values(getWidgetDict(editor)).filter(w => w.selectors && w.requires);
         }
-        const anyInstancesFound = anyMatchesSelectors(tiny, widgetFound.selectors ?? []);
-        if (!anyInstancesFound) {
-             // Script no longer needed
-            scriptElem.remove();
+        const imgBaseUrl = getGlobalConfig(editor, 'imgBaseUrl', jsURL);
+        const jsBaseUrl = getGlobalConfig(editor, 'jsBaseUrl', imgBaseUrl);
+
+        // All scripts in jsArea
+        /** @type {NodeListOf<HTMLScriptElement>} */
+        const allScripts = jsArea.querySelectorAll("script");
+        allScripts.forEach((scriptElem) => {
+            const src = (scriptElem.src || '').trim();
+            if (!src) {
+                // Remove scripts without src
+                scriptElem.remove();
+                changes++;
+                return;
+            }
+
+            // Match the widget with this src
+            // @ts-ignore
+            const widgetFound = affectedWidgets.find(w => {
+                const realSrc = addBaseToUrl(jsBaseUrl, w.requires?.url?.trim() || '');
+                return realSrc === src;
+            });
+            if (!widgetFound) {
+                // No widget has this src.
+                scriptElem.remove();
+                changes++;
+                return;
+            }
+            const anyInstancesFound = anyMatchesSelectors(tiny, widgetFound.selectors ?? []);
+            if (!anyInstancesFound ||
+                // Conditional insert
+                (widgetFound.requires?.query && !tiny.querySelector(widgetFound.requires.query))
+            ) {
+                // Script no longer needed
+                scriptElem.remove();
+                changes++;
+            }
+        });
+        // Get rid of jsArea if no scripts are left
+        if (!jsArea.querySelectorAll("script").length) {
+            jsArea.remove();
             changes++;
         }
-    });
-    // Get rid of jsArea if no scripts are left
-    if (!jsArea.querySelectorAll("script").length) {
-        jsArea.remove();
-        changes++;
-    }
     } catch (ex) {
         console.error("Error while removing unused dependencies:", ex);
     }
@@ -184,40 +194,39 @@ export function cleanUnusedRequires(editor, affectedWidgets) {
 /**
  * @param {import("../plugin").TinyMCE} editor
  * @param {import("../options").Widget} widget
- * @param {Record<string, any>} ctxFromDialogue
  */
-function widgetInserted(editor, widget, ctxFromDialogue) {
-    try {
-      // Determine if should add any requires
-      const requireList = [];
-      // Treat the case of requires being an object (keys are the conditions to be met)
-      if (widget.prop('requires')) {
-         const parts = widget.prop('requires').split("|");
-         let conditionFullfilled = true;
-            if (parts.length > 1) {
-               conditionFullfilled = evalInContext(ctxFromDialogue, parts[1]);
-            }
-         if (conditionFullfilled) {
-            requireList.push(parts[0]?.trim());
-         }
-      }
-      let changes = 0;
-      if (requireList.length > 0) {
-          // Now handle the filtered list of requires
-          changes += addRequires(editor, requireList);
-      } else {
-          // Always try to remove unused requires
-          changes += cleanUnusedRequires(editor);
-      }
-      if (changes > 0) {
+function widgetInserted(editor, widget) {
+    let changes = 0;
+    if (widget.requires) {
+        // Now handle the filtered list of requires
+        changes += addRequires(editor, [widget.requires]);
+    } else {
+        // Always try to remove unused requires
+        changes += cleanUnusedRequires(editor);
+    }
+    if (changes > 0) {
         editor.setDirty(true);
-      }
-    } catch (ex) {
-        console.error("An error occurre when treating dependencies of inserted widget:", ex);
     }
 }
 
-subscribe('contentSet', addRequires);
-subscribe('widgetInserted', widgetInserted);
-subscribe('widgetRemoved', cleanUnusedRequires);
-subscribe('ctxAction', cleanUnusedRequires);
+/**
+ *
+ * @param {*} fn
+ * @returns
+ */
+function withErrorHandling(fn) {
+    return function (/** @type {any[]} */...args) {
+        try {
+            return fn(...args);
+        } catch (err) {
+            console.error(err);
+            // Optionally rethrow or return a default value
+            return null;
+        }
+    };
+}
+
+subscribe('contentSet', withErrorHandling(addRequires));
+subscribe('widgetInserted', withErrorHandling(widgetInserted));
+subscribe('widgetRemoved', withErrorHandling(cleanUnusedRequires));
+subscribe('ctxAction', withErrorHandling(cleanUnusedRequires));

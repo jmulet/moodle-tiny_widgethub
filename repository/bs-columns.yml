@@ -1,6 +1,7 @@
 key: bs-columns
 name: $string.bscolumns_name
 category: bootstrap
+icon: fa fa-columns
 instructions: $string.bscolumns_instructions
 engine: ejs
 template: |
@@ -54,4 +55,4 @@ parameters:
             }
         }
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 2.1.0
+version: 2.1.1

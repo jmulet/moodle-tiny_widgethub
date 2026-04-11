@@ -1,0 +1,109 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template tiny_widgethub/sync_table
+
+    Sync status table. No form tags as it is embedded in a moodleform.
+
+    Context variables required for this template:
+    * syncstatus: List of widgets and their sync status.
+
+    Example context (json):
+    {
+        "syncstatus": [
+            {
+                "key": "key1",
+                "name": "name1",
+                "status": "statusnew",
+                "installedversion": "0.0.0",
+                "repoversion": "1.0.0",
+                "author": "Author",
+                "authormismatch": false,
+                "canupdate": true,
+                "isnew": true
+            }
+        ]
+    }
+}}
+<div class="tiny_widgethub_sync">
+    <div class="mb-2">
+        <label class="d-inline-flex align-items-center gap-1" style="cursor:pointer; user-select:none;">
+            <input type="checkbox" id="showinstalledonlysync" class="mr-1" checked>
+            {{#str}} showinstalledonly, tiny_widgethub {{/str}}
+        </label>
+    </div>
+    <div class="responsive-table mt-2 mb-2" style="max-height:600px; overflow-y:auto;">
+        <table class="generaltable table table-hover" id="syncstatustable" style="border-collapse:separate; border-spacing:0;">
+            <thead class="position-sticky tiny_widgethub-top-0 bg-light z-index-1">
+                <tr>
+                    <th class="text-center" style="width:40px;">
+                        <input type="checkbox" id="selectallsync">
+                    </th>
+                    <th style="cursor:pointer; user-select:none; white-space:nowrap;" data-sort="1">
+                        {{#str}} key, tiny_widgethub {{/str}} <i class="fa fa-sort m-1"></i>
+                    </th>
+                    <th style="cursor:pointer; user-select:none; white-space:nowrap;" data-sort="2">
+                        {{#str}} name, tiny_widgethub {{/str}} <i class="fa fa-sort m-1"></i>
+                    </th>
+                    <th style="cursor:pointer; user-select:none; white-space:nowrap;" data-sort="3">
+                        {{#str}} author, tiny_widgethub {{/str}} <i class="fa fa-sort m-1"></i>
+                    </th>
+                    <th class="text-center" style="cursor:pointer; user-select:none;" data-sort="4">
+                        {{#str}} installedversion, tiny_widgethub {{/str}} <i class="fa fa-sort m-1"></i>
+                    </th>
+                    <th class="text-center" style="cursor:pointer; user-select:none;" data-sort="5">
+                        {{#str}} repoversion, tiny_widgethub {{/str}} <i class="fa fa-sort m-1"></i>
+                    </th>
+                    <th class="text-center" style="cursor:pointer; user-select:none; white-space:nowrap;" data-sort="6">
+                        {{#str}} status, tiny_widgethub {{/str}} <i class="fa fa-sort m-1"></i>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#syncstatus}}
+                <tr class="{{#authormismatch}}table-warning{{/authormismatch}}" data-status="{{status}}">
+                    <td class="text-center">
+                        {{#canupdate}}
+                        <input type="checkbox" name="keys[]" value="{{key}}" class="synccheck">
+                        {{/canupdate}}
+                    </td>
+                    <td>{{key}}</td>
+                    <td>{{name}}</td>
+                    <td>
+                        {{author}}
+                        {{#authormismatch}}
+                        <span class="badge badge-warning ml-1" title="{{#str}} authormismatch, tiny_widgethub {{/str}}">
+                            <i class="fa fa-exclamation-triangle"></i>
+                        </span>
+                        {{/authormismatch}}
+                    </td>
+                    <td class="text-center">{{installedversion}}</td>
+                    <td class="text-center">{{repoversion}}</td>
+                    <td class="text-center">
+                        <span class="badge
+                            {{#isnew}}badge-primary{{/isnew}}
+                            {{^isnew}}{{#canupdate}}badge-info{{/canupdate}}{{^canupdate}}badge-secondary{{/canupdate}}{{/isnew}}
+                        ">
+                            {{statusname}}
+                        </span>
+                    </td>
+                </tr>
+                {{/syncstatus}}
+            </tbody>
+        </table>
+    </div>
+</div>

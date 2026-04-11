@@ -22,10 +22,11 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use tiny_widgethub\local\storage\widgetrepository;
+
 /**
  * Install the plugin.
  */
 function xmldb_tiny_widgethub_install() {
-    $presets = \tiny_widgethub\plugininfo::fetch_presets();
-    \tiny_widgethub\plugininfo::save_update_presets($presets);
+    widgetrepository::save_to_storage();
 }

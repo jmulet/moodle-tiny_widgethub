@@ -1,6 +1,7 @@
 key: bs-table
 name: $string.bstable_name
 category: bootstrap
+icon: fa fa-table
 instructions: $string.bstable_instructions
 template: |
   {{#responsive}}<div class="table-responsive">{{/responsive}}
@@ -10,7 +11,7 @@ template: |
   {{/desc}}
   {{#headers}}
     <thead>
-      <tr>{{#each}}[j=ncols]<th role="col">$string.bstable_title {{j}}</th>{{/each}}</tr>
+      <tr>{{#each}}[j=ncols]<th scope="col">$string.bstable_title {{j}}</th>{{/each}}</tr>
     </thead>
   {{/headers}}
   <tbody class="table-group-divider">
@@ -18,7 +19,7 @@ template: |
   </tbody>
   {{#footer}}
     <tfoot class="table-group-divider">
-      <tr>{{#each}}[j=ncols]<th>$string.bstable_foot{{j}}</th>{{/each}}</tr>
+      <tr>{{#each}}[j=ncols]<th scope="col">$string.bstable_foot{{j}}</th>{{/each}}</tr>
     </tfoot>
   {{/footer}}
   </table> 
@@ -61,4 +62,4 @@ parameters:
     title: $string.bstable_responsive
     value: false
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 2.0.0
+version: 2.0.1

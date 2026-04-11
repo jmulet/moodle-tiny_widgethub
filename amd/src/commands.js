@@ -1,4 +1,3 @@
-
 /* eslint-disable no-console */
 // This file is part of Moodle - http://moodle.org/
 //
@@ -22,20 +21,38 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-import {getButtonImage} from 'editor_tiny/utils';
+import { getButtonImage } from 'editor_tiny/utils';
 import * as coreStr from 'core/str';
 import Common from './common';
-import * as cfg from 'core/config';
-import {initContextActions} from './contextinit';
-import {getAdditionalCss, getGlobalConfig, getWidgetDict, isPluginVisible, Shared, getEditorOptions, isShareCss} from './options';
-import jQuery from "jquery";
-import {getWidgetPickCtrl} from './controller/widgetpicker_ctrl';
-import {getListeners} from './extension';
-import {getUserStorage} from './service/userstorage_service';
-import {applyWidgetFilterFactory, findVariableByName, removeRndFromCtx, searchComp} from './util';
+import { getContextMenuManager } from './contextactions';
+import {
+    getAdditionalCss,
+    getGlobalConfig,
+    getWidgetDict,
+    isPluginVisible,
+    Shared,
+    getEditorOptions,
+    getMoodleVersion,
+    isShareCss,
+    isPlaygroundMode,
+    fetchEditorData
+} from './options';
 
-export const getSetup = async() => {
+import { getWidgetPickCtrl } from './controller/widgetpicker_ctrl';
+import { getListeners } from './extension';
+import { getUserStorage } from './service/userstorage_service';
+import {
+    findVariableByName,
+    loadScriptAsync,
+    removeRndFromCtx,
+    searchComp
+} from './util';
+import { enableIframeBubble } from './extension/iframebubble';
+import { getWidgetParamsFactory } from './controller/widgetparams_ctrl';
+import Config from 'core/config';
+import { getFilterSrv } from './service/filter_service';
+
+export const getSetup = async () => {
     // Get some translations
     const [widgetNameTitle, buttonImage] = await Promise.all([
         coreStr.get_string('settings', Common.component),
@@ -50,6 +67,12 @@ export const getSetup = async() => {
             return;
         }
 
+        // Start fetch early, no await here because setup must be sync.
+        fetchEditorData();
+
+
+        getListeners('setup').forEach(listener => listener(editor));
+
         // Check if there is a config option to disable the plugin for the current page.
         const page = Shared.currentScope;
         const disableList = getGlobalConfig(editor, "disable.plugin.pages", "")
@@ -58,7 +81,7 @@ export const getSetup = async() => {
             .filter(Boolean);
 
         if (disableList.includes(page)) {
-            console.warn("WidgetHub plugin is disabled on this page.");
+            console.warn(`${Common.component} plugin is disabled on this page.`);
             return;
         }
 
@@ -67,7 +90,7 @@ export const getSetup = async() => {
             try {
                 const regex = new RegExp(regexPattern);
                 if (regex.test(page)) {
-                    console.warn("WidgetHub plugin is disabled on this page.");
+                    console.warn(`${Common.component} plugin is disabled on this page.`);
                     return;
                 }
             } catch (/** @type {any} */ ex) {
@@ -79,7 +102,6 @@ export const getSetup = async() => {
         editor.ui.registry.addIcon(Common.icon, buttonImage.html);
 
         const storage = getUserStorage(editor);
-        const widgetsDict = getWidgetDict(editor);
 
         /**
          * This helper function makes adjustments to the context required for the widget.
@@ -94,22 +116,45 @@ export const getSetup = async() => {
             // Should it load recently used values?
             if (behavior === 'lastused') {
                 const ctxStored = storage.getRecentUsed().find(e => e.key === widget.key)?.p || {};
-                ctx = {...ctx, ...removeRndFromCtx(ctxStored, widget.parameters)};
+                ctx = { ...ctx, ...removeRndFromCtx(ctxStored, widget.parameters) };
             }
             return ctx;
         };
 
+        const isInPlaygroundMode = isPlaygroundMode();
+        let splitButtonBehavior = getGlobalConfig(editor, 'insert.splitbutton.behavior', 'lastused');
+        if (isInPlaygroundMode) {
+            splitButtonBehavior = 'none';
+        }
         // Register the Toolbar Button or SplitButton - including recently used widgets
-        const defaultAction = () => {
-            const widgetPickCtrl = getWidgetPickCtrl(editor);
-            widgetPickCtrl.handleAction();
+        // Hook for administrator widget editor page.
+
+        // Click on button directly opens the only registered widget options.
+        // Click on button directly opens the only registered widget options.
+        const defaultAction = async () => {
+            await fetchEditorData();
+            if (isInPlaygroundMode) {
+                // Click on button directly opens the only registered widget options.
+                const factory = getWidgetParamsFactory(editor);
+                const widget = Object.values(getWidgetDict(editor))[0];
+                if (!widget) {
+                    console.error('No widget found in playground mode');
+                    return;
+                }
+                const widgetParamsCtrl = factory(widget);
+                widgetParamsCtrl.handleAction();
+            } else {
+                const widgetPickCtrl = getWidgetPickCtrl(editor);
+                widgetPickCtrl.handleAction();
+            }
         };
+
         const toolbarButtonSpec = {
             icon: Common.icon,
             tooltip: widgetNameTitle,
             onAction: defaultAction
         };
-        const splitButtonBehavior = getGlobalConfig(editor, 'insert.splitbutton.behavior', 'lastused');
+
         if (splitButtonBehavior === 'none') {
             editor.ui.registry.addButton(Common.component, toolbarButtonSpec);
         } else {
@@ -117,7 +162,9 @@ export const getSetup = async() => {
              *
              * @param {((items: *[]) => void) } callback
              */
-            const splitbuttonFetch = (callback) => {
+            const splitbuttonFetch = async (callback) => {
+                await fetchEditorData();
+                const widgetsDict = getWidgetDict(editor);
                 const isSelectMode = editor.selection.getContent().trim().length > 0;
                 const items = storage.getRecentUsed()
                     .filter(e => {
@@ -131,11 +178,14 @@ export const getSetup = async() => {
                     }));
                 callback(items);
             };
+
             /**
              * @param {*} api
              * @param {string} key
              */
-            const splitbuttonAction = (api, key) => {
+            const splitbuttonAction = async (api, key) => {
+                await fetchEditorData();
+                const widgetsDict = getWidgetDict(editor);
                 const widgetPickCtrl = getWidgetPickCtrl(editor);
                 const widget = widgetsDict[key];
                 if (!widget) {
@@ -161,7 +211,8 @@ export const getSetup = async() => {
         });
 
         const getMatchedWidgets = (/** @type {string} */ pattern) => {
-            return Object.values(widgetsDict).filter((w) => searchComp(w.name, pattern));
+            const widgetsDict = getWidgetDict(editor);
+            return Object.values(widgetsDict).filter((w) => !w.isFilter() && searchComp(w.name, pattern));
         };
 
         // Add an Autocompleter @<search widget name>.
@@ -172,35 +223,42 @@ export const getSetup = async() => {
              * @param {string} pattern
              * @returns {Promise<{type: string, value: string, text: string}[]>}
              */
-            const autocompleterFetch = (pattern) => {
-                /** @type {{type: string, value: string, text: string}[]} */
-                const results = [];
-                getMatchedWidgets(pattern).forEach((/** @type {import('./options').Widget} */ w) => {
+            const autocompleterFetch = async (pattern) => {
+                await fetchEditorData();
+                const resultPromises = getMatchedWidgets(pattern).map(async (/** @type {import('./options').Widget} */ w) => {
+
                     const varname = w.prop('autocomplete')?.trim();
-                    const param = findVariableByName(varname, w.parameters);
+                    // Widgets that have autocomplete need to be fully loaded
+                    let param;
+                    if (varname) {
+                        await w.loadDefinition();
+                        param = findVariableByName(varname, w.parameters);
+                    }
                     if (!param?.options) {
-                        results.push({
+                        /** @type {{type: string, value: string, text: string}} */
+                        return [{
                             type: 'autocompleteitem',
                             value: w.key,
                             text: w.name
-                        });
+                        }];
                     } else {
-                        param.options.forEach(opt => {
+                        /** @type {{type: string, value: string, text: string}[]} */
+                        return param.options.map(opt => {
                             let value = opt;
                             let label = opt;
                             if (typeof opt === 'object') {
                                 value = opt.v;
                                 label = opt.l;
                             }
-                            results.push({
+                            return {
                                 type: 'autocompleteitem',
                                 value: `${w.key}|${varname}:${value}`,
                                 text: w.name + " " + label
-                            });
+                            };
                         });
                     }
                 });
-                return Promise.resolve(results);
+                return Promise.all(resultPromises).then(results => results.flat());
             };
             /**
              * @param {*} api
@@ -212,6 +270,7 @@ export const getSetup = async() => {
                 rng = rng || api.getRange();
                 const pair = value.split('|');
                 const key = pair[0].trim();
+                const widgetsDict = getWidgetDict(editor);
                 const widget = widgetsDict[key];
                 if (!widget) {
                     return;
@@ -245,25 +304,45 @@ export const getSetup = async() => {
  * If the user has selected automatic apply of filters on startup, apply them!
  * @param {import('./plugin').TinyMCE} editor
  */
-const applyAutoFilters = (editor) => {
+const applyAutoFilters = async (editor) => {
+    await fetchEditorData();
     const storage = getUserStorage(editor);
+
     const requiresFilter = storage.getFromLocal("startup.filters", "").split(",");
 
     if (requiresFilter.length > 0) {
         const editorOptions = getEditorOptions(editor);
-        const widgetsFound = requiresFilter.map(key => editorOptions.widgetDict[key]).filter(w => w !== undefined);
-        const applyWidgetFilter = applyWidgetFilterFactory(editor, coreStr);
+        const widgetsFound = requiresFilter.map(key => editorOptions.widgetDict[key])
+            .filter(widget => widget?.isFilter());
+        // All these widgets must have been fully loaded.
+        await Promise.all(widgetsFound.map(widget => widget.loadDefinition()));
 
-        // Apply the filters and show the result
-        widgetsFound.forEach(w => applyWidgetFilter(w.template ?? '', true));
 
-        // Apply it also on save
-        const pageForm = document.querySelector('form.mform');
-        if (pageForm && pageForm.querySelector('div[data-fieldtype="editor"]')) {
-            pageForm.addEventListener('submit', () => {
-                widgetsFound.forEach(w => applyWidgetFilter(w.template ?? '', true));
-                return true;
-            });
+        const filters = widgetsFound.map(widget => {
+            return {
+                name: widget.name,
+                code: widget.prop('filter') ?? '',
+                opts: widget.defaultsWithRepeatable(true)
+            };
+        });
+        if (filters.length > 0) {
+            await getFilterSrv(editor).applyWidgetFilters(filters);
+
+            // Apply it also on save
+            const pageForm = document.querySelector('form.mform');
+            if (pageForm && pageForm.querySelector('div[data-fieldtype="editor"]')) {
+                let filtersApplied = false;
+                pageForm.addEventListener('submit', async (evt) => {
+                    if (filtersApplied) {
+                        return;
+                    }
+                    filtersApplied = true;
+                    evt.preventDefault();
+                    await getFilterSrv(editor).applyWidgetFilters(filters);
+                    // @ts-ignore
+                    evt.target?.submit?.();
+                });
+            }
         }
     }
 };
@@ -273,26 +352,32 @@ const applyAutoFilters = (editor) => {
  * @param {import('./plugin').TinyMCE} editor
  */
 function initializeEditor(editor) {
-    editor.once('SetContent', () => {
+    editor.once('SetContent', async () => {
+        // Ensure widget data is loaded before running contentSet listeners.
+        // Without this await, cleanUnusedRequires (subscribed to contentSet) sees an
+        // empty widget dict and removes all dependency scripts as "unknown".
+        await fetchEditorData();
         // Run all subscribers
         applyAutoFilters(editor);
         getListeners('contentSet').forEach(listener => listener(editor));
     });
     // Add the bootstrap, CSS, etc... into the editor's iframe
-    editor.on('init', () => {
+    editor.on('init', async () => {
         // On init editor.dom is ready
+        // Ensure async widget data is available before proceeding (race condition guard).
+        await fetchEditorData();
+
         // Inject css all generated by Moodle into the editor's iframe
         // http://localhost:4141/theme/styles.php/boost/1721728984_1/all
-
         if (isShareCss(editor)) {
             // TODO: Missing themesubrevision
             const subversion = 1;
-            // @ts-ignore
-            const allCss = `${cfg.wwwroot}/theme/styles.php/${cfg.theme}/${cfg.themerev}_${subversion}/all`;
+            const allCss = `${Config.wwwroot}/theme/styles.php/${Config.theme}/${Config.themerev}_${subversion}/all`;
             editor.dom.loadCSS(allCss);
         }
-        // Inject css from site Admin
-        let adminCss = (getAdditionalCss(editor) ?? '').trim();
+
+        // Inject css from site Admin textarea.
+        let adminCss = (getAdditionalCss() ?? '').trim();
         if (adminCss) {
             // Commented URLs are interpreted as loadCss
             const regex = /\/\*{2}\s+(http(s?):\/\/.*)\s+\*{2}\//gm;
@@ -301,50 +386,113 @@ function initializeEditor(editor) {
                 return '';
             });
             if (adminCss.trim()) {
-                editor.dom.addStyle(adminCss);
+                // Manually create the style tag in the correct position
+                // It must go after the shared css
+                const style = editor.dom.create('style', { type: 'text/css', id: "twh_admin_styles" });
+                style.textContent = adminCss;
+                const doc = editor.getDoc();
+                doc?.head?.appendChild(style);
             }
         }
 
-        // Inject styles and Javascript into the editor's iframe
-        // editor.dom.loadCSS(`${baseUrl}/libs/fontawesome/css/font-awesome.min.css`);
-        // Discover the jQuery version
-        // @ts-ignore
-        const jQueryVersion = jQuery.fn.jquery ?? '3.6.1';
-        const scriptJQ = editor.dom.create("script", {src: `https://code.jquery.com/jquery-${jQueryVersion}.min.js`});
-        const head = editor.getDoc().querySelector("head");
-        scriptJQ.onload = () => {
-            // Cannot load BS until JQ is fully loaded on editor's iframe
-            // @ts-ignore
-            const bsVersion = jQuery.fn.tooltip?.Constructor?.VERSION ?? '4.6.2';
-            const scriptBS = editor.dom.create("script",
-                {src: `https://cdn.jsdelivr.net/npm/bootstrap@${bsVersion}/dist/js/bootstrap.bundle.min.js`});
-            head.appendChild(scriptBS);
+        if (parseInt(getGlobalConfig(editor, 'enable.contextmenu.level', '1')) > 0) {
+            // Initialize context toolbars and menus
+            await getContextMenuManager(editor).init();
+        }
 
-            // Activate popover and tooltips
-            scriptBS.onload = () => {
-                if (!editor.dom.get('init_bs_comp')) {
-                    const scriptInitBS = editor.dom.create("script");
-                    scriptInitBS.id = 'init_bs_comp';
-                    scriptInitBS.innerHTML = `
+        // Detect jQuery and Boostrap versions.
+        // @ts-ignore
+        const moodleVersion = getMoodleVersion(editor);
+        let jqUrl = getGlobalConfig(editor, 'tiny.iframe.jquery.url', '').trim();
+        let jqIntegrity = '';
+        let bsUrl = getGlobalConfig(editor, 'tiny.iframe.bootstrap.url', '').trim();
+        let bsIntegrity = '';
+
+        if (!bsUrl) {
+            if (moodleVersion.startsWith('4')) {
+                bsUrl = `https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js`;
+                bsIntegrity = 'sha256-GRJrh0oydT1CwS36bBeJK/2TggpaUQC6GzTaTQdZm0k=';
+            } else {
+                bsUrl = `https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js`;
+                bsIntegrity = 'sha256-5P1JGBOIxI7FBAvT/mb1fCnI5n/NhQKzNUuW7Hq0fMc=';
+            }
+        }
+
+        if (!jqUrl && moodleVersion.startsWith('4')) {
+            try {
+                // @ts-ignore
+                const path = window.requirejs.s.contexts._.config.paths.jquery;
+                jqUrl = path.startsWith('http')
+                    ? path
+                    : Config.wwwroot + path;
+                if (!jqUrl.endsWith('.js')) {
+                    jqUrl += '.js';
+                }
+            } catch (e) {
+                jqUrl = 'https://code.jquery.com/jquery-3.7.1.min.js';
+                jqIntegrity = 'sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=';
+            }
+        }
+
+        const requiresJquery = jqUrl !== '' && jqUrl !== 'none';
+        const head = editor.getDoc().querySelector("head");
+        const iframeWindow = editor.getWin();
+        try {
+            // Load jQuery if required
+            if (requiresJquery && !iframeWindow.jQuery) {
+                await loadScriptAsync(
+                    editor,
+                    jqUrl,
+                    jqIntegrity
+                );
+            }
+
+            // Load Bootstrap if required (bundle already includes Popper)
+            // BS5 exposes window.bootstrap, BS4 attaches to jQuery.fn
+            const bsAlreadyLoaded = iframeWindow.bootstrap || iframeWindow.jQuery?.fn?.popover;
+            if (bsUrl !== '' && bsUrl !== 'none' && !bsAlreadyLoaded) {
+                await loadScriptAsync(
+                    editor,
+                    bsUrl,
+                    bsIntegrity
+                );
+            }
+
+            // Initialize Bootstrap components depending on version
+            if (bsUrl.includes('@5')) {
+                // Bootstrap 5 – no jQuery, use vanilla JS API
+                const initScript = editor.dom.create('script');
+                initScript.id = 'init_bs_comp';
+                initScript.innerHTML = `
+                    document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el => {
+                        new bootstrap.Popover(el, { trigger: 'hover' });
+                    });
+                `;
+                head.appendChild(initScript);
+            } else if (requiresJquery && bsUrl.includes('@4')) {
+                // Bootstrap 4 – jQuery-based initialization
+                const initScript = editor.dom.create('script');
+                initScript.id = 'init_bs_comp';
+                initScript.innerHTML = `
                     $(document).ready(function() {
                         $('body').popover({
                             selector: '[data-toggle="popover"]',
                             trigger: 'hover'
                         });
-                    });`;
-                    head.appendChild(scriptInitBS);
-                }
-            };
-            // Run all subscribers
-            getListeners('onInit').forEach(listener => listener(editor));
-
-            if (parseInt(getGlobalConfig(editor, 'enable.contextmenu.level', '1')) > 0) {
-                // Initialize context toolbars and menus
-                initContextActions(editor);
+                    });
+                `;
+                head.appendChild(initScript);
             }
-        };
+        } catch (ex) {
+            console.error("Error loading scripts into editor's iframe: ", ex);
+        }
 
-        head.appendChild(scriptJQ);
+        //  If feature is active, treat iframes so they can be selected as widgets
+        if (getGlobalConfig(editor, 'tiny.contextmenu.iframes', '1') === '1') {
+            enableIframeBubble(editor);
+        }
+
+        // Run all subscribers
+        getListeners('onInit').forEach(listener => listener(editor));
     });
 }
-

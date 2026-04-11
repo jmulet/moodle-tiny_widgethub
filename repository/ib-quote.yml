@@ -1,5 +1,6 @@
 key: ib-quote
 name: $string.ibquote_name
+icon: fa fa-quote-left
 instructions: $string.ibquote_instructions
 template: |
   <div class="twh-quote {{#notranslate}}notranslate{{/notranslate}}">
@@ -21,4 +22,4 @@ parameters:
     title: $string.ibquote_notranslate
     bind: hasClass('notranslate')
 author: Josep Mulet Pol <pep.mulet@gmail.com>
-version: 2.0.0
+version: 2.0.1

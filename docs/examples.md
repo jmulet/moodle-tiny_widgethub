@@ -277,13 +277,21 @@ author: Your name <your.email@domain.com>
 version: 1.1.0 
 ````
 
-Nevertheless, the WidgetHub plugin adds some custom blocks to Mustache template rendering engine in order to implement basic loops.
+Nevertheless, the WidgetHub plugin adds some custom blocks to Mustache template rendering engine in order to implement basic loops and conditionals. For complex cases, it is recommended to use EJS or Liquid.
 
-TODO check API [k=b] or [k,a,b]
+The `{{#each}}` block iterates over a range. The syntax is `{{#each}}[k,start,end]...{{/each}}` where `k` is the loop variable and `start`/`end` define the range (inclusive). You can also use `{{#each}}[k=varName]...{{/each}}` to iterate from 1 to the value of the parameter `varName`.
+
 `````
 {{#each}}[k,1,4]{{k}}{{/each}}
 `````
 will print 1234.
+
+The `{{#if}}` block allows conditional rendering. The syntax is `{{#if}}[condition]content{{/if}}` where `condition` is a JavaScript expression. For example:
+
+`````
+{{#if}}[maxWidth>0]style="max-width: {{maxWidth}}px;"{{/if}}
+`````
+will only render the style attribute when `maxWidth` is greater than 0.
 
 ### Example 5. Widgets that require id's
 
@@ -406,6 +414,22 @@ Binding: hasStyle('font-size') is true, but hasStyle('color') is false.
 
 - `notHasStyle(sty: string, query?: string): boolean` - The negated version of the previous function.
 
+- `styleRegex(styExpr: string, query?: string, castTo?: string): string | number` - Extracts a value from an inline style property using a regex. The `styExpr` has one of these forms: `styName` (returns the full value) or `styName:regex(.*)` (extracts the captured group). For example, `styleRegex('max-width:(.*)px', null, 'number')` extracts the numeric max-width value.
+
+````
+HTML: <div style="max-width: 400px;">Content</div>
+Selector: div
+Binding: styleRegex('max-width:(.*)px', null, 'number') is 400
+````
+
+- `text(query?: string): string` - Gets or sets the text content of an element. The optional `query` parameter allows targeting a descendant element.
+
+````
+HTML: <div class="widget"><h5>My Title</h5></div>
+Selector: .widget
+Binding: text('h5') is "My Title"
+````
+
 These functions may be suitable for most of the cases, but, in some ocassions there might be situacions that are not enough. In these cases, the widget dessigner can provide its own logic using plain javascript. The syntax is
 
 ````yaml
@@ -509,7 +533,6 @@ parameters:
   - name: imgs
     title: Images
     type: repeatable
-    item_selector: .carousel-item
     min: 2
     max: 10
     fields:
@@ -540,3 +563,112 @@ version: 1.0.0
 **Note 1:** For the sake of simplicity, the conditional `when` has no effect in the fields of a repeatable parameter.
 
 **Note 2:** Due to TinyMCE’s internal logic, when programmatically changing `src` or `href` attributes of a DOM element, you must also update the corresponding `data-mce-src` or `data-mce-href` attributes accordingly.
+
+
+### Example 8. Creating filters
+
+A **filter** is a JavaScript function that performs DOM manipulations within the editor’s iFrame.  
+It returns an array with two elements:
+
+1. **Boolean** — Indicates whether any changes were applied (`true` if changes were made, `false` otherwise).  
+2. **String** — A message describing the modifications applied, intended for user feedback.
+
+The filter operates on the TinyMCE editor instance, accessed through the global `editor` object — the JavaScript API interface for TinyMCE.  
+
+In particular, the method `editor.getBody()` returns the body element of the iFrame that contains the editor’s content.
+This allows the filter function to inspect and modify the editor’s DOM directly.
+
+Below you will find a very basic example of a filter that removes the font-size and font-family styles of all elements in the editor.
+Please note that the property `filter` only defines the body of the function. Therefore, you must not write any 
+`function` keyword nor any lambda like `(editor) => { ... }`.
+
+````yml
+key: ib-filter-cleanfont
+name: Clean font styles
+category: Filters
+instructions: This filter removes font-size and font-family styles.
+filter: >
+  /* The variable editor is passed into the body function. */
+  var elements = editor.getBody().querySelectorAll('*[style]');
+  var totalRemoved = 0;
+  elements.forEach(function(el) {
+    var style = el.style;
+    var hadFontFamily = !!style.fontFamily;
+    var hadFontSize = !!style.fontSize;
+    var removed = 0;
+    if (hadFontFamily) {
+      style.removeProperty('font-family');
+      removed++;
+    }
+    if (hadFontSize) {
+      style.removeProperty('font-size');
+      removed++;
+    }
+    /* When dealing with styles, must update TinyMCE cache property. */
+    if (removed > 0) {
+      el.setAttribute('data-mce-style', el.getAttribute('style'));
+      totalRemoved += 1;
+    }
+  });
+  var hasChanges = totalRemoved > 0;
+  var msgStats = "{$a} styles have been removed.".replace('{$a}', totalRemoved);
+  /* You must return an array. */
+  return [hasChanges, msgStats];
+
+author: Josep Mulet <pep.mulet@gmail.com>
+version: 1.0.0
+````
+
+### Example 9. Using the Liquid template engine (since version 1.5.0)
+
+In addition to Mustache and EJS, WidgetHub supports the [Liquid](https://liquidjs.com/) template engine. Liquid provides a safe and flexible way to write templates with conditionals, loops, and filters — without allowing arbitrary code execution.
+
+To use Liquid, set `engine: liquid` in the widget definition. Parameters are accessed using double curly braces `{{ name }}` (with spaces), and logic tags use `{% ... %}`.
+
+````yml
+key: tut_liquid1
+name: (Tutorial 9) Liquid template
+category: tutorials
+engine: liquid
+template: |
+  <div class="card" data-widget="tut_liquid1">
+    <div class="card-body">
+      <h5 class="card-title">{{ title }}</h5>
+      {% if showList %}
+      <ul class="list-group list-group-flush">
+        {% for i in (1..count) %}
+          <li class="list-group-item">Item {{ i }}</li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="card-text">List is hidden.</p>
+      {% endif %}
+    </div>
+  </div>
+  <p><br></p>
+selectors: div[data-widget="tut_liquid1"]
+parameters:
+  - name: title
+    title: Card Title
+    value: My Card
+    bind: text('.card-title')
+  - name: count
+    title: Number of items
+    value: 3
+    min: 1
+    max: 10
+  - name: showList
+    title: Show the list?
+    value: true
+author: Your name <your.email@domain.com>
+version: 1.0.0
+````
+
+Liquid also supports built-in filters such as `upcase`, `downcase`, `capitalize`, `truncate`, and many more directly in the template output:
+
+````liquid
+{{ title | upcase }}
+{{ description | truncate: 50 }}
+````
+
+For a full reference on Liquid syntax, see the [LiquidJS documentation](https://liquidjs.com/tutorials/intro-to-liquid.html).

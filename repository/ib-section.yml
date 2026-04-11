@@ -1,9 +1,8 @@
 key: ib-section
 name: $string.ibsection_name
+icon: fa fa-columns
 instructions: $string.ibsection_instructions
-template: |
-  <h4 class="twh-subsub"><span class="twh-iq">{{title}}</span></h4>
-  <p><br></p>
+template: <h4 class="twh-subsub"><span class="twh-iq">{{title}}</span></h4>
 selectors: h4.twh-subsub
 insertquery: .twh-iq
 unwrap: .twh-iq
@@ -13,4 +12,4 @@ parameters:
     title: $string.ibsection_title
     when: "!SELECT_MODE"
 author: Josep Mulet Pol <pep.mulet@gmail.com>
-version: 2.0.0
+version: 2.0.1

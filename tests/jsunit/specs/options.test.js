@@ -1,10 +1,14 @@
 /**
- * @jest-environment jsdom
+ *
+ * Tiny WidgetHub plugin.
+ *
+ * @module      tiny_widgethub/plugin
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-require('./module.mocks')(jest);
 document?.body?.setAttribute("id", "page-mod-page-mod");
 
-const { register, getWidgetDict, Shared, Widget, applyPartials } = require('../src/options');
+const { register, getWidgetDict, Shared, Widget, applyPartials, _resetCacheForTesting } = require('../src/options');
 
 
 /** @type {import('../src/options').RawWidget} */
@@ -27,6 +31,9 @@ const rawSnpt = {
         "msg_important": { "ca": "IMPORTANT", "es": "IMPORTANTE", "en": "IMPORTANT", "fr": "IMPORTANT", "de": "WICHTIG" },
         "msg_introduccio": { "ca": "INTRODUCCIÓ", "es": "INTRODUCIÓN", "en": "INTRODUCTION", "fr": "INTRODUCTION", "de": "EINFÜHRUNG" }
     },
+    "isfilter": false,
+    "isselectcapable": false,
+    "hasbindings": false,
     "parameters": [
         { "name": "tipus", "value": "alerta", "title": "Propòsit de la capsa", "type": "select", "options": [{ "v": "alerta", "l": "Alerta" }, { "v": "ampliacio", "l": "Ampliació" }, { "v": "consell", "l": "Consell" }, { "v": "important", "l": "Important" }, { "v": "introduccio", "l": "Introducció" }] },
         { "name": "mida", "value": "gran", "title": "Mida de la capsa", "type": "select", "options": [{ "v": "gran", "l": "Gran" }, { "v": "mitjana", "l": "Mitjana" }, { "v": "petita", "l": "Petita" }] },
@@ -50,6 +57,9 @@ const rawSnpt2 = {
         "msg_important": { "ca": "IMPORTANT", "es": "IMPORTANTE", "en": "IMPORTANT", "fr": "IMPORTANT", "de": "WICHTIG" },
         "msg_introduccio": { "ca": "INTRODUCCIÓ", "es": "INTRODUCIÓN", "en": "INTRODUCTION", "fr": "INTRODUCTION", "de": "EINFÜHRUNG" }
     },
+    "isfilter": false,
+    "isselectcapable": false,
+    "hasbindings": false,
     "for": "55, 11",
     "scope": "^page-mod-(book|assign|quiz)-",
     "parameters": [
@@ -75,6 +85,9 @@ const rawSnpt3 = {
         "msg_important": { "ca": "IMPORTANT", "es": "IMPORTANTE", "en": "IMPORTANT", "fr": "IMPORTANT", "de": "WICHTIG" },
         "msg_introduccio": { "ca": "INTRODUCCIÓ", "es": "INTRODUCIÓN", "en": "INTRODUCTION", "fr": "INTRODUCTION", "de": "EINFÜHRUNG" }
     },
+    "isfilter": false,
+    "isselectcapable": false,
+    "hasbindings": false,
     "for": "5",
     "scope": "^page-mod-(book|page|assign|quiz)-",
     "parameters": [
@@ -89,10 +102,11 @@ let fakeEditor;
 describe('Options', () => {
 
     beforeEach(() => {
-        fakeEditor = require('./editor.mock')();
+        fakeEditor = global.Mocks.editorFactory();
+        _resetCacheForTesting();
     });
 
-    test('must register options',() => {
+    test('must register options', () => {
         // Do the call
         register(fakeEditor);
         // And expect
@@ -100,28 +114,22 @@ describe('Options', () => {
         expect(registerOption).toHaveBeenNthCalledWith(1, "showplugin", expect.any(Object));
         expect(registerOption).toHaveBeenNthCalledWith(2, "user", expect.any(Object));
         expect(registerOption).toHaveBeenNthCalledWith(3, "courseid", expect.any(Object));
-        expect(registerOption).toHaveBeenNthCalledWith(4, "widgetlist", expect.any(Object));
-        expect(registerOption).toHaveBeenNthCalledWith(5, "sharecss", expect.any(Object));
-        expect(registerOption).toHaveBeenNthCalledWith(6, "additionalcss", expect.any(Object));
+        expect(registerOption).toHaveBeenNthCalledWith(4, "sharecss", expect.any(Object));
+        expect(registerOption).toHaveBeenNthCalledWith(5, "userprefs", expect.any(Object));
     });
 
     test('It returns the dictionary of widgets', () => {
-        const fakeEditor = {
-            id: 1,
-            options: {
-                get: jest.fn().mockImplementation((param) => {
-                    if(param === "widgetlist") {
-                        return [rawSnpt, rawSnpt2, rawSnpt3];
-                    } else if(param === "user") {
-                        return {
-                            id: 5,
-                            username: 'joe',
-                            roles: ['student']
-                        }
-                    }
-                })
+        fakeEditor.options.get = jest.fn().mockImplementation((param) => {
+            if (param === "user") {
+                return {
+                    id: 5,
+                    username: 'joe',
+                    roles: ['student']
+                }
             }
-        };
+        });
+        _resetCacheForTesting({ widgetList: [rawSnpt, rawSnpt2, rawSnpt3] });
+
         const dict1 = getWidgetDict(fakeEditor);
         const dict2 = getWidgetDict(fakeEditor);
         // It is a singleton
@@ -140,7 +148,7 @@ describe('Options', () => {
         expect(snpt.name).toBe(rawSnpt.name);
         expect(snpt.key).toBe(rawSnpt.key);
         expect(typeof (snpt.defaults)).toBe("object");
-        expect(snpt.defaults).toStrictEqual({
+        expect(snpt.defaults).toEqual({
             "tipus": "alerta",
             "mida": "gran",
             "LANG": "CA"
@@ -161,95 +169,96 @@ describe('Options', () => {
 
     test('is available for any user', () => {
         const snpt = new Widget({ ...rawSnpt });
-        expect(snpt.isFor({id: 42, username: 'joe', roles: ['student'] })).toBe(true);
-        expect(snpt.isFor({id: 11, username: 'joe', roles: ['student'] })).toBe(true);
-        expect(snpt.isFor({id: 0, username: 'joe', roles: ['student'] })).toBe(true);
+        expect(snpt.isFor({ id: 42, username: 'joe', roles: ['student'] })).toBe(true);
+        expect(snpt.isFor({ id: 11, username: 'joe', roles: ['student'] })).toBe(true);
+        expect(snpt.isFor({ id: 0, username: 'joe', roles: ['student'] })).toBe(true);
     });
 
     test('not available in scope because hidden', () => {
         let snpt = new Widget({ ...rawSnpt2, hidden: false });
-        expect(snpt.isFor({id: 55, username: 'joe', roles: ['student'] })).toBe(true);
+        expect(snpt.isFor({ id: 55, username: 'joe', roles: ['student'] })).toBe(true);
         snpt = new Widget({ ...rawSnpt2, hidden: true });
-        expect(snpt.isFor({id: 55, username: 'joe', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({ id: 55, username: 'joe', roles: ['student'] })).toBe(false);
     });
 
     test('not available in scope because not in list', () => {
         const snpt = new Widget({ ...rawSnpt3 });
-        expect(snpt.isFor({id: 52, username: 'joe', roles: ['student'] })).toBe(false);
-        expect(snpt.isFor({id: 7, username: 'joe', roles: ['student'] })).toBe(false);
-        expect(snpt.isFor({id: 2, username: 'joe', roles: ['student'] })).toBe(false);
-        expect(snpt.isFor({id: 1, username: 'joe', roles: ['student'] })).toBe(false); // because admin
-        expect(snpt.isFor({id: 3, username: 'joe', roles: ['student'] })).toBe(false);  
+        expect(snpt.isFor({ id: 52, username: 'joe', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({ id: 7, username: 'joe', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({ id: 2, username: 'joe', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({ id: 1, username: 'joe', roles: ['student'] })).toBe(false); // because admin
+        expect(snpt.isFor({ id: 3, username: 'joe', roles: ['student'] })).toBe(false);
     });
 
     test('available in scope because it is in list', () => {
         const snpt = new Widget({ ...rawSnpt3, for: undefined, forids: '5' });
-        expect(snpt.isFor({id: 5, username: 'joe5', roles: ['student'] })).toBe(true);
-        expect(snpt.isFor({id: 42, username: 'joe42', roles: ['student'] })).toBe(false);
-        expect(snpt.isFor({id: 555, username: 'joe555', roles: ['student'] })).toBe(false);
-        expect(snpt.isFor({id: 0, username: 'joe0', roles: ['student'] })).toBe(false); // admin
-        expect(snpt.isFor({id: 1, username: 'joe1', roles: ['student'] })).toBe(false); // admin
-        expect(snpt.isFor({id: 2, username: 'joe2', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({ id: 5, username: 'joe5', roles: ['student'] })).toBe(true);
+        expect(snpt.isFor({ id: 42, username: 'joe42', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({ id: 555, username: 'joe555', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({ id: 0, username: 'joe0', roles: ['student'] })).toBe(false); // admin
+        expect(snpt.isFor({ id: 1, username: 'joe1', roles: ['student'] })).toBe(false); // admin
+        expect(snpt.isFor({ id: 2, username: 'joe2', roles: ['student'] })).toBe(false);
     });
 
     test('available because username is in list', () => {
         const snpt = new Widget({ ...rawSnpt3, for: undefined, forusernames: 'joe,miles' });
-        expect(snpt.isFor({id: 5, username: 'joe', roles: ['student'] })).toBe(true);
-        expect(snpt.isFor({id: 42, username: 'miles', roles: ['student'] })).toBe(true);
-        expect(snpt.isFor({id: 555, username: 'joe555', roles: ['student'] })).toBe(false);
-        expect(snpt.isFor({id: 0, username: 'joe0', roles: ['student'] })).toBe(false); // admin
-        expect(snpt.isFor({id: 1, username: 'joe1', roles: ['student'] })).toBe(false); // admin
-        expect(snpt.isFor({id: 2, username: 'joe2', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({ id: 5, username: 'joe', roles: ['student'] })).toBe(true);
+        expect(snpt.isFor({ id: 42, username: 'miles', roles: ['student'] })).toBe(true);
+        expect(snpt.isFor({ id: 555, username: 'joe555', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({ id: 0, username: 'joe0', roles: ['student'] })).toBe(false); // admin
+        expect(snpt.isFor({ id: 1, username: 'joe1', roles: ['student'] })).toBe(false); // admin
+        expect(snpt.isFor({ id: 2, username: 'joe2', roles: ['student'] })).toBe(false);
     });
 
     test('available because roles is in list', () => {
         const snpt = new Widget({ ...rawSnpt3, for: undefined, forroles: 'teacher,administrator' });
-        expect(snpt.isFor({id: 5, username: 'joe', roles: ['student'] })).toBe(false);
-        expect(snpt.isFor({id: 42, username: 'miles', roles: ['teacher', 'student'] })).toBe(true);
-        expect(snpt.isFor({id: 555, username: 'joe555', roles: ['teacher'] })).toBe(true);
-        expect(snpt.isFor({id: 0, username: 'joe0', roles: ['administrator'] })).toBe(true);  
-        expect(snpt.isFor({id: 1, username: 'joe1', roles: ['administrator', 'student', 'teacher'] })).toBe(true); 
-        expect(snpt.isFor({id: 2, username: 'joe2', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({ id: 5, username: 'joe', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({ id: 42, username: 'miles', roles: ['teacher', 'student'] })).toBe(true);
+        expect(snpt.isFor({ id: 555, username: 'joe555', roles: ['teacher'] })).toBe(true);
+        expect(snpt.isFor({ id: 0, username: 'joe0', roles: ['administrator'] })).toBe(true);
+        expect(snpt.isFor({ id: 1, username: 'joe1', roles: ['administrator', 'student', 'teacher'] })).toBe(true);
+        expect(snpt.isFor({ id: 2, username: 'joe2', roles: ['student'] })).toBe(false);
     });
 
     test('available because usernames & roles is in list. AND match', () => {
         let snpt = new Widget({ ...rawSnpt3, for: undefined, forroles: 'teacher', forusernames: 'miles,karen' });
-        expect(snpt.isFor({id: 5, username: 'miles', roles: ['student'] })).toBe(false);
-        expect(snpt.isFor({id: 42, username: 'miles', roles: ['teacher', 'student'] })).toBe(true);
-        expect(snpt.isFor({id: 555, username: 'miles', roles: ['teacher'] })).toBe(true);
-        expect(snpt.isFor({id: 0, username: 'joe0', roles: ['teacher'] })).toBe(false);  
-        expect(snpt.isFor({id: 1, username: 'joe1', roles: ['administrator', 'student', 'teacher'] })).toBe(false); 
-        expect(snpt.isFor({id: 2, username: 'joe2', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({ id: 5, username: 'miles', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({ id: 42, username: 'miles', roles: ['teacher', 'student'] })).toBe(true);
+        expect(snpt.isFor({ id: 555, username: 'miles', roles: ['teacher'] })).toBe(true);
+        expect(snpt.isFor({ id: 0, username: 'joe0', roles: ['teacher'] })).toBe(false);
+        expect(snpt.isFor({ id: 1, username: 'joe1', roles: ['administrator', 'student', 'teacher'] })).toBe(false);
+        expect(snpt.isFor({ id: 2, username: 'joe2', roles: ['student'] })).toBe(false);
 
         snpt = new Widget({ ...rawSnpt3, for: undefined, forids: '2,1,3', forroles: 'teacher', forusernames: 'miles,karen' });
-        expect(snpt.isFor({id: 42, username: 'miles', roles: ['teacher', 'student'] })).toBe(false);
-        expect(snpt.isFor({id: 3, username: 'miles', roles: ['teacher', 'student'] })).toBe(true);
+        expect(snpt.isFor({ id: 42, username: 'miles', roles: ['teacher', 'student'] })).toBe(false);
+        expect(snpt.isFor({ id: 3, username: 'miles', roles: ['teacher', 'student'] })).toBe(true);
     });
 
     test('available because usernames & roles is in list. OR match', () => {
         let snpt = new Widget({ ...rawSnpt3, for: undefined, formatch: 'OR', forroles: 'teacher', forusernames: 'miles,karen' });
-        expect(snpt.isFor({id: 5, username: 'miles', roles: ['student'] })).toBe(true);
-        expect(snpt.isFor({id: 42, username: 'miles', roles: ['teacher', 'student'] })).toBe(true);
-        expect(snpt.isFor({id: 555, username: 'miles', roles: ['teacher'] })).toBe(true);
-        expect(snpt.isFor({id: 0, username: 'joe0', roles: ['teacher'] })).toBe(true);  
-        expect(snpt.isFor({id: 1, username: 'karen', roles: ['administrator', 'student'] })).toBe(true); 
-        expect(snpt.isFor({id: 2, username: 'joe2', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({ id: 5, username: 'miles', roles: ['student'] })).toBe(true);
+        expect(snpt.isFor({ id: 42, username: 'miles', roles: ['teacher', 'student'] })).toBe(true);
+        expect(snpt.isFor({ id: 555, username: 'miles', roles: ['teacher'] })).toBe(true);
+        expect(snpt.isFor({ id: 0, username: 'joe0', roles: ['teacher'] })).toBe(true);
+        expect(snpt.isFor({ id: 1, username: 'karen', roles: ['administrator', 'student'] })).toBe(true);
+        expect(snpt.isFor({ id: 2, username: 'joe2', roles: ['student'] })).toBe(false);
 
         snpt = new Widget({ ...rawSnpt3, for: undefined, forids: '2,1,3', formatch: 'OR', forroles: 'teacher', forusernames: 'miles,karen' });
-        expect(snpt.isFor({id: 2, username: 'joe2', roles: ['student'] })).toBe(true);
-        expect(snpt.isFor({id: 7, username: 'joe2', roles: ['student'] })).toBe(false);
+        expect(snpt.isFor({ id: 2, username: 'joe2', roles: ['student'] })).toBe(true);
+        expect(snpt.isFor({ id: 7, username: 'joe2', roles: ['student'] })).toBe(false);
     });
 
     test('Should expand the template with partials', () => {
         const partial = {
             "LOREM": 'Lorem ipsum dolor it.'
         }
-        let snpt = {...rawSnpt, template: '<p>__LOREM__</p>'};
+        let snpt = { ...rawSnpt, template: '<p>__LOREM__</p>' };
         applyPartials(snpt, partial);
         expect(snpt.template).toBe('<p>Lorem ipsum dolor it.</p>');
 
-        snpt = {...rawSnpt, template:
-        `<p><br></p> 
+        snpt = {
+            ...rawSnpt, template:
+                `<p><br></p> 
         <!--begin: Capsa solució -->
         <div class="iedib-capsa iedib-solucio">
         <div class="iedib-central">
@@ -259,28 +268,28 @@ describe('Options', () => {
         <!--end: Capsa solució--> 
         <p><br></p>`};
         applyPartials(snpt, partial);
-        expect(snpt.template.indexOf("__LOREM__")>=0).toBe(false);
-        expect(snpt.template.indexOf("<p>Lorem ipsum dolor it.</p>")>=0).toBe(true);
+        expect(snpt.template.indexOf("__LOREM__") >= 0).toBe(false);
+        expect(snpt.template.indexOf("<p>Lorem ipsum dolor it.</p>") >= 0).toBe(true);
     });
 
     test('It should expand partials on parameters', () => {
         const partial = {
-            ID: {name: 'id', title: 'Identifier', value: '$RND'}
+            ID: { name: 'id', title: 'Identifier', value: '$RND' }
         };
         /** @type {*} */
-        let snpt = {...rawSnpt, parameters: ['__ID__']};
+        let snpt = { ...rawSnpt, parameters: ['__ID__'] };
         applyPartials(snpt, partial);
-        expect(snpt.parameters[0]).toStrictEqual({...partial.ID, type: 'textfield'});
+        expect(snpt.parameters[0]).toStrictEqual({ ...partial.ID, type: 'textfield' });
 
         /** @type {*} */
-        snpt = {...rawSnpt, parameters: [{partial: '__ID__'}]};
+        snpt = { ...rawSnpt, parameters: [{ partial: '__ID__' }] };
         applyPartials(snpt, partial);
-        expect(snpt.parameters[0]).toStrictEqual({...partial.ID, type: 'textfield'});
+        expect(snpt.parameters[0]).toStrictEqual({ ...partial.ID, type: 'textfield' });
 
-         /** @type {*} */
-         snpt = {...rawSnpt, parameters: [{partial: '__ID__', value: '12345'}]};
-         applyPartials(snpt, partial);
-         expect(snpt.parameters[0]).toStrictEqual({...partial.ID, type: 'textfield', value: '12345'});
+        /** @type {*} */
+        snpt = { ...rawSnpt, parameters: [{ partial: '__ID__', value: '12345' }] };
+        applyPartials(snpt, partial);
+        expect(snpt.parameters[0]).toStrictEqual({ ...partial.ID, type: 'textfield', value: '12345' });
     });
 
 

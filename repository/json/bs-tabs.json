@@ -1,0 +1,49 @@
+{
+    "key": "bs-tabs",
+    "name": "$string.bstabs_name",
+    "category": "bootstrap",
+    "icon": "fa fa-folder",
+    "instructions": "$string.bstabs_instructions",
+    "engine": "ejs",
+    "template": "<div class=\"whb-tabmenu\">\n  <ul class=\"nav nav-tabs\" role=\"tablist\">\n  <% for(var i=1; i<=tabs; i++) { %>\n    <li class=\"nav-item\" role=\"presentation\">\n      <a class=\"nav-link<%= i==1 ? ' active' : '' %>\" id=\"<%=ID%>_<%=i%>-tab\" href=\"#<%=ID%>_<%=i%>\" data-toggle=\"tab\" data-bs-toggle=\"tab\" role=\"tab\" aria-controls=\"<%=ID%>_<%=i%>\" aria-selected=\"<%= i==1 ? 'true' : 'false' %>\">\n        <span>&nbsp;</span><span>Tab<%=i%></span>\n      </a>\n    </li> \n  <% } %>\n  </ul>\n  <div class=\"tab-content\">\n  <% for(var i=1; i<=tabs; i++) { %>\n    <div class=\"tab-pane<%= effect ? ' ' + effect : '' %><%= i==1 ? ' show active' : '' %>\" id=\"<%=ID%>_<%=i%>\" role=\"tabpanel\" aria-labelledby=\"<%=ID%>_<%=i%>-tab\">\n      <p><%=i%> __LOREM__</p>\n    </div>\n  <% } %>\n  </div>\n</div> \n<p><br></p>\n",
+    "selectors": "div.whb-tabmenu",
+    "unwrap": "div.tab-content > div.tab-pane > *",
+    "parameters": [
+        {
+            "name": "tabs",
+            "value": 2,
+            "title": "$string.bstabs_tabs",
+            "min": 1,
+            "max": 6,
+            "tip": "$string.bstabs_tabs_tip"
+        },
+        {
+            "name": "effect",
+            "title": "$string.bstabs_effect",
+            "value": "",
+            "options": [
+                {
+                    "l": "$string.bstabs_optionsnone",
+                    "v": ""
+                },
+                {
+                    "l": "$string.bstabs_optionsfade",
+                    "v": "fade"
+                }
+            ],
+            "bind": {
+                "getValue": "(el) => {\n  var pane = el.querySelector('div.tab-pane');\n  return pane && pane.classList.contains('fade') ? 'fade' : '';\n}\n",
+                "setValue": "(el, v) => {\n  el.querySelectorAll('div.tab-pane').forEach(pane => {;\n    if (v) {\n      pane.classList.add('fade');\n    } else {\n      pane.classList.remove('fade');\n    }\n  });\n}\n"
+            }
+        },
+        "__ID__"
+    ],
+    "contextmenu": [
+        {
+            "predicate": "li.nav-item",
+            "actions": "moveleft moveright insertafter | remove"
+        }
+    ],
+    "author": "Josep Mulet <pep.mulet@gmail.com>",
+    "version": "2.1.1"
+}

@@ -1,0 +1,9 @@
+{
+    "key": "bs-jumbotron",
+    "name": "Jumbotron",
+    "category": "bootstrap",
+    "icon": "fa fa-bullhorn",
+    "template": "<div class=\"p-5 mb-4 bg-light rounded-3\">\n<div class=\"container-fluid py-5\">\n  <h1 class=\"display-5 fw-bold\">Fluid jumbotron</h1>\n  <p class=\"col-md-8 fs-4\">Lorem ipsum.</p>\n  </div>\n</div>\n",
+    "author": "Josep Mulet <pep.mulet@gmail.com>",
+    "version": "2.0.1"
+}

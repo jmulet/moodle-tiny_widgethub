@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc -l /Users/josep/moodle-docker/moodle44/lib/editor/tiny/plugins/widgethub/amd/src/*.js)"
+    ]
+  }
+}

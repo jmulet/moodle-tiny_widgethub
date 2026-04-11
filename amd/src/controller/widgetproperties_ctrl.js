@@ -18,23 +18,13 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {getFormCtrl} from '../controller/form_ctrl';
-import {getModalSrv} from '../service/modal_service';
-import {createBinding} from '../util';
-import jQuery from 'jquery';
-
-/**
- * @typedef {JQuery<HTMLElement>} ModalDialogue
- * @property {JQuery<HTMLElement>} header
- * @property {JQuery<HTMLElement>} body
- * @property {JQuery<HTMLElement>} footer
- * @property {() => void} destroy
- * @property {() => void} show
- */
+import { getFormCtrl } from '../controller/form_ctrl';
+import { getModalSrv } from '../service/modal_service';
+import { BindingsAdapter } from '../bindings';
 
 /**
  * @class
@@ -44,27 +34,30 @@ export class WidgetPropertiesCtrl {
     /** @type {import('../service/modal_service').ModalDialogue | null} */
     modal = null;
 
+    /** @type {import('../service/sandbox').RemoteDom | null} */
+    remoteDom = null;
+
+    /** @type {string | null} */
+    vdomId = null;
+
     /**
      * @param {import('../plugin').TinyMCE} editor
      * @param {import('../controller/form_ctrl').FormCtrl} formCtrl
      * @param {import('../service/modal_service').ModalSrv} modalSrv
-     * @param {JQueryStatic} jQuery
      **/
-    constructor(editor, formCtrl, modalSrv, jQuery) {
+    constructor(editor, formCtrl, modalSrv) {
         /** @type {import('../plugin').TinyMCE} */
         this.editor = editor;
         /** @type {import('../controller/form_ctrl').FormCtrl} */
         this.formCtrl = formCtrl;
         /** @type {import('../service/modal_service').ModalSrv} */
         this.modalSrv = modalSrv;
-        /** @type {JQueryStatic} */
-        this.jQuery = jQuery;
     }
 
     /**
      * Displays a modal dialog for editing the currentContext
      * based on contextual
-     * @param {import('../contextinit').PathResult} currentContext
+     * @param {import('../contextactions').PathResult} currentContext
      * @returns
      */
     async show(currentContext) {
@@ -78,78 +71,16 @@ export class WidgetPropertiesCtrl {
         const elem = currentContext.elem;
 
         if (!elem || !widget?.hasBindings()) {
-            console.error("Invalid widget definition ", widget);
+            console.error("Widget has no bindings ", widget);
             return;
         }
-
-        // Create bindings
-        /** @type {Object.<string, any>} Empty object {} without prototype */
-        const bindingsDOM = Object.create(null);
-        // Extract param values from DOM
-        /** @type {Object.<string, any>} Empty object {} without prototype */
-        const paramValues = Object.create(null);
-        // Parameters that contain bindings
-        const parametersWithBindings = widget.parameters.filter(param => {
-            if (param.type === 'repeatable') {
-                const fieldsWithBindings = param.fields?.some(f => f.bind !== undefined);
-                return (fieldsWithBindings && param.item_selector !== undefined) || (typeof param.bind === 'object');
-            } else {
-                return param.bind != undefined;
-            }
-        });
-        parametersWithBindings.forEach((param) => {
-            if (param.bind && param.type !== 'repeatable') {
-                // A simple control binding
-                const binding = createBinding(param.bind, elem, typeof (param.value));
-                if (binding) {
-                    const pname = param.name;
-                    bindingsDOM[pname] = binding;
-                    paramValues[pname] = binding.getValue();
-                }
-            } else if (param.type === 'repeatable') {
-                if (typeof param.item_selector === 'string') {
-                    /** @type {any[]} */
-                    const lstValues = [];
-                    /** @type {Record<string, import('../util').Binding>[]} */
-                    const lstBindings = [];
-                    paramValues[param.name] = lstValues;
-                    bindingsDOM[param.name] = lstBindings;
-                    // Strategy 1. Searching DOM items and creating a binding per input
-                    // Find all item containers in DOM (param.bind is a query to every item element)
-                    elem.find(param.item_selector).each((_, /** @type {Node} */ itemRoot) => {
-                        const $itemRoot = this.jQuery(itemRoot);
-                        // For every field in parameter which has binding, create it
-                        /** @type {Record<string, any>} */
-                        const objValue = {};
-                        /** @type {Record<string, import('../util').Binding>} */
-                        const objBinding = {};
-                        param.fields?.filter(f => f.bind !== undefined).forEach(f => {
-                            // @ts-ignore
-                            const binding = createBinding(f.bind, $itemRoot, typeof (f.value));
-                            if (binding) {
-                                objBinding[f.name] = binding;
-                                objValue[f.name] = binding.getValue();
-                            }
-                        });
-                        lstValues.push(objValue);
-                        lstBindings.push(objBinding);
-                    });
-                } else if (typeof param.bind === 'object') {
-                    // Strategy 2. A single binding for the whole array of objects
-                    const binding = createBinding(param.bind, elem);
-                    if (binding) {
-                        const pname = param.name;
-                        bindingsDOM[pname] = binding;
-                        paramValues[pname] = binding.getValue();
-                    }
-                }
-            }
-        });
+        this.bindingsAdapter = new BindingsAdapter(elem, widget);
+        const valuesFromDom = await this.bindingsAdapter.getValues();
 
         // Create parameters form controls
         /** @type {string[]} */
-        const controls = parametersWithBindings
-            .map(param => this.formCtrl.createControlHTML(hostId, param, paramValues[param.name]));
+        const controls = Object.values(valuesFromDom)
+            .map(res => this.formCtrl.createControlHTML(hostId, res.param, res.value));
 
         const ctxData = {
             name: widget.name,
@@ -159,58 +90,38 @@ export class WidgetPropertiesCtrl {
         // Create the modal
         // @ts-ignore
         this.modal = await this.modalSrv.create('context', ctxData, () => {
-            this.modal?.destroy();
-            this.modal = null;
+            this.close();
         });
+        /** @type {import('../service/modal_service').ListenerTracker} */
+        const listenerTracker = (/** @type {Element}*/ el, /** @type {string} */ evType, /** @type {EventListener} */ handler) => {
+            this.modal?.twhRegisterListener(el, evType, handler);
+        };
+        const bodyElem = this.modal.body[0];
         // Bind actions on image and color pickers
-        this.formCtrl.attachPickers(this.modal.body);
+        this.formCtrl.attachPickers(bodyElem, listenerTracker);
         // Applying watchers to the form elements
-        this.formCtrl.applyFieldWatchers(this.modal.body, paramValues, widget, false);
+        const paramValues = Object.fromEntries(Object.entries(valuesFromDom).map(([name, e]) => [name, e.value]));
+        this.formCtrl.applyFieldWatchers(bodyElem, paramValues, widget, false, listenerTracker);
 
         // Bind accept action to modal
         this.modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", () => {
-            this.modal?.destroy();
+            this.close();
         });
-        this.modal.footer.find("button.tiny_widgethub-btn-primary").on("click", () => {
-            const form = this.modal?.body?.find("form");
-            let updatedValues = paramValues;
-            if (form) {
-                updatedValues = this.formCtrl.extractFormParameters(widget, form, true);
+        this.modal.footer.find("button.tiny_widgethub-btn-primary").on("click", async () => {
+            const formElem = this.modal?.body.find('form')[0];
+            if (formElem) {
+                const updatedValues = this.formCtrl.extractFormParameters(widget, formElem, true);
+                await this.bindingsAdapter?.setValues(updatedValues);
             }
-            this.modal?.destroy();
-            // Update parameter values back to DOM
-            Object.keys(bindingsDOM).forEach(key => {
-                const val = updatedValues[key];
-                if (val === undefined) {
-                    return;
-                }
-                if (Array.isArray(val) && Array.isArray(bindingsDOM[key])) {
-                    // eslint-disable-next-line max-len
-                    const zipped = val.map((v, i) => [v, bindingsDOM[key][i]]).slice(0, Math.min(val.length, bindingsDOM[key].length));
-                    // Follow stategy 1 for repeatable.
-                    for (const [valueObject, bindingObject] of zipped) {
-                        if (!valueObject || typeof valueObject !== 'object' ||
-                            !bindingObject || typeof bindingObject !== 'object') {
-                            continue;
-                        }
-                        Object.keys(valueObject).forEach(objKey => {
-                            bindingObject[objKey]?.setValue(valueObject[objKey]);
-                        });
-                    }
-                } else {
-                    // Regular binding or strategy 2 for repeatable.
-                    bindingsDOM[key]?.setValue(val);
-                }
-            });
+            this.close();
         });
-
         // Help circles require popover
         try {
             // @ts-ignore
             this.modal.body.popover({
-            container: "body",
-            selector: "[data-toggle=popover][data-trigger=hover]",
-            trigger: "hover"
+                container: "body",
+                selector: "[data-toggle=popover][data-trigger=hover]",
+                trigger: "hover"
             });
         } catch (ex) {
             // console.error(ex);
@@ -219,8 +130,11 @@ export class WidgetPropertiesCtrl {
         this.modal.show();
     }
 
-    close() {
+    async close() {
+        this.bindingsAdapter?.destroy();
+        this.bindingsAdapter = null;
         this.modal?.destroy();
+        this.modal = null;
     }
 }
 
@@ -232,7 +146,7 @@ const widgetPropertiesCtrlInstances = new Map();
 export function getWidgetPropertiesCtrl(editor) {
     let instance = widgetPropertiesCtrlInstances.get(editor);
     if (!instance) {
-        instance = new WidgetPropertiesCtrl(editor, getFormCtrl(editor), getModalSrv(), jQuery);
+        instance = new WidgetPropertiesCtrl(editor, getFormCtrl(editor), getModalSrv());
         widgetPropertiesCtrlInstances.set(editor, instance);
     }
     return instance;

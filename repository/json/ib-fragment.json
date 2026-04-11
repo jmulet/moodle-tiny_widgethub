@@ -1,0 +1,64 @@
+{
+    "key": "ib-textfragment",
+    "name": "$string.ibfragment_name",
+    "icon": "fa fa-puzzle-piece",
+    "instructions": "$string.ibfragment_instructions",
+    "template": "<div class=\"twh-fragment {{#notranslate}}notranslate{{/notranslate}}\" data-lang=\"{{_lang}}\" {{#if}}[maxWidth>0]style=\"max-width: {{maxWidth}}px;\"{{/if}}>\n<h4>{{#I18n}}msg{{/I18n}}:</h4>\n<div class=\"twh-iq\">\n<p>__LOREM__</p>\n</div>\n</div>\n<p><br></p>\n",
+    "insertquery": ".twh-fragment>div.twh-iq",
+    "selectors": "div.twh-fragment",
+    "unwrap": "div.twh-iq > *",
+    "parameters": [
+        {
+            "name": "_lang",
+            "title": "$string.ibfragment_lang",
+            "value": "en",
+            "options": [
+                {
+                    "l": "English",
+                    "v": "en"
+                },
+                {
+                    "l": "Catalan",
+                    "v": "ca"
+                },
+                {
+                    "l": "Spanish",
+                    "v": "es"
+                },
+                {
+                    "l": "French",
+                    "v": "fr"
+                },
+                {
+                    "l": "German",
+                    "v": "de"
+                }
+            ]
+        },
+        {
+            "name": "maxWidth",
+            "value": 0,
+            "title": "$string.ibfragment_maxwidth",
+            "min": 0,
+            "tip": "$string.ibfragment_maxwidth_tip",
+            "bind": "styleRegex('max-width:(.*)px', null, 'number')"
+        },
+        {
+            "name": "notranslate",
+            "value": false,
+            "title": "$string.ibfragment_notranslate",
+            "bind": "hasClass('notranslate')"
+        }
+    ],
+    "I18n": {
+        "msg": {
+            "ca": "FRAGMENT DE TEXT",
+            "es": "FRAGMENTO DE TEXTO",
+            "en": "TEXT SNIPPET",
+            "fr": "FRAGMENT DE TEXTE",
+            "de": "TEXTFRAGMENT"
+        }
+    },
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2.0.1"
+}

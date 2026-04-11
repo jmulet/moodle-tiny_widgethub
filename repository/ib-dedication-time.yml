@@ -1,5 +1,6 @@
 key: ib-dedication-time
 name: $string.ibtime_name
+icon: fa fa-clock-o
 instructions: $string.ibtime_instructions
 template: |
   <div class="twh-rwrap">
@@ -29,4 +30,4 @@ parameters:
     tip: $string.ibtime_title_tip
     type: textarea
 author: Josep Mulet Pol <pep.mulet@gmail.com>
-version: 2.0.0
+version: 2.0.1

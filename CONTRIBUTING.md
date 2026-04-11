@@ -7,20 +7,7 @@ Please review this guide carefully before submitting pull requests or issues.
 
 ## 🧩 Contributing to Widgets
 
-To contribute widgets:
-
-Each contributor will host their own widgets in a public repository. This gives you full control over your widgets, including how and when you update them.
-
-Your repository will include an index.yml file listing the widgets you want to share with the community, each pointing to the downloadable URL of its corresponding widget.yml definition. The contributor will simply inform me of the URL of their index.yml file. Below is an example of the content of such a file.
-```
-- name: Bootstrap alert boxes
-  url: https://raw.githubusercontent.com/jmulet/moodle-tiny_widgethub/main/repository/bs-alert.yml
-- name: Bootstrap badges
-  url: https://raw.githubusercontent.com/jmulet/moodle-tiny_widgethub/main/repository/bs-badge.yml
-```
-** Make sure that all URL provide access to downloadable raw files.**
-
-This setup is more dynamic than incorporating widgets directly into the main repository, as it avoids the need to create a new release every time a widget is added or updated.
+At the present time, no widget contributions are accepted. Please focus on contributing to the plugin's core features and bug fixes.
 
 ---
 

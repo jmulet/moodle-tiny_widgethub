@@ -1,6 +1,7 @@
 key: ib-video-gdrive
 name: $string.ibvgdrive_name
 category: $string.ibvgdrive_category
+icon: fa fa-google
 instructions: $string.ibvgdrive_instructions
 template: |
   <div class="twh-video-container twh-video-gdrive" {{#if}}[maxWidth>100]style="max-width:{{maxWidth}}px"{{/if}}>
@@ -27,4 +28,4 @@ parameters:
     min: 100
 scope: ^page-mod-(book|page|assign|quizz)-
 author: Josep Mulet Pol <pep.mulet@gmail.com>
-version: 2.0.0
+version: 2.0.1

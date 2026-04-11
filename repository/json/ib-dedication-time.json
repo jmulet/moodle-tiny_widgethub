@@ -1,0 +1,32 @@
+{
+    "key": "ib-dedication-time",
+    "name": "$string.ibtime_name",
+    "icon": "fa fa-clock-o",
+    "instructions": "$string.ibtime_instructions",
+    "template": "<div class=\"twh-rwrap\">\n<div class=\"twh-time\" data-toggle=\"tooltip\" data-bs-toggle=\"tooltip\" data-placement=\"bottom\" data-bs-placement=\"bottom\" title=\"{{title}}\">\n  <i class=\"fad fa-stopwatch\" aria-hidden=\"true\"></i>\n  <span>\n    {{#hours}} {{hours}} h {{/hours}}\n    {{#minutes}} {{minutes}} min {{/minutes}}\n  </span>\n</div>\n</div> \n<p><br></p>\n",
+    "parameters": [
+        {
+            "name": "hours",
+            "value": 2,
+            "title": "$string.ibtime_hours",
+            "min": 0
+        },
+        {
+            "name": "minutes",
+            "value": 15,
+            "title": "$string.ibtime_min",
+            "min": 0,
+            "max": 59,
+            "tip": "$string.ibtime_min_tip"
+        },
+        {
+            "name": "title",
+            "value": "$string.ibtime_title_value",
+            "title": "$string.ibtime_title",
+            "tip": "$string.ibtime_title_tip",
+            "type": "textarea"
+        }
+    ],
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2.0.1"
+}

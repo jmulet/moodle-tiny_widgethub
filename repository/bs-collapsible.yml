@@ -1,6 +1,7 @@
 key: bs-collapsible
 name: $string.bscollapsible_name
 category: bootstrap
+icon: fa fa-caret-square-o-down
 engine: ejs
 template: |
   <div id="acc_<%= id %>" class="collapsible">
@@ -26,7 +27,7 @@ template: |
   </div>
   <p><br></p>
 selectors: div.collapsible
-unwrap: .card-header span, .card-body
+unwrap: .card-header span, .card-body>*
 parameters:
   - name: id
     title: Element id
@@ -60,4 +61,4 @@ contextmenu:
   - predicate: .card
     actions: moveup movedown insertafter | remove
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 2.1.0
+version: 2.1.1

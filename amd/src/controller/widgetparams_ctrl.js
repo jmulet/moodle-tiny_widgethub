@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-import {getFormCtrl} from '../controller/form_ctrl';
-import {getListeners} from '../extension';
-import {getModalSrv} from '../service/modal_service';
-import {getTemplateSrv} from '../service/template_service';
-import {getUserStorage} from '../service/userstorage_service';
-import {applyWidgetFilterFactory, removeRndFromCtx} from '../util';
-import * as coreStr from "core/str";
+import { getFormCtrl } from '../controller/form_ctrl';
+import { getListeners } from '../extension';
+import { getFilterSrv } from '../service/filter_service';
+import { getModalSrv } from '../service/modal_service';
+import { getTemplateSrv } from '../service/template_service';
+import { getUserStorage } from '../service/userstorage_service';
+import { removeRndFromCtx } from '../util';
 
 /**
  * Tiny WidgetHub plugin.
@@ -38,16 +38,16 @@ export class WidgetParamsCtrl {
     * @type {import('./widgetpicker_ctrl').WidgetPickerCtrl | undefined }
     */
    parentCtrl;
-  /**
-   * @param {import('../plugin').TinyMCE} editor
-   * @param {import('../service/userstorage_service').UserStorageSrv} userStorage
-   * @param {import('../service/template_service').TemplateSrv} templateSrv
-   * @param {import('../service/modal_service').ModalSrv} modal_service
-   * @param {import('../controller/form_ctrl').FormCtrl} formCtrl
-   * @param {*} applyWidgetFilter
-   * @param {import('../options').Widget} widget
-   */
-   constructor(editor, userStorage, templateSrv, modal_service, formCtrl, applyWidgetFilter, widget) {
+   /**
+    * @param {import('../plugin').TinyMCE} editor
+    * @param {import('../service/userstorage_service').UserStorageSrv} userStorage
+    * @param {import('../service/template_service').TemplateSrv} templateSrv
+    * @param {import('../service/modal_service').ModalSrv} modalSrv
+    * @param {import('../controller/form_ctrl').FormCtrl} formCtrl
+    * @param {import('../service/filter_service').FilterSrv} filterSrv
+    * @param {import('../options').Widget} widget
+    */
+   constructor(editor, userStorage, templateSrv, modalSrv, formCtrl, filterSrv, widget) {
       /** @type {import('../plugin').TinyMCE} */
       this.editor = editor;
       /** @type {import('../service/userstorage_service').UserStorageSrv} */
@@ -55,10 +55,10 @@ export class WidgetParamsCtrl {
       /** @type {import('../service/template_service').TemplateSrv} */
       this.templateSrv = templateSrv;
       /** @type {import('../service/modal_service').ModalSrv} */
-      this.modal_service = modal_service;
+      this.modalSrv = modalSrv;
       /** @type {import('../controller/form_ctrl').FormCtrl} */
       this.formCtrl = formCtrl;
-      this.applyWidgetFilter = applyWidgetFilter;
+      this.filterSrv = filterSrv;
       /** @type {import('../options').Widget} */
       this.widget = widget;
    }
@@ -68,38 +68,45 @@ export class WidgetParamsCtrl {
    async handleAction() {
       // Show modal with buttons.
       const data = this.formCtrl.createContext(this.widget);
-      const modal = await this.modal_service.create('params', data, () => {
+      const modal = await this.modalSrv.create('params', data, () => {
          this.modal?.destroy();
          this.modal = null;
       });
+      /** @type {import('../service/modal_service').ListenerTracker} */
+      const listenerTracker = (/** @type {Element}*/ el, /** @type {string} */ evType, /** @type {EventListener} */ handler) => {
+         this.modal?.twhRegisterListener(el, evType, handler);
+      };
       this.modal = modal;
-      modal.body.find(`a[href="#${data.idtabpane}_1"`).on("click", async() => {
+      const bodyElem = modal.body[0];
+      const formElem = modal.body.find("form")[0];
+      modal.body.find(`a[href="#${data.idtabpane}_1"`).on("click", async () => {
          // Handle preview;
-         const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, modal.body.find("form"), true);
+         const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, formElem, true);
          await this.updatePreview(data.idtabpane, ctxFromDialogue);
       });
-      this.formCtrl.attachPickers(modal.body);
-      this.formCtrl.attachRepeatable(modal.body, this.widget);
+      this.formCtrl.attachRepeatable(bodyElem, this.widget);
+      this.formCtrl.attachPickers(bodyElem, listenerTracker);
       modal.footer.show();
-      modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", async() => {
+      modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", async (evt) => {
+         evt.preventDefault();
          // Go back to main menú
          // TODO detachPicker and detachRepeatable
-         modal.destroy();
+         modal.hide();
          if (this.parentCtrl) {
             await this.parentCtrl.handleAction();
          }
       });
-      modal.footer.find("button.tiny_widgethub-btn-primary").on("click", async() => {
-         // Go back to main menú
-         const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, modal.body.find("form"), true);
-         modal.hide();
+      modal.footer.find("button.tiny_widgethub-btn-primary").on("click", async (evt) => {
+         evt.preventDefault();
+         // Insert widget and close modal.
+         const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, formElem, true);
          await this.insertWidget(ctxFromDialogue);
-         modal.destroy();
+         modal.hide();
       });
 
       // Change input fields visibilities upon conditions
       const selectmode = this.editor.selection.getContent().trim() != '';
-      this.formCtrl.applyFieldWatchers(modal.body, this.widget.defaults, this.widget, selectmode);
+      this.formCtrl.applyFieldWatchers(bodyElem, this.widget.defaults, this.widget, selectmode, listenerTracker);
 
       // Help circles require popover
       try {
@@ -122,15 +129,14 @@ export class WidgetParamsCtrl {
 
    /**
     * @param {object} ctx
-    * @returns {Promise<string>} The rendered template
+    * @returns {Promise<string>} The rendered template previously sanitized
     */
-    render(ctx) {
-        const defaultsCopy = {...this.widget.defaults};
-        const toInterpolate = Object.assign(defaultsCopy, ctx ?? {});
-        // Decide which template engine to use
-        let engine = this.widget.prop('engine');
-        return this.templateSrv.render(this.widget.template ?? "", toInterpolate,
-            this.widget.I18n, engine);
+   render(ctx) {
+      const toInterpolate = Object.assign(Object.create(null), this.widget.defaults, ctx ?? {});
+      // Decide which template engine to use
+      let engine = this.widget.prop('engine');
+      return this.templateSrv.render(this.widget.template ?? "", toInterpolate,
+         this.widget.I18n, engine);
    }
 
    /**
@@ -141,6 +147,7 @@ export class WidgetParamsCtrl {
       const sel = this.editor.selection.getContent();
       // Decideix quin mode de selecció estam
       let interpoledComponentCode = await this.render(ctxFromDialogue);
+
       if (sel.trim() && this.widget.insertquery) {
          let query = this.widget.insertquery.trim();
          let replaceMode = query.startsWith('r!');
@@ -173,10 +180,19 @@ export class WidgetParamsCtrl {
     * @returns
     */
    async updatePreview(idtabpane, ctxFromDialogue) {
+      if (!this.modal?.body) {
+         return;
+      }
+      const body = this.modal.body[0];
       const interpoledCode = await this.generateInterpolatedCode(ctxFromDialogue);
-      const $previewPanel = this.modal?.body?.find(`#${idtabpane}_1`);
-      if ($previewPanel) {
-         $previewPanel.html(interpoledCode);
+      const previewPanel = body.querySelector(`#${idtabpane}_1`);
+      if (previewPanel) {
+         // Remove all preview iframes
+         previewPanel.querySelectorAll('iframe').forEach(iframe => {
+            iframe.src = 'about:blank';
+            iframe.remove();
+         });
+         previewPanel.innerHTML = interpoledCode;
       }
    }
 
@@ -195,7 +211,7 @@ export class WidgetParamsCtrl {
          }
          // Never store values that are obtained from $RND
          const ctxFiltered = removeRndFromCtx(ctxFromDialogue, this.widget.parameters);
-         recentList.unshift({key: this.widget.key, p: ctxFiltered});
+         recentList.unshift({ key: this.widget.key, p: ctxFiltered });
          if (recentList.length > 4) {
             recentList.splice(5, recentList.length - 4);
          }
@@ -204,13 +220,18 @@ export class WidgetParamsCtrl {
       }
 
       if (this.widget.isFilter()) {
-         this.applyWidgetFilter(this.widget.template ?? '', false, ctxFromDialogue);
+         this.filterSrv.applyWidgetFilter([{
+            name: this.widget.name,
+            code: this.widget.prop('filter') ?? '',
+            opts: ctxFromDialogue
+         }], false);
          this.editor.focus();
          return;
       }
       const interpoledCode = await this.generateInterpolatedCode(ctxFromDialogue);
       // Normal insert mode
-      this.editor.selection.setContent(interpoledCode);
+      // Deprecated: this.editor.selection.setContent(interpoledCode);
+      this.editor.insertContent(interpoledCode);
       this.editor.focus();
 
       // Call any subscriber
@@ -225,8 +246,7 @@ export class WidgetParamsCtrl {
  */
 export function getWidgetParamsFactory(editor) {
    // @ts-ignore
-   const applyWidgetFilter = applyWidgetFilterFactory(editor, coreStr);
-   return (widget) => new WidgetParamsCtrl(editor, getUserStorage(editor), getTemplateSrv(),
-      getModalSrv(), getFormCtrl(editor), applyWidgetFilter, widget);
+   return (widget) => new WidgetParamsCtrl(editor, getUserStorage(editor), getTemplateSrv(editor),
+      getModalSrv(), getFormCtrl(editor), getFilterSrv(editor), widget);
 
 }

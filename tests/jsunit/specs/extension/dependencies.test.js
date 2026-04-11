@@ -1,14 +1,47 @@
 /**
- * @jest-environment jsdom
+ *
+ * Tiny WidgetHub plugin.
+ *
+ * @module      tiny_widgethub/plugin
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-// Mock virtual modules
-require('../module.mocks')(jest);
-
+// Mock virtual modules 
+const Common = require('../../src/common');
 const { addRequires, cleanUnusedRequires } = require('../../src/extension/dependencies');
-const JSAREACLASSNAME = 'tiny_widgethub-jsarea';
+const { _resetCacheForTesting } = require('../../src/options');
+const JSAREACLASSNAME = Common.default.jsAreaClassname;
 const jsareaSelector = `div.${JSAREACLASSNAME}`;
-/** @type {*} */
-let mockEditor;
+
+
+const widget1 = {
+    key: 'w1',
+    selectors: 'div.w1',
+    requires: "https://site.org/w1.js"
+};
+const widget2 = {
+    key: 'w2',
+    selectors: ['[role="img"]', 'img'],
+    requires: " https://s3.site.org/assets/w2.js  "
+};
+const widget3 = {
+    key: 'w3',
+    selectors: ['div[data-prop="w3"]'],
+    requires: {url: " http://google.net/w3.min.js  " }
+};
+const widget4 = {
+    key: 'w4',
+    parameters: [{key: 'a', value: 11}],
+    selectors: 'div[data-prop="w4"]',
+    requires: 'http://google.net/w4.min.js | div[data-prop="w4"].active'
+};
+const widget5 = {
+    key: 'w5',
+    parameters: [{key: 'a', value: 11}],
+    selectors: 'div[data-prop="w5"]',
+    requires: { url: 'http://google.net/w5.min.js', query: 'div[data-prop="w5"].active'}
+};
+const rawWidgets = [widget1, widget2, widget3, widget4, widget5];
 
 /**
  * 
@@ -16,63 +49,15 @@ let mockEditor;
  * @returns {*}
  */
 const createEditor = (html) => {
-    const body = document.createElement('DIV');
-    body.innerHTML = html;
-    return {
-        ...mockEditor,
-        getBody: () => body
-    };
+    const editor = global.Mocks.editorFactory();
+    editor.setContent(html);
+    _resetCacheForTesting({ widgetList: rawWidgets });
+    return editor;
 };
 
 describe('dependencies', () => {
-    /** @type {any} */
-    let widget1;
-    /** @type {any} */
-    let widget2;
-    /** @type {any} */
-    let widget3;
     beforeAll(() => {
         jest.clearAllMocks();
-        widget1 = {
-            key: 'w1',
-            selectors: '.w1',
-            requires: "https://site.org/w1.js"
-        };
-        widget2 = {
-            key: 'w2',
-            selectors: ['[role="img"]', 'img'],
-            requires: " https://s3.site.org/assets/w2.js  "
-        };
-        widget3 = {
-            key: 'w3',
-            selectors: ['div[data-prop="w3"]'],
-            requires: "http://google.net/w3.min.js"
-        };
-        const rawWidgets = [widget1, widget2, widget3];
-        mockEditor = {
-            options: {
-                get: (/** @type {any} */ opt) => {
-                    return rawWidgets;
-                }
-            },
-            dom: {
-                create: jest.fn().mockImplementation((elemTag, props, inner) => {
-                    const elem = document.createElement(elemTag);
-                    if (props) {
-                        Object.keys(props).forEach(key => {
-                            elem.setAttribute(key, props[key]);
-                        });
-                    }
-                    if (inner) {
-                        elem.innerHTML = inner;
-                    }
-                    return elem;
-                })
-            },
-            notificationManager: {
-                open: jest.fn()
-            }
-        }
     });
 
     it('addRequires on empty document does not modify it', () => {
@@ -107,7 +92,7 @@ describe('dependencies', () => {
     });
 
     it('addRequires on document, includes the area and script', () => {
-        const editor = createEditor('<div role="img"><img src="https::/site.es/img.png"/></div>');
+        const editor = createEditor('<div role="img"><img src="https://site.es/img.png"/></div>');
         expect(addRequires(editor, undefined)).not.toBe(0);
         expect(editor.getBody().querySelector(jsareaSelector)).toBeTruthy();
         expect(editor.dom.create).toHaveBeenCalledTimes(3);
@@ -122,7 +107,54 @@ describe('dependencies', () => {
 
         const scripts = editor.getBody().querySelectorAll(jsareaSelector + ' script');
         expect(scripts).toHaveLength(2);
-        expect([...scripts].map(s => s.src)).toEqual(expect.arrayContaining([widget1.requires, widget3.requires]));
+        expect([...scripts].map(s => s.src)).toEqual(expect.arrayContaining([widget1.requires.trim(), widget3.requires.url.trim()]));
+    });
+
+     it('addRequires does not add widget dependency when conditional is not meet (using string | notation for condition)', () => {
+        const editor = createEditor('<div data-prop="w4"></div>');
+        const added = addRequires(editor, undefined);
+        expect(added).toBe(0);
+
+        const scripts = editor.getBody().querySelectorAll(jsareaSelector + ' script');
+        expect(scripts).toHaveLength(0);
+    });
+
+     it('addRequires adds widget dependency when conditional is meet (using string | notation for condition)', () => {
+        const editor = createEditor('<div data-prop="w4" class="w4 active"></div>');
+        const added = addRequires(editor, undefined);
+        expect(added).toBe(1);
+
+        const scripts = editor.getBody().querySelectorAll(jsareaSelector + ' script');
+        expect(scripts).toHaveLength(1);
+        expect([...scripts].map(s => s.src)).toEqual(expect.arrayContaining(['http://google.net/w4.min.js']));
+    });
+
+    it('addRequires does not add widget dependency when conditional is not meet (using object notation for condition)', () => {
+        const editor = createEditor('<div data-prop="w5"></div>');
+        const added = addRequires(editor, undefined);
+        expect(added).toBe(0);
+
+        const scripts = editor.getBody().querySelectorAll(jsareaSelector + ' script');
+        expect(scripts).toHaveLength(0);
+    });
+
+     it('addRequires adds widget dependency when conditional is met (using object notation for condition)', () => {
+        const editor = createEditor('<div data-prop="w5" class="w5 active"></div>');
+        const added = addRequires(editor, undefined);
+        expect(added).toBe(1);
+
+        const scripts = editor.getBody().querySelectorAll(jsareaSelector + ' script');
+        expect(scripts).toHaveLength(1);
+        expect([...scripts].map(s => s.src)).toEqual(expect.arrayContaining(['http://google.net/w5.min.js']));
+    });
+
+    it('cleanUnusedRequires removes widget dependency when condition is not met (using object notation for condition)', () => {
+        const editor = createEditor('<div data-prop="w5" class="w5"></div><div class="' + JSAREACLASSNAME + '"><script src="http://google.net/w5.min.js"></script></div>');
+        const changes = cleanUnusedRequires(editor);
+        expect(changes).toBeGreaterThan(0);
+
+        const scripts = editor.getBody().querySelectorAll(jsareaSelector + ' script');
+        expect(scripts).toHaveLength(0);
     });
 
     it('addRequires with unmatched content removes jsarea if it exists', () => {
@@ -180,7 +212,7 @@ describe('dependencies', () => {
 
         const scripts = editor.getBody().querySelectorAll(jsareaSelector + ' script');
         expect(scripts).toHaveLength(2);
-        expect([...scripts].map(s => s.src)).toEqual(expect.arrayContaining([widget1.requires, widget3.requires]));
+        expect([...scripts].map(s => s.src)).toEqual(expect.arrayContaining([widget1.requires, widget3.requires.url.trim()]));
     });
 
     it('addRequires with unmatched content removes jsarea if it exists', () => {
@@ -230,7 +262,7 @@ describe('dependencies', () => {
         expect([...scripts].map(s => s.src)).toEqual(expect.arrayContaining([widget1.requires.trim(), widget2.requires.trim()]));
     });
 
-    it('addRequires updates existing jsarea to include missing required scripts', () => {
+    it('addRequires updates existing jsarea to include only missing required scripts', () => {
         const html = `
         <div class="w1"></div><div data-prop="w3"></div>
         <div class="${JSAREACLASSNAME}">
@@ -243,14 +275,14 @@ describe('dependencies', () => {
 
         const scripts = editor.getBody().querySelectorAll(jsareaSelector + ' script');
         expect(scripts).toHaveLength(2);
-        expect([...scripts].map(s => s.src)).toEqual(expect.arrayContaining([widget1.requires, widget3.requires]));
+        expect([...scripts].map(s => s.src)).toEqual(expect.arrayContaining([widget1.requires, widget3.requires.url.trim()]));
     });
 
     it('addRequires ignores widgets without a "selectors" field', () => {
         const badWidget = { key: 'w4', requires: 'https://p.es/q.js' };
         const editor = createEditor('<div class="w1"></div><div class="w4"></div>');
 
-        mockEditor.options.get = () => [widget1, badWidget];
+        _resetCacheForTesting({ widgetList: [widget1, badWidget] });
 
         const added = addRequires(editor, undefined);
         expect(added).toBe(1);

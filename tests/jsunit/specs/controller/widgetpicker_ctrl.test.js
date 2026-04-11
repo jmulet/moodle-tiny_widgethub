@@ -1,8 +1,12 @@
 /*
- * @jest-environment jsdom
-*/
+ *
+ * Tiny WidgetHub plugin.
+ *
+ * @module      tiny_widgethub/plugin
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 import jQuery from 'jquery';
-require('../module.mocks')(jest);
 const util = require('../../src/util');
 util.genID = jest.fn().mockReturnValue("a12345");
 
@@ -12,7 +16,7 @@ const { getTemplateSrv } = require('../../src/service/template_service');
 /**
  * @param {number} delay 
  */
-const wait = function(delay) {
+const wait = function (delay) {
     return new Promise((resolve) => {
         setTimeout(resolve, delay);
     })
@@ -26,6 +30,7 @@ const mockUserStorage = {
     getFromLocal: jest.fn().mockReturnValue(""),
     getFromSession: jest.fn().mockReturnValue(""),
     setToSession: jest.fn(),
+    setToLocal: jest.fn(),
     getRecentUsed: jest.fn().mockReturnValue([
         { key: 'unk', p: {} },
         { key: 'k1', p: { p1: 'a', p2: 'b', p3: 4, p5: '#ffaabb', p6: 'c' } }
@@ -37,7 +42,6 @@ const mockUserStorage = {
 const mockTemplateSrv = {
     render: jest.fn(),
     renderMustache: jest.fn(),
-    renderEJS: jest.fn()
 };
 
 
@@ -59,7 +63,8 @@ const widget1 = {
     ],
     prop: (/** @type {any} */ key) => undefined,
     isUsableInScope: () => true,
-    isFilter: () => false
+    isFilter: () => false,
+    loadDefinition: jest.fn().mockReturnValue(Promise.resolve())
 };
 
 const widget2 = {
@@ -92,7 +97,7 @@ describe("WidgetPickerCtrl", () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        mockEditor = require('../editor.mock')();
+        mockEditor = global.Mocks.editorFactory();
 
         widgetPickCtrl = new WidgetPickerCtrl(mockEditor, mockEditorOptions,
             mockWidgetParamsFactory, mockModalSrv, mockTemplateSrv, mockUserStorage);
@@ -157,8 +162,12 @@ describe("WidgetPickerCtrl", () => {
         const $modalBody = jQuery("#modal");
         // @ts-ignore
         widgetPickCtrl.modal = {
-            body: $modalBody
+            body: $modalBody,
+            header: $modalBody.find(".tiny_widgethub-header"),
         };
+        widgetPickCtrl.body = widgetPickCtrl.modal.body[0];
+        widgetPickCtrl.header = widgetPickCtrl.modal.header[0];
+
         const $empty = $modalBody.find(".tiny_widgethub-emptylist");
         const $input = $modalBody.find("input");
         $input.val("   ");
@@ -211,7 +220,7 @@ describe("WidgetPickerCtrl", () => {
         expect(ctx.categories[1].buttons).toHaveLength(1);
     });
 
-    it('handlePickModalAction inserts or displays params modal depending on conditions', () => {
+    it('handlePickModalAction inserts or displays params modal depending on conditions', async () => {
         // @ts-ignore
         widgetPickCtrl.modal = {
             hide: jest.fn()
@@ -226,16 +235,19 @@ describe("WidgetPickerCtrl", () => {
             };
         });
 
-        widgetPickCtrl.handlePickModalAction(widget1, true);
+        await widgetPickCtrl.handlePickModalAction(widget1, true);
+
+        expect(widget1.loadDefinition).toHaveBeenCalled();
+        expect(widgetPickCtrl.widgetParamsFactory).toHaveBeenCalledWith(widget1);
         expect(insertWidget).toHaveBeenCalledWith({}, true);
 
-        widgetPickCtrl.handlePickModalAction(widget1, false);
+        await widgetPickCtrl.handlePickModalAction(widget1, false);
         expect(handleAction).toHaveBeenCalled();
 
         insertWidget.mockReset();
         handleAction.mockReset();
         // No parameters and no instructions
-        widgetPickCtrl.handlePickModalAction(widget2, true);
+        await widgetPickCtrl.handlePickModalAction(widget2, true);
         expect(insertWidget).toHaveBeenCalled();
     });
 
@@ -255,14 +267,21 @@ describe("WidgetPickerCtrl", () => {
 
         // @ts-ignore
         widgetPickCtrl.modal = {
-            body: jQuery(`<div><div class="tiny_widgethub-preview" style="display: none;"></div></div>`)
+            body: jQuery(`<div><div class="tiny_widgethub-preview" style="display: none;"></div></div>`),
+            header: jQuery(`<div></div>`),
+            footer: jQuery(`<div></div>`),
         };
+        widgetPickCtrl.body = widgetPickCtrl.modal.body[0];
+        widgetPickCtrl.header = widgetPickCtrl.modal.header[0];
+
         widgetPickCtrl.generatePreview = jest.fn().mockReturnValue("The preview");
 
-        await widgetPickCtrl.onMouseEnterButton({ target: btnGroup.querySelector("i") });
+        const mouseEvt = /** @type {any} */ ({ target: btnGroup.querySelector("i") });
+        await widgetPickCtrl.onMouseEnterButton(mouseEvt);
         expect(widgetPickCtrl.generatePreview).toHaveBeenCalledWith(widget1);
-        expect(widgetPickCtrl.modal.body.html()).toContain("The preview");
-        expect(widgetPickCtrl.modal.body.find(".tiny_widgethub-preview").css('display')).toBe('block');
+        expect(widgetPickCtrl.body?.innerHTML).toContain("The preview");
+        // @ts-ignore
+        expect(widgetPickCtrl.body?.querySelector(".tiny_widgethub-preview")?.style.display).toBe('block');
 
     });
 
@@ -300,16 +319,21 @@ describe("WidgetPickerCtrl", () => {
                     widgetPickCtrl.modal = {
                         header,
                         body: jQuery('<div></div>'),
+                        footer: jQuery('<div></div>'),
                         show: jest.fn(),
                     };
+                    widgetPickCtrl.header = widgetPickCtrl.modal.header[0];
+                    widgetPickCtrl.body = widgetPickCtrl.modal.body[0];
                     resolve();
                 });
             });
 
+
+
         await widgetPickCtrl.handleAction();
         expect(spyCreateModal).toHaveBeenCalledTimes(1);
         expect(widgetPickCtrl.modal.show).toHaveBeenCalled();
-        expect(header.find('.tiny_widgethub-blink').hasClass('d-none')).toBe(true);
+        expect(widgetPickCtrl.header?.querySelector('.tiny_widgethub-blink')?.classList.contains('d-none')).toBe(true);
 
         // Now that modal is created 
         // Set selection mode
@@ -318,16 +342,15 @@ describe("WidgetPickerCtrl", () => {
         spyCreateModal.mockReset();
         expect(spyCreateModal).toHaveBeenCalledTimes(0);
         expect(widgetPickCtrl.modal.show).toHaveBeenCalled();
-        expect(header.find('.tiny_widgethub-blink').hasClass('d-none')).toBe(false);
+        expect(widgetPickCtrl.header?.querySelector('.tiny_widgethub-blink')?.classList.contains('d-none')).toBe(false);
     });
 
     test("handlePickModalClick", async () => {
         /** @type {*} */
-        const modalSrv = require('../modal_service.mock');
-        const templateSrv = getTemplateSrv();
+        const templateSrv = getTemplateSrv(mockEditor);
         // Create a more realistic instance, with less mocks
         widgetPickCtrl = new WidgetPickerCtrl(mockEditor, mockEditorOptions,
-            mockWidgetParamsFactory, modalSrv, templateSrv, mockUserStorage);
+            mockWidgetParamsFactory, global.Mocks.modalSrv, templateSrv, mockUserStorage);
 
         const spyHandlePickModalAction = jest.spyOn(widgetPickCtrl, 'handlePickModalAction');
         mockEditor.selection.getContent.mockReset().mockReturnValue('');
@@ -352,16 +375,17 @@ describe("WidgetPickerCtrl", () => {
         expect(modal.destroy).not.toHaveBeenCalled();
         expect(mockEditor.windowManager.confirm).toHaveBeenCalled();
         expect(spyHandlePickModalAction).not.toHaveBeenCalled()
-        
+
         // It is usable in scope
         widget1.isUsableInScope = () => true;
         mockEditor.windowManager.confirm.mockReset();
         modal.body.find('.tiny_widgethub-btn-group button').first().trigger('click');
+        await wait(500);
         expect(modal.hide).toHaveBeenCalled();
         expect(modal.destroy).not.toHaveBeenCalled();
         expect(mockEditor.windowManager.confirm).not.toHaveBeenCalled();
-        expect(spyHandlePickModalAction).toHaveBeenCalled();       
-       
+        expect(spyHandlePickModalAction).toHaveBeenCalled();
+
     });
 
 });

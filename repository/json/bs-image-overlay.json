@@ -1,0 +1,20 @@
+{
+    "key": "bs-image-overlay",
+    "name": "$string.bsimageoverlay_name",
+    "category": "bootstrap",
+    "icon": "fa fa-picture-o",
+    "instructions": "$string.bsimageoverlay_instructions",
+    "template": "<div class=\"card twh-img-overlay bg-dark text-white\">\n  <img class=\"card-img\" src=\"{{img}}\" alt=\"Card image\">\n  <div class=\"card-img-overlay\">\n    <h5 class=\"card-title\">$string.bscardgroup_cardtitle</h5>\n    <p class=\"card-text\">Lorem ipsum 1.</p>\n    <p class=\"card-text\">Lorem ipsum 2.</p>\n  </div>\n</div>\n<p><br></p>\n",
+    "selectors": "div.card.twh-img-overlay",
+    "parameters": [
+        {
+            "name": "img",
+            "title": "$string.bsimageoverlay_img",
+            "type": "image",
+            "value": "https://media.traveler.es/photos/613778947ad90bc43bae0779/16:9/w_2240,c_limit/101691.jpg",
+            "bind": "attr('src', 'img.card-img')"
+        }
+    ],
+    "author": "Josep Mulet <pep.mulet@gmail.com>",
+    "version": "2.0.1"
+}

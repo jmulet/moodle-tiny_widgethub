@@ -1,7 +1,5 @@
 /* eslint-disable no-console */
-/* eslint-disable no-eq-null */
 /* eslint-disable no-bitwise */
-/* eslint-disable no-new-func */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -21,59 +19,217 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /**
+ * @param {string} [prefix]
  * @returns {string} a randomID
  */
-export function genID() {
-    return 'g' + Math.random().toString(32).substring(2);
+export function genID(prefix = 'g') {
+    const timePart = Date.now().toString(32);
+    const randPart = Math.floor(Math.random() * 1e6).toString(32);
+    return `${prefix}-${timePart}${randPart}`;
 }
 
 /**
- * @param {Object.<string, any>} ctx
- * @param {string} expr
- * @param {boolean=} keepFns - Keep or not the funcions in the ctx
- * @returns {any} The evaluated expression within the context ctx
+ * @param {string} val
+ * @returns {any}
  */
-export function evalInContext(ctx, expr, keepFns) {
-    const listArgs = [];
-    const listVals = [];
-
-    if (ctx) {
-        Object.keys(ctx).forEach((key) => {
-            // Remove functions from ctx
-            if (keepFns || typeof ctx[key] !== "function") {
-                listArgs.push(key);
-                listVals.push(ctx[key]);
-            }
-        });
+const castValue = (val) => {
+    val = val.trim();
+    if (val === '') {
+        return undefined;
     }
-    listArgs.push('expr');
-    listArgs.push('return eval(expr)');
-    listVals.push(expr);
-    const evaluator = new Function(...listArgs);
-    return evaluator(...listVals);
-}
-
-/**
- * @param {string} s - string to the hashed
- * @returns {number}
- */
-export function hashCode(s) {
-    s = s || "";
-    let h = 0;
-    const l = s.length;
-    let i = 0;
-    if (l > 0) {
-        while (i < l) {
-            h = (h << 6) + ((s.charCodeAt(i) - 65) | 0);
-            i++;
+    if (val === 'true') {
+        return true;
+    }
+    if (val === 'false') {
+        return false;
+    }
+    if (val === 'null') {
+        return null;
+    }
+    if (val === 'undefined') {
+        return undefined;
+    }
+    // Regex Support: /pattern/flags
+    if (val.startsWith('/')) {
+        const lastSlashIndex = val.lastIndexOf('/');
+        if (lastSlashIndex > 0) {
+            const pattern = val.slice(1, lastSlashIndex);
+            const flags = val.slice(lastSlashIndex + 1);
+            return new RegExp(pattern, flags);
         }
     }
-    return Math.abs(h);
+    const num = Number(val);
+    if (!isNaN(num)) {
+        return num;
+    }
+    throw new Error(`Invalid argument type: ${val}`);
+};
+
+/**
+ * Parses a function call like fnname(true, null, 'arg2\'etc', ...)
+ * into an object {name: 'fnname', args: [true, null, "arg2'etc", ...]}
+ * Supported argument types are string, boolean, number, null, undefined and regexp.
+ * It uses a FSA with memory to parse the expression.
+ * It throws an error if the expression is not valid.
+ * @param {string} expr - The function call to parse
+ * @throws {Error} If the expression is not valid
+ * @returns {{name: string, args: any[]}} An object with the function name and arguments
+ */
+export function fnCallParser(expr) {
+    /** @type {{name: string, args: any[]}} **/
+    const result = { name: '', args: [] };
+
+    // Numerical State Constants
+    const S_NAME = 0; // Reading function name
+    const S_BEFORE = 1; // Between name and '('
+    const S_ARG = 2; // Reading non-string argument
+    const S_STRING = 3; // Inside a string literal
+    const S_REGEX = 4; // Inside a regex literal
+    const S_END = 5; // After ')'
+
+    let state = S_NAME;
+    let currentArg = '';
+    let quoteChar = '';
+    let pendingToken = false;
+    let i = 0;
+
+    while (i < expr.length) {
+        const char = expr[i];
+
+        switch (state) {
+            case S_NAME:
+                if (/[a-zA-Z_$]/.test(char)) {
+                    result.name += char;
+                }
+                else if (/[0-9]/.test(char)) {
+                    if (result.name.length === 0) {
+                        throw new Error("Name cannot start with number");
+                    }
+                    result.name += char;
+                } else if (char === '(') {
+                    state = S_ARG;
+                } else if (/\s/.test(char) && result.name.length > 0) {
+                    state = S_BEFORE;
+                } else if (!/\s/.test(char)) {
+                    throw new Error("Illegal character in name: " + char);
+                }
+                break;
+
+            case S_BEFORE:
+                if (char === '(') {
+                    state = S_ARG;
+                }
+                else if (!/\s/.test(char)) {
+                    throw new Error("Expected (");
+                }
+                break;
+
+            case S_ARG:
+                if (result.name.trim() === '') {
+                    throw new Error("Expected name");
+                }
+                if (char === "'" || char === '"') {
+                    // If we just finished a string/regex and see another quote without a comma
+                    if (pendingToken) {
+                        throw new Error("Expected delimiter");
+                    }
+                    quoteChar = char;
+                    state = S_STRING;
+                    currentArg = '';
+                } else if (char === '/' && (currentArg.trim() === '')) {
+                    // Enter Regex state if we see a / at the start of an arg
+                    state = S_REGEX;
+                    currentArg = char;
+                } else if (char === ',') {
+                    if (!pendingToken) {
+                        result.args.push(castValue(currentArg));
+                    }
+                    currentArg = '';
+                    pendingToken = false;
+                } else if (char === ')') {
+                    if (!pendingToken) {
+                        const trimmed = currentArg.trim();
+                        if (trimmed !== '' || result.args.length > 0) {
+                            result.args.push(castValue(currentArg));
+                        }
+                    }
+                    state = S_END;
+                } else {
+                    if (!pendingToken) {
+                        currentArg += char;
+                    } else if (!/\s/.test(char)) {
+                        throw new Error("Expected delimiter");
+                    }
+                }
+                break;
+
+            case S_STRING:
+                if (char === '\\' && i + 1 < expr.length && expr[i + 1] === quoteChar) {
+                    currentArg += quoteChar;
+                    i++;
+                } else if (char === quoteChar) {
+                    result.args.push(currentArg);
+                    currentArg = '';
+                    pendingToken = true;
+                    state = S_ARG;
+                } else {
+                    currentArg += char;
+                }
+                break;
+
+            case S_REGEX:
+                currentArg += char;
+                // Check for closing slash (not escaped)
+                if (char === '/' && expr[i - 1] !== '\\') {
+                    // Regex isn't finished yet! We need to capture flags (gim...)
+                    // We'll peek ahead in the next iterations of S_ARG via castValue
+                    // or stay here to grab letters? Let's stay to grab flags.
+                    let j = i + 1;
+                    while (j < expr.length && /[a-z]/.test(expr[j])) {
+                        currentArg += expr[j];
+                        j++;
+                    }
+                    i = j - 1; // Advance main pointer
+                    result.args.push(castValue(currentArg));
+                    currentArg = '';
+                    pendingToken = true;
+                    state = S_ARG;
+                }
+                break;
+
+            case S_END:
+                if (!/\s/.test(char)) {
+                    throw new Error("Trailing data");
+                }
+                break;
+        }
+        i++;
+    }
+
+    if (state !== S_END) {
+        throw new Error("Incomplete call");
+    }
+    return result;
+}
+
+
+/**
+ * Simple fast string hash (djb2 variant)
+ * @param {string} s - string to be hashed
+ * @returns {number} non-negative 32-bit integer
+ */
+export function hashCode(s) {
+    let hash = 5381; // magic initial prime
+    for (let i = 0; i < s.length; i++) {
+        hash = ((hash << 5) + hash) + s.charCodeAt(i); // hash * 33 + c
+        hash |= 0; // force 32-bit integer
+    }
+    return hash >>> 0; // convert to non-negative
 }
 
 /**
@@ -82,90 +238,79 @@ export function hashCode(s) {
  * @returns {boolean} Whether str1 contains needle or not
  */
 export function searchComp(str1, needle) {
-    str1 = (str1 || '').trim().toLowerCase();
-    needle = (needle || '').trim().toLowerCase();
-    str1 = str1.replace(/[àáâãäå]/, "a")
-        .replace(/[èéêë]/, "e")
-        .replace(/[ìíîï]/, "i")
-        .replace(/[òóôö]/, "o")
-        .replace(/[ùúüû]/, "u")
-        .replace(/ç/, "c")
-        .replace(/·/, "");
-    needle = needle.replace(/[àáâãäå]/, "a")
-        .replace(/[èéêë]/, "e")
-        .replace(/[ìíîï]/, "i")
-        .replace(/[òóôö]/, "o")
-        .replace(/[ùúüû]/, "u")
-        .replace(/ç/, "c")
-        .replace(/·/, "");
-    return str1.indexOf(needle) >= 0;
+    /** @param {string} str */
+    const normalize = (str) => {
+        return (str || '').trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    };
+    return normalize(str1).includes(normalize(needle));
 }
 
 /** Default transformers */
-const Transformers = {
-    /** @param {string} txt */
-    toUpperCase: function(txt) {
-        return (txt + "").toUpperCase();
-    },
-    /** @param {string} txt */
-    toLowerCase: function(txt) {
-        return (txt + "").toLowerCase();
-    },
-   /** @param {string} txt */
-    trim: function(txt) {
-        return (txt + "").trim();
-    },
-    /** @param {string} txt */
-    ytId: function(txt) {
-        // Finds the youtubeId in a text
-        const rx = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/;
-        const r = (txt || '').match(rx);
-        if (r?.length) {
-            return r[1];
+const Transformers = Object.freeze(
+    Object.assign(Object.create(null), {
+        /** @param {string} txt */
+        toUpperCase: function (txt) {
+            return (txt + "").toUpperCase();
+        },
+        /** @param {string} txt */
+        toLowerCase: function (txt) {
+            return (txt + "").toLowerCase();
+        },
+        /** @param {string} txt */
+        trim: function (txt) {
+            return (txt + "").trim();
+        },
+        /** @param {string} txt */
+        ytId: function (txt) {
+            // Finds the youtubeId in a text
+            const rx = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/;
+            const r = (txt || '').match(rx);
+            if (r?.length) {
+                return r[1];
+            }
+            return txt;
+        },
+        /** @param {string} txt */
+        vimeoId: function (txt) {
+            const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?(\d+)/;
+            const match = new RegExp(regExp).exec(txt || "");
+            if (match?.[5]) {
+                return match[5];
+            }
+            return txt;
+        },
+        /** @param {string} txt */
+        serveGDrive: function (txt) {
+            // Expecting https://drive.google.com/file/d/1DDUzcFrOlzWb3CBdFPJ1NCNXClvPbm5B/preview
+            const res = (txt + "").match(/https:\/\/drive.google.com\/file\/d\/([a-zA-Z0-9_]+)\//);
+            if (res?.length) {
+                const driveId = res[1];
+                return "https://docs.google.com/uc?export=open&id=" + driveId;
+            }
+            return txt;
+        },
+        /** @param {string} txt */
+        removeHTML: function (txt) {
+            return (txt || '').replace(/<[^>]*>?/gm, '');
+        },
+        /** @param {string} txt */
+        escapeHTML: function (txt) {
+            return (txt || '').replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        },
+        /** @param {string} txt */
+        encodeHTML: function (txt) {
+            // @ts-ignore
+            return encodeURIComponent(txt || "");
+        },
+        /** @param {string} txt */
+        escapeQuotes: function (txt) {
+            return (txt || '').replace(/"/gm, "'");
         }
-        return txt;
-    },
-    /** @param {string} txt */
-    vimeoId: function(txt) {
-        const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?(\d+)/;
-        const match = new RegExp(regExp).exec(txt || "");
-        if (match?.[5]) {
-            return match[5];
-        }
-        return txt;
-    },
-    /** @param {string} txt */
-    serveGDrive: function(txt) {
-        // Expecting https://drive.google.com/file/d/1DDUzcFrOlzWb3CBdFPJ1NCNXClvPbm5B/preview
-        const res = (txt + "").match(/https:\/\/drive.google.com\/file\/d\/([a-zA-Z0-9_]+)\//);
-        if (res?.length) {
-            const driveId = res[1];
-            return "https://docs.google.com/uc?export=open&id=" + driveId;
-        }
-        return txt;
-    },
-    /** @param {string} txt */
-    removeHTML: function(txt) {
-        return (txt || '').replace(/<[^>]*>?/gm, '');
-    },
-    /** @param {string} txt */
-    escapeHTML: function(txt) {
-        return (txt || '').replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    },
-   /** @param {string} txt */
-    encodeHTML: function(txt) {
-        // @ts-ignore
-        return encodeURIComponent(txt || "");
-    },
-    /** @param {string} txt */
-    escapeQuotes: function(txt) {
-        return (txt || '').replace(/"/gm, "'");
-    }
-};
+    }));
 
 
 class Builder {
@@ -178,7 +323,7 @@ class Builder {
             const prts = parts[j].trim();
             // @ts-ignore
             const transfunc = Transformers[prts];
-            if (transfunc != null) {
+            if (transfunc !== undefined) {
                 this.transSeq.push(transfunc);
             } else {
                 console.error("Cannot find transformer named " + prts);
@@ -209,98 +354,7 @@ export function stream(transformStr) {
  * @returns {string} Replaces $ apperences by _ to make the name compatible by data attributes
  */
 export function cleanParameterName(name) {
-    return name.replace(/\$/g, '_');
-}
-
-/**
- * Creates a filter funcion from filterCode
- * @param {string} filterCode
- * @returns {Function?}
- */
-export function createFilterFunction(filterCode) {
-    let userWidgetFilter = null;
-    try {
-        userWidgetFilter = new Function('text', 'editor', 'opts', filterCode);
-    } catch (ex) {
-        userWidgetFilter = null;
-        console.error(ex);
-    }
-    return userWidgetFilter;
-}
-
-/**
- * @param {import('./plugin').TinyMCE} editor
- * @param {{get_strings: (keyComponent: any[]) => Promise<string[]>}} coreStr - dependency on core/str
- * @returns {*}
- */
-export function applyWidgetFilterFactory(editor, coreStr) {
-    /**
-     * @param {string} widgetTemplate
-     * @param {boolean} silent
-     * @param {object?} mergevars
-     * @returns {Promise<boolean>} - True if the filter can be compiled
-     */
-    return async(widgetTemplate, silent, mergevars) => {
-        const translations = await coreStr.get_strings([
-            {key: 'filterres', component: 'tiny_widgethub'},
-            {key: 'nochanges', component: 'tiny_widgethub'}
-        ]);
-        // Es tracta d'un filtre, no d'un widget i s'ha de tractar de forma diferent
-        const userWidgetFilter = createFilterFunction(widgetTemplate);
-
-        if (!userWidgetFilter) {
-            editor.notificationManager.open({
-                text: translations[0] + ": Invalid filter",
-                type: 'danger',
-                timeout: 4000
-            });
-            return false;
-        }
-        // @ts-ignore
-        const handleFilterResult = function(res) {
-            const out = res[0];
-            let msg = res[1];
-            if (out != null) {
-                if (typeof out === "string") {
-                    editor.setContent(out);
-                    editor.notificationManager.open({
-                        text: translations[0] + ": " + msg,
-                        type: 'success',
-                        timeout: 5000
-                    });
-                } else if (out === true) {
-                    editor.notificationManager.open({
-                        text: translations[0] + ": " + msg,
-                        type: 'success',
-                        timeout: 5000
-                    });
-                } else if (out === false && !silent) {
-                    editor.notificationManager.open({
-                        text: translations[1],
-                        type: 'info',
-                        timeout: 5000
-                    });
-                }
-            } else if (!silent) {
-                editor.notificationManager.open({
-                    text: translations[1],
-                    type: 'info',
-                    timeout: 5000
-                });
-            }
-        };
-
-        const initialHTML = editor.getContent();
-        const filteredResult = userWidgetFilter(initialHTML, editor, mergevars);
-        // Hi ha la possibilitat que el filtre retorni una promesa o un array
-        const isPromise = filteredResult != null && typeof (filteredResult) === 'object' && ('then' in filteredResult);
-        if (isPromise) {
-            filteredResult.then(handleFilterResult).catch((/** @type {any} */ err) => console.error(err));
-        } else {
-            handleFilterResult(filteredResult || [null, translations[1]]);
-        }
-        return true;
-    };
+    return name?.replace(/\$/g, '_');
 }
 
 /**
@@ -385,565 +439,6 @@ export function addBaseToUrl(base, url) {
 }
 
 /**
- * @param {*} value
- * @param {string | undefined} type
- * @returns {*}
- */
-export const performCasting = function(value, type) {
-    if (!type || typeof value === type) {
-        return value;
-    }
-    switch (type) {
-        case ("boolean"):
-            if (value === 1 || value === "1" || value === true || value === "true") {
-                value = true;
-            } else {
-                value = false;
-            }
-            break;
-        case ("number"):
-            try {
-                let parsed;
-                if ((value + '').indexOf(".") < 0) {
-                    parsed = parseInt(value);
-                } else {
-                    parsed = parseFloat(value);
-                }
-                if (!isNaN(parsed)) {
-                    value = parsed;
-                } else {
-                    value = 0;
-                    console.error(`Error parsing number ${value}`);
-                }
-            } catch (ex) {
-                value = 0;
-                console.error(`Error parsing number ${value}`);
-            }
-            break;
-        case ("string"):
-            if (typeof value === 'object') {
-                value = JSON.stringify(value);
-            } else {
-                value = value + "";
-            }
-            break;
-        default:
-            console.error(`Fail to cast ${value} to ${type}`);
-    }
-    return value;
-};
-
-/**
- * @param {unknown} a
- * @param {unknown} b
- */
-const xor = function(a, b) {
-    return !a !== !b;
-};
-
-/**
- * @param {string} str
- * @param {*} match
- * @param {string} replacement
- * @returns {string}
- */
-const replaceStrPart = function(str, match, replacement) {
-    if (!match.indices) {
-        console.error("RegExp match does not include indices");
-        return str;
-    }
-    const [a, b] = match.indices[1];
-    return str.substring(0, a) + replacement + str.substring(b);
-};
-
-/**
- * Replaces the first capturing group in regexExpr by replacement,
- * The remaining capturing groups are removed.
- * @param {string} regexExpr
- * @param {string} replacement
- * @returns {string}
- */
-const getValueFromRegex = function(regexExpr, replacement) {
-    const reParser = /\((?!\?:).*?\)/g;
-    let capturingGroupCount = 0;
-    return regexExpr.replace(reParser, () => {
-        capturingGroupCount++;
-        if (capturingGroupCount === 1) {
-            return replacement + '';
-        }
-        return ""; // Remove all other capturing groups
-    });
-};
-
-/**
- * @param {JQuery<HTMLElement>} $e - The target element
- * @returns
- */
-const bindingFactory = function($e) {
-    /** @this {Record<string, Function>} */
-    const methods = {
-        /**
-         * @param {string} className
-         * @param {string=} query
-         * @param {boolean=} neg
-         * @returns {Binding}
-         */
-        hasClass: (className, query, neg) => {
-            /** @type {JQuery<HTMLElement>} */
-            let elem = $e;
-            if (query) {
-                elem = $e.find(query);
-            }
-            return {
-                // @ts-ignore
-                getValue: () => {
-                    const res = xor(neg, elem.hasClass(className));
-                    return Boolean(res);
-                },
-                // @ts-ignore
-                setValue: (bool) => {
-                    if (xor(neg, bool)) {
-                        elem.addClass(className);
-                    } else {
-                        elem.removeClass(className);
-                    }
-                }
-            };
-        },
-        /**
-         * @param {string} className
-         * @param {string=} query
-         * @returns {Binding}
-         */
-        notHasClass: (className, query) => {
-            return methods.hasClass(className, query, true);
-        },
-        /**
-         * @param {string} classExpr
-         * @param {string=} query
-         * @param {string=} castTo
-         * @returns {Binding}
-         */
-        classRegex: (classExpr, query, castTo) => {
-            let elem = $e;
-            if (query) {
-                elem = $e.find(query);
-            }
-            return {
-                getValue: () => {
-                    let ret = '';
-                    const classes = (elem.attr('class') ?? '').split(' ');
-                    for (const clazz of classes) {
-                        const match = new RegExp(classExpr).exec(clazz);
-                        if (match?.[1] && typeof (match[1]) === "string") {
-                            ret = match[1];
-                            break;
-                        }
-                    }
-                    return performCasting(ret, castTo);
-                },
-                setValue: (val) => {
-                    const cl = elem.attr('class')?.split(/\s+/) ?? [];
-                    let found = false;
-                    cl.forEach(c => {
-                        const match = new RegExp(classExpr, 'd').exec(c);
-                        if (match === null) {
-                            return;
-                        }
-                        found = true;
-                        elem.removeClass(c);
-                        const newCls = replaceStrPart(c, match, val + '');
-                        elem.addClass(newCls);
-                    });
-                    // If not found, then set the regExp replacing the
-                    // first capturing group with val, and removing the remaining groups.
-                    if (!found) {
-                        const newCls = getValueFromRegex(classExpr, val + '');
-                        elem.addClass(newCls);
-                    }
-                }
-            };
-        },
-        /**
-         * @param {string} attrName
-         * @param {string=} query
-         * @param {string=} castTo
-         * @returns {Binding}
-         */
-        attr: (attrName, query, castTo) => {
-            let elem = $e;
-            if (query) {
-                elem = $e.find(query);
-            }
-            return {
-                getValue: () => {
-                    let attrValue = elem.attr(attrName);
-                    if (attrName.indexOf('-bs-') > 0) {
-                        attrValue = attrValue ?? elem.attr(attrName.replace('-bs-', '-'));
-                    }
-                    return performCasting(attrValue, castTo);
-                },
-                // @ts-ignore
-                setValue: (val) => {
-                    if (typeof val === "boolean") {
-                        val = val ? 1 : 0;
-                    }
-                    const attrVal = val + '';
-                    elem.attr(attrName, attrVal);
-                    if (attrName.indexOf('-bs-') > 0) {
-                        // Save as old bs
-                        elem.attr(attrName.replace('-bs-', '-'), attrVal);
-                    }
-                    if (attrName === 'href' || attrName === 'src') {
-                        elem.attr('data-mce-' + attrName, attrVal);
-                    }
-                }
-            };
-        },
-        /**
-         * Adapted to take into account both data- and data-bs- for Boostrap 4 & 5 compatibility.
-         * @param {string} attrName - Name without data- nor data-bs-
-         * @param {string=} query
-         * @param {string=} castTo
-         * @param {number=} version - 4 or 5 depending the version of BS currently using
-         * @returns {Binding}
-         */
-        attrBS: (attrName, query, castTo, version) => {
-            let elem = $e;
-            if (query) {
-                elem = $e.find(query);
-            }
-            return {
-                getValue: () => {
-                    // If version=4 it has preference BS4 over BS5, it will not remove BS4 prefix
-                    let p1 = '';
-                    let p2 = 'bs-';
-                    if (version === 5) {
-                        p1 = p2;
-                        p2 = '';
-                    }
-                    let value = elem.attr('data-' + p1 + attrName);
-                    if (value === undefined) {
-                        value = elem.attr('data-' + p2 + attrName);
-                    }
-                    return performCasting(value || '', castTo);
-                },
-                // @ts-ignore
-                setValue: (val) => {
-                    if (typeof val === "boolean") {
-                        val = val ? 1 : 0;
-                    }
-                    const attrVal = val + '';
-                    elem.attr('data-bs-' + attrName, attrVal);
-                    if (version === 5) {
-                        elem.removeAttr('data-' + attrName);
-                    } else {
-                        elem.attr('data-' + attrName, attrVal);
-                    }
-                }
-            };
-        },
-        /**
-         * @param {string} attr
-         * @param {string=} query
-         * @param {boolean=} neg
-         * @returns {Binding}
-         */
-        hasAttr: (attr, query, neg) => {
-            let elem = $e;
-            if (query) {
-                elem = $e.find(query);
-            }
-            const parts = attr.split("=");
-            const attrName = parts[0].trim();
-            let attrValue = '';
-            if (parts.length > 1) {
-                attrValue = parts[1].trim();
-            }
-            return {
-                getValue: () => {
-                    let found = elem.attr(attrName) != null;
-                    if (attrValue) {
-                        found = found && elem.attr(attrName) === attrValue;
-                    }
-                    return xor(neg, found);
-                },
-                // @ts-ignore
-                setValue: (bool) => {
-                    if (xor(neg, bool)) {
-                        elem.attr(attrName, attrValue || '');
-                        if (attrName === 'href' || attrName === 'src') {
-                            elem.attr('data-mce-' + attrName, attrValue + '');
-                        }
-                    } else {
-                        elem.removeAttr(attrName);
-                        if (attrName === 'href' || attrName === 'src') {
-                            elem.removeAttr('data-mce-' + attrName);
-                        }
-                    }
-                }
-            };
-        },
-        /**
-         * Variant to check for compatibility between Bootstrap 4 and 5.
-         * @param {string} attr - attr name without data- nor data-bs-
-         * @param {string=} query
-         * @param {boolean=} neg
-         * @param {number=} version - 4 or 5
-         * @returns {Binding}
-         */
-        hasAttrBS: (attr, query, neg, version) => {
-            let elem = $e;
-            if (query) {
-                elem = $e.find(query);
-            }
-            const parts = attr.split("=");
-            const attrName = parts[0].trim();
-            let attrValue = '';
-            if (parts.length > 1) {
-                attrValue = parts[1].trim();
-            }
-            const getValuePrefix = (/** @type{string} **/ prefix) => {
-                let found = elem.attr(prefix + attrName) != null;
-                if (attrValue) {
-                    found = found && elem.attr(prefix + attrName) === attrValue;
-                }
-                return xor(neg, found);
-            };
-            return {
-                getValue: () => {
-                    let p1 = 'data-';
-                    let p2 = 'data-bs-';
-                    if (version === 5) {
-                        p2 = p1;
-                        p1 = 'data-bs-';
-                    }
-                    return getValuePrefix(p1) || getValuePrefix(p2);
-                },
-                // @ts-ignore
-                setValue: (bool) => {
-                    if (xor(neg, bool)) {
-                        elem.attr('data-bs-' + attrName, attrValue || '');
-                        if (version === 5) {
-                            elem.removeAttr('data-' + attrName);
-                        } else {
-                            elem.attr('data-' + attrName, attrValue || '');
-                        }
-                    } else {
-                        elem.removeAttr('data-' + attrName);
-                        elem.removeAttr('data-bs-' + attrName);
-                    }
-                }
-            };
-        },
-        /**
-         * @param {string} attr
-         * @param {string=} query
-         * @returns {Binding}
-         */
-        notHasAttr: (attr, query) => {
-            return methods.hasAttr(attr, query, true);
-        },
-        /**
-         * @param {string} attr - Regex of attr
-         * @param {string=} query
-         * @param {string=} castTo
-         * @returns {Binding}
-         */
-        attrRegex: function(attr, query, castTo) {
-            let elem = $e;
-            if (query) {
-                elem = $e.find(query);
-            }
-            const parts = attr.split("=");
-            const attrName = parts[0].trim();
-            let attrValue = '';
-            if (parts.length > 1) {
-                attrValue = parts[1].trim();
-            }
-            return {
-                getValue() {
-                    const found = elem.attr(attrName) != null;
-                    if (found) {
-                        const match = elem.attr(attrName)?.match(attrValue);
-                        if (match?.[1] && typeof (match[1]) === "string") {
-                            return performCasting(match[1], castTo);
-                        }
-                        return '';
-                    }
-                    return null;
-                },
-                setValue(val) {
-                    const oldValue = elem.attr(attrName) ?? '';
-                    const match = new RegExp(attrValue, 'd').exec(oldValue);
-                    let newValue;
-                    if (match) {
-                        newValue = replaceStrPart(oldValue, match, val + '');
-                    } else {
-                        newValue = getValueFromRegex(attrValue, val + '');
-                    }
-                    elem.attr(attrName, newValue);
-                    if (attrName === 'href' || attrName === 'src') {
-                        elem.attr('data-mce-' + attrName, newValue + '');
-                    }
-                }
-            };
-        },
-        /**
-         * @param {string} sty
-         * @param {string=} query
-         * @param {boolean=} neg
-         * @returns {Binding}
-         */
-        hasStyle: function(sty, query, neg) {
-            let elem = $e;
-            if (query) {
-                elem = $e.find(query);
-            }
-            const parts = sty.split(":");
-            let styName = parts[0].trim();
-            /** @type {string | undefined} */
-            let styValue;
-            if (parts.length > 1) {
-                styValue = parts[1].trim();
-            }
-            return {
-                getValue() {
-                    const st = elem.prop('style');
-                    const pValue = st.getPropertyValue(styName);
-                    const has = styValue === undefined ? pValue !== '' : pValue === styValue;
-                    return xor(has, neg);
-                },
-                // @ts-ignore
-                setValue(bool) {
-                    if (xor(bool, neg)) {
-                        elem.css(styName, styValue ?? '');
-                    } else {
-                        const st = elem.prop('style');
-                        st.removeProperty(styName);
-                    }
-                    // TODO: better way to update data-mce-style
-                    elem.attr('data-mce-style', elem[0].style.cssText);
-                }
-            };
-        },
-        /**
-         * @param {string} sty
-         * @param {string=} query
-         * @returns {Binding}
-         */
-        notHasStyle: (sty, query) => {
-            return methods.hasStyle(sty, query, true);
-        },
-        /**
-         * @param {string} attr - styName:styValue where styValue is a regex with (.*)
-         * @param {string=} query
-         * @param {string=} castTo
-         * @returns {Binding}
-         */
-        styleRegex: function(attr, query, castTo) {
-            let elem = $e;
-            if (query) {
-                elem = $e.find(query);
-            }
-            const parts = attr.split(":");
-            const styName = parts[0].trim();
-            let styValue = '';
-            if (parts.length > 1) {
-                styValue = parts[1].trim();
-            }
-            return {
-                /** @returns {string | null} */
-                getValue() {
-                    const st = elem.prop('style');
-                    const currentVal = st?.getPropertyValue(styName);
-                    if (currentVal) {
-                        if (styValue) {
-                            const match = new RegExp(styValue).exec(currentVal);
-                            if (match?.[1] && (typeof match[1]) === "string") {
-                                return performCasting(match[1], castTo);
-                            }
-                        } else {
-                            return performCasting(currentVal, castTo);
-                        }
-                    }
-                    return performCasting('', castTo);
-                },
-                // @ts-ignore
-                setValue(val) {
-                    let newValue;
-                    if (styValue) {
-                        // Case val <= 0 && styName contains width or height
-                        if ((styName.includes("width") || styName.includes("height")) && (parseFloat(val + '') <= 0)) {
-                            newValue = '';
-                        } else {
-                            const oldValue = elem.prop('style').getPropertyValue(styName) ?? '';
-                            if (oldValue) {
-                                const match = new RegExp(styValue, 'd').exec(oldValue);
-                                // @ts-ignore
-                                newValue = replaceStrPart(oldValue, match, val + '');
-                            } else {
-                                newValue = styValue.replace('(.*)', val + '');
-                            }
-                        }
-                    } else {
-                        newValue = val + '';
-                    }
-                    elem.css(styName, newValue);
-                    // TODO: better way to update data-mce-style
-                    elem.attr('data-mce-style', elem[0].style.cssText);
-                }
-            };
-        }
-    };
-    return methods;
-};
-
-/**
- * @typedef {Object} Binding
- * @property {() => unknown} getValue
- * @property {(value: string | boolean | number) => void} setValue
- */
-/**
- * @param {string | {get?: string, set?: string, getValue?: string, setValue?: string}} definition
- * @param {JQuery<HTMLElement>} elem  - The root of widget
- * @param {string=} castTo  - The type that must be returned
- * @returns {Binding | null}
- */
-export const createBinding = (definition, elem, castTo) => {
-    /** @type {Binding | null} */
-    let bindFn = null;
-    if (typeof (definition) === 'string') {
-        return evalInContext({...bindingFactory(elem)}, definition, true);
-    } else {
-        // The user provides the get and set functions (for jQuery element) @deprecated
-        // or getValue, setValue (for vanilla JS elements)
-        bindFn = {
-            getValue: () => {
-                let v;
-                if (definition.getValue) {
-                    v = evalInContext({elem: elem[0]}, `(${definition.getValue})(elem)`);
-                } else if (definition.get) {
-                    v = evalInContext({elem}, `(${definition.get})(elem)`);
-                }
-                if (castTo) {
-                    v = performCasting(v, castTo);
-                }
-                return v;
-            },
-            setValue: (v) => {
-                if (definition.setValue) {
-                    evalInContext({elem: elem[0], v}, `(${definition.setValue})(elem, v)`);
-                } else if (definition.set) {
-                    evalInContext({elem, v}, `(${definition.set})(elem, v)`);
-                }
-            }
-        };
-    }
-    return bindFn;
-};
-
-/**
  * Capitalizes the first letter of a string
  * @param {string | undefined | null} s
  * @returns {string}
@@ -997,11 +492,11 @@ export function toRgba(hex, alpha) {
         g = 0,
         b = 0;
     if (result) {
-      r = parseInt(result[1], 16);
-      g = parseInt(result[2], 16);
-      b = parseInt(result[3], 16);
+        r = parseInt(result[1], 16);
+        g = parseInt(result[2], 16);
+        b = parseInt(result[3], 16);
     }
-    if (alpha === 1) {
+    if (alpha2 === 1) {
         return `rgb(${r},${g},${b})`;
     }
     return `rgba(${r},${g},${b},${alpha2})`;
@@ -1026,7 +521,7 @@ export function debounce(cb, delay = 1000) {
             window.clearTimeout(timeoutId);
         }
         timeoutId = window.setTimeout(() => {
-          cb(...args);
+            cb(...args);
         }, delay);
     };
     debounced.clear = () => {
@@ -1061,10 +556,10 @@ export function toggleClass(elem, ...classNames) {
  */
 function parseVersion(v) {
     return v
-      .split('.')
-      .map(part => Number(part.trim()))
-      .concat([0, 0])
-      .slice(0, 3);
+        .split('.')
+        .map(part => Number(part.trim()))
+        .concat([0, 0])
+        .slice(0, 3);
 }
 
 /**
@@ -1074,45 +569,45 @@ function parseVersion(v) {
  * @returns {boolean} True if current meets condition
  */
 export function compareVersion(current, condition) {
-  if (!condition) {
-    return true;
-  }
-
-  // Parse condition string
-  const match = condition.trim().match(/^(>=|<=|>|<|=)?\s*(\d+(?:\.\d+){0,2})$/);
-  if (!match) {
-    console.error("Invalid version condition: " + condition);
-    return true;
-  }
-
-  const operator = match[1] || "=";
-  const targetVersion = parseVersion(match[2]);
-  const currentVersion = parseVersion(current);
-
-  // Compare versions
-  let cmp = 0;
-  for (let i = 0; i < 3; i++) {
-    if (currentVersion[i] > targetVersion[i]) {
-      cmp = 1;
-      break;
+    if (!condition) {
+        return true;
     }
-    if (currentVersion[i] < targetVersion[i]) {
-      cmp = -1;
-      break;
-    }
-  }
 
-  // Evaluate based on operator
-  switch (operator) {
-    case ">": return cmp > 0;
-    case ">=": return cmp >= 0;
-    case "<": return cmp < 0;
-    case "<=": return cmp <= 0;
-    case "=": return cmp === 0;
-    default:
-     console.log("Unknown operator: " + operator);
-     return true;
-  }
+    // Parse condition string
+    const match = condition.trim().match(/^(>=|<=|>|<|=)?\s*(\d+(?:\.\d+){0,2})$/);
+    if (!match) {
+        console.error("Invalid version condition: " + condition);
+        return true;
+    }
+
+    const operator = match[1] || "=";
+    const targetVersion = parseVersion(match[2]);
+    const currentVersion = parseVersion(current);
+
+    // Compare versions
+    let cmp = 0;
+    for (let i = 0; i < 3; i++) {
+        if (currentVersion[i] > targetVersion[i]) {
+            cmp = 1;
+            break;
+        }
+        if (currentVersion[i] < targetVersion[i]) {
+            cmp = -1;
+            break;
+        }
+    }
+
+    // Evaluate based on operator
+    switch (operator) {
+        case ">": return cmp > 0;
+        case ">=": return cmp >= 0;
+        case "<": return cmp < 0;
+        case "<=": return cmp <= 0;
+        case "=": return cmp === 0;
+        default:
+            console.warn("Unknown operator: " + operator);
+            return true;
+    }
 }
 
 /**
@@ -1123,10 +618,230 @@ export function compareVersion(current, condition) {
  * @returns {Record<string, any>}
  */
 export function removeRndFromCtx(ctx, parameters) {
-    return Object.fromEntries(
-        Object.entries(ctx).filter(([k]) => {
-            const val = parameters.find(p => p.name === k)?.value;
-            return val !== '$RND';
-        })
-    );
+    const result = Object.create(null);
+    Object.entries(ctx).forEach(([k, v]) => {
+        const val = parameters.find(p => p.name === k)?.value;
+        if (val !== undefined && val !== '$RND') {
+            result[k] = v;
+        }
+    });
+    return result;
+}
+
+/**
+ * Helper to load scripts
+ * @param {import('./plugin').TinyMCE} editor
+ * @param {string} src
+ * @param {string} [integrity]
+ * @returns {Promise<void>}
+ */
+export function loadScriptAsync(editor, src, integrity) {
+    return new Promise((resolve, reject) => {
+        const s = editor.dom.create('script', { src });
+        s.onload = () => resolve();
+        s.referrerPolicy = 'no-referrer';
+        if (integrity) {
+            s.crossOrigin = 'anonymous';
+            s.integrity = integrity;
+        }
+        s.onerror = reject;
+        const head = editor.getDoc().querySelector("head");
+        head.appendChild(s);
+    });
+}
+
+/**
+ * Convert an HTML string into DOM element(s)
+ * @param {Document} doc - The page document
+ * @param {string} html - HTML string
+ * @returns {HTMLElement} - Returns a single element if one root, or a DocumentFragment if multiple
+ */
+export function htmlToElement(doc, html) {
+    const template = doc.createElement('template');
+    template.innerHTML = html.trim();
+
+    if (template.content.childElementCount === 1) {
+        // @ts-ignore
+        return template.content.firstElementChild;
+    } else {
+        // If multiple root elements, return a fragment
+        // @ts-ignore
+        return template.content;
+    }
+}
+
+/**
+ * @deprecated Use native editor.dom.setStyle instead.
+ * @param {HTMLElement} target
+ * @param {string} propName
+ * @param {string} propValue
+ */
+export function setStyleMCE(target, propName, propValue) {
+    target.style.setProperty(propName, propValue);
+    // Sync data-mce-style
+    target.setAttribute('data-mce-style', target.getAttribute('style') ?? '');
+}
+
+/**
+ * @param {HTMLElement} target
+ * @param {string} propName
+ */
+export function removeStyleMCE(target, propName) {
+    target.style.removeProperty(propName);
+    // Sync data-mce-style
+    target.setAttribute('data-mce-style', target.getAttribute('style') ?? '');
+}
+
+/**
+ * @param {Element} target
+ * @param {string} propName
+ * @param {string} propValue
+ */
+export function setAttributeMCE(target, propName, propValue) {
+    target.setAttribute(propName, propValue);
+    if (propName === 'href' || propName === 'src') {
+        target.setAttribute(`data-mce-${propName}`, propValue);
+    }
+}
+
+/**
+ * Any menu item, different from |, is prefixed by componentName_ and ended with _item.
+ * @param {string[]} items
+ * @param {string} prefix
+ * @param {string[]} [skipItems]
+ * @param {string} [separator]
+ * @returns {string[]}
+ */
+export function prefixItemsWith(items, prefix, skipItems = [], separator = '_') {
+    return items.map(e => skipItems.includes(e) ? e : `${prefix}${separator}${e}`);
+}
+
+/**
+ * Simple SVG Sanitizer
+ * @param {string} svgString
+ * @returns {string} Clean SVG
+ */
+export function sanitizeSvg(svgString) {
+    const isDataUrl = svgString.startsWith('data:image/svg+xml;base64,');
+    if (isDataUrl) {
+        svgString = atob(svgString.replace('data:image/svg+xml;base64,', ''));
+    }
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgString, 'image/svg+xml');
+    const svg = doc.querySelector('svg');
+
+    if (!svg) {
+        return '';
+    }
+
+    // Whitelist of safe tags
+    const allowedTags = ['svg', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon',
+        'g', 'defs', 'lineargradient', 'stop'];
+    // Whitelist of safe attributes
+    const allowedAttrs = ['viewbox', 'd', 'cx', 'cy', 'r', 'x', 'y', 'width', 'height',
+        'fill', 'stroke', 'stroke-width', 'points', 'transform', 'class', 'id', 'opacity'];
+
+    /**
+     * @param {Element} el
+     */
+    const cleanElement = (el) => {
+        // 1. Remove script/event tags
+        if (!allowedTags.includes(el.tagName.toLowerCase())) {
+            el.remove();
+            return;
+        }
+
+        // 2. Remove non-whitelisted attributes (including on*)
+        Array.from(el.attributes).forEach(attr => {
+            const name = attr.name.toLowerCase();
+            if (!allowedAttrs.includes(name)) {
+                el.removeAttribute(attr.name);
+            }
+        });
+
+        // 3. Recurse
+        Array.from(el.children).forEach(cleanElement);
+    };
+
+    cleanElement(svg);
+    const cleanSvg = svg.outerHTML;
+    if (isDataUrl) {
+        return 'data:image/svg+xml;base64,' + btoa(cleanSvg);
+    }
+    return cleanSvg;
+}
+
+/**
+ * Creates an object with null prototype.
+ * @param {object} obj
+ * @returns {object}
+ */
+export function nullProtofy(obj) {
+    return Object.assign(Object.create(null), obj);
+}
+
+/**
+ * @template T
+ * @param {Promise<T>} promise
+ * @returns {Promise<[Error | null, T | null]>}
+ */
+export function safeAwait(promise) {
+    return promise
+        .then((result) => /** @type {[null, T]} */([null, result]))
+        .catch((error) => /** @type {[Error, null]} */([error, null]));
+}
+/**
+ * Toggles an element to a loading state.
+ * @param {HTMLElement} element
+ * @param {string | null} query
+ */
+export function spinElement(element, query = 'i.fa, i.fas, i.far, i.fab, .twh-icon') {
+    if (!element || element.dataset.originalIcon) {
+        return;
+    }
+    /** @type {HTMLElement | null} */
+    let icon = element;
+    if (query) {
+        icon = element.querySelector(query);
+    }
+    if (icon) {
+        icon.dataset.originalIcon = icon.className;
+        icon.dataset.originalHtml = icon.innerHTML;
+        icon.className = 'fa fa-spinner fa-spin';
+        icon.innerHTML = '';
+    }
+    if (element instanceof HTMLButtonElement || element instanceof HTMLAnchorElement) {
+        element.classList.add('disabled');
+        if (element instanceof HTMLButtonElement) {
+            element.disabled = true;
+        }
+    }
+}
+
+/**
+ * Restores an element from a loading state.
+ * @param {HTMLElement} element
+ * @param {string | null} query
+ */
+export function unspinElement(element, query = 'i.fa, i.fas, i.far, i.fab, .twh-icon') {
+    if (!element) {
+        return;
+    }
+    /** @type {HTMLElement | null} */
+    let icon = element;
+    if (query) {
+        icon = element.querySelector(query);
+    }
+    if (icon && icon.dataset.originalIcon) {
+        icon.className = icon.dataset.originalIcon;
+        icon.innerHTML = icon.dataset.originalHtml || '';
+        delete element.dataset.originalIcon;
+        delete element.dataset.originalHtml;
+    }
+    if (element instanceof HTMLButtonElement || element instanceof HTMLAnchorElement) {
+        element.classList.remove('disabled');
+        if (element instanceof HTMLButtonElement) {
+            element.disabled = false;
+        }
+    }
 }

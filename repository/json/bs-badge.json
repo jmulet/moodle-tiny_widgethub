@@ -1,0 +1,36 @@
+{
+    "key": "bs-badge",
+    "name": "$string.bsbadge_name",
+    "category": "bootstrap",
+    "icon": "fa fa-tag",
+    "template": "<span class=\"badge badge-{{severity}}{{#pill}} badge-pill{{/pill}}\">Lorem ipsum</span>\n",
+    "selectors": "span.badge",
+    "unwrap": "*",
+    "insertquery": "span.badge",
+    "parameters": [
+        {
+            "name": "severity",
+            "title": "$string.bsbadge_severity_title",
+            "bind": "classRegex('badge-(.*)')",
+            "value": "primary",
+            "options": [
+                "primary",
+                "secondary",
+                "success",
+                "info",
+                "warning",
+                "danger",
+                "light",
+                "dark"
+            ]
+        },
+        {
+            "name": "pill",
+            "title": "$string.bsbadge_pill_title",
+            "bind": "hasClass('badge-pill')",
+            "value": false
+        }
+    ],
+    "author": "Josep Mulet <pep.mulet@gmail.com>",
+    "version": "2.0.1"
+}

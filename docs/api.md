@@ -9,9 +9,10 @@ Optional keywords are marked with **[ ]**.
 | **`name`**            | `string`                             | The name displayed on the button for selecting the widget.                                                |
 | **`[order]`**           | `string`                              | (Optional) If present, the name used to sort the widget alphabetically otherwise the `name` property is used      |
 | **`category`**        | `string`                             | The category in which the widget appears.                                                                |
+| **`[icon]`**          | `string`                             | (Optional) The icon to display for the widget. It can be a font-awesome class, a data URL, an SVG or an image URL. |
 | **`[instructions]`**  | `string`                             | (Optional) Detailed explanation of the widget’s purpose and usage.                                       |
 | **`[selectors]`**     | `string` or `string[]` |  (Optional) Required if the widget uses bindings. Defines the CSS selector that identifies the widget root. If an array is used, the remaining selectors apply to the descendants of the root element. |
-| **`[engine]`**        | `'mustache'` or `'ejs'`                 | (Optional) Defaults to `mustache`. Specifies the template engine used to render the template.             |
+| **`[engine]`**        | `'mustache'` or `'ejs'` or `'liquid'`   | (Optional) Defaults to `mustache`. Specifies the template engine used to render the template. Liquid is available from version 1.5.0.           |
 | **`template`**        | `string`                             | HTML markup interpolated and rendered in the Tiny Editor. It cannot be used together with filter.                                                | 
 | **`filter`**        | `string`                             | The code defining the filter. The global variables are `text` and `editor` refering to the initial HTML content and the Tiny editor API respectively. The filter must return an array of two elements `[result: text / boolean, message: string]`. It cannot be used together with template.                                             |
 | **`[unwrap]`**        | `string`                             | (Optional) A query selector for elements to extract from the `selectors` element. Use `'*'` for all.      |
@@ -22,24 +23,24 @@ Optional keywords are marked with **[ ]**.
 | **`[autocomplete]`**    | `string`                        | The key of a parameter that will be used to create variants in the autocomplete popup. The autocomplete popoup appears when writting @ followed by at least three letters. It will show those widgets whose name matches with the search.
 | **`[contextmenu]`**   | `ContextMenu`                        | (Optional) Configures a context menu                                                                   |
 | **`[contexttoolbar]`**| `boolean`                            | (Optional) Whether to display a context toolbar instead of a context menu.                               |
-| **`[for]`**          | `string`                             | A comma separated list of user **ids** that are allowed to use this widget. If the list starts with `-` then the list represents the users that are not allowed to use the widget.
-| **`[forids]`**          | `string`                             | It is an alias of the `for` property.
+| **`[forids]`**          | `string`                             | A comma separated list of user **ids** that are allowed to use this widget. If the list starts with `-` then the list represents the users that are not allowed to use the widget. | 
+**`[for]`**          | `string`                             | It is an alias of the `forids` property.
 | **`[forusernames]`**          | `string`                             | A comma separated list of **usernames** that are allowed to use this widget. If the list starts with `-` then the list represents the usernames that are not allowed to use the widget.
-| **`[forroles]`**          | `string`                             | A comma separated list of **user roles**, e.g. `editingteacher, student, ...`, which are allowed to use this widget. If the list starts with `-` then the list represents the users roles that are not allowed to use the widget.
+| **`[forroles]`**          | `string`                             | A comma separated list of **user roles**, e.g. `manager, coursecreator, editingteacher, student, ...`, which are allowed to use this widget. If the list starts with `-` then the list represents the users roles that are not allowed to use the widget.
 | **`[formatch]`**          | `AND` or `OR`                             | Defaults to `AND` and it represents the boolean operation that is applied when multiple for-rules are specified.   
-| **`[requires]`**          | `string`                             | The URL of the JavaScript file required for this widget to function. The script will be added to the end of the page in a dedicated JavaScript widget area. This feature requires the selectors property to be defined.
+| **`[requires]`**          | `string` or `{url: string, query: string}`   | The URL of the JavaScript file required for this widget to function. The script will be added to the end of the page in a dedicated JavaScript widget area. This feature requires the selectors property to be defined. If an object is passed, the `query` represents a css query relative to the editor's body. The dependency will be inserted only if the query returns some node.
 | **`[hidden]`**          | `boolean`                             |   Whether the widget must be shown or not.                                                 
 | **`author`**          | `string`                             | Author in the format: `Your Name <your@email.com>`.                                                      |
 | **`version`**         | `string`                             | Widget version in `major.minor.revision` format.                                                         |
 
 ---
-
+ 
 The type ContextMenu is defined by
 
 | **Key**               | **Type**                              | **Description**                                                                                           |
 |-----------------------|---------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| **`predicate`**     | `string`                             | CSS query for elements triggering the context menu.                                                        |
-| **`actions`**       | `string`                             | Space separated actions such as  `moveup`, `movedown`, `moveleft`, `moveright`, `insertafter`, `remove`                          |
+| **`[predicate]`**     | `string`                             | Optional. CSS query for elements triggering the context menu. If unset, it defaults to the element holding the widget's root.                                                        |
+| **`actions`**       | `string`                             | Space separated actions such as  `moveup`, `movedown`, `moveleft`, `moveright`, `insertafter`, `remove`, `printable`, `cut`. You can also write a vertical bar between actions to insert a separator between items.                          |
 
 ---  
 
@@ -54,19 +55,20 @@ The type `Parameter` consists of these fields
 | **`title`**           | `string`                             | A human-readable name for the parameter.                                                                 |
 | **`[tooltip]`**       | `string`                             | (Optional) Additional information about the parameter.                                                   |
 | **`[tip]`**       | `string`                             | (Optional) Simply a shortcut for `tooltip`                                               |
-**`[partial]`**       | `string`                             | (Optional) A string with double trailing and leading undercore. This variable must be defined into the `partials` widget.        |
+| **`[partial]`**       | `string`                             | (Optional) A string with double trailing and leading underscore. This variable must be defined into the special `partials` widget.        |
 | **`value`**           | `any`                                | Default value for the parameter. If he type is 'select', then the value must match one of the options.                                                                        |
-| **`[type]`**          | `'textfield' or 'textarea' or 'numeric' or 'select' or 'autocomplete' or 'checkbox' or 'color' or 'repeatable'` | (Optional) In some cases, type can be inferred from `value` or other parameters.                                         |
+| **`[type]`**          | `'textfield' or 'textarea' or 'numeric' or 'select' or 'autocomplete' or 'checkbox' or 'color' or 'image' or 'repeatable'` | (Optional) In some cases, type can be inferred from `value` or other parameters.                                         |
 | **`options`**         | `string[]` or `{l: string, v: string}[]` | Options for `select` type.                                                                |
 | **`[min]`**           | `number`                             | (Optional) Minimum value for numeric controls or the minimum number of items in repeatable parameters (defaults to 1).                                                           |
 | **`[max]`**           | `number`                             | (Optional) Maximum value for numeric controls or the maximum number of items in repeatable parameters.                                                           |
 | **`[bind]`**          | `string` or ` {getValue: (el: HTMLElement) => any, setValue: (el: HTMLElement, value: any) => void}` or `@Deprecated {get: ($e: jQuery) => any, set: ($e: jQuery, value: any) => void}` | (Optional) Binding configuration for parameter values. In repeatable parameters (since v1.4), you can either use the `item_selector` keyword or the format `{getValue: (el) => object[], setValue: (el, value: object[]) => void}`.   |
 | **`[item_selector]`**      | `string` | (Optional) (Since v1.4) In repeatable parameters, it specifies a **css query** that provides a list of DOM elements mapping the list items.    |
- **`[transform]`**          | `string` | (Optional) Applies a pipe of transform functions to the value obtained from the user form. See below for the list of available transform functions.                         
-| **`[when]`**          | `string` | (Optional) A Javascript expression to programatically determine when this control must be shown. The expression can contain the keys of other parameters or the special key `SELECT_MODE` which is set to `selection` when there exists a selection in the Tiny editor and to `insert` otherwise.                          
-| **`[hidden]`**          | `boolean` | (Optional) Whether the control is hidden or visible.                            
+| **`[fields]`**          | `Parameter[]` | (Optional) (Since v1.4) In repeatable parameters, defines the list of fields for each item.    |
+| **`[transform]`**          | `string` | (Optional) Applies a pipe of transform functions to the value obtained from the user form. See below for the list of available transform functions.                         |
+| **`[when]`**          | `string` | (Optional) A Javascript expression to programatically determine when this control must be shown. The expression can contain the keys of other parameters or the special key `SELECT_MODE` which is set to `selection` when there exists a selection in the Tiny editor and to `insert` otherwise.                          |
+| **`[hidden]`**          | `boolean` | (Optional) Whether the control is hidden or visible.                            |
 | **`[editable]`**          | `boolean` | (Optional) Whether the control can be edited or not.                       |
- **`[for]`**          | `string` | (Optional) A comma separated user ids that are allowed to see this parameter control. It defaults to everybody `*`.                          |
+| **`[for]`**          | `string` | (Optional) A comma separated user ids that are allowed to see this parameter control. It defaults to everybody `*`.                          |
 
 ---
 

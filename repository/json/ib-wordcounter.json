@@ -1,0 +1,24 @@
+{
+    "key": "ib-wordcounter",
+    "name": "$string.ibwc_name",
+    "category": "misc",
+    "icon": "fa fa-calculator",
+    "instructions": "$string.ibwc_instructions",
+    "template": "<p><br></p>\n<div data-widget=\"ib-wordcounter\" class=\"{{#toggle}}active{{/toggle}}\">\n    <p>__LOREM__</p>\n</div>\n<p><br></p>\n",
+    "parameters": [
+        {
+            "name": "toggle",
+            "title": "Activate counter script",
+            "value": true,
+            "bind": "hasClass('active')"
+        }
+    ],
+    "selectors": "div[data-widget=\"ib-wordcounter\"]",
+    "insertquery": "div[data-widget=\"ib-wordcounter\"]",
+    "requires": {
+        "url": "https://cdn.jsdelivr.net/gh/jmulet/moodle-tiny_widgethub/repository/ib-wordcounter.js",
+        "query": "div[data-widget=\"ib-wordcounter\"].active"
+    },
+    "author": "Josep Mulet Pol <pep.mulet@gmail.com>",
+    "version": "2.2.1"
+}

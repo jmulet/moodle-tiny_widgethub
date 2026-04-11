@@ -1,0 +1,27 @@
+{
+    "key": "ib-colors",
+    "name": "$string.ibcolors_name",
+    "category": "$string.ibcolors_category",
+    "icon": "fa fa-paint-brush",
+    "template": "<span style=\"color:{{_front}};background-color:{{_back}};\" class=\"twh-sty-colors\">$string.ibcolors_sample</span>",
+    "selectors": "span.twh-sty-colors",
+    "insertquery": "span.twh-sty-colors",
+    "parameters": [
+        {
+            "name": "_front",
+            "title": "$string.ibcolors_front",
+            "bind": "styleRegex('color')",
+            "type": "color",
+            "value": "#0000ff"
+        },
+        {
+            "name": "_back",
+            "title": "$string.ibcolors_background",
+            "bind": "styleRegex('background-color')",
+            "type": "color",
+            "value": "#ffffff00"
+        }
+    ],
+    "author": "Josep Mulet <pep.mulet@gmail.com>",
+    "version": "2.0.1"
+}

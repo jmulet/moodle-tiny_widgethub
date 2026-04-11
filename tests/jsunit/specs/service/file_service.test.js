@@ -1,4 +1,11 @@
-require('../module.mocks')(jest);
+/**
+ *
+ * Tiny WidgetHub plugin.
+ *
+ * @module      tiny_widgethub/plugin
+ * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 const {FileSrv, getFileSrv} = require("../../src/service/file_service");
 
 /** @type {import('../../src/service/file_service').FileSrv} */
@@ -8,7 +15,7 @@ let editor;
 
 describe('FileSrv', () => {
     beforeEach(() => {
-        editor = require('../editor.mock')();
+        editor = global.Mocks.editorFactory();
         fileSrv = new FileSrv(editor);
     });
 

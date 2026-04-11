@@ -1,6 +1,7 @@
 key: ib-image-background
 name: $string.ibimgbg_name
 category: $string.ibimgbg_category
+icon: fa fa-image
 instructions: $string.ibimgbg_instructions
 template: |
   <div class="twh-background-img" style="background-image: url('{{url}}'); padding:10px; min-height:40px; background-repeat: no-repeat; -webkit-background-size: cover; background-size: cover; background-position: 50% 50%;">
@@ -11,11 +12,11 @@ template: |
 selectors: div.twh-background-img
 parameters:
   - name: url
-    value: https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Snow_Scene_at_Shipka_Pass_1.JPG/1024px-Snow_Scene_at_Shipka_Pass_1.JPG
+    value: https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Snow_Scene_at_Shipka_Pass_1.JPG/960px-Snow_Scene_at_Shipka_Pass_1.JPG
     title: $string.ibimgbg_url
     type: image
     tip: $string.ibimgbg_url_tip
     bind: | 
       styleRegex("background-image:url\\(['\"]?([^'\")]*)['\"]?\\)")
 author: Josep Mulet Pol <pep.mulet@gmail.com>
-version: 2.0.0
+version: 2.0.1

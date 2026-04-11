@@ -17,7 +17,7 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -25,24 +25,27 @@
  * @typedef {*} TinyMCE
  **/
 
-import {getTinyMCE} from 'editor_tiny/loader';
-import {getPluginMetadata} from 'editor_tiny/utils';
+import { getTinyMCE } from 'editor_tiny/loader';
+import { getPluginMetadata } from 'editor_tiny/utils';
 
 import Common from './common';
-import {register as registerOptions} from './options';
-import {getSetup as getCommandSetup} from './commands';
+import { register as registerOptions, setWidgetDefinitions } from './options';
+
+
+import { getSetup as getCommandSetup } from './commands';
 import * as Configuration from './configuration';
+import { subscribe } from './extension';
 
 // Register extensions
-import './extension/refractor';
 import './extension/dependencies';
+import { refactorListener } from './extension/refactorbs5';
+subscribe('onInit', refactorListener);
 
-const documentationUrl = 'https://github.com/jmulet/moodle-tiny_widgethub';
-const {component, pluginName} = Common;
+const { component, pluginName, documentationUrl } = Common;
 
 // Setup the plugin.
 // eslint-disable-next-line no-async-promise-executor
-export default new Promise(async(resolve) => {
+export default new Promise(async (resolve) => {
     const [
         tinyMCE,
         pluginMetadata,
@@ -53,12 +56,6 @@ export default new Promise(async(resolve) => {
         getCommandSetup(),
     ]);
 
-    tinyMCE.overrideDefaults({
-        ...tinyMCE.defaultOptions,
-        // eslint-disable-next-line camelcase
-        allow_script_urls: true, // Allow href="javascript:void(0)" used in popovers
-    });
-
     tinyMCE.PluginManager.add(pluginName,
         /** @param {TinyMCE} editor */
         (editor) => {
@@ -68,7 +65,11 @@ export default new Promise(async(resolve) => {
             // Setup commands.
             setupCommands(editor);
 
-            return pluginMetadata;
+            return {
+                ...pluginMetadata,
+                widgetDefine: (/** @type {import('./options').RawWidget} */ widget,
+                /** @type {string} */ css) => setWidgetDefinitions(editor, widget, css),
+            };
         });
 
     // Resolve the Plugin and include configuration.

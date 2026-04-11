@@ -18,15 +18,15 @@
  * Tiny WidgetHub plugin.
  *
  * @module      tiny_widgethub/plugin
- * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
+ * @copyright   2026 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /**
  * @typedef {{type: string, text: string, icon?: string, onAction: (api?: *) => void}} MenuItem
  * @typedef {{name: string, title: string, condition?: string | RegExp | (() => boolean), icon?: string, onAction?: ()=> void, subMenuItems?: () => (string | MenuItem[])}} UserDefinedItem
- * @typedef {(ctx: import('./contextinit').ItemMenuContext) => UserDefinedItem[]} Provider
- * @typedef {'onInit' | 'contentSet' | 'widgetInserted' | 'widgetRemoved' | 'ctxAction'} EventName
+ * @typedef {(ctx: import('./contextactions').ItemMenuContext) => Promise<UserDefinedItem[]>} Provider
+ * @typedef {'setup' | 'onInit' | 'contentSet' | 'widgetInserted' | 'widgetRemoved' | 'ctxAction'} EventName
  **/
 
 /** @type {Map<string, ((editor: import('./plugin').TinyMCE, ...args: any[]) => void)[]>}> */
