@@ -122,13 +122,27 @@ class IBPreviewModal extends ModalTracker {
     }
 }
 
-// In Moodle 4.3+, Modal gained a static create() method and self-registers via TYPE/TEMPLATE statics.
-// ModalFactory (and ModalRegistry) were removed in Moodle 5.2.
-// Load ModalFactory only as a fallback for Moodle < 4.3.
+// For Moodle < 4.3, Modal.create() did not exist yet so ModalFactory is used instead.
+// ModalFactory resolves the class by type string via ModalRegistry, so both must be loaded.
+// In Moodle 4.3+, cls.create() is called directly on the subclass — no registry needed.
 /** @type {Promise<object|null>} */
-const _modalFactoryPromise = typeof Modal.create === 'function'
-    ? Promise.resolve(null)
-    : import('core/modal_factory').then(m => m.default).catch(() => null);
+const _modalFactoryPromise = (async () => {
+    if (typeof Modal.create === 'function') {
+        // Moodle 4.3+: direct subclass create(), neither ModalFactory nor ModalRegistry needed.
+        return null;
+    }
+    // Moodle < 4.3: register modals so ModalFactory can look them up by type string.
+    await import('core/modal_registry')
+        .then(m => {
+            const ModalRegistry = m.default ?? m;
+            [IBPickerModal, IBParamsModal, IBContextModal, IBPreviewModal].forEach(cls => {
+                ModalRegistry.register(cls.TYPE, cls, cls.TEMPLATE);
+            });
+        })
+        .catch(() => { });
+    const m = await import('core/modal_factory').catch(() => null);
+    return m ? (m.default ?? m) : null;
+})();
 
 /**
  * @typedef {(el: Element, event: string, handler: EventListener) => void} ListenerTracker
