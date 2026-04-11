@@ -29,7 +29,7 @@ use tiny_widgethub\local\storage\widgetrepository;
 use tiny_widgethub\form\settingssyncform;
 
 $pageid = 'tinywidgethubsync';
-admin_externalpage_setup($pageid, '', [], '', ['pagelayout' => 'standard']);
+admin_externalpage_setup($pageid, '', [], '', ['pagelayout' => 'admin']);
 
 $currenturl = new moodle_url('/lib/editor/tiny/plugins/widgethub/settingssyncpage.php');
 $PAGE->set_url($currenturl);

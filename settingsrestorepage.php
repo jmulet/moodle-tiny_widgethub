@@ -31,7 +31,7 @@ use tiny_widgethub\form\settingsrestoreform;
 
 $pageid = 'tinywidgethubrestore';
 // Displays the page.
-admin_externalpage_setup($pageid, '', [], '', ['pagelayout' => 'standard']);
+admin_externalpage_setup($pageid, '', [], '', ['pagelayout' => 'admin']);
 
 $currenturl = '/lib/editor/tiny/plugins/widgethub/settingsrestorepage.php';
 $PAGE->set_url($currenturl);

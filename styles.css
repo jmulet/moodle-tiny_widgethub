@@ -781,6 +781,16 @@ span.notranslate {
   color: #2563eb;
 }
 
+.twh-callout-size-small {
+  margin: 1rem auto;
+  width: 60%;
+}
+@media (max-width: 640px) {
+  .twh-callout-size-small {
+    width: 100%;
+  }
+}
+
 /** Compatibility carousel in bs 4 and 5 */
 div[data-widget=bs-carousel] .carousel-indicators {
   list-style: none;

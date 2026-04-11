@@ -5,7 +5,7 @@ icon: fa fa-lightbulb-o
 engine: liquid
 template: |
   <!-- Callout Component -->
-  <div class="twh-callout twh-callout-{{type}} d-flex p-4" data-widget="ib-callout-liquid" role="alert">
+  <div class="twh-callout twh-callout-{{type}} twh-callout-size-{{size}} d-flex p-4" data-widget="ib-callout-liquid" role="alert">
     <div class="flex-grow-1">
         <div class="twh-callout-title mb-1">
           {%- if type == 'important' -%} $string.ibcallout_important
@@ -35,7 +35,7 @@ template: |
       {%- elsif type == 'example' -%}
         <i class="fa fa-lightbulb-o">&nbsp;</i>
       {%- elsif type == 'extension' -%}
-        <i class="fa fa-plus-circle">&nbsp;</i>
+        <i class="fa fa-magnifying-glass-plus">&nbsp;</i>
       {%- endif -%}
     </div>
   </div>
@@ -74,7 +74,7 @@ parameters:
             'warning': 'warning',
             'introduction': 'info-circle',
             'example': 'lightbulb-o',
-            'extension': 'plus-circle'
+            'extension': 'magnifying-glass-plus'
           };
           const titleElem = e.querySelector('.twh-callout-title');
           if (titleElem) {
@@ -85,6 +85,13 @@ parameters:
             iconElem.className = 'fa fa-' + icons[v];
           }
         }
+  - name: size
+    title: $string.ibcallout_size
+    value: large
+    options:
+      - {l: "$string.ibcallout_large", v: large}
+      - {l: "$string.ibcallout_small", v: small}
+    bind: classRegex('twh-callout-size-(.*)')
   - name: content
     title: $string.ibcallout_content
     type: textarea
@@ -92,4 +99,4 @@ parameters:
     when: "SELECT_MODE == 'insert'"
 autocomplete: type
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 1.1.0
+version: 1.2.1

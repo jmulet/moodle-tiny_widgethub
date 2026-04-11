@@ -381,6 +381,15 @@ span.notranslate {
     color: $twh-extension-main;
 }
 
+.twh-callout-size-small {
+    margin: 1rem auto;
+    width: 60%;
+
+    @media (max-width: $bp-mobile) {
+        width: 100%;
+    }
+}
+
 /** Compatibility carousel in bs 4 and 5 */
 div[data-widget="bs-carousel"] .carousel-indicators {
     list-style: none;
