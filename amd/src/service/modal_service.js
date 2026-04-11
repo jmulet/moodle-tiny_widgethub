@@ -23,8 +23,6 @@
  */
 
 import Modal from 'core/modal';
-import ModalRegistry from 'core/modal_registry';
-import ModalFactory from 'core/modal_factory';
 import ModalEvents from 'core/modal_events';
 import Common from '../common';
 const { component } = Common;
@@ -93,9 +91,6 @@ class IBPickerModal extends ModalTracker {
     }
 }
 
-ModalRegistry.register(IBPickerModal.TYPE, IBPickerModal, IBPickerModal.TEMPLATE);
-
-
 
 class IBParamsModal extends ModalTracker {
     static TYPE = `${component}/params_modal`;
@@ -107,9 +102,6 @@ class IBParamsModal extends ModalTracker {
     }
 }
 
-ModalRegistry.register(IBParamsModal.TYPE, IBParamsModal, IBParamsModal.TEMPLATE);
-
-
 class IBContextModal extends ModalTracker {
     static TYPE = `${component}/context_modal`;
     static TEMPLATE = `${component}/context_modal`;
@@ -119,9 +111,6 @@ class IBContextModal extends ModalTracker {
         super.registerEventListeners();
     }
 }
-
-ModalRegistry.register(IBContextModal.TYPE, IBContextModal, IBContextModal.TEMPLATE);
-
 
 class IBPreviewModal extends ModalTracker {
     static TYPE = `${component}/preview_modal`;
@@ -133,7 +122,13 @@ class IBPreviewModal extends ModalTracker {
     }
 }
 
-ModalRegistry.register(IBPreviewModal.TYPE, IBPreviewModal, IBPreviewModal.TEMPLATE);
+// In Moodle 4.3+, Modal gained a static create() method and self-registers via TYPE/TEMPLATE statics.
+// ModalFactory (and ModalRegistry) were removed in Moodle 5.2.
+// Load ModalFactory only as a fallback for Moodle < 4.3.
+/** @type {Promise<object|null>} */
+const _modalFactoryPromise = typeof Modal.create === 'function'
+    ? Promise.resolve(null)
+    : import('core/modal_factory').then(m => m.default).catch(() => null);
 
 /**
  * @typedef {(el: Element, event: string, handler: EventListener) => void} ListenerTracker
@@ -159,7 +154,6 @@ export class ModalSrv {
             case ('context'): cls = IBContextModal; break;
             case ('preview'): cls = IBPreviewModal; break;
         }
-        // On versions of Moodle beyond 4.3, call create directly on Modal class
         const options = {
             type: cls.TYPE,
             templateContext,
@@ -167,8 +161,11 @@ export class ModalSrv {
         };
         let modal;
         if (cls.create) {
+            // Moodle 4.3+: static create() handles template rendering and instantiation
             modal = await cls.create(options);
         } else {
+            // Moodle < 4.3: legacy ModalFactory fallback
+            const ModalFactory = await _modalFactoryPromise;
             // @ts-ignore
             modal = await ModalFactory.create(options);
         }

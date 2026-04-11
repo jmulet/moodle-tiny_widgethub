@@ -8,18 +8,18 @@
 import { TextEncoder, TextDecoder } from "node:util";
 Object.assign(global, { TextEncoder, TextDecoder });
 
-module.exports = function editorFactory(editorId=1, userInfo={id:1, username: 'joe', roles: ['student']}, selection="") {
-    const {JSDOM} = require('jsdom');
+module.exports = function editorFactory(editorId = 1, userInfo = { id: 1, username: 'joe', roles: ['student'] }, selection = "") {
+    const { JSDOM } = require('jsdom');
     // Create a new JSDOM instance
     const dom = new JSDOM(`<!DOCTYPE html><html><body></body></html>`);
     // Access the document
-    const doc= dom.window.document;
+    const doc = dom.window.document;
 
     return {
-        id: editorId, 
+        id: editorId,
         selection: {
             getContent: jest.fn().mockImplementation(() => selection),
-            setContent: jest.fn(),
+            setContent: jest.fn(), // It is deprecated
             getNode: jest.fn().mockImplementation(() => selection)
         },
         options: {
@@ -60,7 +60,7 @@ module.exports = function editorFactory(editorId=1, userInfo={id:1, username: 'j
         },
         getBody: jest.fn().mockReturnValue(doc.body),
         getContent: jest.fn().mockImplementation(t => doc.body.innerHTML),
-        setContent: jest.fn().mockImplementation(t => {doc.body.innerHTML = t; }),
+        setContent: jest.fn().mockImplementation(t => { doc.body.innerHTML = t; }),
         setDirty: jest.fn(),
         isDirty: jest.fn(),
         getParam: jest.fn(),
@@ -72,22 +72,22 @@ module.exports = function editorFactory(editorId=1, userInfo={id:1, username: 'j
         }),
         getDoc: jest.fn().mockReturnValue(doc),
         ui: {
-                registry: {
-                    addIcon: jest.fn(),
-                    addButton: jest.fn(),
-                    addMenubarItem: jest.fn(),
-                    addMenuItem: jest.fn(),
-                    addNestedMenuItem: jest.fn(),
-                    addContextMenu: jest.fn(),
-                    addContextToolbar: jest.fn(),
-                    addToggleMenuButton: jest.fn(),
-                    addToggleMenuItem: jest.fn(),
-                    getAll: jest.fn().mockReturnValue("")
-                }
-            },
-            nodeChanged: jest.fn(),
-            undoManager: {
-                add: jest.fn()
+            registry: {
+                addIcon: jest.fn(),
+                addButton: jest.fn(),
+                addMenubarItem: jest.fn(),
+                addMenuItem: jest.fn(),
+                addNestedMenuItem: jest.fn(),
+                addContextMenu: jest.fn(),
+                addContextToolbar: jest.fn(),
+                addToggleMenuButton: jest.fn(),
+                addToggleMenuItem: jest.fn(),
+                getAll: jest.fn().mockReturnValue("")
             }
+        },
+        nodeChanged: jest.fn(),
+        undoManager: {
+            add: jest.fn()
+        }
     }
 };

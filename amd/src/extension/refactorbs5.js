@@ -50,7 +50,7 @@ const bs5Selectors = bs4DataAttributeSuffixes.map(suffix => `[data-${suffix}]`).
  * @param {import("../plugin").TinyMCE} editor
  * @returns {boolean}
  */
-export function bs5Refractor(editor) {
+export function bs5Refactor(editor) {
     const body = editor.getBody();
     let changes = 0;
 
@@ -84,12 +84,16 @@ export function bs5Refractor(editor) {
 /**
  * @param {import("../plugin").TinyMCE} editor
  */
-export async function refractorListener(editor) {
+export async function refactorListener(editor) {
     try {
-        const refractoringActive = getGlobalConfig(editor, 'oninit.refractor.bs5', '0');
+        let refactoringActive = getGlobalConfig(editor, 'oninit.refactor.bs5', '');
+        if (refactoringActive === '') {
+            // Also support old config name with typo.
+            refactoringActive = getGlobalConfig(editor, 'oninit.refractor.bs5', '0');
+        }
         let changes = false;
-        if (refractoringActive === '1') {
-            changes = bs5Refractor(editor);
+        if (refactoringActive === '1') {
+            changes = bs5Refactor(editor);
         }
         if (changes) {
             const saverequired = await coreStr.get_string('saverequired', Common.component);
@@ -102,6 +106,6 @@ export async function refractorListener(editor) {
         }
     } catch (ex) {
         // eslint-disable-next-line no-console
-        console.error("Error while applying bs5 refractor:", ex);
+        console.error("Error while applying bs5 refactor:", ex);
     }
 }

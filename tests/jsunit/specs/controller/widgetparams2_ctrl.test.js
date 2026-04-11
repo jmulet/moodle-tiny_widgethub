@@ -151,7 +151,7 @@ describe("WidgetParamsCtrl Suite II", () => {
         it("should insert content into editor", async () => {
             await widgetParamsCtrl.insertWidget({ p1: 'val' });
 
-            expect(editor.selection.setContent).toHaveBeenCalledWith('rendered_template');
+            expect(editor.insertContent).toHaveBeenCalledWith('rendered_template');
             expect(editor.focus).toHaveBeenCalled();
         });
 

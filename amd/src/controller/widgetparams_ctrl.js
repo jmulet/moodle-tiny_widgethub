@@ -230,7 +230,8 @@ export class WidgetParamsCtrl {
       }
       const interpoledCode = await this.generateInterpolatedCode(ctxFromDialogue);
       // Normal insert mode
-      this.editor.selection.setContent(interpoledCode);
+      // Deprecated: this.editor.selection.setContent(interpoledCode);
+      this.editor.insertContent(interpoledCode);
       this.editor.focus();
 
       // Call any subscriber

@@ -16,7 +16,7 @@ jest.mock('core/str', () => ({
   get_string: jest.fn(),
 }));
 
-const refractor = require('../../src/extension/refractorbs5');
+const refactor = require('../../src/extension/refactorbs5');
 /** @type {any} */
 const getGlobalConfig = require('../../src/options').getGlobalConfig;
 /** @type {any} */
@@ -24,7 +24,7 @@ const coreStr = require('core/str');
 const { component } = require('../../src/common').default;
 
 
-describe('bs5Refractor', () => {
+describe('bs5Refactor', () => {
   /** @type {any} */
   let editor;
 
@@ -36,7 +36,7 @@ describe('bs5Refractor', () => {
   });
 
   it('should update data attributes from bs4 to bs5', () => {
-    const result = refractor.bs5Refractor(editor);
+    const result = refactor.bs5Refactor(editor);
 
     expect(result).toBe(true);
 
@@ -49,13 +49,13 @@ describe('bs5Refractor', () => {
   it('should return false if no changes are needed', () => {
     editor.setContent('<div data-toggle="modal" data-bs-toggle="modal" data-target="#myModal" data-bs-target="#myModal"></div>');
 
-    const result = refractor.bs5Refractor(editor);
+    const result = refactor.bs5Refactor(editor);
 
     expect(result).toBe(false);
   });
 });
 
-describe('refractorListener', () => {
+describe('refactorListener', () => {
   /** @type {any} */
   let editor;
   /** @type {any} */
@@ -78,17 +78,17 @@ describe('refractorListener', () => {
     };
   });
 
-  it('should not do anything if refractor is disabled', async () => {
+  it('should not do anything if refactor is disabled', async () => {
     getGlobalConfig.mockReturnValue('0');
 
-    await refractor.refractorListener(editor);
+    await refactor.refactorListener(editor);
 
-    expect(getGlobalConfig).toHaveBeenCalledWith(editor, 'oninit.refractor.bs5', '0');
+    expect(getGlobalConfig).toHaveBeenCalledWith(editor, 'oninit.refactor.bs5', '');
     expect(notificationManagerOpen).not.toHaveBeenCalled();
     expect(setDirty).not.toHaveBeenCalled();
   });
 
-  it('should run refractor and notify if changes are made', async () => {
+  it('should run refactor and notify if changes are made', async () => {
     getGlobalConfig.mockReturnValue('1');
 
     const body = document.createElement('body');
@@ -97,9 +97,9 @@ describe('refractorListener', () => {
 
     coreStr.get_string.mockResolvedValue('Save required');
 
-    await refractor.refractorListener(editor);
+    await refactor.refactorListener(editor);
 
-    expect(getGlobalConfig).toHaveBeenCalledWith(editor, 'oninit.refractor.bs5', '0');
+    expect(getGlobalConfig).toHaveBeenCalledWith(editor, 'oninit.refactor.bs5', '');
     expect(coreStr.get_string).toHaveBeenCalledWith('saverequired', component);
     expect(notificationManagerOpen).toHaveBeenCalledWith({
       text: 'Save required',
@@ -109,14 +109,14 @@ describe('refractorListener', () => {
     expect(setDirty).toHaveBeenCalledWith(true);
   });
 
-  it('should run refractor and NOT notify if NO changes are made', async () => {
+  it('should run refactor and NOT notify if NO changes are made', async () => {
     getGlobalConfig.mockReturnValue('1');
 
     const body = document.createElement('body');
     body.innerHTML = '<div></div>';
     editor.getBody = () => body;
 
-    await refractor.refractorListener(editor);
+    await refactor.refactorListener(editor);
 
     expect(notificationManagerOpen).not.toHaveBeenCalled();
     expect(setDirty).not.toHaveBeenCalled();
@@ -129,9 +129,9 @@ describe('refractorListener', () => {
 
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => { });
 
-    await refractor.refractorListener(editor);
+    await refactor.refactorListener(editor);
 
-    expect(consoleError).toHaveBeenCalledWith("Error while applying bs5 refractor:", expect.any(Error));
+    expect(consoleError).toHaveBeenCalledWith("Error while applying bs5 refactor:", expect.any(Error));
     consoleError.mockRestore();
   });
 });

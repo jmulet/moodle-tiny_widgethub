@@ -38,8 +38,8 @@ import { subscribe } from './extension';
 
 // Register extensions
 import './extension/dependencies';
-import { refractorListener } from './extension/refractorbs5';
-subscribe('onInit', refractorListener);
+import { refactorListener } from './extension/refactorbs5';
+subscribe('onInit', refactorListener);
 
 const { component, pluginName, documentationUrl } = Common;
 

@@ -120,7 +120,7 @@ describe("WidgetParamsCtrl Suite I", () => {
         await widgetParamsCtrl.insertWidget(ctx);
         expect(spy).toHaveBeenCalledWith(ctx);
         expect(mockUserStorage.setToSession).toHaveBeenCalledWith('recent', json, true);
-        expect(mockEditor.selection.setContent).toHaveBeenCalledWith('<p>...</p>');
+        expect(mockEditor.insertContent).toHaveBeenCalledWith('<p>...</p>');
         expect(mockEditor.focus).toHaveBeenCalled();
     });
 
