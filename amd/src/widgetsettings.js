@@ -27,7 +27,7 @@ import { CmEditor, YAML } from './libs/cmeditor-lazy';
 // eslint-disable-next-line camelcase
 import { get_string } from 'core/str';
 import { getTemplateSrv, createDefaultsForParam } from './service/template_service';
-import { applyPartials } from './options';
+import { applyPartials, getGlobalConfig, getMoodleVersion } from './options';
 import common from './common';
 import { compareVersion, sanitizeSvg } from './util';
 import { getInstanceForElementId } from 'editor_tiny/editor';
@@ -798,22 +798,68 @@ export default class WidgetSettings {
         iframe.style.border = 'none';
         iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
 
+        // Mirror commands.js Bootstrap/jQuery injection logic.
+        const tinyinstance = getInstanceForElementId(this.nodes.previewTiny?.id ?? '');
+        const moodleVersion = tinyinstance ? getMoodleVersion(tinyinstance) : (cfg.version ?? '');
+        let jqUrl = (tinyinstance ? getGlobalConfig(tinyinstance, 'tiny.iframe.jquery.url', '') : '').trim();
+        let jqIntegrity = '';
+        let bsUrl = (tinyinstance ? getGlobalConfig(tinyinstance, 'tiny.iframe.bootstrap.url', '') : '').trim();
+        let bsIntegrity = '';
+
+        if (!bsUrl) {
+            if (moodleVersion.startsWith('4')) {
+                bsUrl = `https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js`;
+                bsIntegrity = 'sha256-GRJrh0oydT1CwS36bBeJK/2TggpaUQC6GzTaTQdZm0k=';
+            } else {
+                bsUrl = `https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js`;
+                bsIntegrity = 'sha256-5P1JGBOIxI7FBAvT/mb1fCnI5n/NhQKzNUuW7Hq0fMc=';
+            }
+        }
+
+        if (!jqUrl && moodleVersion.startsWith('4')) {
+            try {
+                // @ts-ignore
+                const path = window.requirejs.s.contexts._.config.paths.jquery;
+                jqUrl = path.startsWith('http') ? path : cfg.wwwroot + path;
+                if (!jqUrl.endsWith('.js')) {
+                    jqUrl += '.js';
+                }
+            } catch (e) {
+                jqUrl = 'https://code.jquery.com/jquery-3.7.1.min.js';
+                jqIntegrity = 'sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=';
+            }
+        }
+
+        const requiresJquery = jqUrl !== '' && jqUrl !== 'none';
+        let scripts = '';
+        if (requiresJquery) {
+            const integrityAttr = jqIntegrity ? ` integrity="${jqIntegrity}" crossorigin="anonymous"` : '';
+            scripts += `<script src="${jqUrl}"${integrityAttr}><\/script>\n`;
+        }
+        if (bsUrl !== '' && bsUrl !== 'none') {
+            const integrityAttr = bsIntegrity ? ` integrity="${bsIntegrity}" crossorigin="anonymous"` : '';
+            scripts += `<script src="${bsUrl}"${integrityAttr}><\/script>\n`;
+        }
+        let initScript = '';
+        if (bsUrl.includes('@5')) {
+            initScript = `<script>document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el=>{new bootstrap.Popover(el,{trigger:'hover'});});<\/script>`;
+        } else if (requiresJquery && bsUrl.includes('@4')) {
+            initScript = `<script>$('body').popover({selector:'[data-toggle="popover"]',trigger:'hover'});<\/script>`;
+        }
+
         const tinyContent = this.tinyPreviewStrategy?.getValue();
-        // Display the preview in an iframe.
-        const iframeContent = `
+        // Display the preview in an iframe using srcdoc to avoid CSP blob: issues.
+        iframe.srcdoc = `
         <html>
             <head>
                 <link rel="stylesheet" href="${allCss}">
             </head>
             <body>
                 ${tinyContent}
+                ${scripts}
+                ${initScript}
             </body>
         </html>`;
-
-        if (iframe.src?.startsWith('blob:')) {
-            URL.revokeObjectURL(iframe.src);
-        }
-        iframe.src = URL.createObjectURL(new Blob([iframeContent], { type: 'text/html' }));
 
     }
 }

@@ -70,3 +70,7 @@ Changes:
   - Widget definitions are no longer updated automatically during plugin upgrades.
     Administrators must manually update widgets via the management page ("Update widgets" button)
     to allow for manual fine-tuning and to prevent overwriting custom changes.
+
+== 1.5.1 ==
+  - GitHub issues templates
+  
