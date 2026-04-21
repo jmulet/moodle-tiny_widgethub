@@ -160,7 +160,7 @@ function createWorker(type) {
         const data = Object.assign(Object.create(null), e.data);
         data.type = type;
         // sanitize data.response
-        if (data.result) {
+        if (typeof data.result === 'string') {
             data.result = sanitize(data.result);
         }
         port1?.postMessage(data);
