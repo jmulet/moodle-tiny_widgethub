@@ -70,3 +70,10 @@ Changes:
   - Widget definitions are no longer updated automatically during plugin upgrades.
     Administrators must manually update widgets via the management page ("Update widgets" button)
     to allow for manual fine-tuning and to prevent overwriting custom changes.
+
+== 1.5.1 ==
+  - Issue #50: Version 1.5 - Observations / Feedback.
+    - Replaced editor preview with iframe with srcdoc instead of using blob.
+    - Added white background to the editor page. 
+  - Issue #51: Bug with "when"? All fields are hidden immediately on load in add widget modal
+  - Add templates for GitHub issues

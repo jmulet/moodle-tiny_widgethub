@@ -31,22 +31,20 @@ const _postMessage = self.postMessage;
 self.onmessage = function (e) {
     const data = e.data;
     const payload = data.payload || protoNullify({});
-    try {
-        const result = evalInContext(payload.ctx, payload.code, false);
-        _postMessage(protoNullify({
-            requestId: data.requestId,
-            result: {
-                returns: result,
-                ctx: payload.ctx
-            }
-        }));
-    } catch (e) {
-        console.error('Failed to evaluate code: ' + e);
-        _postMessage(protoNullify({
-            requestId: data.requestId,
-            error: 'Failed to evaluate code: ' + e
-        }));
-    }
+    const codes = Array.isArray(payload.code) ? payload.code : [payload.code];
+    const results = codes.map((/** @type {string} */ code) => {
+        const ctx = protoNullify(payload.ctx);
+        try {
+            return { returns: evalInContext(ctx, code, false), ctx };
+        } catch (e) {
+            console.error('Failed to evaluate code: ' + e);
+            return { returns: undefined, ctx };
+        }
+    });
+    _postMessage(protoNullify({
+        requestId: data.requestId,
+        result: results
+    }));
 };
 _postMessage(protoNullify({
     type: typeof evalInContext === 'function' ? 'worker_ready' : 'worker_error',

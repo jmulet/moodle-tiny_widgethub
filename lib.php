@@ -22,10 +22,18 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->component = 'tiny_widgethub';
-$plugin->release = '1.5.1';
-$plugin->requires = 2023042400;  // Moodle 4.2+.
-$plugin->maturity = MATURITY_STABLE;
-$plugin->version = 2026041201;
+/**
+ * Returns the user preferences for the Tiny WidgetHub plugin.
+ *
+ * @return array
+ */
+function tiny_widgethub_user_preferences() {
+    return [
+        'tiny_widgethub_userprefs' => [
+            'type' => PARAM_RAW,
+            'null' => NULL_NOT_ALLOWED,
+            'default' => '',
+            'permissioncallback' => [core_user::class, 'is_current_user'],
+        ],
+    ];
+}

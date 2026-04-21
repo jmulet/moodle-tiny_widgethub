@@ -435,6 +435,12 @@ export class FormCtrl {
             if (!control || !t) {
                continue;
             }
+            // If a control has when field, hide it from the start
+            /** @type {HTMLElement | null} */
+            const theComponent = control.closest('.form-group');
+            if (theComponent && !theComponent.getAttribute('data-amagat')) {
+               theComponent.style.display = 'none';
+            }
             updatableComponents.push({
                condition: condition.replace(/[{}]{2}/g, ''),
                component: control,
@@ -454,18 +460,19 @@ export class FormCtrl {
       }
 
       const doUpdateVisibilities = async () => {
+         if (updatableComponents.length === 0) {
+            return;
+         }
          const sandbox = await Sandbox.getInstance();
-         for (const upcomp of updatableComponents) {
-            // Evaluate condition
-            const newVariables = this.extractFormParameters(widget, formElem, false);
-            // Add to the new variables the internal variables
-            newVariables.SELECT_MODE = selectmode;
-            // Eval JS condition for new variables
-            const response = await sandbox.execute('eval', {
-               code: upcomp.condition,
-               ctx: newVariables
-            });
-            const showme = response?.returns;
+         const newVariables = this.extractFormParameters(widget, formElem, false);
+         newVariables.SELECT_MODE = selectmode;
+         const response = await sandbox.execute('eval', {
+            code: updatableComponents.map(upcomp => upcomp.condition),
+            ctx: newVariables
+         });
+         updatableComponents.forEach((upcomp, i) => {
+            // Do not hide for undefined results
+            const showme = response?.result?.[i]?.returns ?? true;
             if (upcomp.component) {
                /** @type {HTMLElement | null} */
                const theComponent = upcomp.component.closest('.form-group');
@@ -474,7 +481,7 @@ export class FormCtrl {
                   theComponent.style.display = showme ? '' : 'none';
                }
             }
-         }
+         });
       };
 
       // Apply the watchers

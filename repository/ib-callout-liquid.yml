@@ -96,7 +96,7 @@ parameters:
     title: $string.ibcallout_content
     type: textarea
     value: ""
-    when: "SELECT_MODE == 'insert'"
+    when: "!SELECT_MODE"
 autocomplete: type
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 1.2.1
+version: 1.3.0

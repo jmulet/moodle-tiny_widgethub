@@ -183,11 +183,10 @@ export class Sandbox {
             this._readyPromise = null;
         }
         // Reset the singleton so getInstance() can create a fresh sandbox.
-        if (Sandbox._instance === this) {
-            Sandbox._instance = null;
-        }
-        if (RemoteDom._instance === this) {
+        if (this instanceof RemoteDom) {
             RemoteDom._instance = null;
+        } else {
+            Sandbox._instance = null;
         }
     }
 
