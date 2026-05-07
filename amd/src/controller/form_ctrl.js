@@ -90,6 +90,8 @@ export const Templates = Object.freeze(
       <span class="form-label" title="{{varname}}">{{vartitle}} ${questionPopover}</span>
       {{{itemControls}}}
    </div>`,
+
+      STATICTEMPLATE: `<div id="{{elementid}}" class="tiny_widgethub-static-param my-3 mx-1{{#hidden}} d-none{{/hidden}}"><strong>{{vartitle}}</strong>{{#tooltip}}<div class="small text-muted">{{tooltip}}</div>{{/tooltip}}</div>`,
    }));
 
 
@@ -239,6 +241,8 @@ export class FormCtrl {
             itemControls = ul.outerHTML;
          }
          markup = this.templateSrv.renderMustache(Templates.REPEATABLE, { ...generalCtx, itemControls });
+      } else if (param.type === 'static') {
+         markup = this.templateSrv.renderMustache(Templates.STATICTEMPLATE, generalCtx);
       } else {
          // Assume textfield
          markup = this.templateSrv.renderMustache(Templates.TEXTFIELDTEMPLATE, generalCtx);
@@ -295,6 +299,10 @@ export class FormCtrl {
       const defaults = widget.defaults;
       widget.parameters.forEach(param => {
          const pname = param.name;
+         // Static params are display-only and produce no value.
+         if (param.type === 'static') {
+            return;
+         }
          const cleanParamname = cleanParameterName(pname);
          /** @type {HTMLInputElement | null} */
          const elem = form.querySelector(`[name="${cleanParamname}"]`);
@@ -431,13 +439,26 @@ export class FormCtrl {
          if (varobj.when) {
             const condition = varobj.when;
             const t = varobj.type;
-            const control = formElem.querySelector(`[name="${cleanParameterName(varobj.name)}"]`);
+            /** @type {Element | null} */
+            let control;
+            /** @type {HTMLElement | null} */
+            let theComponent;
+            if (t === 'static') {
+               // Static params have no input[name]; find their wrapper div by id.
+               const pname = cleanParameterName(varobj.name);
+               const elemId = formElem.id
+                  ? `${formElem.id}_${pname}`
+                  : `${this.editor.id}_${pname}`;
+               theComponent = formElem.querySelector(`#${elemId}`);
+               control = theComponent;
+            } else {
+               control = formElem.querySelector(`[name="${cleanParameterName(varobj.name)}"]`);
+               theComponent = control ? /** @type {HTMLElement} */ (control.closest('.form-group')) : null;
+            }
             if (!control || !t) {
                continue;
             }
             // If a control has when field, hide it from the start
-            /** @type {HTMLElement | null} */
-            const theComponent = control.closest('.form-group');
             if (theComponent && !theComponent.getAttribute('data-amagat')) {
                theComponent.style.display = 'none';
             }
@@ -475,7 +496,13 @@ export class FormCtrl {
             const showme = response?.result?.[i]?.returns ?? true;
             if (upcomp.component) {
                /** @type {HTMLElement | null} */
-               const theComponent = upcomp.component.closest('.form-group');
+               let theComponent;
+               if (upcomp.type === 'static') {
+                  // Static params are their own wrapper; no .form-group ancestor.
+                  theComponent = /** @type {HTMLElement} */ (upcomp.component);
+               } else {
+                  theComponent = upcomp.component.closest('.form-group');
+               }
                // Only change visibilities of nodes not hidden from user
                if (theComponent && !theComponent.getAttribute('data-amagat')) {
                   theComponent.style.display = showme ? '' : 'none';

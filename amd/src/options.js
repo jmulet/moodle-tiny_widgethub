@@ -165,7 +165,7 @@ export function setWidgetDefinitions(editor, widget, css) {
         { type: 'text/css', id: 'tiny_widgethub-playground-style' },
         css ?? ''
     );
-    // Reinit context menu.
+    // Reinit context menu (async method, no need to wait for it).
     getContextMenuManager(editor).init();
 }
 
@@ -323,6 +323,13 @@ export const Shared = {
  * @param {Param} param
  */
 export function fixMissingParamProperties(param) {
+    if (param.type === 'static') {
+        // Static params are display-only; ensure they have a name so the DOM id can be constructed.
+        if (!param.name) {
+            param.name = genID('s');
+        }
+        return;
+    }
     if (!param.type) {
         if (param.options) {
             param.type = 'select';
@@ -434,7 +441,7 @@ export function applyPartials(widget, partials) {
  * @property {string=} partial
  * @property {string} name
  * @property {string} title
- * @property {'textfield' | 'numeric' | 'checkbox' | 'select' | 'autocomplete' | 'textarea' | 'image' | 'color' | 'repeatable'} [type]
+ * @property {'textfield' | 'numeric' | 'checkbox' | 'select' | 'autocomplete' | 'textarea' | 'image' | 'color' | 'repeatable' | 'static'} [type]
  * @property {(ParamOption | string)[]} [options]
  * @property {any} value
  * @property {string=} tip
@@ -524,6 +531,10 @@ export class Widget {
         this._id = widget.id;
         this._widget = widget;
         this._fullyLoaded = !!widget.template || !!widget.filter;
+        // If fully loaded, apply partials here
+        if (this._fullyLoaded) {
+            applyPartials(this._widget, this.partials);
+        }
     }
     /**
      * Fully load widget definition via ajax.
@@ -670,6 +681,9 @@ export class Widget {
         /** @type {Object.<string, any> } */
         const obj = Object.create(null);
         (this._widget.parameters ?? []).forEach((param) => {
+            if (param.type === 'static') {
+                return;
+            }
             obj[param.name] = createDefaultsForParam(param, populateRepeatable);
         });
         return obj;
@@ -734,13 +748,6 @@ export class Widget {
     }
 
     /**
-     * @returns {boolean}
-     */
-    isFilter() {
-        return this._widget.isfilter;
-    }
-
-    /**
      * @param {string=} scope
      * @returns {boolean}
      */
@@ -752,18 +759,41 @@ export class Widget {
         }
         return new RegExp(widgetScopes).test(scope);
     }
+
+    /**
+     * @returns {boolean}
+     */
+    isFilter() {
+        return this._widget.isfilter || (this._widget.isfilter === undefined &&
+            typeof this._widget.filter === 'string' && this._widget.filter.trim() !== '');
+    }
+
+
     /**
      * @returns {boolean}
      */
     isSelectCapable() {
-        return this._widget.isselectcapable;
+        return this._widget.isselectcapable || (this._widget.isselectcapable === undefined &&
+            (!!this._widget.selectors && !!this._widget.insertquery));
     }
     /**
      * Determine if a widget contains bindings
      * @returns {boolean}
      */
     hasBindings() {
-        return this._widget.hasbindings;
+        if (typeof this._widget.hasbindings === 'boolean') {
+            return this._widget.hasbindings;
+        }
+        const parameters = this._widget.parameters ?? [];
+        return parameters.some(param => {
+            if (param.type === 'repeatable') {
+                const hasFieldBindings = param.fields?.some(f => f.bind !== undefined);
+                return (typeof param.bind === 'object') ||
+                    (hasFieldBindings && typeof param.item_selector === 'string');
+            } else {
+                return param.bind !== undefined;
+            }
+        });
     }
 
     /**

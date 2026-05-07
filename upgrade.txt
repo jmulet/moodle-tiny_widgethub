@@ -77,3 +77,8 @@ Changes:
     - Added white background to the editor page. 
   - Issue #51: Bug with "when"? All fields are hidden immediately on load in add widget modal
   - Add templates for GitHub issues
+
+== 1.5.2 ==
+  - Issue #53: static headlines in the modal to group settings with complex widgets. 
+    New static parameter type: can be used to display information in the widget configuration form
+  

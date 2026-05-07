@@ -28,6 +28,7 @@
  */
 $string['accept'] = 'Acceptar';
 $string['additionalcss'] = 'CSS addicional per al iframe de l\'editor';
+$string['advancedsettings'] = 'Configuració avançada';
 $string['author'] = 'Autor';
 $string['authormismatch'] = 'L\'autor no coincideix';
 $string['backuprestoredfailed'] = 'La restauració de la còpia de seguretat ha fallat';
@@ -77,6 +78,7 @@ $string['bspopover_title'] = 'Títol del popover';
 $string['bspopover_title_tip'] = 'Aquest paràmetre és opcional. Si l\'afegeixes, el títol apareixerà sobre el popover';
 $string['bspopover_word'] = 'Paraula';
 $string['bspopover_word_tip'] = 'Quan facis clic en aquesta paraula, apareixerà el popover';
+$string['bstable_appearance'] = 'Aparença i estil';
 $string['bstable_borders'] = 'Mostrar vores';
 $string['bstable_cell'] = 'Cel·la';
 $string['bstable_foot'] = 'Peu';
@@ -132,6 +134,7 @@ $string['filterres'] = 'Resultat del filtre';
 $string['generalsettings'] = 'Configuració general';
 $string['helplinktext'] = 'WidgetHub';
 $string['ibcallout_content'] = 'Contingut inicial';
+$string['ibcallout_content_tip'] = 'El contingut seleccionat a l\'editor s\'utilitzarà com a contingut inicial de la nota.';
 $string['ibcallout_example'] = 'Exemple';
 $string['ibcallout_extension'] = 'Ampliació';
 $string['ibcallout_important'] = 'Important';

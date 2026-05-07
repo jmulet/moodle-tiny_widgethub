@@ -77,9 +77,9 @@ function testJsonFields(wdg) {
     if (wdg.parameters) {
         // Check parameters.
         wdg.parameters.forEach((/** @type {*} */ p) => {
-            if (!p.partial && (!p.name || !p.title)) {
+            if (!p.partial && (!p.title || (p.type !== 'static' && !p.name))) {
                 nerrs++;
-                console.error(`\tThe parameter ${JSON.stringify(p)} requires name and title`);
+                console.error(`\tThe parameter ${JSON.stringify(p)} requires ${p.type === 'static' ? 'title' : 'name and title'}`);
             }
             if (p.type == 'select') {
                 if (!p.options?.length) {
@@ -224,7 +224,7 @@ function findErrors(parsed) {
 
     // All parameters must have a default value.
     (parsed.parameters || []).forEach((/** @type {*} */ p) => {
-        if (p.type !== 'repeatable' && (p.value === null || p.value === undefined)) {
+        if (p.type !== 'repeatable' && p.type !== 'static' && (p.value === null || p.value === undefined)) {
             console.error(`The parameter ${JSON.stringify(p)} requires a default value in widget ${parsed.key}`, parsed);
             console.error(":-( Parameter value missing! Fix this issue and run the script again.");
             process.exit(1);

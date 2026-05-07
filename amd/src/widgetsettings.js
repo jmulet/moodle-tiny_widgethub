@@ -508,7 +508,9 @@ export default class WidgetSettings {
                 /** @type {Record<string, *>} */
                 const ctx = {};
                 (jsonObj.parameters ?? []).forEach(/** @param {import('./options').Param} param */(param) => {
-                    ctx[param.name] = createDefaultsForParam(param, true);
+                    if (param.type !== 'static') {
+                        ctx[param.name] = createDefaultsForParam(param, true);
+                    }
                 });
 
                 if (jsonObj.template && this.id && this.id !== 0) {
@@ -528,7 +530,7 @@ export default class WidgetSettings {
                 const errStr1 = await get_string('errparamtype', component);
                 const errStr2 = await get_string('errparamvalue', component);
                 parameters
-                    .filter(p => p.type === 'select' || p.type === 'autocomplete' || p.options)
+                    .filter(p => p.type && p.type !== 'static' && (p.type === 'select' || p.type === 'autocomplete' || p.options))
                     .forEach(p => {
                         if (!p.options || !Array.isArray(p.options)) {
                             validation.msg += replacePlaceholders(errStr1, p.name + '.options', 'Array') + '\n';

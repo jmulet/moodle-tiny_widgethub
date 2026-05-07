@@ -61,6 +61,10 @@ export const getSetup = async () => {
 
     /** @param {import('./plugin').TinyMCE} editor */
     return (editor) => {
+        console.log('--- TinyMCE Init START ---');
+        console.log("Context:: ", editor.options.get('contextid'));
+        console.log("--- TinyMCE Init END ---");
+
         // Check if the option visible is set.
         if (!isPluginVisible(editor)) {
             // No capabilities required.
@@ -395,8 +399,8 @@ function initializeEditor(editor) {
             }
         }
 
-        if (parseInt(getGlobalConfig(editor, 'enable.contextmenu.level', '1')) > 0) {
-            // Initialize context toolbars and menus
+        // Initialize context toolbars and menus if we are not in playground mode.
+        if (!isPlaygroundMode() && parseInt(getGlobalConfig(editor, 'enable.contextmenu.level', '1')) > 0) {
             await getContextMenuManager(editor).init();
         }
 

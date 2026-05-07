@@ -393,18 +393,37 @@ export class ContextActionsManager {
             actionPaths: {},
             editor: editor
         };
-        this.widgetList = Object.values(getWidgetDict(editor));
+        this.widgetList = [];
         this.i18n = Object.create(null);
+        /**
+         * Tracks widget keys that already have a registered context toolbar,
+         * so we never attempt to register the same name twice.
+         * @type {Set<string>}
+         */
+        this._registeredCtbKeys = new Set();
     }
 
     async init() {
-        this.i18n = await this.loadStrings();
-        this.predefinedActions = predefinedActionsFactory(this.editor, this.domSrv, this.modalSrv, this.widgetCutClipboard);
-        registerIcons(this.editor);
-        this.registerUI();
-        await this.registerExtensionMenus();
-        this.registerContextMenus();
-        this.registerContextToolbars();
+        if (!this.staticInitPromise) {
+            this.staticInitPromise = (async () => {
+                this.i18n = await this.loadStrings();
+                this.predefinedActions = predefinedActionsFactory(this.editor, this.domSrv, this.modalSrv, this.widgetCutClipboard);
+                registerIcons(this.editor);
+                this.registerUI();
+                // Context menus and toolbars are registered once; their callbacks
+                // read this.widgetList dynamically so they always reflect the
+                // current widget set after setWidgetDefinitions updates it.
+                this.registerContextMenus();
+                await this.registerExtensionMenus();
+            })();
+        }
+        await this.staticInitPromise;
+
+        // Dynamic part: refresh widget list and register any new context toolbars.
+        this.widgetList = Object.values(getWidgetDict(this.editor));
+        if (this.widgetList.length > 0) {
+            this.registerContextToolbars();
+        }
     }
 
     /**
@@ -768,35 +787,42 @@ export class ContextActionsManager {
     }
 
     registerContextToolbars() {
-        // Look for widgets that need a context toolbar
-        this.widgetList.filter(widget => widget.prop('contexttoolbar') && !widget.isFilter()).forEach(widget => {
-            const items = [];
-            if (widget.hasBindings()) {
-                items.push('modal');
-            }
-            /** @type {import('./options').Action[]} */
-            const contextToolbar = widget.prop('contexttoolbar');
-            contextToolbar.filter(ctbSpec => !ctbSpec.predicate).forEach(ctbSpec => {
-                const actionsToAdd = ctbSpec.actions.toLowerCase().split(/\s+/).filter(Boolean)
-                    .map(e => e.trim())
-                    .filter(e => !['|', 'cut', 'printable'].includes(e));
-                items.push(...actionsToAdd);
+        // Look for widgets that need a context toolbar.
+        // Skip any widget whose toolbar has already been registered to avoid
+        // duplicate-registration errors when init() is called more than once
+        // (e.g. via setWidgetDefinitions).
+        this.widgetList
+            .filter(widget => widget.prop('contexttoolbar') && !widget.isFilter())
+            .filter(widget => !this._registeredCtbKeys.has(widget.key))
+            .forEach(widget => {
+                this._registeredCtbKeys.add(widget.key);
+                const items = [];
+                if (widget.hasBindings()) {
+                    items.push('modal');
+                }
+                /** @type {import('./options').Action[]} */
+                const contextToolbar = widget.prop('contexttoolbar');
+                contextToolbar.filter(ctbSpec => !ctbSpec.predicate).forEach(ctbSpec => {
+                    const actionsToAdd = ctbSpec.actions.toLowerCase().split(/\s+/).filter(Boolean)
+                        .map(e => e.trim())
+                        .filter(e => !['|', 'cut', 'printable'].includes(e));
+                    items.push(...actionsToAdd);
+                });
+                if (widget.unwrap) {
+                    items.push('unwrap');
+                }
+                this.editor.ui.registry.addContextToolbar(`${componentName}_ctb_${widget.key}`, {
+                    /** @param {HTMLElement} node */
+                    predicate: (node) => {
+                        const path = this.domSrv.findWidgetOnEventPath(this.widgetList, node);
+                        // Only activate if the first widget found in path is the current one
+                        return path.widget?.key === widget.key;
+                    },
+                    items: items.map(e => e === '|' ? '|' : `${componentName}_${e}_btn`).join(' '),
+                    position: 'node',
+                    scope: 'node',
+                });
             });
-            if (widget.unwrap) {
-                items.push('unwrap');
-            }
-            this.editor.ui.registry.addContextToolbar(`${componentName}_ctb_${widget.key}`, {
-                /** @param {HTMLElement} node */
-                predicate: (node) => {
-                    const path = this.domSrv.findWidgetOnEventPath(this.widgetList, node);
-                    // Only activate if the first widget found in path is the current one
-                    return path.widget?.key === widget.key;
-                },
-                items: items.map(e => e === '|' ? '|' : `${componentName}_${e}_btn`).join(' '),
-                position: 'node',
-                scope: 'node',
-            });
-        });
     }
 }
 
