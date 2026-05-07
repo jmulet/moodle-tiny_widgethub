@@ -41,6 +41,7 @@ class save_widgetsyml extends external_api {
      */
     public static function execute_parameters() {
         return new external_function_parameters([
+            'contextid' => new external_value(PARAM_INT, 'Context ID'),
             'widgets' => new external_multiple_structure(
                 new external_single_structure([
                     'id' => new external_value(PARAM_INT, 'Widget ID'),
@@ -61,13 +62,23 @@ class save_widgetsyml extends external_api {
 
     /**
      * The function that executes the real logic.
+     * @param int $contextid The context ID.
      * @param array $widgets The widgets data to save.
      * @return array True if success for each widget.
      */
-    public static function execute($widgets) {
-        $params = self::validate_parameters(self::execute_parameters(), ['widgets' => $widgets]);
-        /** @var \context $context */
-        $context = \context_system::instance();
+    public static function execute($contextid, $widgets) {
+        $params = self::validate_parameters(
+            self::execute_parameters(),
+            ['contextid' => $contextid, 'widgets' => $widgets]
+        );
+
+        // Security checks.
+        $contextid = $params['contextid'] ?? 0;
+        if ($contextid >= 1) {
+            $context = \context::instance_by_id($contextid);
+        } else {
+            $context = \context_system::instance();
+        }
         self::validate_context($context);
         // Only admins can perform this action.
         require_capability('tiny/widgethub:manage', $context);

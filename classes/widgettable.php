@@ -140,6 +140,7 @@ class widgettable extends \admin_setting {
         $finalhtml = $OUTPUT->render_from_template('tiny_widgethub/widgettable', $templatedata);
 
         $deletestr = get_string('delete', self::TINY_CATEGORY);
+        $context = $PAGE->context ?? \context_system::instance();
         $jsparams = [
             'tableId' => $tableid,
             'selectAllId' => $selectallid,
@@ -150,6 +151,7 @@ class widgettable extends \admin_setting {
             'confirmTitle' => $deletestr,
             'confirmMessage' => get_string('confirmdelete', self::TINY_CATEGORY),
             'confirmBtn' => $deletestr,
+            'contextId' => $context->id,
         ];
 
         $PAGE->requires->js_call_amd('tiny_widgethub/widgettable', 'init', [$jsparams]);

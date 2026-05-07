@@ -79,10 +79,12 @@ class plugininfo extends plugin implements
         global $USER, $COURSE, $CFG;
 
         // Decide if to enable the plugin.
-        $showplugin = has_capability('tiny/widgethub:viewplugin', $context);
+        $manageplugin = has_capability('tiny/widgethub:manage', $context);
+        $showplugin = has_capability('tiny/widgethub:viewplugin', $context) || $manageplugin;
 
         $params = [
             'showplugin' => $showplugin,
+            'manageplugin' => $manageplugin,
         ];
 
         if ($showplugin) {
@@ -99,6 +101,7 @@ class plugininfo extends plugin implements
             ];
             $params['userprefs'] = get_user_preferences('tiny_widgethub_userprefs', '');
             $params['courseid'] = $COURSE->id;
+            $params['contextid'] = $context->id;
             $params['moodleversion'] = $CFG->release;
 
             // Configuration.

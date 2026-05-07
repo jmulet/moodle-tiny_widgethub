@@ -26,10 +26,11 @@ import { getExternalService } from './external_service';
 export class FetchDocumentsBatch {
     static METHOD_NAME = 'tiny_widgethub_get_widget_documents';
     /**
+     * @param {number} contextid Context ID.
      * @param {number} [delay] Time in ms to wait before flushing the queue.
      */
-    constructor(delay = 500) {
-        this.externalService = getExternalService();
+    constructor(contextid, delay = 500) {
+        this.externalService = getExternalService(contextid);
         this.delay = delay;
         /** @type {Array<{ id: number, resolve: Function, reject: Function, promise: Promise<any> }>} */
         this.queue = [];
@@ -100,4 +101,21 @@ export class FetchDocumentsBatch {
                 });
             });
     }
+}
+
+/** @type {Map<number, FetchDocumentsBatch>} */
+const instances = new Map();
+
+/**
+ * Get or create a FetchDocumentsBatch instance for a given context.
+ * @param {number} contextid Context ID.
+ * @returns {FetchDocumentsBatch}
+ */
+export function getDocumentBatcher(contextid) {
+    let instance = instances.get(contextid);
+    if (!instance) {
+        instance = new FetchDocumentsBatch(contextid);
+        instances.set(contextid, instance);
+    }
+    return instance;
 }

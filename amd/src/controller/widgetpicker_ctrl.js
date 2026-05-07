@@ -27,11 +27,12 @@
 import { get_string } from 'core/str';
 import Common from '../common';
 import { getWidgetParamsFactory } from '../controller/widgetparams_ctrl';
-import { getEditorOptions, getGlobalConfig } from '../options';
+import { getEditorOptions, getGlobalConfig, isManagePlugin } from '../options';
 import { getModalSrv } from '../service/modal_service';
 import { getTemplateSrv } from '../service/template_service';
 import { getUserStorage } from '../service/userstorage_service';
 import { debounce, genID, hashCode, removeRndFromCtx, searchComp, toggleClass } from '../util';
+import Config from 'core/config';
 
 const { component } = Common;
 
@@ -421,7 +422,7 @@ export class WidgetPickerCtrl {
      * @returns {Promise<string>}
      */
     async generatePreview(widget) {
-        await widget.loadDefinition();
+        await widget.loadDefinition(this.editor, false);
         const toInterpolate = { ...widget.defaultsWithRepeatable(true) };
         // Decide which template engine to use
         const engine = widget.prop('engine');
@@ -454,7 +455,7 @@ export class WidgetPickerCtrl {
      * @property {Button[]} buttons
      */
     /**
-     *  @typedef {{rid: string, selectmode: boolean, elementid: string, categories: Category[], recent: *[], showquickbuttons: boolean}} TemplateContext
+     *  @typedef {{rid: string, selectmode: boolean, elementid: string, categories: Category[], recent: *[], showquickbuttons: boolean, managepluginurl: string}} TemplateContext
      */
     /**
      * Get the template context for the dialogue.
@@ -589,13 +590,19 @@ export class WidgetPickerCtrl {
             });
         }
 
+        let managepluginurl = '';
+        if (isManagePlugin(this.editor)) {
+            managepluginurl = `${Config.wwwroot}/lib/editor/tiny/plugins/widgethub/settingsmanage.php`;
+        }
+
         return {
             rid: genID(),
             selectmode: this.isSelectMode(),
             elementid: this.editor.id,
             categories: categoriesList,
             recent: recentList,
-            showquickbuttons: quickbuttonBehavior !== 'none'
+            showquickbuttons: quickbuttonBehavior !== 'none',
+            managepluginurl,
         };
     }
 

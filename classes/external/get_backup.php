@@ -39,7 +39,9 @@ class get_backup extends external_api {
      * @return \external_function_parameters
      */
     public static function execute_parameters() {
-        return new external_function_parameters([]);
+        return new external_function_parameters([
+            'contextid' => new external_value(PARAM_INT, 'Context ID'),
+        ]);
     }
 
     /**
@@ -54,14 +56,20 @@ class get_backup extends external_api {
 
     /**
      * The function that executes the the widget backup logic.
+     * @param int $contextid
+     * @return array
      */
-    public static function execute() {
+    public static function execute($contextid) {
         // Validate parameters.
-        self::validate_parameters(self::execute_parameters(), []);
+        $params = self::validate_parameters(self::execute_parameters(), ['contextid' => $contextid]);
 
         // Security checks. Any administrator can backup widgets.
-        /** @var \context $context */
-        $context = \context_system::instance();
+        $contextid = $params['contextid'] ?? 0;
+        if ($contextid >= 1) {
+            $context = \context::instance_by_id($contextid);
+        } else {
+            $context = \context_system::instance();
+        }
         self::validate_context($context);
         require_capability('tiny/widgethub:manage', $context);
 

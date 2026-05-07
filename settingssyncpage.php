@@ -23,26 +23,26 @@
  */
 
 require_once(__DIR__ . '/../../../../../config.php');
-require_once($CFG->libdir . '/adminlib.php');
 
 use tiny_widgethub\local\storage\widgetrepository;
 use tiny_widgethub\form\settingssyncform;
 
-$pageid = 'tinywidgethubsync';
-admin_externalpage_setup($pageid, '', [], '', ['pagelayout' => 'admin']);
+require_login();
+/** @var \context $context */
+$context = \context_system::instance();
+require_capability('tiny/widgethub:manage', $context);
 
-$currenturl = new moodle_url('/lib/editor/tiny/plugins/widgethub/settingssyncpage.php');
+$PAGE->set_context($context);
+
+$baseurl = '/lib/editor/tiny/plugins/widgethub';
+$currenturl = $baseurl . '/settingssyncpage.php';
 $PAGE->set_url($currenturl);
 $syncstr = get_string('syncrepository', 'tiny_widgethub');
 $PAGE->set_title($syncstr);
 $PAGE->set_heading($syncstr);
+$PAGE->set_pagelayout('admin');
 
-/** @var \context $context */
-$context = \context_system::instance();
-$PAGE->set_context($context);
-require_capability('tiny/widgethub:manage', $context);
-
-$backurl = new moodle_url('/admin/settings.php', ['section' => 'tiny_widgethub_settings'], 'widgettable');
+$widgettableurl = new moodle_url($baseurl . '/settingsmanage.php');
 
 $syncstatus = widgetrepository::getsyncstatus();
 $tablehtml = $OUTPUT->render_from_template('tiny_widgethub/sync_table', ['syncstatus' => $syncstatus]);
@@ -51,7 +51,7 @@ $mform = new settingssyncform(null, ['tablehtml' => $tablehtml]);
 
 $syncresults = null;
 if ($mform->is_cancelled()) {
-    redirect($backurl);
+    redirect($widgettableurl);
 } else if ($data = $mform->get_data()) {
     // Selectedkeys is a JSON-encoded array kept in sync by the AMD module.
     $rawkeys = !empty($data->selectedkeys) ? json_decode($data->selectedkeys, true) : [];

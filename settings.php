@@ -31,34 +31,6 @@ if ($hassiteconfig) {
     // This MUST be done outside the fulltree check so Moodle knows the hierarchy.
     $ADMIN->add('editortiny', new admin_category($plugincategory, get_string('pluginname', 'tiny_widgethub')));
 
-    // Register the external pages (hidden from navigation).
-    $externalpage = new admin_externalpage(
-        'tinywidgethubeditor',
-        get_string('pluginname', 'tiny_widgethub'),
-        new moodle_url('/lib/editor/tiny/plugins/widgethub/settingseditorpage.php'),
-        'tiny/widgethub:manage',
-        true // Hidden from the admin menu tree.
-    );
-    $ADMIN->add($plugincategory, $externalpage);
-
-    $externalpage = new admin_externalpage(
-        'tinywidgethubrestore',
-        get_string('pluginname', 'tiny_widgethub'),
-        new moodle_url('/lib/editor/tiny/plugins/widgethub/settingsrestorepage.php'),
-        'tiny/widgethub:manage',
-        true
-    );
-    $ADMIN->add($plugincategory, $externalpage);
-
-    $externalpage = new admin_externalpage(
-        'tinywidgethubsync',
-        get_string('syncrepository', 'tiny_widgethub'),
-        new moodle_url('/lib/editor/tiny/plugins/widgethub/settingssyncpage.php'),
-        'tiny/widgethub:manage',
-        true
-    );
-    $ADMIN->add($plugincategory, $externalpage);
-
     // Load actual settings only when the user is viewing a settings page.
     if ($ADMIN->fulltree) {
         // Main settings page definition.

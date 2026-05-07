@@ -46,9 +46,11 @@ export default {
      *  confirmTitle: string,
      *  confirmMessage: string,
      *  confirmBtn: string,
+     *  contextId: number,
      * }} params - Object with configuration parameters
      */
     init: function (params) {
+        const contextId = params.contextId;
         /** @type {HTMLTableElement | null} */
         // @ts-ignore
         const table = document.getElementById(params.tableId);
@@ -194,7 +196,7 @@ export default {
                     }
                     locks.visibilities.add(id);
                     spinElement(target, null);
-                    const externalService = getExternalService();
+                    const externalService = getExternalService(contextId);
                     externalService.setVisibility(parseInt(id), !isVisible).then((/** @type {boolean} */ success) => {
                         unspinElement(target, null);
                         if (!success) {
@@ -232,7 +234,7 @@ export default {
                 params.confirmBtn,
             ).then(() => {
                 spinElement(deleteBtn);
-                const externalService = getExternalService();
+                const externalService = getExternalService(contextId);
                 externalService.deleteWidgets(ids).then((/** @type {any} */ response) => {
                     unspinElement(deleteBtn);
                     selectAll.checked = false;
@@ -259,7 +261,7 @@ export default {
         exportBtn.addEventListener('click', async () => {
             spinElement(exportBtn);
             // Precheck if all documents include yml, if not generate from json.
-            const externalService = getExternalService();
+            const externalService = getExternalService(contextId);
             try {
                 const missingIds = await externalService.getWidgetsNoYml();
                 if (missingIds.length > 0) {

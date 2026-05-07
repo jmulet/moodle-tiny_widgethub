@@ -23,31 +23,31 @@
  */
 
 require_once(__DIR__ . '/../../../../../config.php');
-require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->libdir . '/editorlib.php');
 
 use tiny_widgethub\local\storage\backuputil;
 use tiny_widgethub\form\settingsrestoreform;
 
-$pageid = 'tinywidgethubrestore';
-// Displays the page.
-admin_externalpage_setup($pageid, '', [], '', ['pagelayout' => 'admin']);
+require_login();
+/** @var \context $context */
+$context = \context_system::instance();
+require_capability('tiny/widgethub:manage', $context);
 
-$currenturl = '/lib/editor/tiny/plugins/widgethub/settingsrestorepage.php';
+$PAGE->set_context($context);
+
+$baseurl = '/lib/editor/tiny/plugins/widgethub';
+$currenturl = $baseurl . '/settingsrestorepage.php';
 $PAGE->set_url($currenturl);
 $restorestr = get_string('restorewidgets', 'tiny_widgethub');
 $PAGE->set_title($restorestr);
 $PAGE->set_heading($restorestr);
+$PAGE->set_pagelayout('admin');
 
-/** @var \context $context */
-$context = \context_system::instance();
-$PAGE->set_context($context);
-require_capability('tiny/widgethub:manage', $context);
 
 $mform = new settingsrestoreform();
 
 $res = null;
-$widgettableurl = new moodle_url('/admin/settings.php', ['section' => 'tiny_widgethub_settings'], 'widgettable');
+$widgettableurl = $baseurl . '/settingsmanage.php';
 // Handling submission.
 if ($mform->is_cancelled()) {
     redirect($widgettableurl);

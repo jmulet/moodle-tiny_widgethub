@@ -606,7 +606,7 @@ export class ContextActionsManager {
 
     /**
      * Let extensions register additional menuItem and nestedMenuItem.
-     * It is reponsability of the extension actions to call widget.loadDefinition() if needed.
+     * It is reponsability of the extension actions to call widget.loadDefinition(editor) if needed.
      */
     async registerExtensionMenus() {
         /** @type {import('./extension').UserDefinedItem[]} */
