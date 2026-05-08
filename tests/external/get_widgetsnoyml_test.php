@@ -57,7 +57,8 @@ final class get_widgetsnoyml_test extends \externallib_advanced_testcase {
         $widget = ['key' => 'no_yml', 'name' => 'name1', 'template' => 'template1', 'author' => 'Me', 'version' => '1.0'];
         $idnoyml = $storage->save_widget(null, $widget, null);
 
-        $result = get_widgetsnoyml::execute();
+        $contextid = \context_system::instance()->id;
+        $result = get_widgetsnoyml::execute($contextid);
         $result = \core_external\external_api::clean_returnvalue(get_widgetsnoyml::execute_returns(), $result);
 
         // Result is a list of IDs.

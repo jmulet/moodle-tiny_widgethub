@@ -56,7 +56,8 @@ final class get_widgetsdocuments_test extends \externallib_advanced_testcase {
         $this->assertGreaterThan(0, $id);
 
         // Execute retrieval (including all documents).
-        $result = get_widgetsdocuments::execute([$id], true, true);
+        $contextid = \context_system::instance()->id;
+        $result = get_widgetsdocuments::execute($contextid, [$id], true, true);
         $result = \core_external\external_api::clean_returnvalue(get_widgetsdocuments::execute_returns(), $result);
 
         $this->assertCount(1, $result);
@@ -85,7 +86,8 @@ final class get_widgetsdocuments_test extends \externallib_advanced_testcase {
         ]);
         $this->assertGreaterThan(0, $id);
         // Request without YML.
-        $result = get_widgetsdocuments::execute([$id], true, false);
+        $contextid = \context_system::instance()->id;
+        $result = get_widgetsdocuments::execute($contextid, [$id], true, false);
         $result = \core_external\external_api::clean_returnvalue(get_widgetsdocuments::execute_returns(), $result);
         $this->assertCount(1, $result);
         $this->assertArrayHasKey('json', $result[0]);
@@ -105,7 +107,8 @@ final class get_widgetsdocuments_test extends \externallib_advanced_testcase {
         ], "yml content");
         $this->assertGreaterThan(0, $id);
         // Request without YML.
-        $result = get_widgetsdocuments::execute([$id], true, false);
+        $contextid = \context_system::instance()->id;
+        $result = get_widgetsdocuments::execute($contextid, [$id], true, false);
         $result = \core_external\external_api::clean_returnvalue(get_widgetsdocuments::execute_returns(), $result);
         $this->assertCount(1, $result);
         $this->assertArrayHasKey('json', $result[0]);
@@ -126,7 +129,8 @@ final class get_widgetsdocuments_test extends \externallib_advanced_testcase {
 
         $this->assertGreaterThan(0, $id);
         // Request without JSON.
-        $result = get_widgetsdocuments::execute([$id], false, true);
+        $contextid = \context_system::instance()->id;
+        $result = get_widgetsdocuments::execute($contextid, [$id], false, true);
         $result = \core_external\external_api::clean_returnvalue(get_widgetsdocuments::execute_returns(), $result);
         $this->assertCount(1, $result);
         $this->assertArrayNotHasKey('json', $result[0]);

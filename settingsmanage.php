@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Page for synchronizing widget definitions from the repository.
+ * Page for managing widget definitions.
  *
  * @package     tiny_widgethub
  * @copyright   2026 Josep Mulet <pep.mulet@gmail.com>
@@ -43,7 +43,6 @@ $PAGE->set_pagelayout('admin');
 $widgetsstr = get_string('widgets', 'tiny_widgethub');
 $setting = new widgettable('tiny_widgethub/widgets', $widgetsstr, $widgetsstr);
 
-// Para renderizar
 echo $OUTPUT->header();
 echo $setting->output_html($setting->get_setting());
 echo $OUTPUT->footer();
