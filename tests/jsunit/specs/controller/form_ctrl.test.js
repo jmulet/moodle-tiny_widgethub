@@ -290,7 +290,7 @@ describe("FormCtrl", () => {
         const sandbox = require('../../src/service/sandbox').Sandbox;
         const sandboxInstance = await sandbox.getInstance();
         // @ts-ignore
-        sandboxInstance.execute.mockResolvedValue({ returns: false });
+        sandboxInstance.execute.mockResolvedValue({ result: [{ returns: false }, { returns: false }] });
 
         // Use the real templateSrv
         formCtrl = new FormCtrl(mockEditor, mockUserStorage, getTemplateSrv(mockEditor), mockFileSrv);
@@ -355,7 +355,7 @@ describe("FormCtrl", () => {
         lstControl.querySelector('option[value="italy"]')?.setAttribute('selected', '');
         lstInput.dispatchEvent(new Event("change", { bubbles: true })); // native
         // @ts-ignore
-        sandboxInstance.execute.mockResolvedValue({ returns: true });
+        sandboxInstance.execute.mockResolvedValue({ result: [{ returns: true }, { returns: true }] });
         await wait(500);
         expect(lstControl.style.display).not.toBe('none');
         expect(txtControl.style.display).not.toBe('none');
@@ -364,7 +364,7 @@ describe("FormCtrl", () => {
         optInput.checked = false;
         optInput.dispatchEvent(new Event("change", { bubbles: true })); // native
         // @ts-ignore
-        sandboxInstance.execute.mockResolvedValue({ returns: false });
+        sandboxInstance.execute.mockResolvedValue({ result: [{ returns: false }, { returns: false }] });
         await wait(500);
         // Expect only the first element to be visible
         expect(optControl.style.display).toBe('');

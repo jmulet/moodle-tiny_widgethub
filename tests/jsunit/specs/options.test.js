@@ -112,10 +112,12 @@ describe('Options', () => {
         // And expect
         const registerOption = fakeEditor.options.register;
         expect(registerOption).toHaveBeenNthCalledWith(1, "showplugin", expect.any(Object));
-        expect(registerOption).toHaveBeenNthCalledWith(2, "user", expect.any(Object));
-        expect(registerOption).toHaveBeenNthCalledWith(3, "courseid", expect.any(Object));
-        expect(registerOption).toHaveBeenNthCalledWith(4, "sharecss", expect.any(Object));
-        expect(registerOption).toHaveBeenNthCalledWith(5, "userprefs", expect.any(Object));
+        expect(registerOption).toHaveBeenNthCalledWith(2, "manageplugin", expect.any(Object));
+        expect(registerOption).toHaveBeenNthCalledWith(3, "user", expect.any(Object));
+        expect(registerOption).toHaveBeenNthCalledWith(4, "courseid", expect.any(Object));
+        expect(registerOption).toHaveBeenNthCalledWith(5, "contextid", expect.any(Object));
+        expect(registerOption).toHaveBeenNthCalledWith(6, "sharecss", expect.any(Object));
+        expect(registerOption).toHaveBeenNthCalledWith(7, "userprefs", expect.any(Object));
     });
 
     test('It returns the dictionary of widgets', () => {
