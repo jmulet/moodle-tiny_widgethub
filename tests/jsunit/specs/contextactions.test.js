@@ -305,6 +305,7 @@ describe('Context Actions Manager', () => {
         const { ContextActionsManager } = require('../src/contextactions');
         require('../src/options')._resetCacheForTesting({ widgetList: [rawSnpt2] });
         const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), Mocks.modalSrv, mockTranslateSrv, widgetCutClipboard);
+        await contextActionsManager.init();
         expect(contextActionsManager.ctx.path).toBeFalsy();
 
         await contextActionsManager.showPropertiesAction();

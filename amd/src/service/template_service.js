@@ -159,6 +159,9 @@ export function createDefaultsForParam(param, populateRepeatable) {
             /** @type {Record<string, *>} */
             const obj = {};
             param.fields?.forEach(field => {
+                if (!field.name || field.type === 'static') {
+                    return;
+                }
                 let val = field.value ?? '';
                 if (typeof (val) === 'string' && val.indexOf("{{i}}") >= 0) {
                     val = templateSrv.renderMustache(val, { i }, true);

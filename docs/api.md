@@ -51,13 +51,13 @@ The type `Parameter` consists of these fields
 
 | **Key**               | **Type**                              | **Description**                                                                                           |
 |------------------------|---------------------------------------|----------------------------------------------------------------------------------------------------------|
-| **`name`**           | `string`                              | The name of the parameter used in the template {{name}} or <%= name %>. If the name starts with `_` then it is saved in localStorage and restablished on future usage.                          |
+| **`name`**           | `string`                              | The name of the parameter used in the template {{name}} or <%= name %>. If the name starts with `_` then it is saved in localStorage and restablished on future usage. For 'static' parameters, it is optional and auto-generated if omitted. |
 | **`title`**           | `string`                             | A human-readable name for the parameter.                                                                 |
 | **`[tooltip]`**       | `string`                             | (Optional) Additional information about the parameter.                                                   |
 | **`[tip]`**       | `string`                             | (Optional) Simply a shortcut for `tooltip`                                               |
 | **`[partial]`**       | `string`                             | (Optional) A string with double trailing and leading underscore. This variable must be defined into the special `partials` widget.        |
-| **`value`**           | `any`                                | Default value for the parameter. If he type is 'select', then the value must match one of the options.                                                                        |
-| **`[type]`**          | `'textfield' or 'textarea' or 'numeric' or 'select' or 'autocomplete' or 'checkbox' or 'color' or 'image' or 'repeatable'` | (Optional) In some cases, type can be inferred from `value` or other parameters.                                         |
+| **`value`**           | `any`                                | Default value for the parameter. If the type is 'select', then the value must match one of the options. This field is not used for 'static' type. |
+| **`[type]`**          | `'textfield' or 'textarea' or 'numeric' or 'select' or 'autocomplete' or 'checkbox' or 'color' or 'image' or 'repeatable' or 'static'` | (Optional) In some cases, type can be inferred from `value` or other parameters. Type 'static' (since v1.5.2) is used for display-only information (title and tooltip) and carries no value. |
 | **`options`**         | `string[]` or `{l: string, v: string}[]` | Options for `select` type.                                                                |
 | **`[min]`**           | `number`                             | (Optional) Minimum value for numeric controls or the minimum number of items in repeatable parameters (defaults to 1).                                                           |
 | **`[max]`**           | `number`                             | (Optional) Maximum value for numeric controls or the maximum number of items in repeatable parameters.                                                           |
@@ -69,6 +69,18 @@ The type `Parameter` consists of these fields
 | **`[hidden]`**          | `boolean` | (Optional) Whether the control is hidden or visible.                            |
 | **`[editable]`**          | `boolean` | (Optional) Whether the control can be edited or not.                       |
 | **`[for]`**          | `string` | (Optional) A comma separated user ids that are allowed to see this parameter control. It defaults to everybody `*`.                          |
+
+---The `static` parameter type
+
+The `static` parameter type (introduced in v1.5.2) is used to display informational content, such as headers, labels, or instructions, directly within the widget configuration form. Unlike other parameter types, it does not provide an input field and does not contribute any value to the template rendering context.
+
+**Supported fields for `static` type:**
+
+- **`title`**: (Required) The text to be displayed in the form.
+- **`tooltip`** or **`tip`**: (Optional) Additional information displayed below the title.
+- **`name`**: (Optional) Used as a unique identifier for DOM elements. If omitted, it is automatically generated.
+- **`when`**: (Optional) A JavaScript expression to conditionally show or hide the static element based on other parameter values. 
+- **`hidden`**: (Optional) If set to `true`, the element is hidden by default. 
 
 ---
 

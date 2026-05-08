@@ -51,6 +51,7 @@ import { enableIframeBubble } from './extension/iframebubble';
 import { getWidgetParamsFactory } from './controller/widgetparams_ctrl';
 import Config from 'core/config';
 import { getFilterSrv } from './service/filter_service';
+import { getContextId } from 'editor_tiny/options';
 
 export const getSetup = async () => {
     // Get some translations
@@ -66,9 +67,9 @@ export const getSetup = async () => {
             // No capabilities required.
             return;
         }
-
+        const contextId = getContextId(editor);
         // Start fetch early, no await here because setup must be sync.
-        fetchEditorData();
+        fetchEditorData(contextId);
 
 
         getListeners('setup').forEach(listener => listener(editor));
@@ -132,7 +133,7 @@ export const getSetup = async () => {
         // Click on button directly opens the only registered widget options.
         // Click on button directly opens the only registered widget options.
         const defaultAction = async () => {
-            await fetchEditorData();
+            await fetchEditorData(contextId);
             if (isInPlaygroundMode) {
                 // Click on button directly opens the only registered widget options.
                 const factory = getWidgetParamsFactory(editor);
@@ -163,7 +164,7 @@ export const getSetup = async () => {
              * @param {((items: *[]) => void) } callback
              */
             const splitbuttonFetch = async (callback) => {
-                await fetchEditorData();
+                await fetchEditorData(contextId);
                 const widgetsDict = getWidgetDict(editor);
                 const isSelectMode = editor.selection.getContent().trim().length > 0;
                 const items = storage.getRecentUsed()
@@ -184,7 +185,7 @@ export const getSetup = async () => {
              * @param {string} key
              */
             const splitbuttonAction = async (api, key) => {
-                await fetchEditorData();
+                await fetchEditorData(contextId);
                 const widgetsDict = getWidgetDict(editor);
                 const widgetPickCtrl = getWidgetPickCtrl(editor);
                 const widget = widgetsDict[key];
@@ -224,14 +225,14 @@ export const getSetup = async () => {
              * @returns {Promise<{type: string, value: string, text: string}[]>}
              */
             const autocompleterFetch = async (pattern) => {
-                await fetchEditorData();
+                await fetchEditorData(contextId);
                 const resultPromises = getMatchedWidgets(pattern).map(async (/** @type {import('./options').Widget} */ w) => {
 
                     const varname = w.prop('autocomplete')?.trim();
                     // Widgets that have autocomplete need to be fully loaded
                     let param;
                     if (varname) {
-                        await w.loadDefinition();
+                        await w.loadDefinition(editor, false);
                         param = findVariableByName(varname, w.parameters);
                     }
                     if (!param?.options) {
@@ -305,7 +306,8 @@ export const getSetup = async () => {
  * @param {import('./plugin').TinyMCE} editor
  */
 const applyAutoFilters = async (editor) => {
-    await fetchEditorData();
+    const contextId = getContextId(editor);
+    await fetchEditorData(contextId);
     const storage = getUserStorage(editor);
 
     const requiresFilter = storage.getFromLocal("startup.filters", "").split(",");
@@ -315,7 +317,7 @@ const applyAutoFilters = async (editor) => {
         const widgetsFound = requiresFilter.map(key => editorOptions.widgetDict[key])
             .filter(widget => widget?.isFilter());
         // All these widgets must have been fully loaded.
-        await Promise.all(widgetsFound.map(widget => widget.loadDefinition()));
+        await Promise.all(widgetsFound.map(widget => widget.loadDefinition(editor, false)));
 
 
         const filters = widgetsFound.map(widget => {
@@ -352,11 +354,12 @@ const applyAutoFilters = async (editor) => {
  * @param {import('./plugin').TinyMCE} editor
  */
 function initializeEditor(editor) {
+    const contextId = getContextId(editor);
     editor.once('SetContent', async () => {
         // Ensure widget data is loaded before running contentSet listeners.
         // Without this await, cleanUnusedRequires (subscribed to contentSet) sees an
         // empty widget dict and removes all dependency scripts as "unknown".
-        await fetchEditorData();
+        await fetchEditorData(contextId);
         // Run all subscribers
         applyAutoFilters(editor);
         getListeners('contentSet').forEach(listener => listener(editor));
@@ -365,7 +368,7 @@ function initializeEditor(editor) {
     editor.on('init', async () => {
         // On init editor.dom is ready
         // Ensure async widget data is available before proceeding (race condition guard).
-        await fetchEditorData();
+        await fetchEditorData(contextId);
 
         // Inject css all generated by Moodle into the editor's iframe
         // http://localhost:4141/theme/styles.php/boost/1721728984_1/all
@@ -395,8 +398,8 @@ function initializeEditor(editor) {
             }
         }
 
-        if (parseInt(getGlobalConfig(editor, 'enable.contextmenu.level', '1')) > 0) {
-            // Initialize context toolbars and menus
+        // Initialize context toolbars and menus if we are not in playground mode.
+        if (!isPlaygroundMode() && parseInt(getGlobalConfig(editor, 'enable.contextmenu.level', '1')) > 0) {
             await getContextMenuManager(editor).init();
         }
 

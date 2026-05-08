@@ -45,6 +45,9 @@ parameters:
     title: $string.ibtime_title
     type: textfield
     value: ''
+  - type: static
+    title: $string.advancedsettings
+    tooltip: $string.bstable_appearance
   - name: stripes
     title: $string.bstable_stripes
     tip: $string.bstable_stripes_tip
@@ -62,4 +65,4 @@ parameters:
     title: $string.bstable_responsive
     value: false
 author: Josep Mulet <pep.mulet@gmail.com>
-version: 2.0.1
+version: 2.0.2

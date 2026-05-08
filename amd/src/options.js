@@ -23,19 +23,21 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import { getPluginOptionName } from 'editor_tiny/options';
+import { getContextId, getPluginOptionName } from 'editor_tiny/options';
 import Common from './common';
 import { compareVersion, genID } from './util';
 import { createDefaultsForParam } from './service/template_service';
-import { FetchDocumentsBatch } from './service/fetchdocumentsbatch';
+import { getDocumentBatcher } from './service/fetchdocumentsbatch';
 import { getContextMenuManager } from './contextactions';
 import { getExternalService } from './service/external_service';
 
 const pluginName = Common.pluginName;
 
 const showPluginOptName = getPluginOptionName(pluginName, 'showplugin');
+const managePluginOptName = getPluginOptionName(pluginName, 'manageplugin');
 const userInfoOptName = getPluginOptionName(pluginName, 'user');
 const courseIdOptName = getPluginOptionName(pluginName, 'courseid');
+const contextIdOptName = getPluginOptionName(pluginName, 'contextid');
 const shareCssOptName = getPluginOptionName(pluginName, 'sharecss');
 const userPrefsOptName = getPluginOptionName(pluginName, 'userprefs');
 const moodleVersionOptName = getPluginOptionName(pluginName, 'moodleversion');
@@ -62,13 +64,14 @@ let _fetchPromise = null;
 
 /**
  * Singleton fetch for editor data.
+ * @param {number} contextId
  * @returns {Promise<void>}
  */
-export const fetchEditorData = () => {
+export const fetchEditorData = (contextId) => {
     if (_fetchPromise) {
         return _fetchPromise;
     }
-    _fetchPromise = getExternalService().getEditorData().then(data => {
+    _fetchPromise = getExternalService(contextId).getEditorData().then(data => {
         _cache.widgetList = data.widgetlist;
         _cache.partials = data.partials;
         _cache.additionalcss = data.additionalcss;
@@ -107,6 +110,11 @@ export const register = (editor) => {
         "default": true,
     });
 
+    registerOption(managePluginOptName, {
+        processor: 'boolean',
+        "default": false,
+    });
+
     registerOption(userInfoOptName, {
         processor: 'object',
         "default": {
@@ -117,8 +125,25 @@ export const register = (editor) => {
     });
 
     registerOption(courseIdOptName, {
-        processor: 'string',
-        "default": "-1",
+        processor: (/** @type{string} */ value) => {
+            const num = parseInt(value, 10);
+            return {
+                valid: !isNaN(num),
+                value: num,
+            };
+        },
+        "default": -1,
+    });
+
+    registerOption(contextIdOptName, {
+        processor: (/** @type{string} */ value) => {
+            const num = parseInt(value, 10);
+            return {
+                valid: !isNaN(num),
+                value: num,
+            };
+        },
+        "default": -1,
     });
 
     registerOption(shareCssOptName, {
@@ -165,7 +190,7 @@ export function setWidgetDefinitions(editor, widget, css) {
         { type: 'text/css', id: 'tiny_widgethub-playground-style' },
         css ?? ''
     );
-    // Reinit context menu.
+    // Reinit context menu (async method, no need to wait for it).
     getContextMenuManager(editor).init();
 }
 
@@ -174,6 +199,12 @@ export function setWidgetDefinitions(editor, widget, css) {
  * @returns {boolean} - are the plugin buttons visible?
  */
 export const isPluginVisible = (editor) => editor.options.get(showPluginOptName);
+
+/**
+ * @param {import('./plugin').TinyMCE} editor
+ * @returns {boolean} - is the manage plugin enabled?
+ */
+export const isManagePlugin = (editor) => editor.options.get(managePluginOptName);
 
 /**
  * @returns {string} - additional css that must be included in a <style> tag in editor's iframe
@@ -297,7 +328,14 @@ export class EditorOptions {
      * @returns {number} - an integer with the id of the current course
      */
     get courseId() {
-        return parseInt(this.editor.options.get(courseIdOptName));
+        return this.editor.options.get(courseIdOptName);
+    }
+
+    /**
+     * @returns {number} - an integer with the id of the current context
+     */
+    get contextId() {
+        return this.editor.options.get(contextIdOptName);
     }
 
     /**
@@ -323,6 +361,13 @@ export const Shared = {
  * @param {Param} param
  */
 export function fixMissingParamProperties(param) {
+    if (param.type === 'static') {
+        // Static params are display-only; ensure they have a name so the DOM id can be constructed.
+        if (!param.name) {
+            param.name = genID('s');
+        }
+        return;
+    }
     if (!param.type) {
         if (param.options) {
             param.type = 'select';
@@ -434,7 +479,7 @@ export function applyPartials(widget, partials) {
  * @property {string=} partial
  * @property {string} name
  * @property {string} title
- * @property {'textfield' | 'numeric' | 'checkbox' | 'select' | 'autocomplete' | 'textarea' | 'image' | 'color' | 'repeatable'} [type]
+ * @property {'textfield' | 'numeric' | 'checkbox' | 'select' | 'autocomplete' | 'textarea' | 'image' | 'color' | 'repeatable' | 'static'} [type]
  * @property {(ParamOption | string)[]} [options]
  * @property {any} value
  * @property {string=} tip
@@ -501,7 +546,6 @@ export function applyPartials(widget, partials) {
  * @classdesc Wrapper for Widget definition
  */
 export class Widget {
-    static documentBatcher = new FetchDocumentsBatch(300);
     _widget;
     #instructionsParsed = false;
     /** @type {string | undefined} */
@@ -524,13 +568,18 @@ export class Widget {
         this._id = widget.id;
         this._widget = widget;
         this._fullyLoaded = !!widget.template || !!widget.filter;
+        // If fully loaded, apply partials here
+        if (this._fullyLoaded) {
+            applyPartials(this._widget, this.partials);
+        }
     }
     /**
      * Fully load widget definition via ajax.
-     * @param {import('./plugin').TinyMCE} [editor]
+     * @param {import('./plugin').TinyMCE} editor
+     * @param {boolean} [showProgress=true]
      * @returns {Promise<void>}
      */
-    async loadDefinition(editor) {
+    async loadDefinition(editor, showProgress = true) {
         if (this._fullyLoaded) {
             return Promise.resolve();
         }
@@ -541,8 +590,11 @@ export class Widget {
         // Define and store the new promise
         const doLoad = async () => {
             try {
-                editor?.setProgressState(true);
-                const doc = await Widget.documentBatcher.fetchDocument(this._widget.id ?? 0);
+                if (showProgress && typeof editor.setProgressState === 'function') {
+                    editor.setProgressState(true);
+                }
+                const contextid = getContextId(editor);
+                const doc = await getDocumentBatcher(contextid).fetchDocument(this._widget.id ?? 0);
 
                 this._widget = {
                     ...this._widget,
@@ -557,7 +609,9 @@ export class Widget {
             } finally {
                 // Clear the lock so subsequent calls (if failed) can try again
                 this._loadingPromise = null;
-                editor?.setProgressState(false);
+                if (showProgress && typeof editor.setProgressState === 'function') {
+                    editor.setProgressState(false);
+                }
             }
         };
 
@@ -670,6 +724,9 @@ export class Widget {
         /** @type {Object.<string, any> } */
         const obj = Object.create(null);
         (this._widget.parameters ?? []).forEach((param) => {
+            if (param.type === 'static') {
+                return;
+            }
             obj[param.name] = createDefaultsForParam(param, populateRepeatable);
         });
         return obj;
@@ -734,13 +791,6 @@ export class Widget {
     }
 
     /**
-     * @returns {boolean}
-     */
-    isFilter() {
-        return this._widget.isfilter;
-    }
-
-    /**
      * @param {string=} scope
      * @returns {boolean}
      */
@@ -752,18 +802,41 @@ export class Widget {
         }
         return new RegExp(widgetScopes).test(scope);
     }
+
+    /**
+     * @returns {boolean}
+     */
+    isFilter() {
+        return this._widget.isfilter || (this._widget.isfilter === undefined &&
+            typeof this._widget.filter === 'string' && this._widget.filter.trim() !== '');
+    }
+
+
     /**
      * @returns {boolean}
      */
     isSelectCapable() {
-        return this._widget.isselectcapable;
+        return this._widget.isselectcapable || (this._widget.isselectcapable === undefined &&
+            (!!this._widget.selectors && !!this._widget.insertquery));
     }
     /**
      * Determine if a widget contains bindings
      * @returns {boolean}
      */
     hasBindings() {
-        return this._widget.hasbindings;
+        if (typeof this._widget.hasbindings === 'boolean') {
+            return this._widget.hasbindings;
+        }
+        const parameters = this._widget.parameters ?? [];
+        return parameters.some(param => {
+            if (param.type === 'repeatable') {
+                const hasFieldBindings = param.fields?.some(f => f.bind !== undefined);
+                return (typeof param.bind === 'object') ||
+                    (hasFieldBindings && typeof param.item_selector === 'string');
+            } else {
+                return param.bind !== undefined;
+            }
+        });
     }
 
     /**

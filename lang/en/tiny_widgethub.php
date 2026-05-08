@@ -28,6 +28,7 @@
  */
 $string['accept'] = 'Accept';
 $string['additionalcss'] = 'Additional CSS for the editor iframe';
+$string['advancedsettings'] = 'Advanced settings';
 $string['author'] = 'Author';
 $string['authormismatch'] = 'Author mismatch';
 $string['backuprestoredfailed'] = 'Backup restoration failed';
@@ -77,6 +78,7 @@ $string['bspopover_title'] = 'Title of popover';
 $string['bspopover_title_tip'] = 'This parameter is optional. If you add it, the title will appear above the balloon';
 $string['bspopover_word'] = 'Word';
 $string['bspopover_word_tip'] = 'When you click on this word, the balloon will appear';
+$string['bstable_appearance'] = 'Appearance and styling';
 $string['bstable_borders'] = 'Show borders';
 $string['bstable_cell'] = 'Cell';
 $string['bstable_foot'] = 'Foot';
@@ -132,6 +134,7 @@ $string['filterres'] = 'Result of the filter';
 $string['generalsettings'] = 'General settings';
 $string['helplinktext'] = 'WidgetHub';
 $string['ibcallout_content'] = 'Initial content';
+$string['ibcallout_content_tip'] = 'The selected content in the editor will be used as the initial content of the callout.';
 $string['ibcallout_example'] = 'Example';
 $string['ibcallout_extension'] = 'Extension';
 $string['ibcallout_important'] = 'Important';

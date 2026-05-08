@@ -40,6 +40,7 @@ class update_visible extends external_api {
      */
     public static function execute_parameters() {
         return new external_function_parameters([
+            'contextid' => new external_value(PARAM_INT, 'Context ID'),
             'id' => new external_value(PARAM_INT, 'Widget ID to update visibility'),
             'visible' => new external_value(PARAM_BOOL, 'The visibility of the widget'),
         ]);
@@ -57,17 +58,25 @@ class update_visible extends external_api {
 
     /**
      * The function that executes the the widget saving logic.
+     * @param int $contextid The context ID.
      * @param int $id The widget ID to update visibility.
      * @param bool $visible The visibility of the widget.
      * @return array The result of the operation.
      */
-    public static function execute($id, $visible) {
+    public static function execute($contextid, $id, $visible) {
         // Validate parameters.
-        $params = self::validate_parameters(self::execute_parameters(), ['id' => $id, 'visible' => $visible]);
+        $params = self::validate_parameters(
+            self::execute_parameters(),
+            ['contextid' => $contextid, 'id' => $id, 'visible' => $visible]
+        );
 
-        // Security checks. Any administrator can save widgets.
-        /** @var \context $context */
-        $context = \context_system::instance();
+        // Security checks.
+        $contextid = $params['contextid'] ?? 0;
+        if ($contextid >= 1) {
+            $context = \context::instance_by_id($contextid);
+        } else {
+            $context = \context_system::instance();
+        }
         self::validate_context($context);
         require_capability('tiny/widgethub:manage', $context);
 

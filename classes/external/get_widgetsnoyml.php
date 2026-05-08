@@ -39,7 +39,9 @@ class get_widgetsnoyml extends external_api {
      * @return \external_function_parameters
      */
     public static function execute_parameters() {
-        return new external_function_parameters([]);
+        return new external_function_parameters([
+            'contextid' => new external_value(PARAM_INT, 'Context ID'),
+        ]);
     }
 
     /**
@@ -54,12 +56,20 @@ class get_widgetsnoyml extends external_api {
 
     /**
      * The function that executes the real logic.
+     * @param int $contextid The context ID.
      * @return array The ids of the widgets without yml.
      */
-    public static function execute() {
-        self::validate_parameters(self::execute_parameters(), []);
-        /** @var \context $context */
-        $context = \context_system::instance();
+    public static function execute($contextid) {
+        // Validate parameters.
+        $params = self::validate_parameters(self::execute_parameters(), ['contextid' => $contextid]);
+
+        // Security checks.
+        $contextid = $params['contextid'] ?? 0;
+        if ($contextid >= 1) {
+            $context = \context::instance_by_id($contextid);
+        } else {
+            $context = \context_system::instance();
+        }
         self::validate_context($context);
         require_capability('tiny/widgethub:manage', $context);
 

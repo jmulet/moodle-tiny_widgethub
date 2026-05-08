@@ -41,6 +41,7 @@ class get_widgetsdocuments extends external_api {
      */
     public static function execute_parameters() {
         return new external_function_parameters([
+            'contextid' => new external_value(PARAM_INT, 'Context ID'),
             'ids' => new external_multiple_structure(
                 new external_value(PARAM_INT, 'The widget IDs to get the documents from')
             ),
@@ -66,23 +67,32 @@ class get_widgetsdocuments extends external_api {
 
     /**
      * The function that executes the real logic.
+     * @param int $contextid The context ID.
      * @param array $ids The widget IDs.
      * @param bool $includejson Whether to include the JSON document.
      * @param bool $includeother Whether to include the other documents.
      * @return array The documents of the widget.
      */
-    public static function execute($ids, $includejson, $includeother) {
+    public static function execute($contextid, $ids, $includejson, $includeother) {
         // Validate parameters.
         $params = self::validate_parameters(
             self::execute_parameters(),
-            ['ids' => $ids, 'includejson' => $includejson, 'includeother' => $includeother]
+            ['contextid' => $contextid, 'ids' => $ids, 'includejson' => $includejson, 'includeother' => $includeother]
         );
 
-        // Security checks. Anybody logged in can get widget documents.
-        /** @var \context $context */
-        $context = \context_system::instance();
+        // Security checks.
+        $contextid = $params['contextid'] ?? 0;
+        if ($contextid >= 1) {
+            $context = \context::instance_by_id($contextid);
+        } else {
+            $context = \context_system::instance();
+        }
         self::validate_context($context);
-        require_capability('tiny/widgethub:viewplugin', $context);
+        $canview = has_capability('tiny/widgethub:viewplugin', $context) ||
+            has_capability('tiny/widgethub:manage', $context);
+        if (!$canview) {
+            throw new \required_capability_exception($context, 'tiny/widgethub:viewplugin', 'nopermissions', '');
+        }
 
         // Get the document from the storage.
         $storage = storagefactory::get_instance();

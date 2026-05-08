@@ -42,7 +42,7 @@ import z from 'zod';
  * @property {string} [partial]
  * @property {string} name
  * @property {string} title
- * @property {'textfield' | 'numeric' | 'checkbox' | 'select' | 'autocomplete' | 'textarea' | 'image' | 'color' | 'repeatable'} [type]
+ * @property {'textfield' | 'numeric' | 'checkbox' | 'select' | 'autocomplete' | 'textarea' | 'image' | 'color' | 'repeatable' | 'static'} [type]
  * @property {(ParamOption | string)[]} [options]
  * @property {any} value
  * @property {string} [tip]
@@ -134,7 +134,7 @@ const commonParamSchema = {
  */
 function validateCommonParam(data, ctx, params) {
     // Required fields
-    if (data.name === undefined) {
+    if (data.name === undefined && data.type !== 'static') {
         ctx.addIssue({ code: 'custom', message: "The parameter 'name' is required.", path: ['name'] });
     }
     if (data.title === undefined) {
@@ -179,7 +179,8 @@ function validateCommonParam(data, ctx, params) {
 // This is an internal schema for fields inside a 'repeatable' type.
 const NonRepeatableParamSchema = z.object({
     ...commonParamSchema,
-    'type': z.enum(['textfield', 'numeric', 'checkbox', 'select', 'autocomplete', 'textarea', 'image', 'color']).optional(),
+    'type': z.enum(['textfield', 'numeric', 'checkbox', 'select', 'autocomplete', 'textarea', 'image', 'color'])
+        .describe('The type of the parameter: textfield, numeric, checkbox, select, autocomplete, textarea, image, color').optional(),
 }).superRefine((data, ctx) => {
     validateCommonParam(data, ctx, { allowRepeatable: false });
 });
@@ -188,7 +189,8 @@ const NonRepeatableParamSchema = z.object({
 // This is the main ParamSchema which can be 'repeatable'
 let ParamSchema = z.object({
     ...commonParamSchema,
-    'type': z.enum(['textfield', 'numeric', 'checkbox', 'select', 'autocomplete', 'textarea', 'image', 'color', 'repeatable']).optional(),
+    'type': z.enum(['textfield', 'numeric', 'checkbox', 'select', 'autocomplete', 'textarea', 'image', 'color', 'repeatable', 'static'])
+        .describe('The type of the parameter: textfield, numeric, checkbox, select, autocomplete, textarea, image, color, repeatable, static').optional(),
     item_selector: z.string().optional().describe('A css query that provides the DOM elements; one per item'),
     fields: z.array(z.lazy(() => NonRepeatableParamSchema)).optional().describe('A list of parameters that define the repeatable object'),
 });

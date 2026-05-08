@@ -51,7 +51,8 @@ final class delete_widgets_test extends \externallib_advanced_testcase {
         $widget = ['key' => 'wkd1', 'name' => 'Delete Me', 'template' => 'template', 'author' => 'Me', 'version' => '1.0'];
         $id = $storage->save_widget(null, $widget);
 
-        $result = delete_widgets::execute([$id]);
+        $contextid = \context_system::instance()->id;
+        $result = delete_widgets::execute($contextid, [$id]);
         $result = \core_external\external_api::clean_returnvalue(delete_widgets::execute_returns(), $result);
 
         $this->assertCount(1, $result['ids']);
@@ -65,6 +66,7 @@ final class delete_widgets_test extends \externallib_advanced_testcase {
         $this->setUser($user);
 
         $this->expectException(\required_capability_exception::class);
-        delete_widgets::execute([1]);
+        $contextid = \context_system::instance()->id;
+        delete_widgets::execute($contextid, [1]);
     }
 }

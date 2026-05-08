@@ -61,7 +61,8 @@ final class save_widgetsyml_test extends \externallib_advanced_testcase {
             ],
         ];
 
-        $result = save_widgetsyml::execute($widgets);
+        $contextid = \context_system::instance()->id;
+        $result = save_widgetsyml::execute($contextid, $widgets);
         $result = \core_external\external_api::clean_returnvalue(save_widgetsyml::execute_returns(), $result);
         $this->assertCount(1, $result);
         $this->assertTrue($result[0]);
@@ -77,6 +78,7 @@ final class save_widgetsyml_test extends \externallib_advanced_testcase {
         $this->setUser($user);
 
         $this->expectException(\required_capability_exception::class);
-        save_widgetsyml::execute([]);
+        $contextid = \context_system::instance()->id;
+        save_widgetsyml::execute($contextid, []);
     }
 }

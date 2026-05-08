@@ -20,7 +20,7 @@ export default [
         input: './src/cmeditor/cmeditor.mjs',
         output: {
             sourcemap: false,
-            file: path.resolve(__dirname, '../../amd/src/libs/cmeditor-lazy.js'),
+            file: path.resolve(__dirname, '../amd/src/libs/cmeditor-lazy.js'),
             format: 'esm',
             name: 'cmeditor',
             plugins: [],
@@ -43,7 +43,7 @@ export default [
         input: './src/cmeditor/yaml.mjs',
         output: {
             sourcemap: false,
-            file: path.resolve(__dirname, '../../amd/src/libs/yaml-lazy.js'),
+            file: path.resolve(__dirname, '../amd/src/libs/yaml-lazy.js'),
             format: 'esm',
             name: 'yaml',
             plugins: [],

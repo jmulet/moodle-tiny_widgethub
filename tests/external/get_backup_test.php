@@ -66,7 +66,8 @@ final class get_backup_test extends \externallib_advanced_testcase {
         $this->assertNotEmpty($docs[0]['yml']);
 
         // Execute backup.
-        $result = get_backup::execute();
+        $contextid = \context_system::instance()->id;
+        $result = get_backup::execute($contextid);
         $result = \core_external\external_api::clean_returnvalue(get_backup::execute_returns(), $result);
 
         // Should return a URL.
@@ -79,6 +80,7 @@ final class get_backup_test extends \externallib_advanced_testcase {
         $this->setUser($user);
 
         $this->expectException(\required_capability_exception::class);
-        get_backup::execute();
+        $contextid = \context_system::instance()->id;
+        get_backup::execute($contextid);
     }
 }

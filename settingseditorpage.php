@@ -23,7 +23,6 @@
  */
 
 require_once(__DIR__ . '/../../../../../config.php');
-require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->libdir . '/editorlib.php');
 
 use tiny_widgethub\local\storage\storagefactory;
@@ -38,23 +37,25 @@ if ($widgetid < 0) {
     $widgetid = storagefactory::BLANK_ID;
 }
 
-$pageid = 'tinywidgethubeditor';
 // Displays the page.
 $params = [];
 if ($widgetid !== storagefactory::BLANK_ID) {
     $params['id'] = $widgetid;
 }
-admin_externalpage_setup($pageid, '', $params, '', ['pagelayout' => 'embedded']);
+require_login();
+/** @var \context $context */
+$context = \context_system::instance();
+require_capability('tiny/widgethub:manage', $context);
 
-$currenturl = '/lib/editor/tiny/plugins/widgethub/settingseditorpage.php';
+$PAGE->set_context($context);
+
+
+$baseurl = '/lib/editor/tiny/plugins/widgethub';
+$currenturl = $baseurl . '/settingseditorpage.php';
 $PAGE->set_url($currenturl, $params);
 $PAGE->set_title(get_string('pluginname', 'tiny_widgethub'));
 $PAGE->add_body_class('tiny_widgethub-playground');
-
-/** @var \context $context */
-$context = \context_system::instance();
-$PAGE->set_context($context);
-require_capability('tiny/widgethub:manage', $context);
+$PAGE->set_pagelayout('embedded');
 
 $storage = storagefactory::get_instance();
 $usedkeys = $storage->get_used_keys();
@@ -63,11 +64,12 @@ $partialsjson = $storage->get_partials();
 $mform = new settingseditorform(null, ['id' => $widgetid]);
 
 // Handling submission.
+$widgettableurl = new moodle_url($baseurl . '/settingsmanage.php');
 if ($mform->is_cancelled()) {
-    redirect(new moodle_url('/admin/settings.php', ['section' => 'tiny_widgethub_settings'], 'widgettable'));
+    redirect($widgettableurl);
 } else if ($data = $mform->get_data()) {
     if (isset($data->action) && $data->action === 'cancel') {
-        redirect(new moodle_url('/admin/settings.php', ['section' => 'tiny_widgethub_settings'], 'widgettable'));
+        redirect($widgettableurl);
     }
     // PHP Save logic.
     $id = $data->id < 0 ? storagefactory::BLANK_ID : (int)$data->id;
@@ -79,7 +81,7 @@ if ($mform->is_cancelled()) {
     } else {
         \core\notification::success(get_string('changessaved', 'tiny_widgethub'));
         if (isset($data->action) && $data->action === 'saveandclose') {
-            redirect(new moodle_url('/admin/settings.php', ['section' => 'tiny_widgethub_settings'], 'widgettable'));
+            redirect($widgettableurl);
         }
         // Always redirect so the URL gets updated with the ID and POST-Redirect-GET is enforced.
         redirect(new moodle_url($currenturl, ['id' => $newid]));
@@ -102,7 +104,7 @@ if (!$mform->is_submitted()) {
             $cssdoc = $entry['css'] ?? '';
         } else {
             \core\notification::error('Widget ' . $widgetid . ' not found');
-            redirect(new moodle_url('/admin/settings.php', ['section' => 'tiny_widgethub_settings'], 'widgettable'));
+            redirect($widgettableurl);
         }
     }
     $mform->set_data([
@@ -128,13 +130,13 @@ if (!$mform->is_submitted()) {
 // Display the page.
 echo $OUTPUT->header();
 
-$url = '/admin/settings.php?section=tiny_widgethub_settings';
+$url = $baseurl . '/settingsmanage.php';
 $title = 'Settings';
 echo '<div class="widget-config-container m-5">';
 echo "
 <nav aria-label=\"breadcrumb\">
   <ol class=\"breadcrumb\">
-    <li class=\"breadcrumb-item\" aria-current=\"page\"><a href=\"{$url}\">WidgetHub</a></li>
+    <li class=\"breadcrumb-item\" aria-current=\"page\">WidgetHub</li>
     <li class=\"breadcrumb-item\" aria-current=\"page\"><a href=\"{$url}#widgettable\">Widgets</a></li>
     <li class=\"breadcrumb-item active\" aria-current=\"page\">Editor</li>
   </ol>
@@ -148,7 +150,7 @@ if ($widgetid >= 0) {
         $entry = $entry ? (array) $entry[0] : null;
         if ($entry === null) {
             \core\notification::error('Widget ' . $widgetid . ' not found');
-            redirect(new moodle_url('/admin/settings.php', ['section' => 'tiny_widgethub_settings'], 'widgettable'));
+            redirect($widgettableurl);
         }
     }
     $title = get_string('edit', 'tiny_widgethub') . ' widget ' . $widgetid . ' / ' . ($entry['key'] ?? '');

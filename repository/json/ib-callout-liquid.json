@@ -62,9 +62,15 @@
             "type": "textarea",
             "value": "",
             "when": "!SELECT_MODE"
+        },
+        {
+            "title": "$string.ibcallout_content",
+            "tooltip": "$string.ibcallout_content_tip",
+            "type": "static",
+            "when": "SELECT_MODE"
         }
     ],
     "autocomplete": "type",
     "author": "Josep Mulet <pep.mulet@gmail.com>",
-    "version": "1.3.0"
+    "version": "1.3.1"
 }

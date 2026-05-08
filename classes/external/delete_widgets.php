@@ -41,6 +41,7 @@ class delete_widgets extends external_api {
      */
     public static function execute_parameters() {
         return new external_function_parameters([
+            'contextid' => new external_value(PARAM_INT, 'Context ID'),
             'ids' => new external_multiple_structure(
                 new external_value(PARAM_INT, 'Widget ID to delete')
             ),
@@ -61,16 +62,21 @@ class delete_widgets extends external_api {
 
     /**
      * The function that executes the real logic.
+     * @param int $contextid
      * @param array $ids List of widget IDs to delete.
      * @return array List of deleted widget IDs.
      */
-    public static function execute($ids) {
+    public static function execute($contextid, $ids) {
         // Validate parameters.
-        $params = self::validate_parameters(self::execute_parameters(), ['ids' => $ids]);
+        $params = self::validate_parameters(self::execute_parameters(), ['contextid' => $contextid, 'ids' => $ids]);
 
         // Security checks.
-        /** @var \context $context */
-        $context = \context_system::instance();
+        $contextid = $params['contextid'] ?? 0;
+        if ($contextid >= 1) {
+            $context = \context::instance_by_id($contextid);
+        } else {
+            $context = \context_system::instance();
+        }
         self::validate_context($context);
         // Only admins can delete widgets.
         require_capability('tiny/widgethub:manage', $context);
