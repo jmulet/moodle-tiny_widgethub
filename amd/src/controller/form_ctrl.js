@@ -396,6 +396,10 @@ export class FormCtrl {
       element.disabled = !canShowFilePicker;
       const pickerHandler = async (/** @type {Event} */ evt) => {
          evt.preventDefault();
+         // Blur the button before opening the YUI file picker to avoid
+         // an aria-hidden conflict — YUI sets aria-hidden on page content
+         // while the button is still focused inside the hidden subtree.
+         /** @type {HTMLElement} */ (evt.currentTarget).blur();
          const parent = /** @type {HTMLElement} */ (evt.currentTarget).parentElement;
          const input = parent?.querySelector('input');
          try {
