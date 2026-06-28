@@ -84,7 +84,7 @@ export class WidgetParamsCtrl {
          const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, formElem, true);
          await this.updatePreview(data.idtabpane, ctxFromDialogue);
       });
-      this.formCtrl.attachRepeatable(bodyElem, this.widget);
+      this.formCtrl.attachRepeatable(bodyElem, this.widget, listenerTracker);
       this.formCtrl.attachPickers(bodyElem, listenerTracker);
       modal.footer.show();
       modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", async (evt) => {

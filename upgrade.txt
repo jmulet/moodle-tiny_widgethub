@@ -82,3 +82,6 @@ Changes:
   - Issue #53: static headlines in the modal to group settings with complex widgets. 
     New static parameter type: can be used to display information in the widget configuration form
   - Issue #54: Editing teacher cannot access widgets unless assigned a system-level role 
+
+== 1.5.3 ==
+  - Issue #56: Dynamically created Repeatable parameters have no filepicker attached.
