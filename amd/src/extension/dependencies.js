@@ -143,6 +143,8 @@ export function cleanUnusedRequires(editor, affectedWidgets) {
 
         if (!affectedWidgets) {
             affectedWidgets = Object.values(getWidgetDict(editor)).filter(w => w.selectors && w.requires);
+        } else if (affectedWidgets && !Array.isArray(affectedWidgets)) {
+            affectedWidgets = [affectedWidgets];
         }
         const imgBaseUrl = getGlobalConfig(editor, 'imgBaseUrl', jsURL);
         const jsBaseUrl = getGlobalConfig(editor, 'jsBaseUrl', imgBaseUrl);
@@ -228,5 +230,5 @@ function withErrorHandling(fn) {
 
 subscribe('contentSet', withErrorHandling(addRequires));
 subscribe('widgetInserted', withErrorHandling(widgetInserted));
-subscribe('widgetRemoved', withErrorHandling(cleanUnusedRequires));
-subscribe('ctxAction', withErrorHandling(cleanUnusedRequires));
+subscribe('widgetRemoved', withErrorHandling((/** @type {import("../plugin").TinyMCE} */editor) => cleanUnusedRequires(editor)));
+subscribe('ctxAction', withErrorHandling((/** @type {import("../plugin").TinyMCE} */editor) => cleanUnusedRequires(editor)));

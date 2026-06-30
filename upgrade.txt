@@ -85,3 +85,4 @@ Changes:
 
 == 1.5.3 ==
   - Issue #56: Dynamically created Repeatable parameters have no filepicker attached.
+  - Fix on dependencies cleanUnusedRequires method.
