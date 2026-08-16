@@ -30,11 +30,50 @@ export class FileSrv {
     constructor(editor) {
         this.editor = editor;
     }
+    // Generic file picker functions
+    /**
+     * Get file picker for a given file type.
+     * @param {string} type - Type of file (image, media, etc.)
+     * @returns {Promise<object|undefined>}
+     */
+    getFilePicker(type) {
+        return getFilePicker(this.editor, type);
+    }
+    /**
+     * Display file picker.
+     * @param {string} type - Type of file (image, media, etc.)
+     * @returns {Promise<object>}
+     */
+    displayFilePicker(type) {
+        return displayFilepicker(this.editor, type);
+    }
+    /**
+     * Get image picker.
+     * @returns {Promise<object|undefined>}
+     */
     getImagePicker() {
         return getFilePicker(this.editor, 'image');
     }
+    /**
+     * Display image picker.
+     * @returns {Promise<object>}
+     */
     displayImagePicker() {
         return displayFilepicker(this.editor, 'image');
+    }
+    /**
+     * Get media picker.
+     * @returns {Promise<object|undefined>}
+     */
+    getMediaPicker() {
+        return getFilePicker(this.editor, 'media');
+    }
+    /**
+     * Display media picker.
+     * @returns {Promise<object>}
+     */
+    displayMediaPicker() {
+        return displayFilepicker(this.editor, 'media');
     }
 }
 

@@ -40,7 +40,9 @@ const mockTemplateSrv = {
 /** @type {*} */
 const mockFileSrv = {
     getImagePicker: jest.fn(),
-    displayImagePicker: jest.fn()
+    displayImagePicker: jest.fn(),
+    getFilePicker: jest.fn(),
+    displayFilePicker: jest.fn()
 };
 
 /** @type {FormCtrl} */
@@ -395,7 +397,7 @@ describe("FormCtrl", () => {
             const evt = { preventDefault: jest.fn(), currentTarget: btn };
             clickHandler(evt);
 
-            expect(mockFileSrv.displayImagePicker).toHaveBeenCalled();
+            expect(mockFileSrv.displayFilePicker).toHaveBeenCalledWith('image');
         });
 
         it("should attach change listeners to color pickers", () => {

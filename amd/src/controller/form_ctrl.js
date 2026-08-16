@@ -43,6 +43,13 @@ export const Templates = Object.freeze(
    </div>
    </div>`,
 
+      MEDIATEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}"><label class="col-sm-5 col-form-label" for="{{elementid}}_ftmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
+   <div class="col-sm-7">
+   <input type="text" id="{{elementid}}_ftmpl" class="form-control d-inline-block w-75" name="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
+   <button class="whb-media-picker btn btn-sm btn-secondary d-inline-block" title="Search"><i class="fas fa fa-search"></i></button>
+   </div>
+   </div>`,
+
       NUMERICTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}"><label class="col-sm-5 col-form-label"  for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <div class="col-sm-7"><input type="number" id="{{elementid}}_fntmpl" class="form-control" name="{{varname}}" {{{minMax}}} {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/></div>
    </div>`,
@@ -219,6 +226,8 @@ export class FormCtrl {
          markup = this.templateSrv.renderMustache(Templates.COLORTEMPLATE, generalCtx);
       } else if (param.type === 'image') {
          markup = this.templateSrv.renderMustache(Templates.IMAGETEMPLATE, generalCtx);
+      } else if (param.type === 'media') {
+         markup = this.templateSrv.renderMustache(Templates.MEDIATEMPLATE, generalCtx);
       } else if (param.type === 'repeatable') {
          let itemControls = '';
          if (Array.isArray(defaultValue) && defaultValue.length) {
@@ -369,9 +378,15 @@ export class FormCtrl {
     */
    attachFilePickers(element, listenerTracker) {
       /** @type {NodeListOf<HTMLButtonElement>} */
-      const pickers = element.querySelectorAll('button.whb-image-picker');
+      let pickers = element.querySelectorAll('button.whb-image-picker');
       pickers.forEach(picker => {
-         this.attachFilePickerToElement(picker, listenerTracker);
+         this.attachFilePickerToElement(picker, 'image', listenerTracker);
+      });
+
+      /** @type {NodeListOf<HTMLButtonElement>} */
+      pickers = element.querySelectorAll('button.whb-media-picker');
+      pickers.forEach(picker => {
+         this.attachFilePickerToElement(picker, 'media', listenerTracker);
       });
    }
 
@@ -389,10 +404,11 @@ export class FormCtrl {
 
    /**
     * @param {HTMLButtonElement} element - The element to attach pickers to
+    * @param {'image' | 'media'} type
     * @param {import('../service/modal_service').ListenerTracker} listenerTracker
     */
-   attachFilePickerToElement(element, listenerTracker) {
-      const canShowFilePicker = typeof this.fileSrv.getImagePicker() !== 'undefined';
+   attachFilePickerToElement(element, type, listenerTracker) {
+      const canShowFilePicker = typeof this.fileSrv.getFilePicker(type) !== 'undefined';
       element.disabled = !canShowFilePicker;
       const pickerHandler = async (/** @type {Event} */ evt) => {
          evt.preventDefault();
@@ -404,7 +420,7 @@ export class FormCtrl {
          const input = parent?.querySelector('input');
          try {
             /** @type {{url?: string}} */
-            const params = await this.fileSrv.displayImagePicker();
+            const params = await this.fileSrv.displayFilePicker(type);
             if (params?.url && input) {
                input.value = params.url;
             }
