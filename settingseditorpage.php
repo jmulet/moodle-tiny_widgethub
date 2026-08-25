@@ -172,13 +172,62 @@ echo $OUTPUT->render_from_template('tiny_widgethub/widget_editor', $renderctx);
 
 echo '</div>';
 
+// Set up a draft file area so the preview TinyMCE editor has a staging area for uploaded files.
+$draftitemid = file_get_unused_draft_itemid();
+$editoroptions = [
+    'maxfiles'  => -1,
+    'context'   => $PAGE->context,
+    'trusttext' => true,
+    'subdirs'   => true,
+    'maxbytes'  => 0,
+];
+
+// Build filepicker options for the image, media, link, and h5p plugins.
+$fpoptions = [];
+$args = (object) [
+    'context'       => $PAGE->context,
+    'accepted_types' => ['web_image'],
+    'return_types'  => FILE_INTERNAL | FILE_EXTERNAL,
+    'env'           => 'filepicker',
+];
+$imageoptions = initialise_filepicker($args);
+$imageoptions->context = $PAGE->context;
+$imageoptions->client_id = uniqid();
+$imageoptions->maxbytes = 0;
+$imageoptions->env = 'editor';
+$imageoptions->itemid = $draftitemid;
+$fpoptions['image'] = $imageoptions;
+
+$args->accepted_types = ['video', 'audio'];
+$mediaoptions = initialise_filepicker($args);
+$mediaoptions->context = $PAGE->context;
+$mediaoptions->client_id = uniqid();
+$mediaoptions->maxbytes = 0;
+$mediaoptions->env = 'editor';
+$mediaoptions->itemid = $draftitemid;
+$fpoptions['media'] = $mediaoptions;
+
+$args->accepted_types = '*';
+$linkoptions = initialise_filepicker($args);
+$linkoptions->context = $PAGE->context;
+$linkoptions->client_id = uniqid();
+$linkoptions->maxbytes = 0;
+$linkoptions->env = 'editor';
+$linkoptions->itemid = $draftitemid;
+$fpoptions['link'] = $linkoptions;
+
+$args->accepted_types = ['h5p'];
+$h5poptions = initialise_filepicker($args);
+$h5poptions->context = $PAGE->context;
+$h5poptions->client_id = uniqid();
+$h5poptions->maxbytes = 0;
+$h5poptions->env = 'editor';
+$h5poptions->itemid = $draftitemid;
+$fpoptions['h5p'] = $h5poptions;
+
 $texteditor = get_texteditor('tiny');
 if ($texteditor !== false) {
-    $texteditor->use_editor('id_widget_previewtiny', [
-        'maxfiles'  => 0,
-        'context'   => $PAGE->context,
-        'trusttext' => true,
-    ]);
+    $texteditor->use_editor('id_widget_previewtiny', $editoroptions, $fpoptions);
 }
 
 // JavaScript initialization.

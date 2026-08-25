@@ -40,7 +40,9 @@ const mockTemplateSrv = {
 /** @type {*} */
 const mockFileSrv = {
     getImagePicker: jest.fn(),
-    displayImagePicker: jest.fn()
+    displayImagePicker: jest.fn(),
+    getFilePicker: jest.fn(),
+    displayFilePicker: jest.fn()
 };
 
 /** @type {FormCtrl} */
@@ -395,7 +397,7 @@ describe("FormCtrl", () => {
             const evt = { preventDefault: jest.fn(), currentTarget: btn };
             clickHandler(evt);
 
-            expect(mockFileSrv.displayImagePicker).toHaveBeenCalled();
+            expect(mockFileSrv.displayFilePicker).toHaveBeenCalledWith('image');
         });
 
         it("should attach change listeners to color pickers", () => {
@@ -487,7 +489,8 @@ describe("FormCtrl", () => {
             // We can't easily check if RepeatableCtrl was newed up because it's private/internal.
             // But we can check if the DOM was modified (RepeatableCtrl adds a UL).
 
-            formCtrl.attachRepeatable(form, widget);
+            const listenerTracker = jest.fn();
+            formCtrl.attachRepeatable(form, widget, listenerTracker);
 
             expect(form.querySelector('ul.list-group')).not.toBeNull();
             expect(form.querySelector('.tiny_widgethub-additem')).not.toBeNull();

@@ -28,5 +28,5 @@ use tiny_widgethub\local\storage\widgetrepository;
  * Install the plugin.
  */
 function xmldb_tiny_widgethub_install() {
-    widgetrepository::save_to_storage();
+    widgetrepository::save_core_to_storage();
 }

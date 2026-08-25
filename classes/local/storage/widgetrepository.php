@@ -40,9 +40,14 @@ class widgetrepository {
      *
      * @param string $directory The directory to search in.
      * @param array $extensions The extensions to look for.
+     * @param bool $coreonly Whether to load only core widgets.
      * @return array The contents of the files. [filename => content]
      */
-    private static function load_files_contents($directory = 'repository', $extensions = ['yml', 'yaml']) {
+    private static function load_files_contents(
+        string $directory = 'repository',
+        array $extensions = ['yml', 'yaml'],
+        bool $coreonly = false
+    ) {
         global $CFG;
         $ret = [];
         $dirs = [];
@@ -65,9 +70,20 @@ class widgetrepository {
                     // Process files with the given extensions.
                     $ext = strtolower(pathinfo($fileinfo->getFilename(), PATHINFO_EXTENSION));
                     if (in_array($ext, $extensions, true)) {
-                        $filecontent = file_get_contents($fileinfo->getPathname());
                         // Without extension.
                         $filename = pathinfo($fileinfo->getFilename(), PATHINFO_FILENAME);
+                        // Only include core widgets on install: bs-, ib-, partials.
+                        if (
+                            $coreonly &&
+                            (
+                                strpos($filename, 'bs-') !== 0 &&
+                                strpos($filename, 'ib-') !== 0 &&
+                                strpos($filename, 'partials') !== 0
+                            )
+                        ) {
+                            continue;
+                        }
+                        $filecontent = file_get_contents($fileinfo->getPathname());
                         $ret[$filename] = $filecontent;
                     }
                 }
@@ -140,10 +156,11 @@ class widgetrepository {
      * Load json files from the widget repository/json local folder.
      *
      * @param array $allstrings The language strings to apply.
+     * @param bool $coreonly Whether to load only core widgets.
      * @return array Associative array of widget objects. [filename => obj widget]
      */
-    public static function load_json_tiny_files($allstrings): array {
-        $jsoncontents = self::load_files_contents('repository/json', ['json']);
+    public static function load_json_tiny_files($allstrings, bool $coreonly = false): array {
+        $jsoncontents = self::load_files_contents('repository/json', ['json'], $coreonly);
         $ret = [];
         foreach ($jsoncontents as $filename => $json) {
             // Apply language strings to the content.
@@ -160,10 +177,11 @@ class widgetrepository {
      * Load yml files from the widget repository/ local folder.
      *
      * @param array $allstrings The language strings to apply.
+     * @param bool $coreonly Whether to load only core widgets.
      * @return array Associative array of widget objects. [key => widget]
      */
-    public static function load_yml_tiny_files($allstrings): array {
-        $ymlcontents = self::load_files_contents('repository', ['yml', 'yaml']);
+    public static function load_yml_tiny_files($allstrings, bool $coreonly = false): array {
+        $ymlcontents = self::load_files_contents('repository', ['yml', 'yaml'], $coreonly);
         $ret = [];
         foreach ($ymlcontents as $filename => $yml) {
             // Apply language strings to the content.
@@ -173,14 +191,14 @@ class widgetrepository {
     }
 
     /**
-     * Saves the local repository into the storage.
+     * Saves core widgets from local repository into the storage.
      * @return void
      */
-    public static function save_to_storage(): void {
+    public static function save_core_to_storage(): void {
         $storage = storagefactory::get_instance();
         $allstrings = self::load_all_strings();
-        $jsonentries = self::load_json_tiny_files($allstrings);
-        $ymlentries = self::load_yml_tiny_files($allstrings);
+        $jsonentries = self::load_json_tiny_files($allstrings, true);
+        $ymlentries = self::load_yml_tiny_files($allstrings, true);
         $combinedpartials = null;
 
         foreach ($jsonentries as $filename => $preset) {
