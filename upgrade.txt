@@ -87,4 +87,5 @@ Changes:
   - Issue #56: Dynamically created Repeatable parameters have no filepicker attached.
   - Fix on dependencies cleanUnusedRequires method.
   - New support parameter type "media" to select videos and audio files.
-  
+  - Only core widgets (bs-, ib-, partials) are installed on fresh plugin installations.
+  - Updated JS libraries (@codemirror, yaml, zod, liquidjs, rollup) to latest versions.

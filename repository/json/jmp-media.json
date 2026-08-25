@@ -1,0 +1,19 @@
+{
+    "key": "jmp-audio",
+    "name": "Insert audio",
+    "instructions": "This is a basic example of how to use type media as a parameter. Select a media file from the file picker.",
+    "category": "others",
+    "icon": "fa fa-file-video-o",
+    "template": "<audio class=\"ib-audio\" src=\"{{mediaurl}}\" controls>\n  Your browser does not support the audio element.\n</audio>\n",
+    "selectors": "audio.ib-audio",
+    "parameters": [
+        {
+            "name": "mediaurl",
+            "title": "File",
+            "value": "",
+            "type": "media"
+        }
+    ],
+    "author": "Josep Mulet <pep.mulet@gmail.com>",
+    "version": "1.0.0"
+}
