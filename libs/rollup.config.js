@@ -37,7 +37,21 @@ export default [
                 delimiters: ['', '']
             }),
             nodeResolve()
-        ]
+        ],
+        onwarn(warning, warn) {
+            // 1. Ignore @__PURE__ comment parsing warnings from vendor packages
+            if (warning.message && warning.message.includes('contains an annotation that Rollup cannot interpret')) {
+                return;
+            }
+
+            // 2. Ignore circular dependency warnings originating inside node_modules
+            if (warning.code === 'CIRCULAR_DEPENDENCY' && warning.ids?.some(id => id.includes('node_modules'))) {
+                return;
+            }
+
+            // Show everything else
+            warn(warning);
+        }
     },
     {
         input: './src/cmeditor/yaml.mjs',

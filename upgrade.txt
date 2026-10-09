@@ -89,3 +89,7 @@ Changes:
   - New support parameter type "media" to select videos and audio files.
   - Only core widgets (bs-, ib-, partials) are installed on fresh plugin installations.
   - Updated JS libraries (@codemirror, yaml, zod, liquidjs, rollup) to latest versions.
+
+== 1.5.4 ==
+  - Issue #58: Implicit form submission in widget parameter dialog navigates away from the editing page
+  - Updated external libraries to latest versions.

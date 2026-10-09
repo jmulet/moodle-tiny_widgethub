@@ -97,6 +97,9 @@ export class WidgetPropertiesCtrl {
             this.modal?.twhRegisterListener(el, evType, handler);
         };
         const bodyElem = this.modal.body[0];
+        const formElem = this.modal?.body.find('form')[0];
+        listenerTracker(formElem, "submit", (evt) => evt.preventDefault());
+
         // Bind actions on image and color pickers
         this.formCtrl.attachPickers(bodyElem, listenerTracker);
         // Applying watchers to the form elements
@@ -108,7 +111,6 @@ export class WidgetPropertiesCtrl {
             this.close();
         });
         this.modal.footer.find("button.tiny_widgethub-btn-primary").on("click", async () => {
-            const formElem = this.modal?.body.find('form')[0];
             if (formElem) {
                 const updatedValues = this.formCtrl.extractFormParameters(widget, formElem, true);
                 await this.bindingsAdapter?.setValues(updatedValues);
