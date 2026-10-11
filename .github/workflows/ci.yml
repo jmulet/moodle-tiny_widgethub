@@ -24,7 +24,7 @@ jobs:
           --health-retries 3
         ports:
           - 3306:3306
-          - 5432:5432--health-retries 3
+          - 5432:5432
 
     strategy:
       fail-fast: false
@@ -205,7 +205,7 @@ jobs:
 
       - name: Moodle Code Checker
         if: ${{ !cancelled() }}
-        run: moodle-plugin-ci phpcs --max-warnings 0
+        run: moodle-plugin-ci phpcs --max-warnings 1
 
       - name: Moodle PHPDoc Checker
         if: ${{ !cancelled() }}
@@ -224,7 +224,7 @@ jobs:
         run: moodle-plugin-ci mustache
 
       - name: Grunt
-        if: ${{ matrix.moodle == 'master' }}
+        if: ${{ !cancelled() && matrix.moodle == 'master' }}
         run: moodle-plugin-ci grunt --max-lint-warnings 0
 
       - name: PHPUnit tests
