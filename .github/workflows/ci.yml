@@ -125,11 +125,19 @@ jobs:
         with:
           path: plugin
 
+      # Cache PHP setup to avoid repeated downloads
+      - name: Cache PHP setup
+        uses: actions/cache@v3
+        with:
+          path: ~/.php-version
+          key: ${{ runner.os }}-php-${{ matrix.php }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
       - name: Setup PHP ${{ matrix.php }}
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: ${{ matrix.extensions }}
           ini-values: max_input_vars=5000
           # If you are not using code coverage, keep "none". Otherwise, use "pcov" (Moodle 3.10 and up) or "xdebug".
           # If you try to use code coverage with "none", it will fallback to phpdbg (which has known problems).
