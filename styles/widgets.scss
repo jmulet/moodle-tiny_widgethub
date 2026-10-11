@@ -20,7 +20,6 @@ $ctx-bg: rgb(31, 106, 219);
 $ctx-color: rgb(241, 245, 254);
 $time-bg: rgb(241, 245, 254);
 $time-color: rgb(31, 106, 219);
-$debug-border-color: orange; // For .notranslate
 
 /* Pastel colors (Low saturation) for ibcallout widget */
 $twh-important-bg: #fff9e6;
@@ -33,6 +32,18 @@ $twh-example-bg: #f0fdf4;
 $twh-example-main: #16a34a;
 $twh-extension-bg: #eff6ff;
 $twh-extension-main: #2563eb;
+
+/* Lighter accents for callouts in dark mode (readable on dark backgrounds) */
+$dk-intro: #9ca3af;
+$dk-important: #fbbf24;
+$dk-warning: #f87171;
+$dk-example: #4ade80;
+$dk-extension: #60a5fa;
+
+/* Dark mode: quote marks, dedication time */
+$dk-ctx-bg: #1d4fa3;
+$dk-ctx-color: #e7f0ff;
+$dk-time-color: #9ec5fe;
 
 // Fonts
 $font-family-serif: Georgia, serif;
@@ -299,11 +310,6 @@ i.fad.fa-stopwatch::before {
     }
 }
 
-div.notranslate,
-span.notranslate {
-    border: 1px dotted $debug-border-color;
-}
-
 /* Estructura Base */
 .twh-callout {
     display: flex;
@@ -397,5 +403,101 @@ div[data-widget="bs-carousel"] .carousel-indicators {
 
     li::marker {
         content: none;
+    }
+}
+
+// =========================================
+// 4. Dark mode (Bootstrap 5.3 color mode)
+// =========================================
+// These only apply where an ancestor has data-bs-theme="dark" (the Moodle page).
+// The TinyMCE content iframe is a separate document without that attribute, so
+// widgets keep their light look while editing.
+[data-bs-theme="dark"] {
+
+    // The fragment never set a text color: on dark pages it would be light text on white.
+    .twh-fragment {
+        background: var(--bs-body-bg);
+        color: var(--bs-body-color);
+
+        &:before,
+        &:after {
+            background: var(--bs-tertiary-bg);
+        }
+    }
+
+    .twh-quote {
+        background: var(--bs-tertiary-bg);
+        color: var(--bs-body-color);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+
+        &:before,
+        &:after {
+            color: rgba(110, 168, 254, 0.25);
+        }
+    }
+
+    // Dedication time (ctx = icon half, time = text half)
+    .twh-ctx {
+        background: $dk-ctx-bg;
+        color: $dk-ctx-color;
+    }
+
+    .twh-time {
+        background: color-mix(in srgb, #{$dk-time-color} 16%, transparent);
+        color: $dk-time-color;
+    }
+
+    .twh-callout {
+        background-color: color-mix(in srgb, #{$dk-intro} 14%, transparent);
+        border-left-color: $dk-intro;
+    }
+
+    .twh-callout-body {
+        color: var(--bs-body-color);
+    }
+
+    .twh-callout-title,
+    .twh-callout-icon {
+        color: $dk-intro;
+    }
+
+    .twh-callout-important {
+        background-color: color-mix(in srgb, #{$dk-important} 14%, transparent);
+        border-left-color: $dk-important;
+
+        .twh-callout-title,
+        .twh-callout-icon {
+            color: $dk-important;
+        }
+    }
+
+    .twh-callout-warning {
+        background-color: color-mix(in srgb, #{$dk-warning} 14%, transparent);
+        border-left-color: $dk-warning;
+
+        .twh-callout-title,
+        .twh-callout-icon {
+            color: $dk-warning;
+        }
+    }
+
+    .twh-callout-example {
+        background-color: color-mix(in srgb, #{$dk-example} 14%, transparent);
+        border-left-color: $dk-example;
+
+        .twh-callout-title,
+        .twh-callout-icon {
+            color: $dk-example;
+        }
+    }
+
+    .twh-callout-extension {
+        background-color: color-mix(in srgb, #{$dk-extension} 14%, transparent);
+        border-left-color: $dk-extension;
+
+        .twh-callout-title,
+        .twh-callout-icon {
+            color: $dk-extension;
+        }
     }
 }

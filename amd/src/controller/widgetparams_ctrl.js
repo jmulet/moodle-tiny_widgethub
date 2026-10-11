@@ -79,6 +79,9 @@ export class WidgetParamsCtrl {
       this.modal = modal;
       const bodyElem = modal.body[0];
       const formElem = modal.body.find("form")[0];
+      if (formElem) {
+         listenerTracker(formElem, "submit", (evt) => evt.preventDefault());
+      }
       modal.body.find(`a[href="#${data.idtabpane}_1"`).on("click", async () => {
          // Handle preview;
          const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, formElem, true);

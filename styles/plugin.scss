@@ -1,18 +1,29 @@
 /********************************** WidgetHub plugin styles */
 
-// Variables
-$gray: gray;
-$white: white;
-$whitesmoke: whitesmoke;
-$lightgray: lightgray;
-$text-color: #1d2125;
+// Color tokens.
+// Every token is a CSS variable with the original (light) value as fallback, so the
+// plugin renders exactly as before when no variable is defined. The variables are
+// defined in the "Color mode" section below (light by default, dark when an ancestor
+// has data-bs-theme="dark", i.e. Bootstrap 5.3 color modes).
+$gray: var(--twh-gray, gray);
+$white: var(--twh-white, white);
+$whitesmoke: var(--twh-whitesmoke, whitesmoke);
+$lightgray: var(--twh-lightgray, lightgray);
+$text-color: var(--twh-text, #1d2125);
+$secondary-bg: var(--twh-secondary-bg, #ced4da);
+$secondary-hover: var(--twh-secondary-hover, #b8c1ca);
+$secondary-border: var(--twh-secondary-border, #b1bbc4);
+$uds-bg: var(--twh-uds-bg, #e7f2f9);
+$primary-text: var(--twh-primary-text, #0f6cbf);
+$primary-text-hover: var(--twh-primary-text-hover, #0c589c);
+$icon-secondary: var(--twh-icon-secondary, #474747);
+$card-border: var(--twh-card-border, rgba(0, 0, 0, 0.1));
+
+// Solid brand colors (used as backgrounds, same in both modes)
 $primary-color: #0f6cbf;
 $primary-hover: #0c589c;
 $primary-border: #0b5190;
-$secondary-bg: #ced4da;
-$secondary-hover: #b8c1ca;
-$secondary-border: #b1bbc4;
-$uds-bg: #e7f2f9;
+
 $pattern-bg: #e5e5f7;
 $pattern-dark: #565656;
 $loader-color: #999;
@@ -22,6 +33,39 @@ $border-radius-sm: 4px;
 $border-radius-md: 6px;
 $border-radius-lg: 10px;
 $btn-border-radius: .5rem;
+
+/********************************** Color mode (light / dark) */
+:root {
+    --twh-gray: gray;
+    --twh-white: white;
+    --twh-whitesmoke: whitesmoke;
+    --twh-lightgray: lightgray;
+    --twh-text: #1d2125;
+    --twh-secondary-bg: #ced4da;
+    --twh-secondary-hover: #b8c1ca;
+    --twh-secondary-border: #b1bbc4;
+    --twh-uds-bg: #e7f2f9;
+    --twh-primary-text: #0f6cbf;
+    --twh-primary-text-hover: #0c589c;
+    --twh-icon-secondary: #474747;
+    --twh-card-border: rgba(0, 0, 0, 0.1);
+}
+
+[data-bs-theme="dark"] {
+    --twh-gray: var(--bs-border-color, #495057);
+    --twh-white: var(--bs-body-bg, #212529);
+    --twh-whitesmoke: var(--bs-tertiary-bg, #2b3035);
+    --twh-lightgray: var(--bs-border-color, #495057);
+    --twh-text: var(--bs-body-color, #dee2e6);
+    --twh-secondary-bg: #495057;
+    --twh-secondary-hover: #5c636a;
+    --twh-secondary-border: #6c757d;
+    --twh-uds-bg: #1c2b36;
+    --twh-primary-text: #6ea8fe;
+    --twh-primary-text-hover: #9ec5fe;
+    --twh-icon-secondary: #dee2e6;
+    --twh-card-border: rgba(255, 255, 255, 0.15);
+}
 
 .tiny_widgethub-top-0 {
     top: 0 !important;
@@ -85,11 +129,19 @@ $btn-border-radius: .5rem;
     overscroll-behavior-y: contain;
 }
 
+// Category colors: the template only sets --twh-color (hue, saturation) inline.
+// Lightness values live here so dark mode can change them.
 .tiny_widgethub-category {
+    --twh-l-border: 40%;
+    --twh-l-bg: 90%;
+    --twh-l-title-bg: 40%;
+    --twh-l-title-fg: 90%;
     margin: 4px auto;
     width: 98%;
     border-radius: $border-radius-lg;
     border: 1px solid $lightgray;
+    border-left: 5px solid hsl(var(--twh-color), var(--twh-l-border));
+    background: hsl(var(--twh-color), var(--twh-l-bg));
     display: block;
 
     button {
@@ -99,22 +151,27 @@ $btn-border-radius: .5rem;
     }
 }
 
+[data-bs-theme="dark"] .tiny_widgethub-category {
+    --twh-l-border: 20%;
+    --twh-l-bg: 10%;
+    --twh-l-title-bg: 20%;
+    --twh-l-title-fg: 92%;
+}
+
 .tiny_widgethub-disabled>button {
     opacity: 60%;
 }
 
 .tiny_widgethub-title {
     padding: 5px 10px;
+    border-radius: 5px 5px 0 0;
     font-size: 12px;
     white-space: nowrap;
     text-overflow: ellipsis;
     font-weight: bold;
     height: 28px;
-}
-
-.tiny_widgethub-instructionstext {
-    font-size: 90%;
-    line-height: 1.25em;
+    background: hsl(var(--twh-color), var(--twh-l-title-bg));
+    color: hsl(var(--twh-color), var(--twh-l-title-fg));
 }
 
 h4.tiny_widgethub-headertext {
@@ -264,11 +321,11 @@ h4.tiny_widgethub-headertext {
 }
 
 .tiny_widgethub-btn-outline-primary {
-    color: $primary-color;
-    border-color: $primary-color;
+    color: $primary-text;
+    border-color: $primary-text;
 
     &:hover {
-        color: $primary-hover;
+        color: $primary-text-hover;
     }
 }
 
@@ -304,6 +361,7 @@ h4.tiny_widgethub-headertext {
 
     svg {
         pointer-events: none;
+        fill: currentColor;
     }
 }
 
@@ -312,16 +370,16 @@ h4.tiny_widgethub-headertext {
 }
 
 .tiny_widgethub-btn-secondary .twh-icon path {
-    fill: #474747;
+    fill: $icon-secondary;
 }
 
 .tiny_widgethub-btn-outline-primary {
     .twh-icon path {
-        fill: $primary-color;
+        fill: $primary-text;
     }
 
     &:hover .twh-icon path {
-        fill: $primary-hover;
+        fill: $primary-text-hover;
     }
 }
 
@@ -398,9 +456,9 @@ h4.tiny_widgethub-headertext {
         width: 32%;
         flex: 0 0 32%;
         margin: 0.5%;
-        border: 1px solid rgba(0, 0, 0, 0.1);
+        border: 1px solid $card-border;
         border-radius: 0.5rem;
-        background-color: #fff;
+        background-color: $white;
         box-shadow: none;
         height: 140px;
         position: relative;
@@ -421,7 +479,7 @@ h4.tiny_widgethub-headertext {
             justify-content: center;
             white-space: normal;
             text-align: center;
-            color: $primary-color;
+            color: $primary-text;
             padding: 0;
 
             .twh-label {
@@ -465,8 +523,8 @@ h4.tiny_widgethub-headertext {
             align-items: center;
             justify-content: center;
             background-color: transparent !important;
-            color: $primary-color !important;
-            border-color: $primary-color !important;
+            color: $primary-text !important;
+            border-color: $primary-text !important;
             z-index: 10;
             opacity: 0;
 
@@ -510,7 +568,7 @@ h4.tiny_widgethub-headertext {
             z-index: 5;
 
             >button[data-insert="false"] {
-                color: $primary-hover;
+                color: $primary-text-hover;
                 font-weight: 500;
             }
 
@@ -573,4 +631,30 @@ h4.tiny_widgethub-headertext {
         width: 98%;
         flex: 0 0 98%;
     }
+}
+
+.tiny_widgethub-instructions {
+    background: $whitesmoke;
+    color: $text-color;
+}
+
+.tiny_widgethub-instructionstext {
+    font-size: 90%;
+    line-height: 1.25em;
+    max-height: 120px;
+    overflow: hidden auto;
+    overscroll-behavior-y: contain;
+}
+
+.tiny_widgethub-controls {
+    max-height: 350px;
+    overflow: hidden auto;
+    overscroll-behavior-y: contain;
+    border-bottom: 1px solid $lightgray;
+}
+
+.tiny_widgethub-previewtab {
+    min-height: 200px;
+    max-height: 450px;
+    overflow: auto;
 }
