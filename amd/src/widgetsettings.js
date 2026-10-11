@@ -365,7 +365,11 @@ export default class WidgetSettings {
         const onChangeListener = () => {
             this._onRefreshBtnClick();
         };
-        const editor = new CmEditor(this.nodes['editorArea' + type], type, onChangeListener);
+        let initialTheme = 'light';
+        if (document.documentElement.getAttribute('data-bs-theme') === 'dark') {
+            initialTheme = 'dark';
+        }
+        const editor = new CmEditor(this.nodes['editorArea' + type], type, onChangeListener, initialTheme);
         this.editors[type] = editor;
 
         // Set initial value
@@ -851,8 +855,15 @@ export default class WidgetSettings {
 
         const tinyContent = this.tinyPreviewStrategy?.getValue();
         // Display the preview in an iframe using srcdoc to avoid CSP blob: issues.
+        let colourmode = '';
+        // Check if the html has a colour mode
+        const theme = document.documentElement.getAttribute('data-bs-theme');
+        if (theme) {
+            colourmode = ` data-bs-theme="${theme}" data-colourmode="${theme}"`;
+        }
+
         iframe.srcdoc = `
-        <html>
+        <html${colourmode}>
             <head>
                 <link rel="stylesheet" href="${allCss}">
             </head>

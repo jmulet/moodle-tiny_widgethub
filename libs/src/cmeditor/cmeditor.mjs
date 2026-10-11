@@ -14,9 +14,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny CodePro plugin.
+ * Tiny WidgetHub plugin.
  *
- * @module      tiny_codepro/plugin
+ * @module      tiny_widgethub/cmeditor
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -35,6 +35,8 @@ import { parse, stringify } from 'yaml';
 import { css as cssLanguage } from "@codemirror/lang-css";
 import { html as htmlLanguage } from "@codemirror/lang-html";
 import { fromJSON } from './yaml.mjs';
+import { yamlDark } from './yml-dark.mjs';
+import { Compartment } from '@codemirror/state';
 
 export class CmEditor {
     /**
@@ -47,11 +49,27 @@ export class CmEditor {
      * @param {HTMLElement} parentElement
      * @param {string} lang - The language of the editor (yml, css, js)
      * @param {(lang: string, content: string) => void} onChangeListener - The listener to be called when the content changes
+     * @param {string} initialTheme - The initial theme of the editor (light or dark)
      */
-    constructor(parentElement, lang, onChangeListener) {
+    constructor(parentElement, lang, onChangeListener, initialTheme = 'light') {
         this._parentElement = parentElement;
         this._lang = lang;
+        this._currentTheme = initialTheme;
+        this._themeConfig = new Compartment();
         this._init(onChangeListener);
+    }
+
+    /**
+     * @param {string} theme 
+     * @returns {Array<*>} 
+     */
+    _getThemeExtension(theme) {
+        if (theme === 'dark') {
+            // yamlDark provides both EditorView.theme(..., {dark: true}) and syntaxHighlighting(...)
+            return yamlDark;
+        }
+        // CodeMirror's default built-in theme is light (represented as [] or default light theme)
+        return [];
     }
 
     /**
@@ -68,12 +86,12 @@ export class CmEditor {
                 this._timeout = setTimeout(() => onChangeListener(this._lang, update.state.doc.toString()), 1200);
             }
         });
-
         const extensions = [
             basicSetup,
             keymap.of([indentWithTab]),
             lintGutter(),
             onChange,
+            this._themeConfig.of(this._getThemeExtension(this._currentTheme))
         ];
 
         if (this._lang === 'yml') {
@@ -130,6 +148,26 @@ export class CmEditor {
             }
         });
         return errorCount > 0;
+    }
+    /**
+     * Switches the theme dynamically.
+     * @param {'light' | 'dark'} theme 
+     */
+    setTheme(theme) {
+        this._currentTheme = theme;
+        if (!this._editorView) {
+            return;
+        }
+        this._editorView.dispatch({
+            effects: this._themeConfig.reconfigure(this._getThemeExtension(theme))
+        });
+    }
+    /**
+     * Gets current theme.
+     * @returns {string}
+     */
+    getTheme() {
+        return this._currentTheme;
     }
 }
 

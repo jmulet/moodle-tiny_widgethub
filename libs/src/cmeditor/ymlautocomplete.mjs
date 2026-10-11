@@ -18,12 +18,12 @@
 /**
  * Tiny CodePro plugin.
  *
- * @module      tiny_codepro/plugin
+ * @module      tiny_codepro/ymlautocomplete
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {ensureSyntaxTree} from "@codemirror/language";
-import {widgetAutocompletions} from "./ymlschema.mjs";
+import { ensureSyntaxTree } from "@codemirror/language";
+import { widgetAutocompletions } from "./ymlschema.mjs";
 
 /**
  * @param {*} node

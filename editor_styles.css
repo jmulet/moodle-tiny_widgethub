@@ -13,6 +13,11 @@
     position: absolute;
 }
 
+div.notranslate,
+span.notranslate {
+    border: 1px dotted orange;
+}
+
 /** anchor without href but with data-toggle **/
 a[data-toggle="popover"],
 a[data-bs-toggle="popover"] {

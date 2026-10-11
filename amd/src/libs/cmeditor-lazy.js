@@ -18750,7 +18750,7 @@ function getStyleTags(node) {
     return rule || null;
 }
 const t = Tag$1.define;
-const comment = t(), name = t(), typeName = t(name), propertyName = t(name), literal$1 = t(), string$2 = t(literal$1), number$2 = t(literal$1), content = t(), heading = t(content), keyword = t(), operator = t(), punctuation = t(), bracket = t(punctuation), meta = t();
+const comment$1 = t(), name = t(), typeName = t(name), propertyName = t(name), literal$1 = t(), string$3 = t(literal$1), number$3 = t(literal$1), content = t(), heading = t(content), keyword = t(), operator = t(), punctuation = t(), bracket$1 = t(punctuation), meta$1 = t();
 /**
 The default set of highlighting [tags](#highlight.Tag).
 
@@ -18775,19 +18775,19 @@ const tags$1 = {
     /**
     A comment.
     */
-    comment,
+    comment: comment$1,
     /**
     A line [comment](#highlight.tags.comment).
     */
-    lineComment: t(comment),
+    lineComment: t(comment$1),
     /**
     A block [comment](#highlight.tags.comment).
     */
-    blockComment: t(comment),
+    blockComment: t(comment$1),
     /**
     A documentation [comment](#highlight.tags.comment).
     */
-    docComment: t(comment),
+    docComment: t(comment$1),
     /**
     Any kind of identifier.
     */
@@ -18835,31 +18835,31 @@ const tags$1 = {
     /**
     A string [literal](#highlight.tags.literal).
     */
-    string: string$2,
+    string: string$3,
     /**
     A documentation [string](#highlight.tags.string).
     */
-    docString: t(string$2),
+    docString: t(string$3),
     /**
     A character literal (subtag of [string](#highlight.tags.string)).
     */
-    character: t(string$2),
+    character: t(string$3),
     /**
     An attribute value (subtag of [string](#highlight.tags.string)).
     */
-    attributeValue: t(string$2),
+    attributeValue: t(string$3),
     /**
     A number [literal](#highlight.tags.literal).
     */
-    number: number$2,
+    number: number$3,
     /**
     An integer [number](#highlight.tags.number) literal.
     */
-    integer: t(number$2),
+    integer: t(number$3),
     /**
     A floating-point [number](#highlight.tags.number) literal.
     */
-    float: t(number$2),
+    float: t(number$3),
     /**
     A boolean [literal](#highlight.tags.literal).
     */
@@ -18975,27 +18975,27 @@ const tags$1 = {
     /**
     Bracket-style [punctuation](#highlight.tags.punctuation).
     */
-    bracket,
+    bracket: bracket$1,
     /**
     Angle [brackets](#highlight.tags.bracket) (usually `<` and `>`
     tokens).
     */
-    angleBracket: t(bracket),
+    angleBracket: t(bracket$1),
     /**
     Square [brackets](#highlight.tags.bracket) (usually `[` and `]`
     tokens).
     */
-    squareBracket: t(bracket),
+    squareBracket: t(bracket$1),
     /**
     Parentheses (usually `(` and `)` tokens). Subtag of
     [bracket](#highlight.tags.bracket).
     */
-    paren: t(bracket),
+    paren: t(bracket$1),
     /**
     Braces (usually `{` and `}` tokens). Subtag of
     [bracket](#highlight.tags.bracket).
     */
-    brace: t(bracket),
+    brace: t(bracket$1),
     /**
     Content, for example plain text in XML or markup documents.
     */
@@ -19081,22 +19081,22 @@ const tags$1 = {
     /**
     Metadata or meta-instruction.
     */
-    meta,
+    meta: meta$1,
     /**
     [Metadata](#highlight.tags.meta) that applies to the entire
     document.
     */
-    documentMeta: t(meta),
+    documentMeta: t(meta$1),
     /**
     [Metadata](#highlight.tags.meta) that annotates or adds
     attributes to a given syntactic element.
     */
-    annotation: t(meta),
+    annotation: t(meta$1),
     /**
     Processing instruction or preprocessor directive. Subtag of
     [meta](#highlight.tags.meta).
     */
-    processingInstruction: t(meta),
+    processingInstruction: t(meta$1),
     /**
     [Modifier](#highlight.Tag^defineModifier) that indicates that a
     given element is being defined. Expected to be used with the
@@ -30230,10 +30230,10 @@ const httpProtocol = /^https?$/;
 const e164 = /^\+[1-9]\d{6,14}$/;
 const dateSource = `(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))`;
 
-function anchor(source) {
+function anchor$1(source) {
     return new RegExp(`^${source}$`);
 }
-const date = /*@__PURE__*/ anchor(dateSource);
+const date = /*@__PURE__*/ anchor$1(dateSource);
 function timeSource(args) {
     const hhmm = `(?:[01]\\d|2[0-3]):[0-5]\\d`;
     const regex = typeof args.precision === "number"
@@ -30264,7 +30264,7 @@ function datetime(args) {
 // the unbounded form of `string()` as a literal, so every plain string shares one instance instead of building its own
 const anyString = /^[\s\S]{0,}$/;
 const integer = /^-?\d+$/;
-const number$1 = /^-?\d+(?:\.\d+)?$/;
+const number$2 = /^-?\d+(?:\.\d+)?$/;
 const boolean$1 = /^(?:true|false)$/i;
 // regex for string with no uppercase letters
 const lowercase = /^[^A-Z]*$/;
@@ -31203,7 +31203,7 @@ const $ZodJWT = /*@__PURE__*/ $constructor("$ZodJWT", (inst, def) => {
 });
 const $ZodNumber = /*@__PURE__*/ $constructor("$ZodNumber", (inst, def) => {
     $ZodType.init(inst, def);
-    inst._zod.pattern = number$1;
+    inst._zod.pattern = number$2;
     inst._zod.parse = (payload, _ctx) => {
         if (def.coerce)
             try {
@@ -31944,7 +31944,7 @@ const $ZodRecord = /*@__PURE__*/ $constructor("$ZodRecord", (inst, def) => {
                     throw new Error("Async schemas not supported in object keys currently");
                 }
                 // Numeric string fallback: if key is a numeric string and failed, retry with Number(key). This handles z.number(), z.literal([1, 2, 3]), and unions containing numeric literals
-                const checkNumericKey = typeof key === "string" && number$1.test(key) && keyResult.issues.length;
+                const checkNumericKey = typeof key === "string" && number$2.test(key) && keyResult.issues.length;
                 if (checkNumericKey) {
                     const retryResult = def.keyType._zod.run({ value: Number(key), issues: [] }, ctx);
                     if (retryResult instanceof Promise) {
@@ -34431,7 +34431,7 @@ function stringifyKeyNames(bySchema, json, visited) {
         return rest;
     rest.type = "string";
     if (!values)
-        rest.pattern = (types.includes("number") ? number$1 : integer).source;
+        rest.pattern = (types.includes("number") ? number$2 : integer).source;
     return rest;
 }
 /** Every record of one conversion, so the carriers are found in a single pass rather than once per record. */
@@ -35005,7 +35005,7 @@ const ZodString = /*@__PURE__*/ $constructor("ZodString", (inst, def) => {
         return this.check(_isoDuration(ZodISODuration, params));
     },
 });
-function string$1(params) {
+function string$2(params) {
     return _string(ZodString, params);
 }
 const ZodStringFormat = /*@__PURE__*/ $constructor("ZodStringFormat", (inst, def) => {
@@ -35193,7 +35193,7 @@ const ZodNumber = /*@__PURE__*/ $constructor("ZodNumber", (inst, def) => {
         return this;
     },
 }));
-function number(params) {
+function number$1(params) {
     return _number(ZodNumber, params);
 }
 const ZodNumberFormat = /*@__PURE__*/ $constructor("ZodNumberFormat", (inst, def) => {
@@ -35358,7 +35358,7 @@ function record(keyType, valueType, params) {
     if (!valueType || !valueType._zod) {
         return new ZodRecord({
             type: "record",
-            keyType: string$1(),
+            keyType: string$2(),
             valueType: keyType,
             ...normalizeParams(valueType),
         });
@@ -35693,11 +35693,11 @@ function superRefine(fn, params) {
 
 // Schema for the ParamOption type
 const ParamOptionSchema = object({
-    l: string$1().optional().describe('The option label'),
-    v: union([string$1(), number(), boolean()]).optional().describe('The option value'),
+    l: string$2().optional().describe('The option label'),
+    v: union([string$2(), number$1(), boolean()]).optional().describe('The option value'),
     a: object({
-        to: string$1(),
-        content: string$1(),
+        to: string$2(),
+        content: string$2(),
     }).optional().describe('An option defined as label and value'),
 }).superRefine((data, ctx) => {
     if (data.l === undefined) {
@@ -35710,10 +35710,10 @@ const ParamOptionSchema = object({
 
 // Schema for the 'bind' object, ensuring both get and set are present.
 const BindObjectSchema = object({
-    getValue: string$1().optional().describe('How to get the variable value from HTMLElement el. E.g., get: function(el){return "···";}'),
-    setValue: string$1().optional().describe('How to set the variable value v to HTMLElement el. E.g., set: function(el, value){···}'),
-    get: string$1().optional().describe('[DEPRECATED] Use `getValue` instead. How to get the variable value from jQuery<HTMLElement> e. E.g., get: function(e){return "···";}'),
-    set: string$1().optional().describe('[DEPRECATED] Use `setValue` instead. How to set the variable value v to jQuery<HTMLElement> e. E.g., set: function(e, value){···}')
+    getValue: string$2().optional().describe('How to get the variable value from HTMLElement el. E.g., get: function(el){return "···";}'),
+    setValue: string$2().optional().describe('How to set the variable value v to HTMLElement el. E.g., set: function(el, value){···}'),
+    get: string$2().optional().describe('[DEPRECATED] Use `getValue` instead. How to get the variable value from jQuery<HTMLElement> e. E.g., get: function(e){return "···";}'),
+    set: string$2().optional().describe('[DEPRECATED] Use `setValue` instead. How to set the variable value v to jQuery<HTMLElement> e. E.g., set: function(e, value){···}')
 }).superRefine((data, ctx) => {
     if (data.get !== undefined && data.getValue == undefined) {
         ctx.addIssue({ code: 'custom', message: '[DEPRECATED] Use `getValue` instead. getValue: (el: HTMLElement) => any', path: ['get'] });
@@ -35730,24 +35730,24 @@ const BindObjectSchema = object({
 });
 
 const commonParamSchema = {
-    partial: string$1().optional(),
-    name: string$1().optional().describe("*The name of the parameter that will be used in the template."),
-    title: string$1().optional().describe("*The title that will appear in the label near the user input."),
-    options: array(union([ParamOptionSchema, string$1()])).optional()
+    partial: string$2().optional(),
+    name: string$2().optional().describe("*The name of the parameter that will be used in the template."),
+    title: string$2().optional().describe("*The title that will appear in the label near the user input."),
+    options: array(union([ParamOptionSchema, string$2()])).optional()
         .describe("A list of options for type=select. Can be a list of strings or objects like {l: 'label', v: 'value'}"),
-    value: union([string$1(), number(), boolean()]).optional()
+    value: union([string$2(), number$1(), boolean()]).optional()
         .describe("*The default value for the option. E.g. 11, true, 'someValue'"),
-    tooltip: string$1().optional().describe("Optional. Information shown to the user as a popover near the input control"),
-    tip: string$1().optional().describe("Optional. Shortcut for tooltip"),
-    min: number().optional().describe("Optional. Minimum allowed value for type=numeric"),
-    max: number().optional().describe("Optional. Maximum allowed value for type=numeric"),
-    bind: union([string$1(), BindObjectSchema]).optional()
+    tooltip: string$2().optional().describe("Optional. Information shown to the user as a popover near the input control"),
+    tip: string$2().optional().describe("Optional. Shortcut for tooltip"),
+    min: number$1().optional().describe("Optional. Minimum allowed value for type=numeric"),
+    max: number$1().optional().describe("Optional. Maximum allowed value for type=numeric"),
+    bind: union([string$2(), BindObjectSchema]).optional()
         .describe("hasClass('cls'), notHasClass('cls'), classRegex('reg'), attr('attrName'), hasAttr('attrName=value'), notHasAttr('attrName=value'), attrRegex('attrName=regex'), hasStyle('styName:value'), notHasStyle('styName:value'), styleRegex(hasStyle('styName:regex'). Second parameter is a css query from widget root."),
-    transform: string$1().optional().describe("Optional. Stream of transformers applied to the getter of this parameter. String separated by |. Available: toUpperCase | toLowerCase | trim | ytId | vimeoId | serveGDrive | removeHTML | escapeHTML | encodeHTML | escapeQuotes"),
+    transform: string$2().optional().describe("Optional. Stream of transformers applied to the getter of this parameter. String separated by |. Available: toUpperCase | toLowerCase | trim | ytId | vimeoId | serveGDrive | removeHTML | escapeHTML | encodeHTML | escapeQuotes"),
     hidden: boolean().optional().describe("Optional. When set to true, the control will be hidden"),
     editable: boolean().optional().describe("Optional. When set to false, the control cannot be modified"),
-    when: string$1().optional().describe("Optional. JS expression to determine when to dynamically display the control. E.g. _lang==='es'"),
-    'for': string$1().optional().describe("Optional. Tell for which user ids (comma separated) this control will be visible"),
+    when: string$2().optional().describe("Optional. JS expression to determine when to dynamically display the control. E.g. _lang==='es'"),
+    'for': string$2().optional().describe("Optional. Tell for which user ids (comma separated) this control will be visible"),
 };
 
 /**
@@ -35814,7 +35814,7 @@ let ParamSchema = object({
     ...commonParamSchema,
     'type': _enum(['textfield', 'numeric', 'checkbox', 'select', 'autocomplete', 'textarea', 'image', 'media', 'color', 'repeatable', 'static'])
         .describe('The type of the parameter: textfield, numeric, checkbox, select, autocomplete, textarea, image, media, color, repeatable, static').optional(),
-    item_selector: string$1().optional().describe('A css query that provides the DOM elements; one per item'),
+    item_selector: string$2().optional().describe('A css query that provides the DOM elements; one per item'),
     fields: array(lazy(() => NonRepeatableParamSchema)).optional().describe('A list of parameters that define the repeatable object'),
 });
 
@@ -35865,8 +35865,8 @@ ParamSchema = ParamSchema.superRefine((data, ctx) => {
 
 // Schema for the Action type
 const ActionSchema = object({
-    predicate: string$1().optional(),
-    actions: string$1().optional(),
+    predicate: string$2().optional(),
+    actions: string$2().optional(),
 }).superRefine((data, ctx) => {
     if (data.actions === undefined) {
         ctx.addIssue({ code: 'custom', message: "The 'actions' property is required for each action.", path: ['actions'] });
@@ -35875,47 +35875,47 @@ const ActionSchema = object({
 
 // Make all fields optional
 const PartialSchema = PartialParamSchema.extend({
-    partial: string$1().regex(/^([A-Z0-9_]+)$/).describe('A parameter name defined in the partials file')
+    partial: string$2().regex(/^([A-Z0-9_]+)$/).describe('A parameter name defined in the partials file')
 });
 
-const PartialStringSchema = string$1().regex(/^__([A-Z0-9_]+)__$/).describe('A parameter name defined in the partials file');
+const PartialStringSchema = string$2().regex(/^__([A-Z0-9_]+)__$/).describe('A parameter name defined in the partials file');
 
 const partialsWidgetSchema = object({
     key: literal('partials'),
 }).describe("Special case: disables all normal rules when key = 'partials'");
 
 const RequiresSpec = object({
-    url: string$1().describe('The src of the js script to load'),
-    query: string$1().optional().describe('A css query relative to the editor\'s body. The script will be inserted only if this query returns some element')
+    url: string$2().describe('The src of the js script to load'),
+    query: string$2().optional().describe('A css query relative to the editor\'s body. The script will be inserted only if this query returns some element')
 });
 
 // Schema for the main RawWidget type
 const normalWidgetSchema = object({
-    plugin_release: string$1().regex(/^(?:>=|>|=)?\d+\.\d+(?:\.\d+)?$/, { message: "Minimum plugin version required must follow the [ >, >=, =, ] xx.yy.zz pattern (e.g., >=1.4)." })
+    plugin_release: string$2().regex(/^(?:>=|>|=)?\d+\.\d+(?:\.\d+)?$/, { message: "Minimum plugin version required must follow the [ >, >=, =, ] xx.yy.zz pattern (e.g., >=1.4)." })
         .optional().describe("Minimum plugin version required, '>=1.4' or '>1.4'."),
-    key: string$1().optional().describe("*The key of the widget"),
-    name: string$1().optional().describe("*The name of the widget"),
-    icon: string$1().optional().describe("Optional. The icon of the widget"),
-    category: string$1().optional().describe("Optional. The category of the widget (defaults to MISC)"),
-    version: string$1()
+    key: string$2().optional().describe("*The key of the widget"),
+    name: string$2().optional().describe("*The name of the widget"),
+    icon: string$2().optional().describe("Optional. The icon of the widget"),
+    category: string$2().optional().describe("Optional. The category of the widget (defaults to MISC)"),
+    version: string$2()
         .regex(/^\d+\.\d+\.\d+$/, { message: "Version must follow the xx.yy.zz pattern (e.g., 1.0.0)." })
         .optional()
         .describe("*The version of the widget"),
-    author: string$1().optional().describe("*The author of the widget"),
-    scope: string$1().optional().describe("Regex for identifying allowed body ids"),
-    instructions: string$1().optional().describe("Optional. Instructions to the end user"),
+    author: string$2().optional().describe("*The author of the widget"),
+    scope: string$2().optional().describe("Regex for identifying allowed body ids"),
+    instructions: string$2().optional().describe("Optional. Instructions to the end user"),
     engine: _enum(['mustache', 'ejs', 'liquid']).optional().describe("Optional. It can either be mustache or ejs or liquid. Defaults to mustache."),
-    template: string$1().optional().describe("*The template of the widget. Cannot be used with filter."),
-    filter: string$1().optional().describe("*The template of the filter. Cannot be used with template."),
-    selectors: union([string$1(), array(string$1())]).optional().describe("Optional. CSS selectors to identify the widget."),
-    insertquery: string$1().optional().describe("Optional. CSS selector where to insert content in SELECTION mode"),
-    unwrap: string$1().optional().describe("Optional. CSS selectors of template content to extract on unwrap."),
+    template: string$2().optional().describe("*The template of the widget. Cannot be used with filter."),
+    filter: string$2().optional().describe("*The template of the filter. Cannot be used with template."),
+    selectors: union([string$2(), array(string$2())]).optional().describe("Optional. CSS selectors to identify the widget."),
+    insertquery: string$2().optional().describe("Optional. CSS selector where to insert content in SELECTION mode"),
+    unwrap: string$2().optional().describe("Optional. CSS selectors of template content to extract on unwrap."),
     parameters: array(union([PartialStringSchema, PartialSchema, ParamSchema])).optional().describe("Optional. A list of parameters of the widget"),
-    requires: union([string$1(), RequiresSpec]).optional().describe("Optional. JS dependencies of the widget."),
-    I18n: record(string$1(), record(string$1(), string$1())).optional().describe("Optional. Translation map."),
-    'for': string$1().optional().describe("Optional. A list of user ids allowed to use this widget"),
+    requires: union([string$2(), RequiresSpec]).optional().describe("Optional. JS dependencies of the widget."),
+    I18n: record(string$2(), record(string$2(), string$2())).optional().describe("Optional. Translation map."),
+    'for': string$2().optional().describe("Optional. A list of user ids allowed to use this widget"),
     hidden: boolean().optional().describe("Optional. Set to true to hide this widget"),
-    autocomplete: string$1().optional().describe("Optional. Name of a select parameter providing widget variations."),
+    autocomplete: string$2().optional().describe("Optional. Name of a select parameter providing widget variations."),
     contextmenu: array(ActionSchema).optional().describe("Optional. Context menu configuration."),
     contexttoolbar: array(ActionSchema).optional().describe("Optional. Context toolbar configuration."),
 }).superRefine((data, ctx) => {
@@ -38312,7 +38312,7 @@ const seq = {
     createNode: (schema, obj, ctx) => YAMLSeq.from(schema, obj, ctx)
 };
 
-const string = {
+const string$1 = {
     identify: value => typeof value === 'string',
     default: true,
     tag: 'tag:yaml.org,2002:str',
@@ -38452,7 +38452,7 @@ const intHex$1 = {
 const schema$2 = [
     map,
     seq,
-    string,
+    string$1,
     nullTag,
     boolTag,
     intOct$1,
@@ -39035,7 +39035,7 @@ const timestamp = {
 const schema = [
     map,
     seq,
-    string,
+    string$1,
     nullTag,
     trueTag,
     falseTag,
@@ -39058,7 +39058,7 @@ const schema = [
 
 const schemas = new Map([
     ['core', schema$2],
-    ['failsafe', [map, seq, string]],
+    ['failsafe', [map, seq, string$1]],
     ['json', schema$1],
     ['yaml11', schema],
     ['yaml-1.1', schema]
@@ -39147,7 +39147,7 @@ let Schema$1 = class Schema {
         this.tags = getTags(customTags, this.name, merge);
         this.toStringOptions = toStringDefaults ?? null;
         Object.defineProperty(this, MAP, { value: map });
-        Object.defineProperty(this, SCALAR$1, { value: string });
+        Object.defineProperty(this, SCALAR$1, { value: string$1 });
         Object.defineProperty(this, SEQ, { value: seq });
         // Used by createMap()
         this.sortMapEntries =
@@ -45677,6 +45677,113 @@ function fromJSON(json) {
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 
+const text = '#cccccc',
+    background = '#1f1f1f',
+    darkBackground = '#1a1a1a',
+    highlightBackground = '#2e2e2e',
+    selection = '#3d3d3d',
+    cursor = '#4d4d4d',
+    gutterText = '#808080',
+    key = '#569cd6', // mapping keys
+    string = '#d1a008', // quoted strings
+    number = '#d33682',
+    anchor = '#d33682', // &anchor and *alias
+    tag = '#cb4b16', // !!str, !custom
+    punct = '#7e83e6', // : - , ?
+    bracket = '#d33682', // [ ] { }
+    directive = '#a7bf06', // %YAML
+    meta = '#dc322f', // --- and ...
+    comment = '#638e50';
+
+const yamlDarkTheme = EditorView.theme({
+    '&': { color: text, backgroundColor: background },
+    '.cm-content': { caretColor: cursor },
+    '.cm-cursor, .cm-dropCursor': { borderLeftColor: cursor },
+    '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
+        backgroundColor: selection
+    },
+    '.cm-panels': { backgroundColor: darkBackground, color: cursor },
+    '.cm-panels.cm-panels-top': { borderBottom: '2px solid black' },
+    '.cm-panels.cm-panels-bottom': { borderTop: '2px solid black' },
+    '.cm-searchMatch': { backgroundColor: '#72a1ff59', outline: '1px solid #457dff' },
+    '.cm-searchMatch.cm-searchMatch-selected': { backgroundColor: '#6199ff2f' },
+    '.cm-activeLine': { backgroundColor: highlightBackground },
+    '.cm-selectionMatch': { backgroundColor: '#aafe661a' },
+    '&.cm-focused .cm-matchingBracket, &.cm-focused .cm-nonmatchingBracket': {
+        outline: '1px solid #eee8d5'
+    },
+    '.cm-gutters': { backgroundColor: darkBackground, color: gutterText, border: 'none' },
+    '.cm-activeLineGutter': { backgroundColor: highlightBackground },
+    '.cm-foldPlaceholder': { backgroundColor: 'transparent', border: 'none', color: '#ddd' },
+    '.cm-tooltip': { border: 'none', backgroundColor: darkBackground },
+    '.cm-tooltip .cm-tooltip-arrow:before': {
+        borderTopColor: 'transparent',
+        borderBottomColor: 'transparent'
+    },
+    '.cm-tooltip .cm-tooltip-arrow:after': {
+        borderTopColor: darkBackground,
+        borderBottomColor: darkBackground
+    },
+    '.cm-tooltip-autocomplete': {
+        '& > ul > li[aria-selected]': { backgroundColor: highlightBackground, color: cursor }
+    }
+}, { dark: true });
+
+// Moodle/RequireJS workaround kept from the original theme.
+const HighlightStyleDef = HighlightStyle.define;
+
+const yamlDarkHighlightStyle = HighlightStyleDef([
+    // --- lang-yaml (Lezer) ---------------------------------------------
+    // Key/Literal and Key/QuotedLiteral
+    { tag: tags$1.definition(tags$1.propertyName), color: key },
+    // Plain scalar values (Literal, BlockLiteralContent)
+    { tag: tags$1.content, color: text },
+    // Quoted values "..." and '...'
+    { tag: tags$1.string, color: string },
+    // Block scalar headers: | > |- >+
+    { tag: tags$1.special(tags$1.string), color: number },
+    // Anchors (&a) and aliases (*a)
+    { tag: tags$1.labelName, color: anchor },
+    // Tags (!!str, !custom)
+    { tag: tags$1.typeName, color: tag },
+    // Directives (%YAML 1.2) and their arguments
+    { tag: tags$1.keyword, color: directive },
+    { tag: tags$1.attributeValue, color: string },
+    // Document markers --- and ...
+    { tag: tags$1.meta, color: meta },
+    // : , - separators and ? complex key marker
+    { tag: [tags$1.separator, tags$1.punctuation], color: punct },
+    // Flow collections
+    { tag: [tags$1.squareBracket, tags$1.brace], color: bracket },
+    // Comments
+    { tag: [tags$1.comment, tags$1.lineComment], color: comment, fontStyle: 'italic' },
+
+    // --- legacy StreamLanguage yaml fallback ---------------------------
+    { tag: [tags$1.atom, tags$1.bool], color: number },
+    { tag: tags$1.number, color: number },
+    { tag: tags$1.modifier, color: anchor },
+
+    { tag: tags$1.invalid, color: meta, borderBottom: `1px dotted ${meta}` }
+]);
+
+const yamlDark = [yamlDarkTheme, syntaxHighlighting(yamlDarkHighlightStyle)];
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+
 class CmEditor {
     /**
      * @member {HTMLElement} _parentElement
@@ -45688,11 +45795,27 @@ class CmEditor {
      * @param {HTMLElement} parentElement
      * @param {string} lang - The language of the editor (yml, css, js)
      * @param {(lang: string, content: string) => void} onChangeListener - The listener to be called when the content changes
+     * @param {string} initialTheme - The initial theme of the editor (light or dark)
      */
-    constructor(parentElement, lang, onChangeListener) {
+    constructor(parentElement, lang, onChangeListener, initialTheme = 'light') {
         this._parentElement = parentElement;
         this._lang = lang;
+        this._currentTheme = initialTheme;
+        this._themeConfig = new Compartment();
         this._init(onChangeListener);
+    }
+
+    /**
+     * @param {string} theme 
+     * @returns {Array<*>} 
+     */
+    _getThemeExtension(theme) {
+        if (theme === 'dark') {
+            // yamlDark provides both EditorView.theme(..., {dark: true}) and syntaxHighlighting(...)
+            return yamlDark;
+        }
+        // CodeMirror's default built-in theme is light (represented as [] or default light theme)
+        return [];
     }
 
     /**
@@ -45709,12 +45832,12 @@ class CmEditor {
                 this._timeout = setTimeout(() => onChangeListener(this._lang, update.state.doc.toString()), 1200);
             }
         });
-
         const extensions = [
             basicSetup,
             keymap.of([indentWithTab]),
             lintGutter(),
             onChange,
+            this._themeConfig.of(this._getThemeExtension(this._currentTheme))
         ];
 
         if (this._lang === 'yml') {
@@ -45771,6 +45894,26 @@ class CmEditor {
             }
         });
         return errorCount > 0;
+    }
+    /**
+     * Switches the theme dynamically.
+     * @param {'light' | 'dark'} theme 
+     */
+    setTheme(theme) {
+        this._currentTheme = theme;
+        if (!this._editorView) {
+            return;
+        }
+        this._editorView.dispatch({
+            effects: this._themeConfig.reconfigure(this._getThemeExtension(theme))
+        });
+    }
+    /**
+     * Gets current theme.
+     * @returns {string}
+     */
+    getTheme() {
+        return this._currentTheme;
     }
 }
 

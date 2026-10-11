@@ -17,9 +17,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny CodePro plugin.
+ * Tiny WidgetHub plugin.
  *
- * @module      tiny_codepro/plugin
+ * @module      tiny_widgethub/ymlschema
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

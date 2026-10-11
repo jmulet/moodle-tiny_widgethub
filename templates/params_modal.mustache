@@ -57,12 +57,12 @@
         <div class="tab-content">
             <div class="tab-pane active" id="{{idtabpane}}_0">
                 {{#instructions}}
-                <div style="background: whitesmoke; position:relative; padding: 15px;">
-                    <div class="tiny_widgethub-instructionstext" style="max-height:120px; overflow: hidden auto;overscroll-behavior-y: contain;">{{{instructions}}}</div>
+                <div class="tiny_widgethub-instructions position-relative p-3">
+                    <div class="tiny_widgethub-instructionstext">{{{instructions}}}</div>
                 </div>
                 {{/instructions}}
-                <hr style="margin:15px;">
-                <div style="max-height:350px;overflow:hidden auto;overscroll-behavior-y: contain;border-bottom:1px solid lightgray;">
+                <hr class="m-3">
+                <div class="tiny_widgethub-controls">
                 <form>
                 {{#controls}}
                     {{{.}}}
@@ -71,7 +71,7 @@
                 </div>
             </div>
             {{^filter}}
-            <div class="tab-pane p-3" id="{{idtabpane}}_1" style="min-height:200px;max-height:450px;overflow:auto">
+            <div class="tab-pane p-3 tiny_widgethub-previewtab" id="{{idtabpane}}_1">
             </div>
             {{/filter}}
         </div>
