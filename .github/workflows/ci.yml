@@ -30,26 +30,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        # Moodle 4.1 (LTS)
-        - moodle: 'MOODLE_401_STABLE'
-          php: '7.4'
-          db: 'pgsql'
-          db_image: 'postgres:14'
-          health_cmd: "pg_isready"
-          db_user: postgres
-          db_pass: postgres
-          db_port: 5432
-
-        # Moodle 4.2
-        - moodle: 'MOODLE_402_STABLE'
-          php: '8.0'
-          db: 'mysqli'
-          db_image: 'mysql:8.0'
-          health_cmd: "mysqladmin ping"
-          db_user: root
-          db_pass: ''
-          db_port: 3306
-
         # Moodle 4.3
         - moodle: 'MOODLE_403_STABLE'
           php: '8.1'
