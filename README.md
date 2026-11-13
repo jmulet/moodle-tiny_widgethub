@@ -9,19 +9,6 @@
 > [!WARNING]
 > **Backup Recommended**: It is strongly recommended to backup your custom widgets before updating to version 1.5.x to safeguard your data integrity during the migration.
 
-<div class="alert alert-info d-flex align-items-center" role="alert" style="gap: 0.5rem;">
-   
-  <div>
-    <a href="https://chatgpt.com/g/g-694018e49b888191b04b90e7c7a77a59-widgethub-for-tinymce-gpt-beta"
-       target="_blank" rel="noopener noreferrer" style="text-decoration: none; font-weight: 500; color: inherit;">
-      NEW WidgetHub GPT (Beta):
-
-      🔗 Your AI assistant for building awesome widgets effortlessly.
-
-      Feedback is welcome • Credits: Andreas Giesen
-    </a>
-  </div>
-</div>    
 
 ## Features
 
