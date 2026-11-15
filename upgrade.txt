@@ -94,3 +94,7 @@ Changes:
   - Issue #58: Implicit form submission in widget parameter dialog navigates away from the editing page
   - Updated external libraries to latest versions.
   - Adapt UI to support dark mode of Moodle 5.3+.
+
+== 1.5.5 ==
+  - Removed custom GPT documentation due to deprecation. Many thanks to Andreas Giesen.
+  - Fix issue WidgetHub modal not showing after opening tiny_html dialog.
