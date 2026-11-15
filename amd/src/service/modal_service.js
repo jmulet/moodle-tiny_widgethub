@@ -146,7 +146,7 @@ const _modalFactoryPromise = (async () => {
 
 /**
  * @typedef {(el: Element, event: string, handler: EventListener) => void} ListenerTracker
- * @typedef {JQuery<HTMLElement> & {header: JQuery<HTMLElement>, body: JQuery<HTMLElement>, footer: JQuery<HTMLElement>, destroy: () => void, show: () => void, getRoot: () => {on: () => void}, twhRegisterListener: ListenerTracker, twhRegisterListenerBySelector: (container: string, selector: string, event: string, handler: EventListener) => void }} ModalDialogue
+ * @typedef {JQuery<HTMLElement> & {header: JQuery<HTMLElement>, body: JQuery<HTMLElement>, modal: JQuery<HTMLElement>, footer: JQuery<HTMLElement>, destroy: () => void, show: () => void, getRoot: () => {on: () => void}, twhRegisterListener: ListenerTracker, twhRegisterListenerBySelector: (container: string, selector: string, event: string, handler: EventListener) => void }} ModalDialogue
  */
 
 /**

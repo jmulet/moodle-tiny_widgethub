@@ -370,7 +370,7 @@ export class WidgetPickerCtrl {
             }
         }
 
-        this.modal.show();
+        this.show();
 
         setTimeout(() => {
             if (!this.body) {
@@ -387,7 +387,12 @@ export class WidgetPickerCtrl {
 
 
     show() {
-        this.modal?.show();
+        if (!this.modal?.modal) {
+            return;
+        }
+        this.modal.show();
+        // Fix: remove hide set by some tox dialog.
+        this.modal.modal.removeClass('hide');
     }
 
     /**

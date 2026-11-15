@@ -97,3 +97,4 @@ Changes:
 
 == 1.5.5 ==
   - Removed custom GPT documentation due to deprecation. Many thanks to Andreas Giesen.
+  - Fix issue WidgetHub modal not showing after opening tiny_html dialog.
