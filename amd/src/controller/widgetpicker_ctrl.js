@@ -387,12 +387,14 @@ export class WidgetPickerCtrl {
 
 
     show() {
-        if (!this.modal?.modal) {
+        if (!this.modal) {
             return;
         }
         this.modal.show();
         // Fix: remove hide set by some tox dialog.
-        this.modal.modal.removeClass('hide');
+        if (this.modal.modal) {
+            this.modal.modal.removeClass('hide');
+        }
     }
 
     /**
