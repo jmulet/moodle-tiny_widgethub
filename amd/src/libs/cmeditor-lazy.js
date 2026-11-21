@@ -4054,10 +4054,6 @@ class StyleModule {
     this.rules = [];
     let {finish} = options || {};
 
-    function splitSelector(selector) {
-      return /^@/.test(selector) ? [selector] : selector.split(/,\s*/)
-    }
-
     function render(selectors, spec, target, isKeyframes) {
       let local = [], isAt = /^@(\w+)\b/.exec(selectors[0]), keyframes = isAt && isAt[1] == "keyframes";
       if (isAt && spec == null) return target.push(selectors[0] + ";")
@@ -4070,7 +4066,8 @@ class StyleModule {
           if (!isAt) throw new RangeError("The value of a property (" + prop + ") should be a primitive value.")
           render(splitSelector(prop), value, local, keyframes);
         } else if (value != null) {
-          local.push(prop.replace(/_.*/, "").replace(/[A-Z]/g, l => "-" + l.toLowerCase()) + ": " + value + ";");
+          if (!/^--/.test(prop)) prop = prop.replace(/_.*/, "").replace(/[A-Z]/g, l => "-" + l.toLowerCase());
+          local.push(prop + ": " + value + ";");
         }
       }
       if (local.length || keyframes) {
@@ -4116,6 +4113,34 @@ class StyleModule {
     else if (nonce) set.setNonce(nonce);
     set.mount(Array.isArray(modules) ? modules : [modules], root);
   }
+}
+
+function splitSelector(selector) {
+  if (/^@/.test(selector)) return [selector]
+  // Superficially tokenize the selector to find top-level commas
+  let result = [], depth = 0, inStr = null, lastNonSpace = 0, cut = 0;
+  for (let i = 0; i < selector.length; i++) {
+    let next = selector[i];
+    if (next == "\\") {
+      i++;
+    } else if (next == '"' || next == "'") {
+      if (next == inStr) inStr = false;
+      else if (!inStr) inStr = next;
+    } else if ((next == "[" || next == "(") && !inStr) {
+      depth++;
+    } else if ((next == "]" || next == ")") && !inStr) {
+      depth--;
+    } else if (next == "," && !depth && !inStr) {
+      result.push(selector.slice(cut, lastNonSpace));
+      cut = i + 1;
+    }
+
+    if (/\S/.test(next)) lastNonSpace = i + 1;
+    else if (i == cut) cut++;
+  }
+  result.push(selector.slice(cut, lastNonSpace));
+
+  return result
 }
 
 let adoptedSet = new Map; //<Document, StyleSet>
@@ -4898,14 +4923,19 @@ function scrollRectIntoView(dom, rect, side, x, y, xMargin, yMargin, ltr) {
     for (let cur = dom, stop = false; cur && !stop;) {
         if (isElt(cur)) { // Element
             let bounding, top = cur == doc.body;
-            let scaleX = 1, scaleY = 1;
+            let scaleX = 1, scaleY = 1, xScroll = true, yScroll = true;
             if (top) {
                 bounding = windowRect(win);
             }
             else {
-                if (/^(fixed|sticky)$/.test(getComputedStyle(cur).position))
+                let style = getComputedStyle(cur);
+                if (/^(fixed|sticky)$/.test(style.position))
                     stop = true;
-                if (cur.scrollHeight <= cur.clientHeight && cur.scrollWidth <= cur.clientWidth) {
+                if (cur.scrollHeight <= cur.clientHeight || !/auto|scroll/.test(style.overflowY))
+                    yScroll = false;
+                if (cur.scrollWidth <= cur.clientWidth || !/auto|scroll/.test(style.overflowX))
+                    xScroll = false;
+                if (!xScroll && !yScroll) {
                     cur = cur.assignedSlot || cur.parentNode;
                     continue;
                 }
@@ -4916,7 +4946,8 @@ function scrollRectIntoView(dom, rect, side, x, y, xMargin, yMargin, ltr) {
                     top: rect.top, bottom: rect.top + cur.clientHeight * scaleY };
             }
             let moveX = 0, moveY = 0;
-            if (y == "nearest") {
+            if (!yScroll) ;
+            else if (y == "nearest") {
                 if (rect.top < bounding.top + yMargin) {
                     moveY = rect.top - (bounding.top + yMargin);
                     if (side > 0 && rect.bottom > bounding.bottom + moveY)
@@ -4935,7 +4966,8 @@ function scrollRectIntoView(dom, rect, side, x, y, xMargin, yMargin, ltr) {
                         rect.bottom - boundingHeight + yMargin;
                 moveY = targetTop - bounding.top;
             }
-            if (x == "nearest") {
+            if (!xScroll) ;
+            else if (x == "nearest") {
                 if (rect.left < bounding.left + xMargin) {
                     moveX = rect.left - (bounding.left + xMargin);
                     if (side > 0 && rect.right > bounding.right + moveX)
@@ -5000,9 +5032,9 @@ function scrollableParents(dom, getX = true) {
             break;
         }
         else if (isElt(cur)) {
-            if (!y && cur.scrollHeight > cur.clientHeight)
+            if (!y && cur.scrollHeight > cur.clientHeight && /scroll|auto/.test(getComputedStyle(cur).overflowY))
                 y = cur;
-            if (getX && !x && cur.scrollWidth > cur.clientWidth)
+            if (getX && !x && cur.scrollWidth > cur.clientWidth && /scroll|auto/.test(getComputedStyle(cur).overflowX))
                 x = cur;
             cur = cur.assignedSlot || cur.parentNode;
         }
@@ -5687,7 +5719,6 @@ function autoDirection(text, from, to) {
         if (type == 2 /* T.R */ || type == 4 /* T.AL */)
             return RTL;
     }
-    return LTR;
 }
 
 const clickAddsSelectionRange = /*@__PURE__*/Facet.define();
@@ -5913,8 +5944,6 @@ function getIsolatedRanges(view, line) {
             let level = result;
             for (let i = active.length - 1; i >= 0; i--, open--) {
                 let direction = active[i].spec.bidiIsolate, update;
-                if (direction == null)
-                    direction = autoDirection(line.text, from, to);
                 if (open > 0 && level.length &&
                     (update = level[level.length - 1]).to == from && update.direction == direction) {
                     update.to = to;
@@ -5928,7 +5957,28 @@ function getIsolatedRanges(view, line) {
             }
         }
     });
-    return result;
+    return resolveIsolates(line.text, result);
+}
+function resolveIsolates(text, isolates) {
+    for (let i of isolates) {
+        if (i.direction == null) {
+            for (let pos = i.from, j = 0; pos < i.to; j++) {
+                let nextInner = j < i.inner.length ? i.inner[j] : null;
+                let dir = autoDirection(text, pos, nextInner ? nextInner.from : i.to);
+                if (dir) {
+                    i.direction = dir;
+                    break;
+                }
+                if (!nextInner)
+                    break;
+                pos = nextInner.to;
+            }
+            if (i.direction == null)
+                i.direction = Direction.LTR;
+        }
+        resolveIsolates(text, i.inner);
+    }
+    return isolates;
 }
 const scrollMargins = /*@__PURE__*/Facet.define();
 function getScrollMargins(view) {
@@ -8045,12 +8095,12 @@ function moveToLineBoundary(view, start, forward, includeWrap) {
     if (coords) {
         let editorRect = view.dom.getBoundingClientRect();
         let direction = view.textDirectionAt(block.from);
-        let pos = view.posAtCoords({ x: forward == (direction == Direction.LTR) ? editorRect.right - 1 : editorRect.left + 1,
+        let pos = view.posAndSideAtCoords({ x: forward == (direction == Direction.LTR) ? editorRect.right - 1 : editorRect.left + 1,
             y: (coords.top + coords.bottom) / 2 });
-        if (pos != null)
-            return EditorSelection.cursor(pos, forward ? -1 : 1);
+        if (pos)
+            return EditorSelection.cursor(pos.pos, pos.assoc);
     }
-    return EditorSelection.cursor(forward ? block.to : block.from, forward ? -1 : 1);
+    return EditorSelection.cursor(forward ? block.to : block.from, forward ? 1 : -1);
 }
 function moveByChar(view, start, forward, by) {
     let line = view.state.doc.lineAt(start.head), spans = view.bidiSpans(line);
@@ -10658,7 +10708,7 @@ class ViewState {
     updateScaler() {
         let scaler = this.scaler;
         this.scaler = this.heightMap.height <= 7000000 /* VP.MaxDOMHeight */ ? IdScaler :
-            new BigScaler(this.heightOracle, this.heightMap, this.viewports);
+            BigScaler.get(this.heightOracle, this.heightMap, this.viewports);
         return scaler.eq(this.scaler) ? 0 : 2 /* UpdateFlag.Height */;
     }
     updateViewportLines() {
@@ -11034,7 +11084,7 @@ class ViewState {
             : (this.scrollParent ? this.scrollParent.getBoundingClientRect().top : 0) - this.view.contentDOM.getBoundingClientRect().top;
     }
     scrollAnchorAt(scrollOffset) {
-        let block = this.lineBlockAtHeight(scrollOffset + 8);
+        let block = this.lineBlockAtHeight(scrollOffset + 12 - this.paddingTop);
         return block.from >= this.viewport.from || this.viewportLines[0].top - scrollOffset > 200 ? block : this.viewportLines[0];
     }
     elementAtHeight(height) {
@@ -11120,20 +11170,27 @@ function staticDeco(state) {
 // regions outside the viewports so that the total height is
 // VP.MaxDOMHeight.
 class BigScaler {
-    constructor(oracle, heightMap, viewports) {
+    constructor(scale, viewports) {
+        this.scale = scale;
+        this.viewports = viewports;
+    }
+    static get(oracle, heightMap, viewports) {
         let vpHeight = 0, base = 0, domBase = 0;
-        this.viewports = viewports.map(({ from, to }) => {
+        let vps = viewports.map(({ from, to }) => {
             let top = heightMap.lineAt(from, QueryType$1.ByPos, oracle, 0, 0).top;
             let bottom = heightMap.lineAt(to, QueryType$1.ByPos, oracle, 0, 0).bottom;
             vpHeight += bottom - top;
             return { from, to, top, bottom, domTop: 0, domBottom: 0 };
         });
-        this.scale = (7000000 /* VP.MaxDOMHeight */ - vpHeight) / (heightMap.height - vpHeight);
-        for (let obj of this.viewports) {
-            obj.domTop = domBase + (obj.top - base) * this.scale;
+        if (heightMap.height - vpHeight < 10)
+            return IdScaler;
+        let scale = (7000000 /* VP.MaxDOMHeight */ - vpHeight) / (heightMap.height - vpHeight);
+        for (let obj of vps) {
+            obj.domTop = domBase + (obj.top - base) * scale;
             domBase = obj.domBottom = obj.domTop + (obj.bottom - obj.top);
             base = obj.bottom;
         }
+        return new BigScaler(scale, vps);
     }
     toDOM(n) {
         for (let i = 0, base = 0, domBase = 0;; i++) {
@@ -11588,7 +11645,7 @@ class DOMObserver {
     }
     onScroll(e) {
         if (this.intersecting)
-            this.flush(false);
+            this.flush(this.pendingRecords().length > 0);
         if (this.editContext)
             this.view.requestMeasure(this.editContext.measureReq);
         this.onScrollChanged(e);
@@ -15578,6 +15635,8 @@ function createDialog(view, config, result) {
     if (config.class)
         panel.className = config.class;
     panel.classList.add("cm-dialog");
+    let focus = typeof config.focus == "string" ? content.querySelector(config.focus)
+        : config.focus ? content.querySelector("input") || content.querySelector("button") : null;
     function done(form) {
         if (panel.contains(panel.ownerDocument.activeElement))
             view.focus();
@@ -15587,18 +15646,14 @@ function createDialog(view, config, result) {
         dom: panel,
         top: config.top,
         mount: () => {
-            if (config.focus) {
-                let focus;
-                if (typeof config.focus == "string")
-                    focus = content.querySelector(config.focus);
-                else
-                    focus = content.querySelector("input") || content.querySelector("button");
-                if (focus && "select" in focus)
+            if (focus) {
+                if ("select" in focus)
                     focus.select();
-                else if (focus && "focus" in focus)
+                else if ("focus" in focus)
                     focus.focus();
             }
-        }
+        },
+        destroy: () => result(null)
     };
 }
 
@@ -17455,13 +17510,16 @@ function buildTree(data) {
             cursor.next();
             let localChildren = [], localPositions = [];
             let localInRepeat = id >= minRepeatType ? id : -1;
-            let lastGroup = 0, lastEnd = end;
+            let lastGroup = 0, lastEnd = end, groupLookAhead = lookAheadAtStart;
             while (cursor.pos > endPos) {
                 if (localInRepeat >= 0 && cursor.id == localInRepeat && cursor.size >= 0) {
                     if (cursor.end <= lastEnd - maxBufferLength) {
-                        makeRepeatLeaf(localChildren, localPositions, start, lastGroup, cursor.end, lastEnd, localInRepeat, lookAheadAtStart, contextAtStart);
+                        makeRepeatLeaf(localChildren, localPositions, start, lastGroup, cursor.end, lastEnd, localInRepeat, groupLookAhead, contextAtStart);
                         lastGroup = localChildren.length;
                         lastEnd = cursor.end;
+                        // The buffer is read backwards, so the current look-ahead is
+                        // the one recorded after the next group's end.
+                        groupLookAhead = lookAhead;
                     }
                     cursor.next();
                 }
@@ -17469,11 +17527,21 @@ function buildTree(data) {
                     takeFlatNode(start, endPos, localChildren, localPositions);
                 }
                 else {
+                    // If the next entry is a reused node matching the local
+                    // repeat, flush a repeat leaf and move lastGroup past it
+                    if (localInRepeat >= 0 && cursor.size == -1 /* SpecialRecord.Reuse */ &&
+                        reused[cursor.id].type == nodeSet.types[localInRepeat]) {
+                        if (lastGroup < localChildren.length)
+                            makeRepeatLeaf(localChildren, localPositions, start, lastGroup, cursor.end, lastEnd, localInRepeat, groupLookAhead, contextAtStart);
+                        lastGroup = localChildren.length + 1;
+                        lastEnd = cursor.start;
+                        groupLookAhead = lookAhead;
+                    }
                     takeNode(start, endPos, localChildren, localPositions, localInRepeat, depth + 1);
                 }
             }
             if (localInRepeat >= 0 && lastGroup > 0 && lastGroup < localChildren.length)
-                makeRepeatLeaf(localChildren, localPositions, start, lastGroup, start, lastEnd, localInRepeat, lookAheadAtStart, contextAtStart);
+                makeRepeatLeaf(localChildren, localPositions, start, lastGroup, start, lastEnd, localInRepeat, groupLookAhead, contextAtStart);
             localChildren.reverse();
             localPositions.reverse();
             if (localInRepeat > -1 && lastGroup > 0) {
@@ -17526,7 +17594,7 @@ function buildTree(data) {
                 if (!lastI && last.type == type && last.length == length)
                     return last;
                 if (lookAheadProp = last.prop(NodeProp.lookAhead))
-                    lookAhead = positions[lastI] + last.length + lookAheadProp;
+                    lookAhead = positions[lastI] + last.length + lookAheadProp - length;
             }
             return makeTree(type, children, positions, length, lookAhead, contextHash);
         };
@@ -17841,7 +17909,7 @@ class TreeFragment {
                     let cut = nextF;
                     if (pos >= cut.from || nextPos <= cut.to || off) {
                         let fFrom = Math.max(cut.from, pos) - off, fTo = Math.min(cut.to, nextPos) - off;
-                        cut = fFrom >= fTo ? null : new TreeFragment(fFrom, fTo, cut.tree, cut.offset + off, cI > 0, !!nextC);
+                        cut = fFrom >= fTo ? null : new TreeFragment(fFrom, fTo, cut.tree, cut.offset + off, cut.openStart || cI > 0, cut.openEnd || !!nextC);
                     }
                     if (cut)
                         result.push(cut);
@@ -17938,6 +18006,16 @@ class ActiveOverlay {
     }
 }
 const stoppedInner = new NodeProp({ perNode: true });
+// The state of the walk that finds nested regions, kept between
+// advance() calls.
+class InnerScan {
+    constructor(fragments, cursor) {
+        this.cursor = cursor;
+        this.overlay = null;
+        this.covered = null;
+        this.fragmentCursor = new FragmentCursor$1(fragments);
+    }
+}
 class MixedParse {
     constructor(base, nest, input, fragments, ranges) {
         this.nest = nest;
@@ -17947,6 +18025,7 @@ class MixedParse {
         this.inner = [];
         this.innerDone = 0;
         this.baseTree = null;
+        this.scan = null;
         this.stoppedAt = null;
         this.baseParse = base;
     }
@@ -17957,7 +18036,12 @@ class MixedParse {
                 return null;
             this.baseParse = null;
             this.baseTree = done;
-            this.startInner();
+            this.scan = new InnerScan(this.fragments, new TreeCursor(new TreeNode(done, this.ranges[0].from, 0, null), IterMode.IncludeAnonymous | IterMode.IgnoreMounts));
+        }
+        if (this.scan) {
+            if (!this.scanInner())
+                return null;
+            this.scan = null;
             if (this.stoppedAt != null)
                 for (let inner of this.inner)
                     inner.parse.stopAt(this.stoppedAt);
@@ -17985,6 +18069,13 @@ class MixedParse {
         if (this.baseParse)
             return 0;
         let pos = this.input.length;
+        if (this.scan) {
+            // Everything before the walk's position has been looked at, except
+            // what open overlays still collect ranges for.
+            pos = this.scan.cursor.from;
+            for (let o = this.scan.overlay; o; o = o.prev)
+                pos = Math.min(pos, o.start);
+        }
         for (let i = this.innerDone; i < this.inner.length; i++) {
             if (this.inner[i].from < pos)
                 pos = Math.min(pos, this.inner[i].parse.parsedPos);
@@ -17999,12 +18090,19 @@ class MixedParse {
             for (let i = this.innerDone; i < this.inner.length; i++)
                 this.inner[i].parse.stopAt(pos);
     }
-    startInner() {
-        let fragmentCursor = new FragmentCursor$1(this.fragments);
-        let overlay = null;
-        let covered = null;
-        let cursor = new TreeCursor(new TreeNode(this.baseTree, this.ranges[0].from, 0, null), IterMode.IncludeAnonymous | IterMode.IgnoreMounts);
-        scan: for (let nest, isCovered;;) {
+    // Continue the walk that finds nested regions. Returns true when
+    // it's done, false when it stopped to let advance() return.
+    scanInner() {
+        let scan = this.scan, { fragmentCursor, cursor } = scan;
+        let { overlay, covered } = scan;
+        let work = 0;
+        walk: for (let nest, isCovered;;) {
+            if (work >= 2000 /* Scan.Work */) {
+                scan.overlay = overlay;
+                scan.covered = covered;
+                return false;
+            }
+            work++;
             let enter = true, range;
             if (this.stoppedAt != null && cursor.from >= this.stoppedAt) {
                 enter = false;
@@ -18042,8 +18140,10 @@ class MixedParse {
                 else {
                     let ranges = punchRanges(this.ranges, nest.overlay ||
                         (cursor.from < cursor.to ? [new Range(cursor.from, cursor.to)] : []));
-                    if (ranges.length)
+                    if (ranges.length) {
                         checkRanges(ranges);
+                        work += 20 /* Scan.StartCost */;
+                    }
                     if (ranges.length || !nest.overlay)
                         this.inner.push(new InnerParse(nest.parser, ranges.length ? nest.parser.startParse(this.input, enterFragments(oldMounts, ranges), ranges)
                             : nest.parser.startParse(""), nest.overlay ? nest.overlay.map(r => new Range(r.from - cursor.from, r.to - cursor.from)) : null, !!nest.bracketed, cursor.tree, ranges.length ? ranges[0].from : cursor.from));
@@ -18075,11 +18175,12 @@ class MixedParse {
                     if (cursor.nextSibling())
                         break;
                     if (!cursor.parent())
-                        break scan;
+                        break walk;
                     if (overlay && !--overlay.depth) {
                         let ranges = punchRanges(this.ranges, overlay.ranges);
                         if (ranges.length) {
                             checkRanges(ranges);
+                            work += 20 /* Scan.StartCost */;
                             this.inner.splice(overlay.index, 0, new InnerParse(overlay.parser, overlay.parser.startParse(this.input, enterFragments(overlay.mounts, ranges), ranges), overlay.ranges.map(r => new Range(r.from - overlay.start, r.to - overlay.start)), overlay.bracketed, overlay.target, ranges[0].from));
                         }
                         overlay = overlay.prev;
@@ -18089,6 +18190,7 @@ class MixedParse {
                 }
             }
         }
+        return true;
     }
 }
 function checkCover(covered, from, to) {
@@ -18158,7 +18260,7 @@ class StructureCursor {
     moveTo(pos) {
         let { cursor } = this, p = pos - this.offset;
         while (!this.done && cursor.from < p) {
-            if (cursor.to >= p && cursor.enter(p, 1, IterMode.IncludeAnonymous | IterMode.IgnoreOverlays | IterMode.ExcludeBuffers)) ;
+            if (cursor.to >= p && cursor.enter(p, 1, IterMode.IncludeAnonymous | IterMode.IgnoreMounts | IterMode.IgnoreOverlays | IterMode.ExcludeBuffers)) ;
             else if (cursor.to <= p) {
                 if (!cursor.next(false))
                     this.done = true;
@@ -18184,15 +18286,21 @@ class StructureCursor {
         return false;
     }
 }
+// The end of the range in which a fragment's nodes can be reused. For
+// a tree from a stopped parse, that is no further than the stop
+// position (in tree coordinates, so it is mapped to the document).
+function fragEnd(frag) {
+    let stopped = frag.tree.prop(stoppedInner);
+    return stopped == null ? frag.to : Math.min(frag.to, stopped - frag.offset);
+}
 let FragmentCursor$1 = class FragmentCursor {
     constructor(fragments) {
-        var _a;
         this.fragments = fragments;
         this.curTo = 0;
         this.fragI = 0;
         if (fragments.length) {
             let first = this.curFrag = fragments[0];
-            this.curTo = (_a = first.tree.prop(stoppedInner)) !== null && _a !== void 0 ? _a : first.to;
+            this.curTo = fragEnd(first);
             this.inner = new StructureCursor(first.tree, -first.offset);
         }
         else {
@@ -18205,14 +18313,13 @@ let FragmentCursor$1 = class FragmentCursor {
         return this.curFrag && this.curFrag.from <= node.from && this.curTo >= node.to && this.inner.hasNode(node);
     }
     nextFrag() {
-        var _a;
         this.fragI++;
         if (this.fragI == this.fragments.length) {
             this.curFrag = this.inner = null;
         }
         else {
             let frag = this.curFrag = this.fragments[this.fragI];
-            this.curTo = (_a = frag.tree.prop(stoppedInner)) !== null && _a !== void 0 ? _a : frag.to;
+            this.curTo = fragEnd(frag);
             this.inner = new StructureCursor(frag.tree, -frag.offset);
         }
     }
@@ -25072,7 +25179,7 @@ const commitCharacters = /*@__PURE__*/Prec.highest(/*@__PURE__*/EditorView.domEv
     keydown(event, view) {
         let field = view.state.field(completionState, false);
         if (!field || !field.open || field.open.disabled || field.open.selected < 0 ||
-            event.key.length > 1 || event.ctrlKey && !(windows && event.altKey) || event.metaKey)
+            !event.key || event.key.length > 1 || event.ctrlKey && !(windows && event.altKey) || event.metaKey)
             return false;
         let option = field.open.options[field.open.selected];
         let result = field.active.find(a => a.source == option.source);
@@ -26138,14 +26245,14 @@ function renderDiagnostic(view, diagnostic, inPanel) {
     var _a;
     let keys = inPanel ? assignKeys(diagnostic.actions) : [];
     return crelt("li", { class: "cm-diagnostic cm-diagnostic-" + diagnostic.severity }, crelt("span", { class: "cm-diagnosticText" }, diagnostic.renderMessage ? diagnostic.renderMessage(view) : diagnostic.message), (_a = diagnostic.actions) === null || _a === void 0 ? void 0 : _a.map((action, i) => {
-        let fired = false, click = (e) => {
+        let fired = 0, click = (e) => {
             e.preventDefault();
-            if (fired)
+            if (fired > Date.now() - 100)
                 return;
-            fired = true;
             let found = findDiagnostic(view.state.field(lintState).diagnostics, diagnostic);
             if (found)
                 action.apply(view, found.from, found.to);
+            fired = Date.now();
         };
         let { name } = action, keyIndex = keys[i] ? name.indexOf(keys[i]) : -1;
         let nameElt = keyIndex < 0 ? name : [name.slice(0, keyIndex),
@@ -27843,6 +27950,8 @@ class FragmentCursor {
                 this.nextFragment();
                 return null;
             }
+            if (pos < this.safeFrom)
+                return null;
             let top = this.trees[last], index = this.index[last];
             if (index == top.children.length) {
                 this.trees.pop();
@@ -27868,9 +27977,6 @@ class FragmentCursor {
                         }
                         if (start == pos)
                             return next;
-                    }
-                    else if (start == pos) {
-                        return null;
                     }
                 }
                 this.index[last]++;
@@ -29501,6 +29607,20 @@ function unwrapMessage(message) {
     return typeof message === "string" ? message : message?.message;
 }
 /* A check holds no link back to the schema it is attached to — the same check instance is shared by every clone of that schema — so the owner is stamped onto the issues a check just raised, at the only point where both are in scope. Runs on the failure path only; `start` is the issue count from before the check ran. */
+/** The leading size checks of `defChecks` that set an upper bound, each paired with it. */
+function sizeCaps(defChecks) {
+    const caps = [];
+    for (const ch of defChecks ?? []) {
+        const d = ch._zod.def;
+        // a later check may rewrite the value
+        if (!/_(length|size)$|_equals$/.test(d.check))
+            break;
+        const max = d.maximum ?? d.length ?? d.size;
+        if (max >= 0)
+            caps.push([max, ch]);
+    }
+    return caps;
+}
 function attachSchema(issues, start, inst) {
     var _a;
     for (let i = start; i < issues.length; i++) {
@@ -30664,7 +30784,7 @@ class Doc {
 const version = {
     major: 4,
     minor: 6,
-    patch: 5,
+    patch: 7,
 };
 
 const $ZodType = /*@__PURE__*/ $constructor("$ZodType", (inst, def) => {
@@ -31276,6 +31396,31 @@ const $ZodNever = /*@__PURE__*/ $constructor("$ZodNever", (inst, def) => {
         return payload;
     };
 });
+// an oversized container fails its leading size checks before any element is parsed
+function capSize(inst, size) {
+    const caps = sizeCaps(inst._zod.def.checks);
+    if (!caps.length)
+        return;
+    const cap = Math.min(...caps.map((c) => c[0]));
+    const parse = inst._zod.parse;
+    inst._zod.parse = (payload, ctx) => {
+        const n = size(payload.value);
+        if (n > cap && !ctx?.skipChecks && ctx?.direction !== "backward") {
+            for (const [max, ch] of sizeCaps(inst._zod.def.checks)) {
+                if (n > max && ch._zod.def.when(payload)) {
+                    const start = payload.issues.length;
+                    ch._zod.check(payload);
+                    // the value is still the raw input, so no later check may read it
+                    payload.issues[start].continue = false;
+                    attachSchema(payload.issues, start, inst);
+                    return payload;
+                }
+            }
+        }
+        return parse(payload, ctx);
+    };
+}
+const arraySize = (input) => (Array.isArray(input) ? input.length : -1);
 function handleArrayResult(result, final, index) {
     if (result.issues.length) {
         final.issues.push(...prefixIssues(index, result.issues));
@@ -31321,6 +31466,7 @@ const $ZodArray = /*@__PURE__*/ $constructor("$ZodArray", (inst, def) => {
         }
         return payload; //handleArrayResultsAsync(parseResults, final);
     };
+    capSize(inst, arraySize);
 });
 function handlePropertyResult(result, final, key, input, optin, optout) {
     const isPresent = key in input;
@@ -36010,9 +36156,9 @@ const isAlias = (node) => !!node && typeof node === 'object' && node[NODE_TYPE] 
 const isDocument = (node) => !!node && typeof node === 'object' && node[NODE_TYPE] === DOC;
 const isMap = (node) => !!node && typeof node === 'object' && node[NODE_TYPE] === MAP;
 const isPair = (node) => !!node && typeof node === 'object' && node[NODE_TYPE] === PAIR;
-const isScalar$1 = (node) => !!node && typeof node === 'object' && node[NODE_TYPE] === SCALAR$1;
+const isScalar = (node) => !!node && typeof node === 'object' && node[NODE_TYPE] === SCALAR$1;
 const isSeq = (node) => !!node && typeof node === 'object' && node[NODE_TYPE] === SEQ;
-function isCollection$1(node) {
+function isCollection(node) {
     if (node && typeof node === 'object')
         switch (node[NODE_TYPE]) {
             case MAP:
@@ -36032,11 +36178,11 @@ function isNode(node) {
         }
     return false;
 }
-const hasAnchor = (node) => (isScalar$1(node) || isCollection$1(node)) && !!node.anchor;
+const hasAnchor = (node) => (isScalar(node) || isCollection(node)) && !!node.anchor;
 
-const BREAK$1 = Symbol('break visit');
-const SKIP$1 = Symbol('skip children');
-const REMOVE$1 = Symbol('remove node');
+const BREAK = Symbol('break visit');
+const SKIP = Symbol('skip children');
+const REMOVE = Symbol('remove node');
 /**
  * Apply a visitor to an AST node or document.
  *
@@ -36067,11 +36213,11 @@ const REMOVE$1 = Symbol('remove node');
  * and `Node` (alias, map, seq & scalar) targets. Of all these, only the most
  * specific defined one will be used for each node.
  */
-function visit$1(node, visitor) {
+function visit(node, visitor) {
     const visitor_ = initVisitor(visitor);
     if (isDocument(node)) {
         const cd = visit_(null, node.contents, visitor_, Object.freeze([node]));
-        if (cd === REMOVE$1)
+        if (cd === REMOVE)
             node.contents = null;
     }
     else
@@ -36081,11 +36227,11 @@ function visit$1(node, visitor) {
 // namespace using `var`, but then complains about that because
 // `unique symbol` must be `const`.
 /** Terminate visit traversal completely */
-visit$1.BREAK = BREAK$1;
+visit.BREAK = BREAK;
 /** Do not visit the children of the current node */
-visit$1.SKIP = SKIP$1;
+visit.SKIP = SKIP;
 /** Remove the current node */
-visit$1.REMOVE = REMOVE$1;
+visit.REMOVE = REMOVE;
 function visit_(key, node, visitor, path) {
     const ctrl = callVisitor(key, node, visitor, path);
     if (isNode(ctrl) || isPair(ctrl)) {
@@ -36093,15 +36239,15 @@ function visit_(key, node, visitor, path) {
         return visit_(key, ctrl, visitor, path);
     }
     if (typeof ctrl !== 'symbol') {
-        if (isCollection$1(node)) {
+        if (isCollection(node)) {
             path = Object.freeze(path.concat(node));
             for (let i = 0; i < node.items.length; ++i) {
                 const ci = visit_(i, node.items[i], visitor, path);
                 if (typeof ci === 'number')
                     i = ci - 1;
-                else if (ci === BREAK$1)
-                    return BREAK$1;
-                else if (ci === REMOVE$1) {
+                else if (ci === BREAK)
+                    return BREAK;
+                else if (ci === REMOVE) {
                     node.items.splice(i, 1);
                     i -= 1;
                 }
@@ -36110,101 +36256,14 @@ function visit_(key, node, visitor, path) {
         else if (isPair(node)) {
             path = Object.freeze(path.concat(node));
             const ck = visit_('key', node.key, visitor, path);
-            if (ck === BREAK$1)
-                return BREAK$1;
-            else if (ck === REMOVE$1)
+            if (ck === BREAK)
+                return BREAK;
+            else if (ck === REMOVE)
                 node.key = null;
             const cv = visit_('value', node.value, visitor, path);
-            if (cv === BREAK$1)
-                return BREAK$1;
-            else if (cv === REMOVE$1)
-                node.value = null;
-        }
-    }
-    return ctrl;
-}
-/**
- * Apply an async visitor to an AST node or document.
- *
- * Walks through the tree (depth-first) starting from `node`, calling a
- * `visitor` function with three arguments:
- *   - `key`: For sequence values and map `Pair`, the node's index in the
- *     collection. Within a `Pair`, `'key'` or `'value'`, correspondingly.
- *     `null` for the root node.
- *   - `node`: The current node.
- *   - `path`: The ancestry of the current node.
- *
- * The return value of the visitor may be used to control the traversal:
- *   - `Promise`: Must resolve to one of the following values
- *   - `undefined` (default): Do nothing and continue
- *   - `visit.SKIP`: Do not visit the children of this node, continue with next
- *     sibling
- *   - `visit.BREAK`: Terminate traversal completely
- *   - `visit.REMOVE`: Remove the current node, then continue with the next one
- *   - `Node`: Replace the current node, then continue by visiting it
- *   - `number`: While iterating the items of a sequence or map, set the index
- *     of the next step. This is useful especially if the index of the current
- *     node has changed.
- *
- * If `visitor` is a single function, it will be called with all values
- * encountered in the tree, including e.g. `null` values. Alternatively,
- * separate visitor functions may be defined for each `Map`, `Pair`, `Seq`,
- * `Alias` and `Scalar` node. To define the same visitor function for more than
- * one node type, use the `Collection` (map and seq), `Value` (map, seq & scalar)
- * and `Node` (alias, map, seq & scalar) targets. Of all these, only the most
- * specific defined one will be used for each node.
- */
-async function visitAsync(node, visitor) {
-    const visitor_ = initVisitor(visitor);
-    if (isDocument(node)) {
-        const cd = await visitAsync_(null, node.contents, visitor_, Object.freeze([node]));
-        if (cd === REMOVE$1)
-            node.contents = null;
-    }
-    else
-        await visitAsync_(null, node, visitor_, Object.freeze([]));
-}
-// Without the `as symbol` casts, TS declares these in the `visit`
-// namespace using `var`, but then complains about that because
-// `unique symbol` must be `const`.
-/** Terminate visit traversal completely */
-visitAsync.BREAK = BREAK$1;
-/** Do not visit the children of the current node */
-visitAsync.SKIP = SKIP$1;
-/** Remove the current node */
-visitAsync.REMOVE = REMOVE$1;
-async function visitAsync_(key, node, visitor, path) {
-    const ctrl = await callVisitor(key, node, visitor, path);
-    if (isNode(ctrl) || isPair(ctrl)) {
-        replaceNode(key, path, ctrl);
-        return visitAsync_(key, ctrl, visitor, path);
-    }
-    if (typeof ctrl !== 'symbol') {
-        if (isCollection$1(node)) {
-            path = Object.freeze(path.concat(node));
-            for (let i = 0; i < node.items.length; ++i) {
-                const ci = await visitAsync_(i, node.items[i], visitor, path);
-                if (typeof ci === 'number')
-                    i = ci - 1;
-                else if (ci === BREAK$1)
-                    return BREAK$1;
-                else if (ci === REMOVE$1) {
-                    node.items.splice(i, 1);
-                    i -= 1;
-                }
-            }
-        }
-        else if (isPair(node)) {
-            path = Object.freeze(path.concat(node));
-            const ck = await visitAsync_('key', node.key, visitor, path);
-            if (ck === BREAK$1)
-                return BREAK$1;
-            else if (ck === REMOVE$1)
-                node.key = null;
-            const cv = await visitAsync_('value', node.value, visitor, path);
-            if (cv === BREAK$1)
-                return BREAK$1;
-            else if (cv === REMOVE$1)
+            if (cv === BREAK)
+                return BREAK;
+            else if (cv === REMOVE)
                 node.value = null;
         }
     }
@@ -36238,7 +36297,7 @@ function callVisitor(key, node, visitor, path) {
         return visitor.Seq?.(key, node, path);
     if (isPair(node))
         return visitor.Pair?.(key, node, path);
-    if (isScalar$1(node))
+    if (isScalar(node))
         return visitor.Scalar?.(key, node, path);
     if (isAlias(node))
         return visitor.Alias?.(key, node, path);
@@ -36246,7 +36305,7 @@ function callVisitor(key, node, visitor, path) {
 }
 function replaceNode(key, path, node) {
     const parent = path[path.length - 1];
-    if (isCollection$1(parent)) {
+    if (isCollection(parent)) {
         parent.items[key] = node;
     }
     else if (isPair(parent)) {
@@ -36416,7 +36475,7 @@ class Directives {
         let tagNames;
         if (doc && tagEntries.length > 0 && isNode(doc.contents)) {
             const tags = {};
-            visit$1(doc.contents, (_key, node) => {
+            visit(doc.contents, (_key, node) => {
                 if (isNode(node) && node.tag)
                     tags[node.tag] = true;
             });
@@ -36451,7 +36510,7 @@ function anchorIsValid(anchor) {
 }
 function anchorNames(root) {
     const anchors = new Set();
-    visit$1(root, {
+    visit(root, {
         Value(_key, node) {
             if (node.anchor)
                 anchors.add(node.anchor);
@@ -36489,7 +36548,7 @@ function createNodeAnchors(doc, prefix) {
                 const ref = sourceObjects.get(source);
                 if (typeof ref === 'object' &&
                     ref.anchor &&
-                    (isScalar$1(ref.node) || isCollection$1(ref.node))) {
+                    (isScalar(ref.node) || isCollection(ref.node))) {
                     ref.node.anchor = ref.anchor;
                 }
                 else {
@@ -36647,7 +36706,7 @@ class Alias extends NodeBase {
         }
         else {
             nodes = [];
-            visit$1(doc, {
+            visit(doc, {
                 Node: (_key, node) => {
                     if (isAlias(node) || hasAnchor(node))
                         nodes.push(node);
@@ -36718,7 +36777,7 @@ function getAliasCount(doc, node, anchors) {
         const anchor = anchors && source && anchors.get(source);
         return anchor ? anchor.count * anchor.aliasCount : 0;
     }
-    else if (isCollection$1(node)) {
+    else if (isCollection(node)) {
         let count = 0;
         for (const item of node.items) {
             const c = getAliasCount(doc, item, anchors);
@@ -36899,7 +36958,7 @@ class Collection extends NodeBase {
         else {
             const [key, ...rest] = path;
             const node = this.get(key, true);
-            if (isCollection$1(node))
+            if (isCollection(node))
                 node.addIn(rest, value);
             else if (node === undefined && this.schema)
                 this.set(key, collectionFromPath(this.schema, rest, value));
@@ -36916,7 +36975,7 @@ class Collection extends NodeBase {
         if (rest.length === 0)
             return this.delete(key);
         const node = this.get(key, true);
-        if (isCollection$1(node))
+        if (isCollection(node))
             return node.deleteIn(rest);
         else
             throw new Error(`Expected YAML collection at ${key}. Remaining path: ${rest}`);
@@ -36930,9 +36989,9 @@ class Collection extends NodeBase {
         const [key, ...rest] = path;
         const node = this.get(key, true);
         if (rest.length === 0)
-            return !keepScalar && isScalar$1(node) ? node.value : node;
+            return !keepScalar && isScalar(node) ? node.value : node;
         else
-            return isCollection$1(node) ? node.getIn(rest, keepScalar) : undefined;
+            return isCollection(node) ? node.getIn(rest, keepScalar) : undefined;
     }
     hasAllNullValues(allowScalar) {
         return this.items.every(node => {
@@ -36941,7 +37000,7 @@ class Collection extends NodeBase {
             const n = node.value;
             return (n == null ||
                 (allowScalar &&
-                    isScalar$1(n) &&
+                    isScalar(n) &&
                     n.value == null &&
                     !n.commentBefore &&
                     !n.comment &&
@@ -36956,7 +37015,7 @@ class Collection extends NodeBase {
         if (rest.length === 0)
             return this.has(key);
         const node = this.get(key, true);
-        return isCollection$1(node) ? node.hasIn(rest) : false;
+        return isCollection(node) ? node.hasIn(rest) : false;
     }
     /**
      * Sets a value in this collection. For `!!set`, `value` needs to be a
@@ -36969,7 +37028,7 @@ class Collection extends NodeBase {
         }
         else {
             const node = this.get(key, true);
-            if (isCollection$1(node))
+            if (isCollection(node))
                 node.setIn(rest, value);
             else if (node === undefined && this.schema)
                 this.set(key, collectionFromPath(this.schema, rest, value));
@@ -37525,7 +37584,7 @@ function getTagObject(tags, item) {
     }
     let tagObj = undefined;
     let obj;
-    if (isScalar$1(item)) {
+    if (isScalar(item)) {
         obj = item.value;
         let match = tags.filter(t => t.identify?.(obj));
         if (match.length > 1) {
@@ -37551,7 +37610,7 @@ function stringifyProps(node, tagObj, { anchors, doc }) {
     if (!doc.directives)
         return '';
     const props = [];
-    const anchor = (isScalar$1(node) || isCollection$1(node)) && node.anchor;
+    const anchor = (isScalar(node) || isCollection(node)) && node.anchor;
     if (anchor && anchorIsValid(anchor)) {
         anchors.add(anchor);
         props.push(`&${anchor}`);
@@ -37561,7 +37620,7 @@ function stringifyProps(node, tagObj, { anchors, doc }) {
         props.push(doc.directives.tagString(tag));
     return props.join(' ');
 }
-function stringify$2(item, ctx, onComment, onChompKeep) {
+function stringify$1(item, ctx, onComment, onChompKeep) {
     if (isPair(item))
         return item.toString(ctx, onComment, onChompKeep);
     if (isAlias(item)) {
@@ -37588,12 +37647,12 @@ function stringify$2(item, ctx, onComment, onChompKeep) {
         ctx.indentAtStart = (ctx.indentAtStart ?? 0) + props.length + 1;
     const str = typeof tagObj.stringify === 'function'
         ? tagObj.stringify(node, ctx, onComment, onChompKeep)
-        : isScalar$1(node)
+        : isScalar(node)
             ? stringifyString(node, ctx, onComment, onChompKeep)
             : node.toString(ctx, onComment, onChompKeep);
     if (!props)
         return str;
-    return isScalar$1(node) || str[0] === '{' || str[0] === '['
+    return isScalar(node) || str[0] === '{' || str[0] === '['
         ? `${props} ${str}`
         : `${props}\n${ctx.indent}${str}`;
 }
@@ -37605,7 +37664,7 @@ function stringifyPair({ key, value }, ctx, onComment, onChompKeep) {
         if (keyComment) {
             throw new Error('With simple keys, key nodes cannot have comments');
         }
-        if (isCollection$1(key) || (!isNode(key) && typeof key === 'object')) {
+        if (isCollection(key) || (!isNode(key) && typeof key === 'object')) {
             const msg = 'With simple keys, collection cannot be used as a key value';
             throw new Error(msg);
         }
@@ -37613,8 +37672,8 @@ function stringifyPair({ key, value }, ctx, onComment, onChompKeep) {
     let explicitKey = !simpleKeys &&
         (!key ||
             (keyComment && value == null && !ctx.inFlow) ||
-            isCollection$1(key) ||
-            (isScalar$1(key)
+            isCollection(key) ||
+            (isScalar(key)
                 ? key.type === Scalar.BLOCK_FOLDED || key.type === Scalar.BLOCK_LITERAL
                 : typeof key === 'object'));
     ctx = Object.assign({}, ctx, {
@@ -37624,7 +37683,7 @@ function stringifyPair({ key, value }, ctx, onComment, onChompKeep) {
     });
     let keyCommentDone = false;
     let chompKeep = false;
-    let str = stringify$2(key, ctx, () => (keyCommentDone = true), () => (chompKeep = true));
+    let str = stringify$1(key, ctx, () => (keyCommentDone = true), () => (chompKeep = true));
     if (!explicitKey && !ctx.inFlow && str.length > 1024) {
         if (simpleKeys)
             throw new Error('With simple keys, single line scalar must not span more than 1024 characters');
@@ -37672,7 +37731,7 @@ function stringifyPair({ key, value }, ctx, onComment, onChompKeep) {
             value = doc.createNode(value);
     }
     ctx.implicitKey = false;
-    if (!explicitKey && !keyComment && isScalar$1(value))
+    if (!explicitKey && !keyComment && isScalar(value))
         ctx.indentAtStart = str.length + 1;
     chompKeep = false;
     if (!indentSeq &&
@@ -37687,7 +37746,7 @@ function stringifyPair({ key, value }, ctx, onComment, onChompKeep) {
         ctx.indent = ctx.indent.substring(2);
     }
     let valueCommentDone = false;
-    const valueStr = stringify$2(value, ctx, () => (valueCommentDone = true), () => (chompKeep = true));
+    const valueStr = stringify$1(value, ctx, () => (valueCommentDone = true), () => (chompKeep = true));
     let ws = ' ';
     if (keyComment || vsb || vcb) {
         ws = vsb ? '\n' : '';
@@ -37703,7 +37762,7 @@ function stringifyPair({ key, value }, ctx, onComment, onChompKeep) {
             ws += `\n${ctx.indent}`;
         }
     }
-    else if (!explicitKey && isCollection$1(value)) {
+    else if (!explicitKey && isCollection(value)) {
         const vs0 = valueStr[0];
         const nl0 = valueStr.indexOf('\n');
         const hasNewline = nl0 !== -1;
@@ -37768,7 +37827,7 @@ const merge = {
     stringify: () => MERGE_KEY
 };
 const isMergeKey = (ctx, key) => (merge.identify(key) ||
-    (isScalar$1(key) &&
+    (isScalar(key) &&
         (!key.type || key.type === Scalar.PLAIN) &&
         merge.identify(key.value))) &&
     ctx?.doc.schema.tags.some(tag => tag.tag === merge.tag && tag.default);
@@ -37926,7 +37985,7 @@ function stringifyBlockCollection({ comment, items }, ctx, { blockItemPrefix, fl
             }
         }
         chompKeep = false;
-        let str = stringify$2(item, itemCtx, () => (comment = null), () => (chompKeep = true));
+        let str = stringify$1(item, itemCtx, () => (comment = null), () => (chompKeep = true));
         if (comment)
             str += lineComment(str, itemIndent, commentString(comment));
         if (chompKeep && comment)
@@ -37996,7 +38055,7 @@ function stringifyFlowCollection({ items }, ctx, { flowChars, itemIndent }) {
         }
         if (comment)
             reqNewline = true;
-        let str = stringify$2(item, itemCtx, () => (comment = null));
+        let str = stringify$1(item, itemCtx, () => (comment = null));
         reqNewline || (reqNewline = lines.length > linesAtValue || str.includes('\n'));
         if (i < items.length - 1) {
             str += ',';
@@ -38046,12 +38105,12 @@ function addCommentBefore({ indent, options: { commentString } }, lines, comment
 }
 
 function findPair(items, key) {
-    const k = isScalar$1(key) ? key.value : key;
+    const k = isScalar(key) ? key.value : key;
     for (const it of items) {
         if (isPair(it)) {
             if (it.key === key || it.key === k)
                 return it;
-            if (isScalar$1(it.key) && it.key.value === k)
+            if (isScalar(it.key) && it.key.value === k)
                 return it;
         }
     }
@@ -38115,7 +38174,7 @@ class YAMLMap extends Collection {
             if (!overwrite)
                 throw new Error(`Key ${_pair.key} already set`);
             // For scalars, keep the old node & its comments and anchors
-            if (isScalar$1(prev.value) && isScalarValue(_pair.value))
+            if (isScalar(prev.value) && isScalarValue(_pair.value))
                 prev.value.value = _pair.value;
             else
                 prev.value = _pair.value;
@@ -38141,7 +38200,7 @@ class YAMLMap extends Collection {
     get(key, keepScalar) {
         const it = findPair(this.items, key);
         const node = it?.value;
-        return (!keepScalar && isScalar$1(node) ? node.value : node) ?? undefined;
+        return (!keepScalar && isScalar(node) ? node.value : node) ?? undefined;
     }
     has(key) {
         return !!findPair(this.items, key);
@@ -38225,7 +38284,7 @@ class YAMLSeq extends Collection {
         if (typeof idx !== 'number')
             return undefined;
         const it = this.items[idx];
-        return !keepScalar && isScalar$1(it) ? it.value : it;
+        return !keepScalar && isScalar(it) ? it.value : it;
     }
     /**
      * Checks if the collection includes a value with the key `key`.
@@ -38249,7 +38308,7 @@ class YAMLSeq extends Collection {
         if (typeof idx !== 'number')
             throw new Error(`Expected a valid index, not ${key}.`);
         const prev = this.items[idx];
-        if (isScalar$1(prev) && isScalarValue(value))
+        if (isScalar(prev) && isScalarValue(value))
             prev.value = value;
         else
             this.items[idx] = value;
@@ -38291,7 +38350,7 @@ class YAMLSeq extends Collection {
     }
 }
 function asItemIndex(key) {
-    let idx = isScalar$1(key) ? key.value : key;
+    let idx = isScalar(key) ? key.value : key;
     if (idx && typeof idx === 'string')
         idx = Number(idx);
     return typeof idx === 'number' && Number.isInteger(idx) && idx >= 0
@@ -38699,7 +38758,7 @@ const omap = {
         const pairs = resolvePairs(seq, onError);
         const seenKeys = [];
         for (const { key } of pairs.items) {
-            if (isScalar$1(key)) {
+            if (isScalar(key)) {
                 if (seenKeys.includes(key.value)) {
                     onError(`Ordered maps must not include duplicate keys: ${key.value}`);
                 }
@@ -38874,7 +38933,7 @@ class YAMLSet extends YAMLMap {
     get(key, keepPair) {
         const pair = findPair(this.items, key);
         return !keepPair && isPair(pair)
-            ? isScalar$1(pair.key)
+            ? isScalar(pair.key)
                 ? pair.key.value
                 : pair.key
             : pair;
@@ -39201,7 +39260,7 @@ function stringifyDocument(doc, options) {
             contentComment = doc.contents.comment;
         }
         const onChompKeep = contentComment ? undefined : () => (chompKeep = true);
-        let body = stringify$2(doc.contents, ctx, () => (contentComment = null), onChompKeep);
+        let body = stringify$1(doc.contents, ctx, () => (contentComment = null), onChompKeep);
         if (contentComment)
             body += lineComment(body, '', commentString(contentComment));
         if ((body[0] === '|' || body[0] === '>') &&
@@ -39214,7 +39273,7 @@ function stringifyDocument(doc, options) {
             lines.push(body);
     }
     else {
-        lines.push(stringify$2(doc.contents, ctx));
+        lines.push(stringify$1(doc.contents, ctx));
     }
     if (doc.directives?.docEnd) {
         if (doc.comment) {
@@ -39371,7 +39430,7 @@ class Document {
             sourceObjects
         };
         const node = createNode(value, tag, ctx);
-        if (flow && isCollection$1(node))
+        if (flow && isCollection(node))
             node.flow = true;
         setAnchors();
         return node;
@@ -39414,7 +39473,7 @@ class Document {
      * `true` (collections are always returned intact).
      */
     get(key, keepScalar) {
-        return isCollection$1(this.contents)
+        return isCollection(this.contents)
             ? this.contents.get(key, keepScalar)
             : undefined;
     }
@@ -39425,10 +39484,10 @@ class Document {
      */
     getIn(path, keepScalar) {
         if (isEmptyPath(path))
-            return !keepScalar && isScalar$1(this.contents)
+            return !keepScalar && isScalar(this.contents)
                 ? this.contents.value
                 : this.contents;
-        return isCollection$1(this.contents)
+        return isCollection(this.contents)
             ? this.contents.getIn(path, keepScalar)
             : undefined;
     }
@@ -39436,7 +39495,7 @@ class Document {
      * Checks if the document includes a value with the key `key`.
      */
     has(key) {
-        return isCollection$1(this.contents) ? this.contents.has(key) : false;
+        return isCollection(this.contents) ? this.contents.has(key) : false;
     }
     /**
      * Checks if the document includes a value at `path`.
@@ -39444,7 +39503,7 @@ class Document {
     hasIn(path) {
         if (isEmptyPath(path))
             return this.contents !== undefined;
-        return isCollection$1(this.contents) ? this.contents.hasIn(path) : false;
+        return isCollection(this.contents) ? this.contents.hasIn(path) : false;
     }
     /**
      * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -39561,7 +39620,7 @@ class Document {
     }
 }
 function assertCollection(contents) {
-    if (isCollection$1(contents))
+    if (isCollection(contents))
         return true;
     throw new Error('Expected a YAML collection as document contents');
 }
@@ -39818,7 +39877,7 @@ function mapIncludes(ctx, items, search) {
         return false;
     const isEqual = typeof uniqueKeys === 'function'
         ? uniqueKeys
-        : (a, b) => a === b || (isScalar$1(a) && isScalar$1(b) && a.value === b.value);
+        : (a, b) => a === b || (isScalar(a) && isScalar(b) && a.value === b.value);
     return items.some(pair => isEqual(pair.key, search));
 }
 
@@ -40722,7 +40781,7 @@ function composeScalar(ctx, token, tagToken, onError) {
     let scalar;
     try {
         const res = tag.resolve(value, msg => onError(tagToken ?? token, 'TAG_RESOLVE_FAILED', msg), ctx.options);
-        scalar = isScalar$1(res) ? res : new Scalar(res);
+        scalar = isScalar(res) ? res : new Scalar(res);
     }
     catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
@@ -40854,7 +40913,7 @@ function composeNode(ctx, token, props, onError) {
         onError(anchor, 'BAD_ALIAS', 'Anchor cannot be an empty string');
     if (atKey &&
         ctx.options.stringKeys &&
-        (!isScalar$1(node) ||
+        (!isScalar(node) ||
             typeof node.value !== 'string' ||
             (node.tag && node.tag !== 'tag:yaml.org,2002:str'))) {
         const msg = 'With stringKeys, all keys must be strings';
@@ -41021,7 +41080,7 @@ class Composer {
             else if (afterEmptyLine || doc.directives.docStart || !dc) {
                 doc.commentBefore = comment;
             }
-            else if (isCollection$1(dc) && !dc.flow && dc.items.length > 0) {
+            else if (isCollection(dc) && !dc.flow && dc.items.length > 0) {
                 let it = dc.items[0];
                 if (isPair(it))
                     it = it.key;
@@ -41156,370 +41215,6 @@ class Composer {
     }
 }
 
-function resolveAsScalar(token, strict = true, onError) {
-    if (token) {
-        const _onError = (pos, code, message) => {
-            const offset = typeof pos === 'number' ? pos : Array.isArray(pos) ? pos[0] : pos.offset;
-            if (onError)
-                onError(offset, code, message);
-            else
-                throw new YAMLParseError([offset, offset + 1], code, message);
-        };
-        switch (token.type) {
-            case 'scalar':
-            case 'single-quoted-scalar':
-            case 'double-quoted-scalar':
-                return resolveFlowScalar(token, strict, _onError);
-            case 'block-scalar':
-                return resolveBlockScalar({ options: { strict } }, token, _onError);
-        }
-    }
-    return null;
-}
-/**
- * Create a new scalar token with `value`
- *
- * Values that represent an actual string but may be parsed as a different type should use a `type` other than `'PLAIN'`,
- * as this function does not support any schema operations and won't check for such conflicts.
- *
- * @param value The string representation of the value, which will have its content properly indented.
- * @param context.end Comments and whitespace after the end of the value, or after the block scalar header. If undefined, a newline will be added.
- * @param context.implicitKey Being within an implicit key may affect the resolved type of the token's value.
- * @param context.indent The indent level of the token.
- * @param context.inFlow Is this scalar within a flow collection? This may affect the resolved type of the token's value.
- * @param context.offset The offset position of the token.
- * @param context.type The preferred type of the scalar token. If undefined, the previous type of the `token` will be used, defaulting to `'PLAIN'`.
- */
-function createScalarToken(value, context) {
-    const { implicitKey = false, indent, inFlow = false, offset = -1, type = 'PLAIN' } = context;
-    const source = stringifyString({ type, value }, {
-        implicitKey,
-        indent: indent > 0 ? ' '.repeat(indent) : '',
-        inFlow,
-        options: { blockQuote: true, lineWidth: -1 }
-    });
-    const end = context.end ?? [
-        { type: 'newline', offset: -1, indent, source: '\n' }
-    ];
-    switch (source[0]) {
-        case '|':
-        case '>': {
-            const he = source.indexOf('\n');
-            const head = source.substring(0, he);
-            const body = source.substring(he + 1) + '\n';
-            const props = [
-                { type: 'block-scalar-header', offset, indent, source: head }
-            ];
-            if (!addEndtoBlockProps(props, end))
-                props.push({ type: 'newline', offset: -1, indent, source: '\n' });
-            return { type: 'block-scalar', offset, indent, props, source: body };
-        }
-        case '"':
-            return { type: 'double-quoted-scalar', offset, indent, source, end };
-        case "'":
-            return { type: 'single-quoted-scalar', offset, indent, source, end };
-        default:
-            return { type: 'scalar', offset, indent, source, end };
-    }
-}
-/**
- * Set the value of `token` to the given string `value`, overwriting any previous contents and type that it may have.
- *
- * Best efforts are made to retain any comments previously associated with the `token`,
- * though all contents within a collection's `items` will be overwritten.
- *
- * Values that represent an actual string but may be parsed as a different type should use a `type` other than `'PLAIN'`,
- * as this function does not support any schema operations and won't check for such conflicts.
- *
- * @param token Any token. If it does not include an `indent` value, the value will be stringified as if it were an implicit key.
- * @param value The string representation of the value, which will have its content properly indented.
- * @param context.afterKey In most cases, values after a key should have an additional level of indentation.
- * @param context.implicitKey Being within an implicit key may affect the resolved type of the token's value.
- * @param context.inFlow Being within a flow collection may affect the resolved type of the token's value.
- * @param context.type The preferred type of the scalar token. If undefined, the previous type of the `token` will be used, defaulting to `'PLAIN'`.
- */
-function setScalarValue(token, value, context = {}) {
-    let { afterKey = false, implicitKey = false, inFlow = false, type } = context;
-    let indent = 'indent' in token ? token.indent : null;
-    if (afterKey && typeof indent === 'number')
-        indent += 2;
-    if (!type)
-        switch (token.type) {
-            case 'single-quoted-scalar':
-                type = 'QUOTE_SINGLE';
-                break;
-            case 'double-quoted-scalar':
-                type = 'QUOTE_DOUBLE';
-                break;
-            case 'block-scalar': {
-                const header = token.props[0];
-                if (header.type !== 'block-scalar-header')
-                    throw new Error('Invalid block scalar header');
-                type = header.source[0] === '>' ? 'BLOCK_FOLDED' : 'BLOCK_LITERAL';
-                break;
-            }
-            default:
-                type = 'PLAIN';
-        }
-    const source = stringifyString({ type, value }, {
-        implicitKey: implicitKey || indent === null,
-        indent: indent !== null && indent > 0 ? ' '.repeat(indent) : '',
-        inFlow,
-        options: { blockQuote: true, lineWidth: -1 }
-    });
-    switch (source[0]) {
-        case '|':
-        case '>':
-            setBlockScalarValue(token, source);
-            break;
-        case '"':
-            setFlowScalarValue(token, source, 'double-quoted-scalar');
-            break;
-        case "'":
-            setFlowScalarValue(token, source, 'single-quoted-scalar');
-            break;
-        default:
-            setFlowScalarValue(token, source, 'scalar');
-    }
-}
-function setBlockScalarValue(token, source) {
-    const he = source.indexOf('\n');
-    const head = source.substring(0, he);
-    const body = source.substring(he + 1) + '\n';
-    if (token.type === 'block-scalar') {
-        const header = token.props[0];
-        if (header.type !== 'block-scalar-header')
-            throw new Error('Invalid block scalar header');
-        header.source = head;
-        token.source = body;
-    }
-    else {
-        const { offset } = token;
-        const indent = 'indent' in token ? token.indent : -1;
-        const props = [
-            { type: 'block-scalar-header', offset, indent, source: head }
-        ];
-        if (!addEndtoBlockProps(props, 'end' in token ? token.end : undefined))
-            props.push({ type: 'newline', offset: -1, indent, source: '\n' });
-        for (const key of Object.keys(token))
-            if (key !== 'type' && key !== 'offset')
-                delete token[key];
-        Object.assign(token, { type: 'block-scalar', indent, props, source: body });
-    }
-}
-/** @returns `true` if last token is a newline */
-function addEndtoBlockProps(props, end) {
-    if (end)
-        for (const st of end)
-            switch (st.type) {
-                case 'space':
-                case 'comment':
-                    props.push(st);
-                    break;
-                case 'newline':
-                    props.push(st);
-                    return true;
-            }
-    return false;
-}
-function setFlowScalarValue(token, source, type) {
-    switch (token.type) {
-        case 'scalar':
-        case 'double-quoted-scalar':
-        case 'single-quoted-scalar':
-            token.type = type;
-            token.source = source;
-            break;
-        case 'block-scalar': {
-            const end = token.props.slice(1);
-            let oa = source.length;
-            if (token.props[0].type === 'block-scalar-header')
-                oa -= token.props[0].source.length;
-            for (const tok of end)
-                tok.offset += oa;
-            delete token.props;
-            Object.assign(token, { type, source, end });
-            break;
-        }
-        case 'block-map':
-        case 'block-seq': {
-            const offset = token.offset + source.length;
-            const nl = { type: 'newline', offset, indent: token.indent, source: '\n' };
-            delete token.items;
-            Object.assign(token, { type, source, end: [nl] });
-            break;
-        }
-        default: {
-            const indent = 'indent' in token ? token.indent : -1;
-            const end = 'end' in token && Array.isArray(token.end)
-                ? token.end.filter(st => st.type === 'space' ||
-                    st.type === 'comment' ||
-                    st.type === 'newline')
-                : [];
-            for (const key of Object.keys(token))
-                if (key !== 'type' && key !== 'offset')
-                    delete token[key];
-            Object.assign(token, { type, indent, source, end });
-        }
-    }
-}
-
-/**
- * Stringify a CST document, token, or collection item
- *
- * Fair warning: This applies no validation whatsoever, and
- * simply concatenates the sources in their logical order.
- */
-const stringify$1 = (cst) => 'type' in cst ? stringifyToken(cst) : stringifyItem(cst);
-function stringifyToken(token) {
-    switch (token.type) {
-        case 'block-scalar': {
-            let res = '';
-            for (const tok of token.props)
-                res += stringifyToken(tok);
-            return res + token.source;
-        }
-        case 'block-map':
-        case 'block-seq': {
-            let res = '';
-            for (const item of token.items)
-                res += stringifyItem(item);
-            return res;
-        }
-        case 'flow-collection': {
-            let res = token.start.source;
-            for (const item of token.items)
-                res += stringifyItem(item);
-            for (const st of token.end)
-                res += st.source;
-            return res;
-        }
-        case 'document': {
-            let res = stringifyItem(token);
-            if (token.end)
-                for (const st of token.end)
-                    res += st.source;
-            return res;
-        }
-        default: {
-            let res = token.source;
-            if ('end' in token && token.end)
-                for (const st of token.end)
-                    res += st.source;
-            return res;
-        }
-    }
-}
-function stringifyItem({ start, key, sep, value }) {
-    let res = '';
-    for (const st of start)
-        res += st.source;
-    if (key)
-        res += stringifyToken(key);
-    if (sep)
-        for (const st of sep)
-            res += st.source;
-    if (value)
-        res += stringifyToken(value);
-    return res;
-}
-
-const BREAK = Symbol('break visit');
-const SKIP = Symbol('skip children');
-const REMOVE = Symbol('remove item');
-/**
- * Apply a visitor to a CST document or item.
- *
- * Walks through the tree (depth-first) starting from the root, calling a
- * `visitor` function with two arguments when entering each item:
- *   - `item`: The current item, which included the following members:
- *     - `start: SourceToken[]` – Source tokens before the key or value,
- *       possibly including its anchor or tag.
- *     - `key?: Token | null` – Set for pair values. May then be `null`, if
- *       the key before the `:` separator is empty.
- *     - `sep?: SourceToken[]` – Source tokens between the key and the value,
- *       which should include the `:` map value indicator if `value` is set.
- *     - `value?: Token` – The value of a sequence item, or of a map pair.
- *   - `path`: The steps from the root to the current node, as an array of
- *     `['key' | 'value', number]` tuples.
- *
- * The return value of the visitor may be used to control the traversal:
- *   - `undefined` (default): Do nothing and continue
- *   - `visit.SKIP`: Do not visit the children of this token, continue with
- *      next sibling
- *   - `visit.BREAK`: Terminate traversal completely
- *   - `visit.REMOVE`: Remove the current item, then continue with the next one
- *   - `number`: Set the index of the next step. This is useful especially if
- *     the index of the current token has changed.
- *   - `function`: Define the next visitor for this item. After the original
- *     visitor is called on item entry, next visitors are called after handling
- *     a non-empty `key` and when exiting the item.
- */
-function visit(cst, visitor) {
-    if ('type' in cst && cst.type === 'document')
-        cst = { start: cst.start, value: cst.value };
-    _visit(Object.freeze([]), cst, visitor);
-}
-// Without the `as symbol` casts, TS declares these in the `visit`
-// namespace using `var`, but then complains about that because
-// `unique symbol` must be `const`.
-/** Terminate visit traversal completely */
-visit.BREAK = BREAK;
-/** Do not visit the children of the current item */
-visit.SKIP = SKIP;
-/** Remove the current item */
-visit.REMOVE = REMOVE;
-/** Find the item at `path` from `cst` as the root */
-visit.itemAtPath = (cst, path) => {
-    let item = cst;
-    for (const [field, index] of path) {
-        const tok = item?.[field];
-        if (tok && 'items' in tok) {
-            item = tok.items[index];
-        }
-        else
-            return undefined;
-    }
-    return item;
-};
-/**
- * Get the immediate parent collection of the item at `path` from `cst` as the root.
- *
- * Throws an error if the collection is not found, which should never happen if the item itself exists.
- */
-visit.parentCollection = (cst, path) => {
-    const parent = visit.itemAtPath(cst, path.slice(0, -1));
-    const field = path[path.length - 1][0];
-    const coll = parent?.[field];
-    if (coll && 'items' in coll)
-        return coll;
-    throw new Error('Parent collection not found');
-};
-function _visit(path, item, visitor) {
-    let ctrl = visitor(item, path);
-    if (typeof ctrl === 'symbol')
-        return ctrl;
-    for (const field of ['key', 'value']) {
-        const token = item[field];
-        if (token && 'items' in token) {
-            for (let i = 0; i < token.items.length; ++i) {
-                const ci = _visit(Object.freeze(path.concat([[field, i]])), token.items[i], visitor);
-                if (typeof ci === 'number')
-                    i = ci - 1;
-                else if (ci === BREAK)
-                    return BREAK;
-                else if (ci === REMOVE) {
-                    token.items.splice(i, 1);
-                    i -= 1;
-                }
-            }
-            if (typeof ctrl === 'function' && field === 'key')
-                ctrl = ctrl(item, path);
-        }
-    }
-    return typeof ctrl === 'function' ? ctrl(item, path) : ctrl;
-}
-
 /** The byte order mark */
 const BOM = '\u{FEFF}';
 /** Start of doc-mode */
@@ -41528,30 +41223,6 @@ const DOCUMENT = '\x02'; // C0: Start of Text
 const FLOW_END = '\x18'; // C0: Cancel
 /** Next token is a scalar value */
 const SCALAR = '\x1f'; // C0: Unit Separator
-/** @returns `true` if `token` is a flow or block collection */
-const isCollection = (token) => !!token && 'items' in token;
-/** @returns `true` if `token` is a flow or block scalar; not an alias */
-const isScalar = (token) => !!token &&
-    (token.type === 'scalar' ||
-        token.type === 'single-quoted-scalar' ||
-        token.type === 'double-quoted-scalar' ||
-        token.type === 'block-scalar');
-/* istanbul ignore next */
-/** Get a printable representation of a lexer token */
-function prettyToken(token) {
-    switch (token) {
-        case BOM:
-            return '<BOM>';
-        case DOCUMENT:
-            return '<DOC>';
-        case FLOW_END:
-            return '<FLOW_END>';
-        case SCALAR:
-            return '<SCALAR>';
-        default:
-            return JSON.stringify(token);
-    }
-}
 /** Identify the type of a lexer token. May return `null` for unknown tokens. */
 function tokenType(source) {
     switch (source) {
@@ -41612,23 +41283,6 @@ function tokenType(source) {
     }
     return null;
 }
-
-var cst = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  BOM: BOM,
-  DOCUMENT: DOCUMENT,
-  FLOW_END: FLOW_END,
-  SCALAR: SCALAR,
-  createScalarToken: createScalarToken,
-  isCollection: isCollection,
-  isScalar: isScalar,
-  prettyToken: prettyToken,
-  resolveAsScalar: resolveAsScalar,
-  setScalarValue: setScalarValue,
-  stringify: stringify$1,
-  tokenType: tokenType,
-  visit: visit
-});
 
 /*
 START -> stream
@@ -43362,29 +43016,6 @@ function parseOptions(options) {
     const lineCounter = options.lineCounter || (prettyErrors && new LineCounter()) || null;
     return { lineCounter, prettyErrors };
 }
-/**
- * Parse the input as a stream of YAML documents.
- *
- * Documents should be separated from each other by `...` or `---` marker lines.
- *
- * @returns If an empty `docs` array is returned, it will be of type
- *   EmptyStream and contain additional stream information. In
- *   TypeScript, you should use `'empty' in docs` as a type guard for it.
- */
-function parseAllDocuments(source, options = {}) {
-    const { lineCounter, prettyErrors } = parseOptions(options);
-    const parser = new Parser(lineCounter?.addNewLine);
-    const composer = new Composer(options);
-    const docs = Array.from(composer.compose(parser.parse(source)));
-    if (prettyErrors && lineCounter)
-        for (const doc of docs) {
-            doc.errors.forEach(prettifyError(source, lineCounter));
-            doc.warnings.forEach(prettifyError(source, lineCounter));
-        }
-    if (docs.length > 0)
-        return docs;
-    return Object.assign([], { empty: true }, composer.streamInfo());
-}
 /** Parse an input string into a single YAML.Document */
 function parseDocument(source, options = {}) {
     const { lineCounter, prettyErrors } = parseOptions(options);
@@ -43450,39 +43081,6 @@ function stringify(value, replacer, options) {
     return new Document(value, _replacer, options).toString(options);
 }
 
-var YAML$1 = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  Alias: Alias,
-  CST: cst,
-  Composer: Composer,
-  Document: Document,
-  Lexer: Lexer,
-  LineCounter: LineCounter,
-  Pair: Pair,
-  Parser: Parser,
-  Scalar: Scalar,
-  Schema: Schema$1,
-  YAMLError: YAMLError,
-  YAMLMap: YAMLMap,
-  YAMLParseError: YAMLParseError,
-  YAMLSeq: YAMLSeq,
-  YAMLWarning: YAMLWarning,
-  isAlias: isAlias,
-  isCollection: isCollection$1,
-  isDocument: isDocument,
-  isMap: isMap,
-  isNode: isNode,
-  isPair: isPair,
-  isScalar: isScalar$1,
-  isSeq: isSeq,
-  parse: parse,
-  parseAllDocuments: parseAllDocuments,
-  parseDocument: parseDocument,
-  stringify: stringify,
-  visit: visit$1,
-  visitAsync: visitAsync
-});
-
 /**
  * Traverses a YAML CST to find the node corresponding to a Zod error path.
  * This function is the same as before, as Zod's path format is compatible.
@@ -43505,7 +43103,7 @@ function findNodeAtObjectPath(cstNode, path) {
         }
         parentNode = currentNode;
 
-        if (YAML$1.isMap(currentNode) && typeof segment === 'string') {
+        if (isMap(currentNode) && typeof segment === 'string') {
             // --- Case 1: The current node is a YAML Map ---
             // We can only proceed if the path segment is a string key.
 
@@ -43513,12 +43111,12 @@ function findNodeAtObjectPath(cstNode, path) {
             // We must also check that the key is a Scalar to safely access its .value
             /** @type {any} */
             const pair = currentNode.items.find(
-                (p) => YAML$1.isScalar(p.key) && p.key.value === segment
+                (p) => isScalar(p.key) && p.key.value === segment
             );
             // The new current node is the value of the found pair.
             currentNode = pair ? pair.value : null;
 
-        } else if (YAML$1.isSeq(currentNode) && typeof segment === 'number') {
+        } else if (isSeq(currentNode) && typeof segment === 'number') {
             // --- Case 2: The current node is a YAML Sequence (Array) ---
             // We can only proceed if the path segment is a number index.
 
@@ -43553,7 +43151,7 @@ const createYamlZodLinter = (schema) => {
         }
 
         // 1. Parse YAML to a CST, collecting syntax errors
-        const doc = YAML$1.parseDocument(text);
+        const doc = parseDocument(text);
         if (doc.errors.length > 0) {
             for (const err of doc.errors) {
                 const pos = err.pos || [0, 0];

@@ -845,3 +845,52 @@ export function unspinElement(element, query = 'i.fa, i.fas, i.far, i.fab, .twh-
         }
     }
 }
+
+/**
+ * @param {Blob} blob
+ * @returns {Promise<string | ArrayBuffer | null>}
+ */
+function blobToDataUri(blob) {
+    return new Promise((resolve, reject) => {
+        const fr = new FileReader();
+        fr.onload = () => resolve(fr.result);
+        fr.onerror = reject;
+        fr.readAsDataURL(blob);
+    });
+}
+
+/**
+ * Extracts fonts from a link url so they can be inlined.
+ * This fixes issues with CORS in sandboxed iframes.
+ * @param {string} cssUrl
+ * @returns {Promise<string>}
+ */
+export async function buildFontCss(cssUrl) {
+    let fontCssCache = '';
+    const css = await (await fetch(cssUrl, { credentials: 'same-origin' })).text();
+    const faces = css.match(/@font-face\s*{[^}]*}/g) || [];
+    const out = [];
+    for (const face of faces) {
+        // Keep only the woff2 source of each @font-face.
+        let rewritten = face.replace(/src:\s*([^;]+);/, (whole, srcList) => {
+            const woff2 = srcList.split(/,(?![^(]*\))/).find((/** @type{string}*/ s) => /\.woff2|format\(["']?woff2/.test(s));
+            return woff2 ? `src: ${woff2.trim()};` : whole;
+        });
+        const urls = [...face.matchAll(/url\((['"]?)([^)'"]+)\1\)/g)];
+        for (const m of urls) {
+            if (m[2].startsWith('data:')) {
+                continue;
+            }
+            try {
+                const res = await fetch(new URL(m[2], cssUrl).href, { credentials: 'same-origin' });
+                const dataUri = await blobToDataUri(await res.blob());
+                rewritten = rewritten.replace(m[0], `url("${dataUri}")`);
+            } catch (e) {
+                // Leave the original URL; that font falls back.
+            }
+        }
+        out.push(rewritten);
+    }
+    fontCssCache = out.join('\n');
+    return fontCssCache;
+}

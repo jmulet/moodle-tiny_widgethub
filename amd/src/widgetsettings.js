@@ -31,7 +31,8 @@ import { applyPartials, getGlobalConfig, getMoodleVersion } from './options';
 import common from './common';
 import { compareVersion, sanitizeSvg } from './util';
 import { getInstanceForElementId } from 'editor_tiny/editor';
-
+import { pathJoin, buildFontCss } from './util';
+import Config from 'core/config';
 
 
 const { component } = common;
@@ -51,6 +52,25 @@ parameters:
     value: Hello world!
 author: Your name <email@site.com>
 version: 1.0.0`;
+
+// Module level: shown while the font CSS is being built.
+const LOADING_PREVIEW = `<!doctype html>
+<html>
+<head>
+<style>
+    html, body { height: 100%; margin: 0; background: transparent; }
+    body { display: flex; align-items: center; justify-content: center; color: #6c757d; }
+    .spinner {
+        width: 28px; height: 28px; border-radius: 50%;
+        border: 3px solid currentColor; border-right-color: transparent;
+        animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } }
+</style>
+</head>
+<body><div class="spinner" role="status" aria-label="Loading"></div></body>
+</html>`;
 
 /**
  * Checks whether HTML tags are balanced, ignoring EJS blocks like <% %>.
@@ -253,6 +273,9 @@ class WidgetLog {
         this.selectTabFn('log');
     }
 }
+
+/** @type {string | null} */
+let fontCss = null;
 
 /**
  * Main class for managing widget settings and editors.
@@ -802,24 +825,20 @@ export default class WidgetSettings {
 
         iframe.style.width = '100%';
         iframe.style.border = 'none';
-        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+        iframe.setAttribute('sandbox', 'allow-scripts');
 
         // Mirror commands.js Bootstrap/jQuery injection logic.
         const tinyinstance = getInstanceForElementId(this.nodes.previewTiny?.id ?? '');
         const moodleVersion = tinyinstance ? getMoodleVersion(tinyinstance) : (cfg.version ?? '');
+        const bsVersion = moodleVersion.startsWith('4') ? 4 : 5;
+        // Allow administrators to set jquery and bootstrap versions.
         let jqUrl = (tinyinstance ? getGlobalConfig(tinyinstance, 'tiny.iframe.jquery.url', '') : '').trim();
-        let jqIntegrity = '';
         let bsUrl = (tinyinstance ? getGlobalConfig(tinyinstance, 'tiny.iframe.bootstrap.url', '') : '').trim();
-        let bsIntegrity = '';
 
         if (!bsUrl) {
-            if (moodleVersion.startsWith('4')) {
-                bsUrl = `https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js`;
-                bsIntegrity = 'sha256-GRJrh0oydT1CwS36bBeJK/2TggpaUQC6GzTaTQdZm0k=';
-            } else {
-                bsUrl = `https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js`;
-                bsIntegrity = 'sha256-5P1JGBOIxI7FBAvT/mb1fCnI5n/NhQKzNUuW7Hq0fMc=';
-            }
+            // Otherwise fallback to shipped assets.
+            bsUrl = pathJoin(Config.wwwroot,
+                `lib/editor/tiny/plugins/widgethub/assets.php?type=js&name=bootstrap${bsVersion}&v=${Config.jsrev}`);
         }
 
         if (!jqUrl && moodleVersion.startsWith('4')) {
@@ -831,20 +850,19 @@ export default class WidgetSettings {
                     jqUrl += '.js';
                 }
             } catch (e) {
-                jqUrl = 'https://code.jquery.com/jquery-3.7.1.min.js';
-                jqIntegrity = 'sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=';
+                // Otherwise use the one shipped with the plugin.
+                jqUrl = pathJoin(Config.wwwroot,
+                    `lib/editor/tiny/plugins/widgethub/assets.php?type=js&name=jquery371&v=${Config.jsrev}`);
             }
         }
 
         const requiresJquery = jqUrl !== '' && jqUrl !== 'none';
         let scripts = '';
         if (requiresJquery) {
-            const integrityAttr = jqIntegrity ? ` integrity="${jqIntegrity}" crossorigin="anonymous"` : '';
-            scripts += `<script src="${jqUrl}"${integrityAttr}><\/script>\n`;
+            scripts += `<script src="${jqUrl}"><\/script>\n`;
         }
         if (bsUrl !== '' && bsUrl !== 'none') {
-            const integrityAttr = bsIntegrity ? ` integrity="${bsIntegrity}" crossorigin="anonymous"` : '';
-            scripts += `<script src="${bsUrl}"${integrityAttr}><\/script>\n`;
+            scripts += `<script src="${bsUrl}"><\/script>\n`;
         }
         let initScript = '';
         if (bsUrl.includes('@5')) {
@@ -862,10 +880,18 @@ export default class WidgetSettings {
             colourmode = ` data-bs-theme="${theme}" data-colourmode="${theme}"`;
         }
 
+        //Due to CORS, fonts must be extracted and set inline in the sandboxed iframe.
+        if (fontCss === null) {
+            iframe.srcdoc = LOADING_PREVIEW;
+            fontCss = await buildFontCss(allCss);
+        }
+
         iframe.srcdoc = `
         <html${colourmode}>
             <head>
+                <base href="about:srcdoc">
                 <link rel="stylesheet" href="${allCss}">
+                <style>${fontCss}</style>
             </head>
             <body>
                 ${tinyContent}

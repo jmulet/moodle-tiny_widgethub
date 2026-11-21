@@ -293,23 +293,7 @@ export const predefinedActionsFactory = function (editor, domSrv, modalSrv, widg
             if (!el || !path?.widget) {
                 return;
             }
-            // Open preview window
-            const modal = await modalSrv.create("preview",
-                {
-                    content: el.outerHTML,
-                },
-                () => {
-                    modal.body[0].querySelectorAll('iframe').forEach(iframe => {
-                        iframe.src = "about:blank";
-                    });
-                    modal.destroy();
-                });
-            modal.show();
-            modal.footer[0].querySelectorAll('button').forEach(button => {
-                button.addEventListener('click', () => {
-                    modal.hide();
-                });
-            });
+            // Not available.
         },
 
         paste: () => {

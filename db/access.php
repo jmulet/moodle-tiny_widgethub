@@ -46,7 +46,7 @@ $capabilities = [
     'tiny/widgethub:manage' => [
         'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
-        'riskbitmask' => RISK_CONFIG,
+        'riskbitmask' => RISK_CONFIG | RISK_XSS,
         'archetypes' => [
             'manager' => CAP_ALLOW,
         ],

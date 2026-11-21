@@ -112,16 +112,6 @@ class IBContextModal extends ModalTracker {
     }
 }
 
-class IBPreviewModal extends ModalTracker {
-    static TYPE = `${component}/preview_modal`;
-    static TEMPLATE = `${component}/preview_modal`;
-
-    registerEventListeners() {
-        // Call the parent registration.
-        super.registerEventListeners();
-    }
-}
-
 // For Moodle < 4.3, Modal.create() did not exist yet so ModalFactory is used instead.
 // ModalFactory resolves the class by type string via ModalRegistry, so both must be loaded.
 // In Moodle 4.3+, cls.create() is called directly on the subclass — no registry needed.
@@ -135,7 +125,7 @@ const _modalFactoryPromise = (async () => {
     await import('core/modal_registry')
         .then(m => {
             const ModalRegistry = m.default ?? m;
-            [IBPickerModal, IBParamsModal, IBContextModal, IBPreviewModal].forEach(cls => {
+            [IBPickerModal, IBParamsModal, IBContextModal].forEach(cls => {
                 ModalRegistry.register(cls.TYPE, cls, cls.TEMPLATE);
             });
         })
@@ -155,7 +145,7 @@ const _modalFactoryPromise = (async () => {
 
 export class ModalSrv {
     /**
-     * @param {'picker' | 'params' | 'context' | 'preview'} name
+     * @param {'picker' | 'params' | 'context'} name
      * @param {object} templateContext
      * @param {()=>void} [onHidden]
      * @returns {Promise<ModalDialogue>}
@@ -166,7 +156,6 @@ export class ModalSrv {
             case ('picker'): cls = IBPickerModal; break;
             case ('params'): cls = IBParamsModal; break;
             case ('context'): cls = IBContextModal; break;
-            case ('preview'): cls = IBPreviewModal; break;
         }
         const options = {
             type: cls.TYPE,
