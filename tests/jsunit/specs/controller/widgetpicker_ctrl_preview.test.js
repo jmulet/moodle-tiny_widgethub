@@ -102,6 +102,7 @@ describe("WidgetPickerCtrl Preview Events", () => {
         const previewDiv = document.createElement("div");
         previewDiv.classList.add("tiny_widgethub-preview");
         previewDiv.style.display = "none";
+        previewDiv.appendChild(document.createElement("iframe"));
 
         const modalBody = document.createElement("div");
         modalBody.appendChild(btnGroup);
@@ -132,7 +133,8 @@ describe("WidgetPickerCtrl Preview Events", () => {
 
         // Preview should be visible
         expect(previewDiv.style.display).toBe("block");
-        expect(previewDiv.innerHTML).toBe("PREVIEW_HTML");
+        expect(previewDiv.style.visibility).toBe("visible");
+        expect(previewDiv.querySelector('iframe').srcdoc).toContain("PREVIEW_HTML");
 
         // Simulate mouseout to child (text span)
         // In the buggy implementation (mouseout), this might trigger hide if not handled correctly
@@ -160,7 +162,7 @@ describe("WidgetPickerCtrl Preview Events", () => {
 
         // For the purpose of reproduction, we assert what we expect AFTER the fix.
         // If this fails now, it confirms the bug.
-        expect(previewDiv.style.display).toBe("block");
+        expect(previewDiv.style.visibility).toBe("visible");
 
         // Now simulate real mouse leave (moving away from button)
         const mouseLeaveEvent = new MouseEvent('mouseleave', {
@@ -172,6 +174,11 @@ describe("WidgetPickerCtrl Preview Events", () => {
         button.dispatchEvent(mouseLeaveEvent);
 
         await wait(600);
-        expect(previewDiv.style.display).toBe("none");
+        expect(previewDiv.style.visibility).toBe("hidden");
+
+        button.dispatchEvent(mouseEnterEvent);
+        await wait(600);
+        expect(previewDiv.style.visibility).toBe("visible");
+        expect(previewDiv.querySelector('iframe').srcdoc).toContain("PREVIEW_HTML");
     });
 });

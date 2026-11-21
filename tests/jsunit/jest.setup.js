@@ -26,5 +26,10 @@ global.Mocks = {
   modalSrv
 }
 
+global.fetch = jest.fn().mockResolvedValue({
+  text: () => Promise.resolve(''),
+  blob: () => Promise.resolve(new Blob()),
+});
+
 // Mock virtual modules
 require('./mocks/module.mocks')();

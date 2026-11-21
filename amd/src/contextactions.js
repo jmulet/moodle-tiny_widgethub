@@ -293,7 +293,7 @@ export const predefinedActionsFactory = function (editor, domSrv, modalSrv, widg
             if (!el || !path?.widget) {
                 return;
             }
-            // Not available.
+            console.warn('widgethub> contextaction preview is disabled');
         },
 
         paste: () => {

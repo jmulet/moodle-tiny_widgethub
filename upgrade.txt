@@ -101,5 +101,6 @@ Changes:
 
 == 1.5.6 ==
   - Updated libraries
-  - Fixed issues in security analysis
-  - Removed preview in contextaction
+  - Fixed issues in security analysis.
+  - Removed preview in contextaction.
+  - All previews are sandboxed.

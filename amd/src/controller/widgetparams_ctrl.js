@@ -21,6 +21,10 @@ import { getModalSrv } from '../service/modal_service';
 import { getTemplateSrv } from '../service/template_service';
 import { getUserStorage } from '../service/userstorage_service';
 import { removeRndFromCtx } from '../util';
+import Config from 'core/config';
+import Common from '../common';
+const allCss = `${Config.wwwroot}/theme/styles.php/${Config.theme}/${Config.themerev}_1/all`;
+
 
 /**
  * Tiny WidgetHub plugin.
@@ -187,15 +191,33 @@ export class WidgetParamsCtrl {
          return;
       }
       const body = this.modal.body[0];
-      const interpoledCode = await this.generateInterpolatedCode(ctxFromDialogue);
-      const previewPanel = body.querySelector(`#${idtabpane}_1`);
-      if (previewPanel) {
-         // Remove all preview iframes
-         previewPanel.querySelectorAll('iframe').forEach(iframe => {
-            iframe.src = 'about:blank';
-            iframe.remove();
-         });
-         previewPanel.innerHTML = interpoledCode;
+      const widgetHtml = await this.generateInterpolatedCode(ctxFromDialogue);
+      const previewElem = body.querySelector(`#${idtabpane}_1`);
+      if (previewElem) {
+         const previewIframe = previewElem.querySelector('iframe');
+         if (previewIframe) {
+            let colourmode = '';
+            // Check if the html has a colour mode
+            const theme = document.documentElement.getAttribute('data-bs-theme');
+            if (theme) {
+               colourmode = ` data-bs-theme="${theme}" data-colourmode="${theme}"`;
+            }
+            previewIframe.srcdoc = `
+                         <!DOCTYPE html>
+                         <html${colourmode} lang="${Config.language}">
+                         <head>
+                             <meta charset="utf-8">
+                             <meta name="viewport" content="width=device-width, initial-scale=1">
+                             <base href="about:srcdoc">
+                             <link rel="stylesheet" href="${allCss}">
+                             <style>${Common.fontCss}</style>
+                         </head>
+                         <body class="p3">
+                             ${widgetHtml}
+                         </body>
+                         </html>
+                         `;
+         }
       }
    }
 

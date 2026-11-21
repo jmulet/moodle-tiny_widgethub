@@ -125,7 +125,7 @@ describe("WidgetParamsCtrl Suite I", () => {
     });
 
     it('Must geenrate the preview', async () => {
-        const body = jQuery('<div><div id="tab_0"></div><div id="tab_1"></div></div>');
+        const body = jQuery('<div><div id="tab_0"></div><div id="tab_1"><iframe></iframe></div></div>');
         // @ts-ignore
         widgetParamsCtrl.modal = {
             body
@@ -135,7 +135,7 @@ describe("WidgetParamsCtrl Suite I", () => {
 
         await widgetParamsCtrl.updatePreview('tab', ctxFromDialogue);
         expect(widgetParamsCtrl.generateInterpolatedCode).toHaveBeenCalledWith(ctxFromDialogue);
-        expect(body.find('#tab_1').html()).toContain('The content goes here!');
+        expect(body.find('#tab_1 iframe').prop('srcdoc')).toContain('The content goes here!');
     });
 
     it('Must generate the interpolated code (without selection) from the form context', async () => {

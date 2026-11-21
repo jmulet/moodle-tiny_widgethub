@@ -31,10 +31,11 @@ import { getEditorOptions, getGlobalConfig, isManagePlugin } from '../options';
 import { getModalSrv } from '../service/modal_service';
 import { getTemplateSrv } from '../service/template_service';
 import { getUserStorage } from '../service/userstorage_service';
-import { debounce, genID, hashCode, removeRndFromCtx, searchComp, toggleClass } from '../util';
+import { buildFontCss, debounce, genID, hashCode, removeRndFromCtx, searchComp, toggleClass } from '../util';
 import Config from 'core/config';
 
 const { component } = Common;
+const allCss = `${Config.wwwroot}/theme/styles.php/${Config.theme}/${Config.themerev}_1/all`;
 
 /**
  * @param {HTMLElement} el
@@ -79,6 +80,14 @@ export class WidgetPickerCtrl {
         this.storage = userStorage;
         /** @type {number} */
         this.scrollPos = 0;
+
+        // Must lazy load cssFonts to solve CORS issue in iframe previews.
+        if (!Common.fontCss && !this.fontCssPromise) {
+            this.fontCssPromise = buildFontCss(allCss);
+            this.fontCssPromise.then((css) => {
+                Common.fontCss = css;
+            });
+        }
     }
 
     isSelectMode() {
@@ -165,17 +174,73 @@ export class WidgetPickerCtrl {
             return;
         }
         /** @type {string | undefined} */
-        let html = widget._preview;
-        if (!html) {
+        let widgetHtml = widget._preview;
+        if (!widgetHtml) {
             // Generate preview with default parameters
-            html = await this.generatePreview(widget);
-            widget._preview = html;
+            widgetHtml = await this.generatePreview(widget);
+            widget._preview = widgetHtml;
+        }
+        this.showPreview(widgetHtml);
+    }
+
+    /**
+     * @param {string} widgetHtml
+     */
+    showPreview(widgetHtml) {
+        /** @type {HTMLDivElement | null | undefined} */
+        const previewElem = this.body?.querySelector("div.tiny_widgethub-preview");
+        if (!previewElem) {
+            return;
+        }
+        previewElem.style.display = 'block';
+        previewElem.style.visibility = 'visible';
+        if (this.previewAnimFrame) {
+            cancelAnimationFrame(this.previewAnimFrame);
+        }
+        this.previewAnimFrame = requestAnimationFrame(() => {
+            this.previewAnimFrame = null;
+            let colourmode = '';
+            const theme = document.documentElement.getAttribute('data-bs-theme');
+            if (theme) {
+                colourmode = ` data-bs-theme="${theme}" data-colourmode="${theme}"`;
+            }
+            /** @type {HTMLIFrameElement | null} */
+            let previewIframe = previewElem.querySelector('iframe');
+            if (!previewIframe) {
+                console.log("Creating preview iframe ...");
+                const previewIframe = document.createElement('iframe');
+                previewIframe.setAttribute('sandbox', 'allow-scripts');
+                previewIframe.style.border = 'none';
+                previewIframe.style.width = '100%';
+                previewIframe.style.height = '150px';
+            }
+            // @ts-ignore
+            previewIframe.srcdoc = `
+            <!DOCTYPE html>
+            <html${colourmode} lang="${Config.language}">
+            <head>
+                <meta charset="utf-8">
+                <base href="about:srcdoc">
+                <link rel="stylesheet" href="${allCss}">
+                <style>${Common.fontCss}</style>
+            </head>
+            <body>
+                ${widgetHtml}
+            </body>
+            </html>
+            `;
+        });
+    }
+
+    hidePreview() {
+        if (this.previewAnimFrame) {
+            cancelAnimationFrame(this.previewAnimFrame);
+            this.previewAnimFrame = null;
         }
         /** @type {HTMLDivElement | null | undefined} */
         const previewElem = this.body?.querySelector("div.tiny_widgethub-preview");
         if (previewElem) {
-            previewElem.innerHTML = html;
-            previewElem.style.display = "block";
+            previewElem.style.visibility = 'hidden';
         }
     }
 
@@ -271,11 +336,7 @@ export class WidgetPickerCtrl {
                         clearTimeout(timerEnter);
                         timerEnter = null;
                     }
-                    /** @type {HTMLElement | undefined | null}   */
-                    const previewEl = this.body?.querySelector("div.tiny_widgethub-preview");
-                    if (previewEl) {
-                        previewEl.style.display = "none";
-                    }
+                    this.hidePreview();
                     this.handlePickModalClick(event);
                 });
         });
@@ -292,7 +353,7 @@ export class WidgetPickerCtrl {
         const funOut = (/** @type {any} */ evt) => {
             const movedFrom = evt.target;
             const movedTo = evt.relatedTarget;
-            if (movedFrom.classList.contains("tiny_widgethub-btn") && movedTo.classList.contains("tiny_widgethub-btn")) {
+            if (movedFrom.classList.contains("tiny_widgethub-btn") && movedTo?.classList.contains("tiny_widgethub-btn")) {
                 const key1 = movedFrom?.parentElement?.dataset?.key;
                 const key2 = movedTo?.parentElement?.dataset?.key;
                 if (key1 != null && key1 == key2) {
@@ -303,12 +364,7 @@ export class WidgetPickerCtrl {
             clearTimeout(timerEnter);
             timerEnter = null;
             timerOut = setTimeout(() => {
-                /** @type {HTMLDivElement | undefined | null} */
-                const previewEl = this.body?.querySelector("div.tiny_widgethub-preview");
-                if (previewEl) {
-                    previewEl.innerHTML = '';
-                    previewEl.style.display = "none";
-                }
+                this.hidePreview();
             }, 500);
         };
 

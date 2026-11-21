@@ -53,25 +53,6 @@ parameters:
 author: Your name <email@site.com>
 version: 1.0.0`;
 
-// Module level: shown while the font CSS is being built.
-const LOADING_PREVIEW = `<!doctype html>
-<html>
-<head>
-<style>
-    html, body { height: 100%; margin: 0; background: transparent; }
-    body { display: flex; align-items: center; justify-content: center; color: #6c757d; }
-    .spinner {
-        width: 28px; height: 28px; border-radius: 50%;
-        border: 3px solid currentColor; border-right-color: transparent;
-        animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } }
-</style>
-</head>
-<body><div class="spinner" role="status" aria-label="Loading"></div></body>
-</html>`;
-
 /**
  * Checks whether HTML tags are balanced, ignoring EJS blocks like <% %>.
  * @param {string} input The HTML+EJS string.
@@ -865,9 +846,9 @@ export default class WidgetSettings {
             scripts += `<script src="${bsUrl}"><\/script>\n`;
         }
         let initScript = '';
-        if (bsUrl.includes('@5')) {
+        if (bsVersion === 5) {
             initScript = `<script>document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el=>{new bootstrap.Popover(el,{trigger:'hover'});});<\/script>`;
-        } else if (requiresJquery && bsUrl.includes('@4')) {
+        } else if (requiresJquery && bsVersion === 4) {
             initScript = `<script>$('body').popover({selector:'[data-toggle="popover"]',trigger:'hover'});<\/script>`;
         }
 
@@ -881,24 +862,34 @@ export default class WidgetSettings {
         }
 
         //Due to CORS, fonts must be extracted and set inline in the sandboxed iframe.
-        if (fontCss === null) {
-            iframe.srcdoc = LOADING_PREVIEW;
-            fontCss = await buildFontCss(allCss);
-        }
+        const rebuildSrcdoc = () => {
+            const styleCss = fontCss ? `<style>${fontCss}</style>` : '';
+            iframe.srcdoc = `
+            <!DOCTYPE html>
+            <html${colourmode} lang="${Config.language}">
+                <head>
+                    <meta charset="utf-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1">
+                    <base href="about:srcdoc">
+                    <link rel="stylesheet" href="${allCss}">
+                    ${styleCss}
+                </head>
+                <body>
+                    ${tinyContent}
+                    ${scripts}
+                    ${initScript}
+                </body>
+            </html>`;
+        };
 
-        iframe.srcdoc = `
-        <html${colourmode}>
-            <head>
-                <base href="about:srcdoc">
-                <link rel="stylesheet" href="${allCss}">
-                <style>${fontCss}</style>
-            </head>
-            <body>
-                ${tinyContent}
-                ${scripts}
-                ${initScript}
-            </body>
-        </html>`;
+        rebuildSrcdoc();
+
+        if (fontCss === null) {
+            buildFontCss(allCss).then(css => {
+                fontCss = css;
+                rebuildSrcdoc();
+            });
+        }
 
     }
 }

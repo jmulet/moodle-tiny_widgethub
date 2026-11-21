@@ -265,24 +265,44 @@ describe("WidgetPickerCtrl", () => {
         btnGroup.dataset.key = "k1";
         btnGroup.innerHTML = '<button><i class="fa"></i></button>';
 
+        const previewDiv = document.createElement("div");
+        previewDiv.classList.add("tiny_widgethub-preview");
+        previewDiv.style.display = "none";
+        previewDiv.appendChild(document.createElement("iframe"));
+        const bodyElem = document.createElement("div");
+        bodyElem.appendChild(previewDiv);
+        const srcdocSetter = jest.spyOn(HTMLIFrameElement.prototype, 'srcdoc', 'set');
+        const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
+
         // @ts-ignore
         widgetPickCtrl.modal = {
-            body: jQuery(`<div><div class="tiny_widgethub-preview" style="display: none;"></div></div>`),
+            body: jQuery(bodyElem),
             header: jQuery(`<div></div>`),
             footer: jQuery(`<div></div>`),
         };
-        widgetPickCtrl.body = widgetPickCtrl.modal.body[0];
+        widgetPickCtrl.body = bodyElem;
         widgetPickCtrl.header = widgetPickCtrl.modal.header[0];
 
         widgetPickCtrl.generatePreview = jest.fn().mockReturnValue("The preview");
 
         const mouseEvt = /** @type {any} */ ({ target: btnGroup.querySelector("i") });
         await widgetPickCtrl.onMouseEnterButton(mouseEvt);
+        await nextFrame();
         expect(widgetPickCtrl.generatePreview).toHaveBeenCalledWith(widget1);
-        expect(widgetPickCtrl.body?.innerHTML).toContain("The preview");
-        // @ts-ignore
-        expect(widgetPickCtrl.body?.querySelector(".tiny_widgethub-preview")?.style.display).toBe('block');
+        expect(previewDiv.querySelector('iframe').srcdoc).toContain("The preview");
+        expect(previewDiv.style.display).toBe('block');
+        expect(previewDiv.style.visibility).toBe('visible');
 
+        widgetPickCtrl.hidePreview();
+        expect(previewDiv.style.visibility).toBe('hidden');
+        await widgetPickCtrl.onMouseEnterButton(mouseEvt);
+        await nextFrame();
+        expect(previewDiv.querySelector('iframe').srcdoc).toContain("The preview");
+        expect(previewDiv.style.visibility).toBe('visible');
+        expect(widgetPickCtrl.generatePreview).toHaveBeenCalledTimes(1);
+        expect(srcdocSetter).toHaveBeenCalledTimes(2);
+        expect(srcdocSetter.mock.calls.every(args => args[0].includes("The preview"))).toBe(true);
+        srcdocSetter.mockRestore();
     });
 
     it("Must create modal", async () => {
