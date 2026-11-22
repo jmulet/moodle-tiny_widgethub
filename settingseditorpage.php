@@ -153,7 +153,7 @@ if ($widgetid >= 0) {
             redirect($widgettableurl);
         }
     }
-    $title = get_string('edit', 'tiny_widgethub') . ' widget ' . $widgetid . ' / ' . ($entry['key'] ?? '');
+    $title = get_string('edit', 'tiny_widgethub') . ' widget ' . $widgetid . ' / ' . s($entry['key'] ?? '');
 } else {
     $title = get_string('createwidget', 'tiny_widgethub');
 }

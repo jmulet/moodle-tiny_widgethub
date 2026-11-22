@@ -897,7 +897,7 @@ export async function buildFontCss(cssUrl) {
 
 /**
  * Converts to number
- * @param {*} v 
+ * @param {*} v
  * @returns {number | null}
  */
 export function toNum(v) {
@@ -906,7 +906,7 @@ export function toNum(v) {
 
 /**
  * Escapes HTML in string
- * @param {string} s 
+ * @param {string} s
  * @returns {string}
  */
 export function esc(s) {

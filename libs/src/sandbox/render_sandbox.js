@@ -30,6 +30,7 @@ import ejsWorkerCode from './tmp/ejs_worker.inline.js';
 import liquidWorkerCode from './tmp/liquid_worker.inline.js';
 /** @ts-ignore */
 import mustacheWorkerCode from './tmp/mustache_worker.inline.js';
+import { sanitize } from './sanitize.js';
 
 /** @type {Record<string, string>} */
 const WORKER_CODES = Object.freeze({
@@ -70,45 +71,6 @@ const queues = new Map();
 const workers = new Map();
 /** @type {MessagePort | null} */
 let port1 = null;
-
-/**
- * Sanitizes the rendered HTML by removing potentially dangerous tags and attributes.
- * @param {string} renderedHTML - The rendered HTML to sanitize.
- * @returns {string} The sanitized HTML.
- */
-function sanitize(renderedHTML) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(renderedHTML, 'text/html');
-    const FORBIDDEN_TAGS = new Set(['SCRIPT', 'STYLE', 'FORM', 'TEXTAREA',
-        'OBJECT', 'EMBED', 'LINK', 'META', 'BASE', 'SVG', 'MATH']);
-    const SAFE_PROTOCOLS = /^(https?:|mailto:|tel:|#)/i;
-
-    doc.querySelectorAll('*').forEach(el => {
-        const tagName = el.tagName.toUpperCase();
-        if (FORBIDDEN_TAGS.has(tagName)) {
-            el.remove();
-            return;
-        } else if (tagName === 'IFRAME') {
-            const src = el.getAttribute('src');
-            if (!src) {
-                el.remove();
-                return;
-            }
-            el.removeAttribute('srcdoc');
-            el.removeAttribute('allow-same-origin');
-        }
-        [...el.attributes].forEach(attr => {
-            const name = attr.name.toLowerCase();
-            const value = attr.value.toLowerCase();
-            if (((name === 'href' || name === 'src') && !SAFE_PROTOCOLS.test(value)) ||
-                name.startsWith('on')) {
-                el.removeAttribute(attr.name);
-            }
-        });
-    });
-    return doc.body.innerHTML;
-}
-
 
 /**
  * Creates a new worker for the given type.

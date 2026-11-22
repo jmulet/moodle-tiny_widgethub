@@ -26,7 +26,7 @@
     "codemirror": "^6.0.2",
     "jquery-slim": "^3.0.0",
     "liquidjs": "^10.30.1",
-    "mustache": "^4.3.0",
+    "mustache": "^4.2.0",
     "yaml": "^2.9.1",
     "zod": "^4.6.7"
   },
