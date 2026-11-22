@@ -24,18 +24,32 @@
 
 namespace tiny_widgethub\event;
 
-defined('MOODLE_INTERNAL') || die();
-
+/**
+ * Event triggered when a widget is created.
+ */
 class widget_created extends widget_base {
+    /**
+     * Initialise the event data.
+     */
     protected function init() {
         $this->data['crud'] = 'c';
         $this->data['edulevel'] = self::LEVEL_OTHER;
     }
 
+    /**
+     * Get the event name.
+     *
+     * @return string The localised event name.
+     */
     public static function get_name() {
         return get_string('eventwidgetcreated', 'tiny_widgethub');
     }
 
+    /**
+     * Get the event description.
+     *
+     * @return string The event description.
+     */
     public function get_description() {
         return "The user with id '{$this->userid}' created the widget with id "
             . "'{$this->other['id']}' and key '{$this->other['key']}'.";

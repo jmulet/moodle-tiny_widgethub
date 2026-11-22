@@ -111,11 +111,11 @@ module.exports = function applyMocks() {
     }, { virtual: true });
 
     jest.mock("core/ajax", () => {
+        const call = jest.fn();
         return {
             __esModule: true,
-            default: {
-                call: jest.fn(),
-            }
+            call,
+            default: { call },
         };
     }, { virtual: true });
 

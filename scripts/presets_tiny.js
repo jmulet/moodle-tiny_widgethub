@@ -146,10 +146,8 @@ function checkTemplate(parsed) {
  * @param {*} parsed - The parsed widget
  * @returns {number} - The number of errors
  */
-// eslint-disable-next-line no-unused-vars
 function checkEJS(parsed) {
-    // TODO: Not implemented
-    return 0;
+    return parsed === null ? 1 : 0;
 }
 
 /**
@@ -393,6 +391,5 @@ checkUniqueKeys(usedKeys);
 
 // Saving hashes for future runs.
 if (!testMode) {
-    // fs.writeFileSync(path.join(sourceDirectory, "index.json"), JSON.stringify(indexJson), "utf-8");
     fs.writeFileSync(".hashes-presets-local.json", JSON.stringify(hashes), "utf-8");
 }

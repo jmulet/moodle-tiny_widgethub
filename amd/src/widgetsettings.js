@@ -588,12 +588,6 @@ export default class WidgetSettings {
             // Sync hidden textareas for FormAPI submission
             this.nodes.ymlArea.value = ymlValue;
             this.nodes.jsonArea.value = validation.json;
-            if (this.editors.css) {
-                this.nodes.cssArea.value = this.editors.css.getValue().trim() ?? '';
-            }
-            if (this.editors.html) {
-                this.nodes.htmlArea.value = this.editors.html.getValue().trim() ?? '';
-            }
             this.widgetKey = validation.obj?.key ?? '';
             return true;
         }

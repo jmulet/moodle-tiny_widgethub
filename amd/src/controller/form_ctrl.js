@@ -118,6 +118,8 @@ export class FormCtrl {
       this.templateSrv = templateSrv;
       /** @type {import('../service/file_service').FileSrv} */
       this.fileSrv = fileSrv;
+      /** @type {RepeatableCtrl[]} */
+      this.repeatables = [];
    }
 
    /**
@@ -607,7 +609,8 @@ export class FormCtrl {
          const onNewItem = (/** @type{HTMLElement} **/ item) => {
             that.attachPickers(item, listenerTracker);
          };
-         new RepeatableCtrl(subform, itemBuilder, onNewItem, param);
+         const repeatable = new RepeatableCtrl(subform, itemBuilder, onNewItem, param);
+         this.repeatables.push(repeatable);
       });
    }
 }

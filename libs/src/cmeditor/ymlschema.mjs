@@ -214,7 +214,7 @@ ParamSchema = ParamSchema.superRefine((data, ctx) => {
         ctx.addIssue({ code: 'custom', message: "Fields are required when type is 'repeatable'", path: ['type'] });
     }
     // Repeatable parameter with bindings in field, require a bind parameter that specifies a query for getting the items
-    if (data.fields?.some(f => f.bind !== 'undefined')) {
+    if (data.fields?.some(f => f.bind !== undefined)) {
         if (typeof data.item_selector !== 'string' && typeof data.bind !== 'object') {
             ctx.addIssue({
                 code: 'custom',

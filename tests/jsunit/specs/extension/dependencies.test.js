@@ -51,13 +51,16 @@ const rawWidgets = [widget1, widget2, widget3, widget4, widget5];
 const createEditor = (html) => {
     const editor = global.Mocks.editorFactory();
     editor.setContent(html);
-    _resetCacheForTesting({ widgetList: rawWidgets });
     return editor;
 };
 
 describe('dependencies', () => {
     beforeAll(() => {
         jest.clearAllMocks();
+    });
+
+    beforeEach(async () => {
+        await _resetCacheForTesting({ widgetList: rawWidgets });
     });
 
     it('addRequires on empty document does not modify it', () => {
@@ -278,11 +281,11 @@ describe('dependencies', () => {
         expect([...scripts].map(s => s.src)).toEqual(expect.arrayContaining([widget1.requires, widget3.requires.url.trim()]));
     });
 
-    it('addRequires ignores widgets without a "selectors" field', () => {
+    it('addRequires ignores widgets without a "selectors" field', async () => {
         const badWidget = { key: 'w4', requires: 'https://p.es/q.js' };
         const editor = createEditor('<div class="w1"></div><div class="w4"></div>');
 
-        _resetCacheForTesting({ widgetList: [widget1, badWidget] });
+        await _resetCacheForTesting({ widgetList: [widget1, badWidget] });
 
         const added = addRequires(editor, undefined);
         expect(added).toBe(1);

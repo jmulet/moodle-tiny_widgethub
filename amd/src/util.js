@@ -358,31 +358,6 @@ export function cleanParameterName(name) {
 }
 
 /**
- * Safe conversion of a string to integer by handling errors and NaN values
- * In this case, the def number passed is returned
- * @param {string | undefined | null | number} str
- * @param {number} def - default value
- * @returns {number}
- */
-export function convertInt(str, def) {
-    if (str && typeof str === 'number') {
-        return Math.floor(str);
-    }
-    if (!str || !(str + "").trim() || !RegExp(/^\s*[+-]?\d+(\.\d*)?\s*$/).exec(str + "")) {
-        return def;
-    }
-    try {
-        const val = parseInt(str + "");
-        if (!isNaN(val)) {
-            return val;
-        }
-    } catch (ex) {
-        // Pass
-    }
-    return def;
-}
-
-/**
  * Finds the parameter with a given name within the list of objects
  * @param {string} varname
  * @param {import('./options').Param[]} listVars
@@ -648,26 +623,6 @@ export function loadScriptAsync(editor, src, integrity) {
         const head = editor.getDoc().querySelector("head");
         head.appendChild(s);
     });
-}
-
-/**
- * Convert an HTML string into DOM element(s)
- * @param {Document} doc - The page document
- * @param {string} html - HTML string
- * @returns {HTMLElement} - Returns a single element if one root, or a DocumentFragment if multiple
- */
-export function htmlToElement(doc, html) {
-    const template = doc.createElement('template');
-    template.innerHTML = html.trim();
-
-    if (template.content.childElementCount === 1) {
-        // @ts-ignore
-        return template.content.firstElementChild;
-    } else {
-        // If multiple root elements, return a fragment
-        // @ts-ignore
-        return template.content;
-    }
 }
 
 /**

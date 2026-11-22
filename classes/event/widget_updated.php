@@ -24,18 +24,32 @@
 
 namespace tiny_widgethub\event;
 
-defined('MOODLE_INTERNAL') || die();
-
+/**
+ * Event triggered when a widget is updated.
+ */
 class widget_updated extends widget_base {
+    /**
+     * Initialise the event data.
+     */
     protected function init() {
         $this->data['crud'] = 'u';
         $this->data['edulevel'] = self::LEVEL_OTHER;
     }
 
+    /**
+     * Get the event name.
+     *
+     * @return string The localised event name.
+     */
     public static function get_name() {
         return get_string('eventwidgetupdated', 'tiny_widgethub');
     }
 
+    /**
+     * Get the event description.
+     *
+     * @return string The event description.
+     */
     public function get_description() {
         $desc = "The user with id '{$this->userid}' updated the widget with id "
             . "'{$this->other['id']}' and key '{$this->other['key']}'";

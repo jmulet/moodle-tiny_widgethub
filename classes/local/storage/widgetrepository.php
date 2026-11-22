@@ -48,7 +48,6 @@ class widgetrepository {
         array $extensions = ['yml', 'yaml'],
         bool $coreonly = false
     ) {
-        global $CFG;
         $ret = [];
         $dirs = [];
 
@@ -63,29 +62,27 @@ class widgetrepository {
             debugging('Invalid Widget directory: ' . $workingdir, 'error');
             return $ret;
         }
-        $dirs[] = new \DirectoryIterator($realworkingdir);
-        foreach ($dirs as $dir) {
-            foreach ($dir as $fileinfo) {
-                if (!$fileinfo->isDot()) {
-                    // Process files with the given extensions.
-                    $ext = strtolower(pathinfo($fileinfo->getFilename(), PATHINFO_EXTENSION));
-                    if (in_array($ext, $extensions, true)) {
-                        // Without extension.
-                        $filename = pathinfo($fileinfo->getFilename(), PATHINFO_FILENAME);
-                        // Only include core widgets on install: bs-, ib-, partials.
-                        if (
-                            $coreonly &&
-                            (
-                                strpos($filename, 'bs-') !== 0 &&
-                                strpos($filename, 'ib-') !== 0 &&
-                                strpos($filename, 'partials') !== 0
-                            )
-                        ) {
-                            continue;
-                        }
-                        $filecontent = file_get_contents($fileinfo->getPathname());
-                        $ret[$filename] = $filecontent;
+        $dir[] = new \DirectoryIterator($realworkingdir);
+        foreach ($dir as $fileinfo) {
+            if (!$fileinfo->isDot()) {
+                // Process files with the given extensions.
+                $ext = strtolower(pathinfo($fileinfo->getFilename(), PATHINFO_EXTENSION));
+                if (in_array($ext, $extensions, true)) {
+                    // Without extension.
+                    $filename = pathinfo($fileinfo->getFilename(), PATHINFO_FILENAME);
+                    // Only include core widgets on install: bs-, ib-, partials.
+                    if (
+                        $coreonly &&
+                        (
+                            strpos($filename, 'bs-') !== 0 &&
+                            strpos($filename, 'ib-') !== 0 &&
+                            strpos($filename, 'partials') !== 0
+                        )
+                    ) {
+                        continue;
                     }
+                    $filecontent = file_get_contents($fileinfo->getPathname());
+                    $ret[$filename] = $filecontent;
                 }
             }
         }

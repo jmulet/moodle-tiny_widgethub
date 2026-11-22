@@ -131,7 +131,6 @@ if (!$mform->is_submitted()) {
 echo $OUTPUT->header();
 
 $url = $baseurl . '/settingsmanage.php';
-$title = 'Settings';
 echo '<div class="widget-config-container m-5">';
 echo "
 <nav aria-label=\"breadcrumb\">

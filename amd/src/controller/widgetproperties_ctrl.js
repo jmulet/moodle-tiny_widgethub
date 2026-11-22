@@ -136,6 +136,7 @@ export class WidgetPropertiesCtrl {
         this.bindingsAdapter?.destroy();
         this.bindingsAdapter = null;
         this.modal?.destroy();
+        this.formCtrl.repeatables.forEach(repeatable => repeatable.destroy());
         this.modal = null;
     }
 }

@@ -59,20 +59,6 @@ class ModalTracker extends Modal {
         }
     }
 
-    /**
-     * Add a listener by selector inside a container.
-     * @param {Element} container The parent container
-     * @param {string} selector CSS selector for target element
-     * @param {string} event Event type
-     * @param {EventListener} handler Listener function
-     */
-    twhRegisterListenerBySelector(container, selector, event, handler) {
-        const el = container.querySelector(selector);
-        if (el) {
-            this.twhRegisterListener(el, event, handler);
-        }
-    }
-
     /** Remove all tracked listeners */
     _twhRemoveListeners() {
         this._twhListeners.forEach(([el, event, handler]) => el.removeEventListener(event, handler));
@@ -136,7 +122,7 @@ const _modalFactoryPromise = (async () => {
 
 /**
  * @typedef {(el: Element, event: string, handler: EventListener) => void} ListenerTracker
- * @typedef {JQuery<HTMLElement> & {header: JQuery<HTMLElement>, body: JQuery<HTMLElement>, modal: JQuery<HTMLElement>, footer: JQuery<HTMLElement>, destroy: () => void, show: () => void, getRoot: () => {on: () => void}, twhRegisterListener: ListenerTracker, twhRegisterListenerBySelector: (container: string, selector: string, event: string, handler: EventListener) => void }} ModalDialogue
+ * @typedef {JQuery<HTMLElement> & {header: JQuery<HTMLElement>, body: JQuery<HTMLElement>, modal: JQuery<HTMLElement>, footer: JQuery<HTMLElement>, destroy: () => void, show: () => void, getRoot: () => {on: () => void}, twhRegisterListener: ListenerTracker} ModalDialogue
  */
 
 /**

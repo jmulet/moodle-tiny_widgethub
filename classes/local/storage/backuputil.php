@@ -107,6 +107,13 @@ class backuputil {
         // Generate the URL (force download by setting second param of out to false).
         $downloadurl = \moodle_url::make_draftfile_url($draftitemid, '/', $filename)->out(false);
 
+        \tiny_widgethub\event\widget_backupcreated::create([
+            'context' => \context_system::instance(),
+            'other' => [
+                'widgetcount' => count($documents),
+            ],
+        ])->trigger();
+
         return ['url' => $downloadurl];
     }
 
@@ -188,6 +195,9 @@ class backuputil {
         }
 
         $logs = [];
+        $restored = 0;
+        $skipped = 0;
+        $failed = 0;
 
         // List all files in the zip.
         $storage = storagefactory::get_instance();
@@ -198,6 +208,7 @@ class backuputil {
                     'message' => "File skipped due to security or invalid structure: $filename",
                     'severity' => 'warning',
                 ];
+                $skipped++;
                 continue;
             }
             $ext = pathinfo($filename, PATHINFO_EXTENSION);
@@ -208,10 +219,12 @@ class backuputil {
                 $logs[] = ['message' => 'Restoring ' . $filename];
                 $cfgdata = fix_utf8($zip->getFromName($filename));
                 set_config('cfg', $cfgdata, 'tiny_widgethub');
+                $restored++;
             } else if ($filename === 'additionalcss.txt' && $configenabled) {
                 $logs[] = ['message' => 'Restoring ' . $filename];
                 $additionalcss = fix_utf8($zip->getFromName($filename));
                 set_config('additionalcss', $additionalcss, 'tiny_widgethub');
+                $restored++;
             } else if ($ext === 'json') {
                 $jsondata = fix_utf8($zip->getFromName($filename));
                 $jsondata = json_decode($jsondata);
@@ -220,6 +233,7 @@ class backuputil {
                         'message' => 'Invalid JSON data in ' . $filename,
                         'severity' => 'error',
                     ];
+                    $failed++;
                     continue;
                 }
                 $jsondata = (array) $jsondata;
@@ -231,6 +245,11 @@ class backuputil {
                         'message' => 'Restoring ' . $filename,
                         'severity' => $res ? '' : 'error',
                     ];
+                    if ($res) {
+                        $restored++;
+                    } else {
+                        $failed++;
+                    }
                     continue;
                 }
                 $found = $storage->get_widget_by_key($jsondata['key'], 'id');
@@ -239,6 +258,7 @@ class backuputil {
                         'message' => 'Skip ' . $filename . '. Widget ' . $jsondata['key'] . ' already exists.',
                         'severity' => 'warning',
                     ];
+                    $skipped++;
                     continue;
                 }
                 $yml = $zip->getFromName($name . '.yml') ?? null;
@@ -248,6 +268,11 @@ class backuputil {
                     'message' => 'Restoring ' . $filename,
                     'severity' => $res ? '' : 'error',
                 ];
+                if ($res) {
+                    $restored++;
+                } else {
+                    $failed++;
+                }
             }
         }
 
@@ -255,6 +280,15 @@ class backuputil {
         // Remove the draft file.
         $fs->delete_area_files($context->id, 'user', 'draft', $draftitemid);
         fulldelete($tempdir);
+
+        \tiny_widgethub\event\widget_backuprestored::create([
+            'context' => \context_system::instance(),
+            'other' => [
+                'restored' => $restored,
+                'skipped' => $skipped,
+                'failed' => $failed,
+            ],
+        ])->trigger();
 
         return [
             'success' => true,

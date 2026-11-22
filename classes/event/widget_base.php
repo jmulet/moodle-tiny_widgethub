@@ -24,9 +24,15 @@
 
 namespace tiny_widgethub\event;
 
-defined('MOODLE_INTERNAL') || die();
-
+/**
+ * Base class for widget events.
+ */
 abstract class widget_base extends \core\event\base {
+    /**
+     * Validate the event data.
+     *
+     * @throws \coding_exception If the widget id or key is missing.
+     */
     protected function validate_data() {
         parent::validate_data();
         if (!isset($this->other['id']) || !isset($this->other['key'])) {
@@ -34,6 +40,11 @@ abstract class widget_base extends \core\event\base {
         }
     }
 
+    /**
+     * Get the mapping of other fields.
+     *
+     * @return false No mapping is required.
+     */
     public static function get_other_mapping() {
         return false;
     }

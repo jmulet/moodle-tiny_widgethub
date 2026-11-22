@@ -97,7 +97,6 @@ export class WidgetParamsCtrl {
       modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", async (evt) => {
          evt.preventDefault();
          // Go back to main menú
-         // TODO detachPicker and detachRepeatable
          modal.hide();
          if (this.parentCtrl) {
             await this.parentCtrl.handleAction();
@@ -132,6 +131,7 @@ export class WidgetParamsCtrl {
 
    destroy() {
       this.modal?.destroy();
+      this.formCtrl.repeatables.forEach(repeatable => repeatable.destroy());
    }
 
    /**

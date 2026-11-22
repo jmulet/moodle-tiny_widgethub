@@ -82,24 +82,6 @@ export const fetchEditorData = (contextId) => {
 };
 
 /**
- * Test-only helper to populate the shared cache without an AJAX call.
- * @param {object} data
- * @param {RawWidget[]} [data.widgetList]
- * @param {Record<string, any>} [data.partials]
- * @param {string} [data.additionalcss]
- * @param {Record<string, any>} [data.cfg]
- */
-export function _resetCacheForTesting(data = {}) {
-    _cache.widgetList = data.widgetList ?? undefined;
-    _cache.partials = data.partials ?? undefined;
-    _cache.additionalcss = data.additionalcss ?? undefined;
-    _cache.cfg = data.cfg ?? undefined;
-    _cache.widgetDict = undefined;
-    _fetchPromise = null;
-}
-
-
-/**
  * @param {import('./plugin').TinyMCE} editor
  */
 export const register = (editor) => {
@@ -781,13 +763,7 @@ export class Widget {
             return true;
         }
 
-        const isAllowed = matchMode === 'OR' ? results.some(Boolean) : results.every(Boolean);
-
-        if (!isAllowed) {
-            console.warn(`Widget ${this._widget.key} not allowed for user ${userInfo.id}`);
-        }
-
-        return isAllowed;
+        return matchMode === 'OR' ? results.some(Boolean) : results.every(Boolean);
     }
 
     /**

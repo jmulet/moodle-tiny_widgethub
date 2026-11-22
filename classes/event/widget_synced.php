@@ -24,24 +24,43 @@
 
 namespace tiny_widgethub\event;
 
-defined('MOODLE_INTERNAL') || die();
-
+/**
+ * Event triggered when the widget repository is synchronised.
+ */
 class repository_synced extends \core\event\base {
+    /**
+     * Initialise the event data.
+     */
     protected function init() {
         $this->data['crud'] = 'u';
         $this->data['edulevel'] = self::LEVEL_OTHER;
     }
 
+    /**
+     * Get the event name.
+     *
+     * @return string The localised event name.
+     */
     public static function get_name() {
         return get_string('eventrepositorysynced', 'tiny_widgethub');
     }
 
+    /**
+     * Get the event description.
+     *
+     * @return string The event description.
+     */
     public function get_description() {
         return "The user with id '{$this->userid}' synchronised the widget repository: "
             . "{$this->other['created']} created, {$this->other['updated']} updated, "
             . "{$this->other['failed']} failed.";
     }
 
+    /**
+     * Validate the event data.
+     *
+     * @throws \coding_exception If a synchronization count is missing.
+     */
     protected function validate_data() {
         parent::validate_data();
         foreach (['created', 'updated', 'failed'] as $field) {
@@ -51,6 +70,11 @@ class repository_synced extends \core\event\base {
         }
     }
 
+    /**
+     * Get the mapping of other fields.
+     *
+     * @return false No mapping is required.
+     */
     public static function get_other_mapping() {
         return false;
     }

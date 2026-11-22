@@ -47,34 +47,6 @@ export class FileSrv {
     displayFilePicker(type) {
         return displayFilepicker(this.editor, type);
     }
-    /**
-     * Get image picker.
-     * @returns {Promise<object|undefined>}
-     */
-    getImagePicker() {
-        return getFilePicker(this.editor, 'image');
-    }
-    /**
-     * Display image picker.
-     * @returns {Promise<object>}
-     */
-    displayImagePicker() {
-        return displayFilepicker(this.editor, 'image');
-    }
-    /**
-     * Get media picker.
-     * @returns {Promise<object|undefined>}
-     */
-    getMediaPicker() {
-        return getFilePicker(this.editor, 'media');
-    }
-    /**
-     * Display media picker.
-     * @returns {Promise<object>}
-     */
-    displayMediaPicker() {
-        return displayFilepicker(this.editor, 'media');
-    }
 }
 
 const fileSrvInstances = new Map();

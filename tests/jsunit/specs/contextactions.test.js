@@ -94,7 +94,7 @@ describe('Context Actions Manager', () => {
     it('It creates a context menu with only modal and unwrap item', async () => {
         // @ts-ignore
         const editor = global.Mocks.editorFactory();
-        _resetCacheForTesting({ widgetList: [rawSnpt1] });
+        await _resetCacheForTesting({ widgetList: [rawSnpt1] });
         const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), Mocks.modalSrv, mockTranslateSrv, widgetCutClipboard);
         await contextActionsManager.init();
         expect(editor.ui.registry.addIcon).toHaveBeenCalled();
@@ -136,7 +136,7 @@ describe('Context Actions Manager', () => {
         // @ts-ignore
         const editor = global.Mocks.editorFactory();
         const { ContextActionsManager } = require('../src/contextactions');
-        require('../src/options')._resetCacheForTesting({ widgetList: [rawSnpt2] });
+        await require('../src/options')._resetCacheForTesting({ widgetList: [rawSnpt2] });
         const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), Mocks.modalSrv, mockTranslateSrv, widgetCutClipboard);
         await contextActionsManager.init();
         // Test context menus
@@ -303,7 +303,7 @@ describe('Context Actions Manager', () => {
         const { getWidgetPropertiesCtrl } = require('../src/controller/widgetproperties_ctrl');
         const widgetPropertiesCtrl = getWidgetPropertiesCtrl(editor);
         const { ContextActionsManager } = require('../src/contextactions');
-        require('../src/options')._resetCacheForTesting({ widgetList: [rawSnpt2] });
+        await require('../src/options')._resetCacheForTesting({ widgetList: [rawSnpt2] });
         const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), Mocks.modalSrv, mockTranslateSrv, widgetCutClipboard);
         await contextActionsManager.init();
         expect(contextActionsManager.ctx.path).toBeFalsy();
@@ -322,7 +322,7 @@ describe('Context Actions Manager', () => {
         const selection = editor.getBody().querySelector('[data-c="1"]');
         editor.selection.getNode = jest.fn().mockReturnValue(selection);
         const { ContextActionsManager } = require('../src/contextactions');
-        require('../src/options')._resetCacheForTesting({ widgetList: [rawSnpt2] });
+        await require('../src/options')._resetCacheForTesting({ widgetList: [rawSnpt2] });
         const contextActionsManager = new ContextActionsManager(editor, getDomSrv(), Mocks.modalSrv, mockTranslateSrv, widgetCutClipboard);
         await contextActionsManager.init();
         expect(contextActionsManager.ctx.path).toBeFalsy();

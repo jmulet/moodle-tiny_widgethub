@@ -502,7 +502,6 @@ export class WidgetPickerCtrl {
      * @property {string} widgetname
      * @property {string} widgetorder
      * @property {string} widgettitle
-     * @property {string} iconname
      * @property {string} iconHtml
      * @property {boolean} disabled
      * @property {boolean} selectable
@@ -604,7 +603,6 @@ export class WidgetPickerCtrl {
                 widgetname: btn.name,
                 widgetorder: btn.prop('order') ?? btn.name ?? btn.key ?? '',
                 widgettitle: btn.name + " " + catName,
-                iconname: "fa fas fa-eye",
                 iconHtml: iconHtml,
                 disabled: !btn.isUsableInScope(),
                 selectable: btn.insertquery != null,

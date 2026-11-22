@@ -312,12 +312,6 @@ export const predefinedActionsFactory = function (editor, domSrv, modalSrv, widg
             widgetCutClipboard.html = undefined;
         },
     });
-    // Alias.
-    factory.moveup = factory.movebefore;
-    factory.movedown = factory.moveafter;
-    factory.moveleft = factory.movebefore;
-    factory.moveright = factory.moveafter;
-    factory.insert = factory.insertafter;
     return factory;
 };
 

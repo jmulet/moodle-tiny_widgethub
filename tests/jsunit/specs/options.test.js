@@ -101,9 +101,9 @@ let fakeEditor;
 
 describe('Options', () => {
 
-    beforeEach(() => {
+    beforeEach(async () => {
         fakeEditor = global.Mocks.editorFactory();
-        _resetCacheForTesting();
+        await _resetCacheForTesting();
     });
 
     test('must register options', () => {
@@ -120,7 +120,7 @@ describe('Options', () => {
         expect(registerOption).toHaveBeenNthCalledWith(7, "userprefs", expect.any(Object));
     });
 
-    test('It returns the dictionary of widgets', () => {
+    test('It returns the dictionary of widgets', async () => {
         fakeEditor.options.get = jest.fn().mockImplementation((param) => {
             if (param === "user") {
                 return {
@@ -130,7 +130,7 @@ describe('Options', () => {
                 }
             }
         });
-        _resetCacheForTesting({ widgetList: [rawSnpt, rawSnpt2, rawSnpt3] });
+        await _resetCacheForTesting({ widgetList: [rawSnpt, rawSnpt2, rawSnpt3] });
 
         const dict1 = getWidgetDict(fakeEditor);
         const dict2 = getWidgetDict(fakeEditor);

@@ -33,3 +33,5 @@ global.fetch = jest.fn().mockResolvedValue({
 
 // Mock virtual modules
 require('./mocks/module.mocks')();
+
+jest.mock('./src/options', () => require('./mocks/options.mock'));
