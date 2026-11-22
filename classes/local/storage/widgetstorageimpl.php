@@ -355,11 +355,13 @@ class widgetstorageimpl implements widgetstorage {
         ?string $css = null,
         int $rev = 1
     ): int {
+        $isnew = ($id === null || $id === storagefactory::BLANK_ID);
         if (
-            ($id === null || $id === storagefactory::BLANK_ID) &&
+            $isnew &&
             ($widget['key'] ?? '') === 'partials'
         ) {
             $id = storagefactory::PARTIALS_ID;
+            $isnew = false;
         }
         $usedkeys = [];
         foreach ($this->index as $idxid => $info) {
@@ -415,6 +417,15 @@ class widgetstorageimpl implements widgetstorage {
             debugging($e->getMessage(), DEBUG_DEVELOPER);
             return storagefactory::FAILURE_ID;
         }
+        $eventdata = [
+            'context' => \context_system::instance(),
+            'other' => ['id' => $id, 'key' => $widget['key'] ?? ''],
+        ];
+        if ($isnew) {
+            \tiny_widgethub\event\widget_created::create($eventdata)->trigger();
+        } else {
+            \tiny_widgethub\event\widget_updated::create($eventdata)->trigger();
+        }
         return $id;
     }
 
@@ -439,13 +450,17 @@ class widgetstorageimpl implements widgetstorage {
         $deletedids = [];
         foreach ($ids as $id) {
             $widget = $this->load_raw_widget($id);
-            if ($id === 0 || !$widget || $widget['key'] === 'partials') {
+            if ($id === 0 || !$widget || ($widget['key'] ?? '') === 'partials') {
                 // Partials cannot be deleted.
                 continue;
             }
             unset($this->index[$id]);
             $this->documentstorage->delete_all($id, false);
             $deletedids[] = $id;
+            \tiny_widgethub\event\widget_deleted::create([
+                'context' => \context_system::instance(),
+                'other' => ['id' => (int) $id, 'key' => $widget['key'] ?? ''],
+            ])->trigger();
         }
         if (!empty($deletedids)) {
             \cache::make('tiny_widgethub', 'index')->delete_many(['fullindex', 'geteditordata']);
@@ -502,6 +517,14 @@ class widgetstorageimpl implements widgetstorage {
         // Must delete yml document to mantain consistency.
         $this->documentstorage->delete($id, 'yml');
         $this->update_index($id, $widget);
+        \tiny_widgethub\event\widget_updated::create([
+            'context' => \context_system::instance(),
+            'other' => [
+                'id' => $id,
+                'key' => $widget['key'] ?? ($info['k'] ?? ''),
+                'visible' => $visible,
+            ],
+        ])->trigger();
         return true;
     }
 

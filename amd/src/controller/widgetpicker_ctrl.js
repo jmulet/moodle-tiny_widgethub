@@ -31,11 +31,12 @@ import { getEditorOptions, getGlobalConfig, isManagePlugin } from '../options';
 import { getModalSrv } from '../service/modal_service';
 import { getTemplateSrv } from '../service/template_service';
 import { getUserStorage } from '../service/userstorage_service';
-import { buildFontCss, debounce, genID, hashCode, removeRndFromCtx, searchComp, toggleClass } from '../util';
+import { buildFontCss, debounce, esc, genID, hashCode, removeRndFromCtx, searchComp, toggleClass } from '../util';
 import Config from 'core/config';
 
 const { component } = Common;
 const allCss = `${Config.wwwroot}/theme/styles.php/${Config.theme}/${Config.themerev}_1/all`;
+const DEFAULT_ICON = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M264.5 5.2c14.9-6.9 32.1-6.9 47 0l218.6 101c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 149.8C37.4 145.8 32 137.3 32 128s5.4-17.9 13.9-21.8L264.5 5.2zM476.9 209.6l53.2 24.6c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 277.6c-8.5-3.9-13.9-12.4-13.9-21.8s5.4-17.9 13.9-21.8l53.2-24.6 152 70.2c23.4 10.8 50.4 10.8 73.8 0l152-70.2zm-152 198.2l152-70.2 53.2 24.6c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 405.6c-8.5-3.9-13.9-12.4-13.9-21.8s5.4-17.9 13.9-21.8l53.2-24.6 152 70.2c23.4 10.8 50.4 10.8 73.8 0z"/></svg>';
 
 /**
  * @param {HTMLElement} el
@@ -405,9 +406,9 @@ export class WidgetPickerCtrl {
                     return !selectmode || (selectmode && widget.isSelectCapable());
                 })
                 .map(r =>
-                    `<button type="button" class="btn btn-link p-0" data-key="${r.key}" data-insert="recent">
-                    <span class="badge badge-secondary text-truncate d-inline-block" style="max-width: 120px;" title="${widgetDict[r.key].name}">
-                    ${widgetDict[r.key].name}</span></button>`)
+                    `<button type="button" class="btn btn-link p-0" data-key="${esc(r.key)}" data-insert="recent">
+                    <span class="badge badge-secondary text-truncate d-inline-block" style="max-width: 120px;" title="${esc(widgetDict[r.key].name)}">
+                    ${esc(widgetDict[r.key].name)}</span></button>`)
                 .join('\n');
             const recentDiv = this.body?.querySelector('.tiny_widgethub-recent');
             if (recentDiv) {
@@ -577,7 +578,7 @@ export class WidgetPickerCtrl {
             let iconHtml = '';
 
             if (image) {
-                iconHtml = `<img src="${image}" alt="" style="width:100%;height:100%;object-fit:contain;">`;
+                iconHtml = `<img src="${esc(image)}" alt="" style="width:100%;height:100%;object-fit:contain;">`;
             } else if (icon) {
                 icon = icon.trim();
                 if (icon.startsWith('<svg')) {
@@ -585,14 +586,14 @@ export class WidgetPickerCtrl {
                     // Instead, we encode it as a data URL.
                     iconHtml = `<img src="data:image/svg+xml;base64,${btoa(icon)}" alt="Widget icon" style="width:100%;height:100%;object-fit:contain;">`;
                 } else if (icon.startsWith('data:image') || icon.startsWith('https://')) {
-                    iconHtml = `<img src="${icon}" alt="Widget icon" style="width:100%;height:100%;object-fit:contain;">`;
+                    iconHtml = `<img src="${esc(icon)}" alt="Widget icon" style="width:100%;height:100%;object-fit:contain;">`;
                 } else {
                     // Assume font-awesome class
-                    iconHtml = `<i class="${icon}"></i>`;
+                    iconHtml = `<i class="${esc(icon)}"></i>`;
                 }
             } else {
                 // Default icon (puzzle piece)
-                iconHtml = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M264.5 5.2c14.9-6.9 32.1-6.9 47 0l218.6 101c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 149.8C37.4 145.8 32 137.3 32 128s5.4-17.9 13.9-21.8L264.5 5.2zM476.9 209.6l53.2 24.6c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 277.6c-8.5-3.9-13.9-12.4-13.9-21.8s5.4-17.9 13.9-21.8l53.2-24.6 152 70.2c23.4 10.8 50.4 10.8 73.8 0l152-70.2zm-152 198.2l152-70.2 53.2 24.6c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 405.6c-8.5-3.9-13.9-12.4-13.9-21.8s5.4-17.9 13.9-21.8l53.2-24.6 152 70.2c23.4 10.8 50.4 10.8 73.8 0z"/></svg>';
+                iconHtml = DEFAULT_ICON;
             }
 
             found.buttons.push({

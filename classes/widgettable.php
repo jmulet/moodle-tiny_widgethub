@@ -38,7 +38,7 @@ class widgettable extends \admin_setting {
      * Summary of TINY_CATEGORY
      * @var string
      */
-    const TINY_CATEGORY = 'tiny_widgethub';
+    public const TINY_CATEGORY = 'tiny_widgethub';
 
     /**
      * Summary of visiblename

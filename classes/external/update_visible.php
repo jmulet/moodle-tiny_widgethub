@@ -40,7 +40,7 @@ class update_visible extends external_api {
      */
     public static function execute_parameters() {
         return new external_function_parameters([
-            'contextid' => new external_value(PARAM_INT, 'Context ID'),
+            'contextid' => new external_value(PARAM_INT, 'Deprecated and ignored. Context ID'),
             'id' => new external_value(PARAM_INT, 'Widget ID to update visibility'),
             'visible' => new external_value(PARAM_BOOL, 'The visibility of the widget'),
         ]);
@@ -71,12 +71,8 @@ class update_visible extends external_api {
         );
 
         // Security checks.
-        $contextid = $params['contextid'] ?? 0;
-        if ($contextid >= 1) {
-            $context = \context::instance_by_id($contextid);
-        } else {
-            $context = \context_system::instance();
-        }
+        /** @var \context $context */
+        $context = \context_system::instance();
         self::validate_context($context);
         require_capability('tiny/widgethub:manage', $context);
 

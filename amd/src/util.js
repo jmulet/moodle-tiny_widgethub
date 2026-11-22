@@ -894,3 +894,21 @@ export async function buildFontCss(cssUrl) {
     fontCssCache = out.join('\n');
     return fontCssCache;
 }
+
+/**
+ * Converts to number
+ * @param {*} v 
+ * @returns {number | null}
+ */
+export function toNum(v) {
+    return Number.isFinite(+v) ? +v : null;
+}
+
+/**
+ * Escapes HTML in string
+ * @param {string} s 
+ * @returns {string}
+ */
+export function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}

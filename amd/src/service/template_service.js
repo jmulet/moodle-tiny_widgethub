@@ -23,7 +23,7 @@
  */
 
 import mustache from 'core/mustache';
-import { genID } from '../util';
+import { esc, genID } from '../util';
 import { Sandbox } from './sandbox';
 
 /**
@@ -118,8 +118,8 @@ export class TemplateSrv {
                 return '';
             }
             return `<div class="alert alert-danger">
-                <p>Render ${engine} template</p>
-                <pre>${msg}</pre>
+                <p>Render ${esc(engine)} template</p>
+                <pre>${esc(msg)}</pre>
                 </div>`;
         }
     }

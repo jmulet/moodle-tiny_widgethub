@@ -10,7 +10,7 @@
     </library>
     <library>
         <location>amd/src/libs/cmeditor-lazy.js</location>
-        <name>codemirror</name>
+        <name>codemirror (includes @codemirror/*, @lezer/*, zod, crelt, style-mod, w3c-keyname, @marijn/find-cluster-break)</name>
         <version>6.0.2</version>
         <license>MIT</license>
         <licenseversion></licenseversion>
@@ -27,7 +27,7 @@
     <library>
         <location>libs/src/sandbox/tmp/liquid_worker.inline.js</location>
         <name>liquid_worker (includes liquidjs)</name>
-        <version>10.30.0</version>
+        <version>10.30.1</version>
         <license>MIT</license>
         <licenseversion></licenseversion>
         <repository>https://github.com/harttle/liquidjs</repository>
@@ -59,7 +59,7 @@
     <library>
         <location>js/render_sandbox.min.js</location>
         <name>liquid_worker (includes liquidjs)</name>
-        <version>10.30.0</version>
+        <version>10.30.1</version>
         <license>MIT</license>
         <licenseversion></licenseversion>
         <repository>https://github.com/harttle/liquidjs</repository>

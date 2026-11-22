@@ -104,3 +104,4 @@ Changes:
   - Fixed issues in security analysis.
   - Removed preview in contextaction.
   - All previews are sandboxed.
+  - Events are triggered on common widget actions.

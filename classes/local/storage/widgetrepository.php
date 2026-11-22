@@ -33,7 +33,7 @@ class widgetrepository {
     /**
      * Component name.
      */
-    const COMPONENT = 'tiny_widgethub';
+    public const COMPONENT = 'tiny_widgethub';
 
     /**
      * Loads the contents of all the files with a matching extension in the given directory.
@@ -341,10 +341,14 @@ class widgetrepository {
         }
 
         $results = [];
+        $created = 0;
+        $updated = 0;
+        $failed = 0;
         foreach ($keys as $key) {
             $filename = $keytofile[$key] ?? null;
             if (!$filename) {
                 $results[$key] = false;
+                $failed++;
                 continue;
             }
 
@@ -352,11 +356,31 @@ class widgetrepository {
             $yml = $ymlentries[$filename] ?? null;
 
             $dbwidget = $storage->get_widget_by_key($key);
+            $isnew = ($dbwidget === false);
             $id = $dbwidget ? (int) $dbwidget->id : storagefactory::BLANK_ID;
 
             $res = $storage->save_widget($id, $preset, $yml, null, null);
-            $results[$key] = ($res >= 0);
+            $ok = ($res >= 0);
+            $results[$key] = $ok;
+            if ($ok) {
+                if ($isnew) {
+                    $created++;
+                } else {
+                    $updated++;
+                }
+            } else {
+                $failed++;
+            }
         }
+
+        \tiny_widgethub\event\repository_synced::create([
+            'context' => \context_system::instance(),
+            'other' => [
+                'created' => $created,
+                'updated' => $updated,
+                'failed' => $failed,
+            ],
+        ])->trigger();
 
         return $results;
     }

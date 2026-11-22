@@ -25,7 +25,7 @@
 import { getFileSrv } from '../service/file_service';
 import { getTemplateSrv } from '../service/template_service';
 import { getUserStorage } from '../service/userstorage_service';
-import { capitalize, cleanParameterName, genID, stream, toHexAlphaColor, toRgba } from '../util';
+import { capitalize, cleanParameterName, genID, stream, toHexAlphaColor, toRgba, toNum } from '../util';
 import { Sandbox } from '../service/sandbox';
 
 const questionPopover = '{{#tooltip}}<button type="button" class="btn btn-link p-0" data-toggle="popover" data-trigger="hover" data-content="{{tooltip}}" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-content="{{tooltip}}"><i class="fa fas fa-question-circle text-info"></i></button>{{/tooltip}}';
@@ -51,7 +51,7 @@ export const Templates = Object.freeze(
    </div>`,
 
       NUMERICTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}"><label class="col-sm-5 col-form-label"  for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
-   <div class="col-sm-7"><input type="number" id="{{elementid}}_fntmpl" class="form-control" name="{{varname}}" {{{minMax}}} {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/></div>
+   <div class="col-sm-7"><input type="number" id="{{elementid}}_fntmpl" class="form-control" name="{{varname}}" {{#min}}min="{{min}}"{{/min}} {{#max}}max="{{max}}"{{/max}} {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/></div>
    </div>`,
 
       COLORTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}"><label class="col-sm-5 col-form-label"  for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
@@ -192,14 +192,7 @@ export class FormCtrl {
       if (param.type === 'textarea') {
          markup = this.templateSrv.renderMustache(Templates.TEXTAREATEMPLATE, generalCtx);
       } else if (param.type === 'numeric') {
-         let minMax = "";
-         if (param.min) {
-            minMax += `min="${param.min}"`;
-         }
-         if (param.max) {
-            minMax += ` max="${param.max}"`;
-         }
-         markup = this.templateSrv.renderMustache(Templates.NUMERICTEMPLATE, { minMax: minMax, ...generalCtx });
+         markup = this.templateSrv.renderMustache(Templates.NUMERICTEMPLATE, { min: toNum(param.min), max: toNum(param.max), ...generalCtx });
       } else if (param.type === 'checkbox') {
          markup = this.templateSrv.renderMustache(Templates.CHECKBOXTEMPLATE, generalCtx);
       } else if (param.type === 'select' || param.type === 'autocomplete') {
