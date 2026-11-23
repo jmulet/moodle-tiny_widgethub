@@ -21,6 +21,7 @@
  * @copyright   2026 Josep Mulet <pep.mulet@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__ . '/upgradelib.php');
 

@@ -15,12 +15,13 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Local WidgetHub plugin version details.
+ * Tiny WidgetHub plugin version details.
  *
  * @package     tiny_widgethub
  * @copyright   2026 Josep Mulet <pep.mulet@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 defined('MOODLE_INTERNAL') || die();
 
 $functions = [

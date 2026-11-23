@@ -26,6 +26,7 @@
  * @copyright   2024 Josep Mulet <pep.mulet@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 $string['accept'] = 'Aceptar';
 $string['additionalcss'] = 'CSS adicional para el iframe del editor';
 $string['advancedsettings'] = 'Configuración avanzada';
