@@ -8,6 +8,7 @@
  */
 const { bindingsFactoryAPI, performCasting } = require("../src/bindings");
 const U = require("../src/util");
+const { htmlToElement } = require("../utilities");
 /** @ts-ignore */
 const jQuery = require("jquery").default;
 
@@ -109,14 +110,14 @@ describe('bindings module tests', () => {
         ["hasAttrBS('target=modal')", `<span data-target="modal"></span>`, true],
         ["hasAttrBS('target=modal', null, null, 5)", `<span data-bs-target="modal"></span>`, true]
     ])('Create GET binding %s on %s returns %s', (bindDef, elemDef, result) => {
-        let elem = U.htmlToElement(document, elemDef)
+        let elem = htmlToElement(document, elemDef)
         // Binding on the same element
         let binding = createBinding(bindDef, elem);
         expect(binding).not.toBeNull();
         expect(binding?.getValue()).toBe(result);
 
         // Binding on a child
-        elem = U.htmlToElement(document, `<div class="container">${elemDef}</div>`);
+        elem = htmlToElement(document, `<div class="container">${elemDef}</div>`);
         if (bindDef.indexOf("()") > 0) {
             bindDef = bindDef.replace("()", "('span')");
         } else if (bindDef.indexOf("null") > 0) {
@@ -131,7 +132,7 @@ describe('bindings module tests', () => {
 
     test('Testing class regex', () => {
         let [bindDef, elemDef, result] = ["classRegex('alert-(.*)')", `<div class="m-2 alert alert-secondary fade show" role="alert"><div class="alert-content"><p>Lorem ipsum.</p></div></div>`, 'secondary'];
-        let elem = U.htmlToElement(document, elemDef);
+        let elem = htmlToElement(document, elemDef);
         expect(elem).toBeTruthy();
         // Binding on the same element
         let binding = createBinding(bindDef, elem);
@@ -217,7 +218,7 @@ describe('bindings module tests', () => {
 
 
     ])('Create SET binding %s on %s. If sets value %s yields %s', (bindDef, elemDef, value, result) => {
-        let elem = U.htmlToElement(document, elemDef)
+        let elem = htmlToElement(document, elemDef)
         // Binding on the same element
         let binding = createBinding(bindDef, elem);
         expect(binding).not.toBeNull();
@@ -225,7 +226,7 @@ describe('bindings module tests', () => {
         expect(normalizeStyle(elem.outerHTML)).toBe(normalizeStyle(result));
 
         // Binding on a child
-        const e = U.htmlToElement(document, `<div class="container">${elemDef}</div>`);
+        const e = htmlToElement(document, `<div class="container">${elemDef}</div>`);
         let childBindDef = bindDef; // Use a new variable for child binding definition
         if (childBindDef.indexOf("()") > 0) {
             childBindDef = childBindDef.replace("()", "('span')");

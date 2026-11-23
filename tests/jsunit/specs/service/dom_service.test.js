@@ -6,7 +6,7 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-const { htmlToElement } = require('../../src/util');
+const { htmlToElement } = require('../../utilities');
 
 const {DomSrv, getDomSrv} = require("../../src/service/dom_service");
 

@@ -7,7 +7,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-const { htmlToElement } = require('../../src/util');
+const { htmlToElement } = require('../../utilities');
 // Actual form implementation
 const { getFormCtrl } = require('../../src/controller/form_ctrl');
 

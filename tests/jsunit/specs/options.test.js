@@ -8,7 +8,8 @@
  */
 document?.body?.setAttribute("id", "page-mod-page-mod");
 
-const { register, getWidgetDict, Shared, Widget, applyPartials, _resetCacheForTesting } = require('../src/options');
+const { register, getWidgetDict, Shared, Widget, applyPartials } = require('../src/options');
+const { _resetCacheForTesting } = require('../utilities');
 
 
 /** @type {import('../src/options').RawWidget} */

@@ -35,28 +35,17 @@ Object.keys(actual).forEach((key) => {
 });
 
 /**
- * Test-only helper to populate the shared cache without an AJAX call.
- *
- * @param {object} data
- * @param {import('../src/options').RawWidget[]} [data.widgetList]
- * @param {Record<string, any>} [data.partials]
- * @param {string} [data.additionalcss]
- * @param {Record<string, any>} [data.cfg]
- * @returns {Promise<void>}
+ * Replace the wrapped options module used by the test helpers.
+ * @param {any} newActual
  */
-mock._resetCacheForTesting = (data = {}) => {
-    jest.isolateModules(() => {
-        const ajax = require('core/ajax');
-        ajax.call.mockReturnValueOnce([Promise.resolve({
-            widgetlist: JSON.stringify(data.widgetList ?? []),
-            partials: JSON.stringify(data.partials ?? {}),
-            additionalcss: data.additionalcss ?? '',
-            cfg: JSON.stringify(data.cfg ?? {}),
-        })]);
-        actual = jest.requireActual(actualPath);
-        syncWrappers();
-    });
-    return actual.fetchEditorData(-1);
+const setActualOptions = (newActual) => {
+    actual = newActual;
+    syncWrappers();
 };
+
+if (!globalThis.__widgethubOptionMocks) {
+    globalThis.__widgethubOptionMocks = [];
+}
+globalThis.__widgethubOptionMocks.push(setActualOptions);
 
 module.exports = mock;

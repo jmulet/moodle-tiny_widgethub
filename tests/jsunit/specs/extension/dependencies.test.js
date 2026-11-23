@@ -9,38 +9,43 @@
 // Mock virtual modules 
 const Common = require('../../src/common');
 const { addRequires, cleanUnusedRequires } = require('../../src/extension/dependencies');
-const { _resetCacheForTesting } = require('../../src/options');
+const { _resetCacheForTesting } = require('../../utilities');
 const JSAREACLASSNAME = Common.default.jsAreaClassname;
 const jsareaSelector = `div.${JSAREACLASSNAME}`;
 
-
+/** @type {any} */
 const widget1 = {
     key: 'w1',
     selectors: 'div.w1',
     requires: "https://site.org/w1.js"
 };
+/** @type {any} */
 const widget2 = {
     key: 'w2',
     selectors: ['[role="img"]', 'img'],
     requires: " https://s3.site.org/assets/w2.js  "
 };
+/** @type {any} */
 const widget3 = {
     key: 'w3',
     selectors: ['div[data-prop="w3"]'],
-    requires: {url: " http://google.net/w3.min.js  " }
+    requires: { url: " http://google.net/w3.min.js  " }
 };
+/** @type {any} */
 const widget4 = {
     key: 'w4',
-    parameters: [{key: 'a', value: 11}],
+    parameters: [{ key: 'a', value: 11 }],
     selectors: 'div[data-prop="w4"]',
     requires: 'http://google.net/w4.min.js | div[data-prop="w4"].active'
 };
+/** @type {any} */
 const widget5 = {
     key: 'w5',
-    parameters: [{key: 'a', value: 11}],
+    parameters: [{ key: 'a', value: 11 }],
     selectors: 'div[data-prop="w5"]',
-    requires: { url: 'http://google.net/w5.min.js', query: 'div[data-prop="w5"].active'}
+    requires: { url: 'http://google.net/w5.min.js', query: 'div[data-prop="w5"].active' }
 };
+/** @type {any[]} */
 const rawWidgets = [widget1, widget2, widget3, widget4, widget5];
 
 /**
@@ -113,7 +118,7 @@ describe('dependencies', () => {
         expect([...scripts].map(s => s.src)).toEqual(expect.arrayContaining([widget1.requires.trim(), widget3.requires.url.trim()]));
     });
 
-     it('addRequires does not add widget dependency when conditional is not meet (using string | notation for condition)', () => {
+    it('addRequires does not add widget dependency when conditional is not meet (using string | notation for condition)', () => {
         const editor = createEditor('<div data-prop="w4"></div>');
         const added = addRequires(editor, undefined);
         expect(added).toBe(0);
@@ -122,7 +127,7 @@ describe('dependencies', () => {
         expect(scripts).toHaveLength(0);
     });
 
-     it('addRequires adds widget dependency when conditional is meet (using string | notation for condition)', () => {
+    it('addRequires adds widget dependency when conditional is meet (using string | notation for condition)', () => {
         const editor = createEditor('<div data-prop="w4" class="w4 active"></div>');
         const added = addRequires(editor, undefined);
         expect(added).toBe(1);
@@ -141,7 +146,7 @@ describe('dependencies', () => {
         expect(scripts).toHaveLength(0);
     });
 
-     it('addRequires adds widget dependency when conditional is met (using object notation for condition)', () => {
+    it('addRequires adds widget dependency when conditional is met (using object notation for condition)', () => {
         const editor = createEditor('<div data-prop="w5" class="w5 active"></div>');
         const added = addRequires(editor, undefined);
         expect(added).toBe(1);
@@ -321,6 +326,30 @@ describe('dependencies', () => {
         const added = addRequires(editor, undefined);
         expect(added).toBe(0);
         expect(editor.getBody().querySelector(jsareaSelector)).toBeNull();
+    });
+
+    it('cleanUnusedRequires keeps shared script when another widget with same require matches', () => {
+        const sharedUrl = 'https://iedib.net/assets/sd/images.min.js';
+        /** @type {any} */
+        const wFigure = {
+            key: 'ib-imatge',
+            selectors: 'div.iedib-figura',
+            requires: { url: sharedUrl, query: 'div.iedib-figura[data-snptd]' }
+        };
+        /** @type {any} */
+        const wGrid = {
+            key: 'ib-imatge-grid',
+            selectors: 'table.iedib-imggrid',
+            requires: { url: sharedUrl, query: 'table.iedib-imggrid[data-snptd]' }
+        };
+        const editor = createEditor(
+            '<div class="iedib-figura" data-snptd="1"></div>' +
+            '<div class="' + JSAREACLASSNAME + '"><script src="' + sharedUrl + '"></script></div>'
+        );
+        expect(cleanUnusedRequires(editor, [wGrid, wFigure])).toBe(0);
+        const scripts = editor.getBody().querySelectorAll(jsareaSelector + ' script');
+        expect(scripts).toHaveLength(1);
+        expect(scripts[0].src).toBe(sharedUrl);
     });
 
 

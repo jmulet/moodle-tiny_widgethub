@@ -45,7 +45,6 @@ export function addRequires(editor, requireList) {
 
         /** @type {HTMLElement} */
         const tiny = editor.getBody();
-        let jsArea = tiny.querySelector(jsareaSelector);
 
         // If no requireList is passed, then analyze the page and add requires that must be there!
         if (!requireList) {
@@ -56,6 +55,8 @@ export function addRequires(editor, requireList) {
 
         // Clear unused requires first
         cleanUnusedRequires(editor, affectedWidgets);
+        // cleanUnusedRequires may remove jsarea, so need to search here.
+        let jsArea = tiny.querySelector(jsareaSelector);
 
         // Check which scripts must be created
         const scriptsToInsert = requireList.filter((req) => {
@@ -161,23 +162,24 @@ export function cleanUnusedRequires(editor, affectedWidgets) {
                 return;
             }
 
-            // Match the widget with this src
+            // Match the widgets with this src (there might be more than one)
             // @ts-ignore
-            const widgetFound = affectedWidgets.find(w => {
+            const widgetsForSrc = affectedWidgets.filter(w => {
                 const realSrc = addBaseToUrl(jsBaseUrl, w.requires?.url?.trim() || '');
                 return realSrc === src;
             });
-            if (!widgetFound) {
+            if (widgetsForSrc.length === 0) {
                 // No widget has this src.
                 scriptElem.remove();
                 changes++;
                 return;
             }
-            const anyInstancesFound = anyMatchesSelectors(tiny, widgetFound.selectors ?? []);
-            if (!anyInstancesFound ||
-                // Conditional insert
-                (widgetFound.requires?.query && !tiny.querySelector(widgetFound.requires.query))
-            ) {
+            const stillNeeded = widgetsForSrc.some(w => {
+                const anyInstancesFound = anyMatchesSelectors(tiny, w.selectors ?? []);
+                return anyInstancesFound && !(w.requires?.query && !tiny.querySelector(w.requires.query));
+            });
+
+            if (!stillNeeded) {
                 // Script no longer needed
                 scriptElem.remove();
                 changes++;

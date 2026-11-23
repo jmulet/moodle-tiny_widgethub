@@ -6,7 +6,7 @@
  * @copyright   2024 Josep Mulet Pol <pep.mulet@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-const {FileSrv, getFileSrv} = require("../../src/service/file_service");
+const { FileSrv, getFileSrv } = require("../../src/service/file_service");
 
 /** @type {import('../../src/service/file_service').FileSrv} */
 let fileSrv;
@@ -28,19 +28,19 @@ describe('FileSrv', () => {
         expect(f1).toBeTruthy();
         const f2 = getFileSrv(editor);
         expect(Object.is(f1, f2)).toBe(true);
-        const f3 = getFileSrv({...editor, id: 2});
+        const f3 = getFileSrv({ ...editor, id: 2 });
         expect(Object.is(f1, f3)).toBe(false);
     })
 
     it('It must get the filePicker', () => {
-        const {getFilePicker} = require('editor_tiny/options');
-        fileSrv.getImagePicker();
+        const { getFilePicker } = require('editor_tiny/options');
+        fileSrv.getFilePicker('image');
         expect(getFilePicker).toHaveBeenCalledWith(editor, 'image');
     });
 
     it('It must display the filePicker', () => {
-        const {displayFilepicker} = require('editor_tiny/utils');
-        fileSrv.displayImagePicker();
+        const { displayFilepicker } = require('editor_tiny/utils');
+        fileSrv.displayFilePicker('image');
         expect(displayFilepicker).toHaveBeenCalledWith(editor, 'image');
     });
 });

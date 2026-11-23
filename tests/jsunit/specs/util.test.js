@@ -144,21 +144,6 @@ describe('utils module tests', () => {
         expect(res).toMatch(output);
     });
 
-    test("convertInt", () => {
-        expect(U.convertInt('', -1)).toBe(-1)
-        expect(U.convertInt('1', 0)).toBe(1)
-        expect(U.convertInt(1, 0)).toBe(1)
-        expect(U.convertInt(1.2, 0)).toBe(1)
-        expect(U.convertInt('7.2', 0)).toBe(7)
-        expect(U.convertInt('+7.2', 0)).toBe(7)
-        expect(U.convertInt('  + 7.2 ', 99)).toBe(99)
-        expect(U.convertInt('  -5.2 ', 99)).toBe(-5)
-        expect(U.convertInt('-7234', 0)).toBe(-7234)
-        expect(U.convertInt('alp342', 33)).toBe(33)
-        expect(U.convertInt('1x1', 33)).toBe(33)
-        expect(U.convertInt('1+1', 33)).toBe(33)
-    });
-
     test.each([
         [null, ''],
         [undefined, ''],
