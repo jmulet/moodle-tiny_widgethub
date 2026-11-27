@@ -24,17 +24,14 @@
 
 namespace tiny_widgethub\local\storage;
 
+use tiny_widgethub\constants;
+
 /**
  * Class widgetrepository
  *
  * Widget repository.
  */
 class widgetrepository {
-    /**
-     * Component name.
-     */
-    public const COMPONENT = 'tiny_widgethub';
-
     /**
      * Loads the contents of all the files with a matching extension in the given directory.
      *
@@ -49,11 +46,10 @@ class widgetrepository {
         bool $coreonly = false
     ) {
         $ret = [];
-        $dirs = [];
 
         $extensions = array_map('strtolower', $extensions);
         // Search in the given directory.
-        $pluginpath = \core_component::get_component_directory('tiny_widgethub');
+        $pluginpath = \core_component::get_component_directory(constants::COMPONENT);
         $workingdir = $pluginpath . DIRECTORY_SEPARATOR . $directory;
         // Validate that the path is still inside the plugin.
         $realworkingdir = realpath($workingdir);
@@ -62,8 +58,8 @@ class widgetrepository {
             debugging('Invalid Widget directory: ' . $workingdir, 'error');
             return $ret;
         }
-        $dir[] = new \DirectoryIterator($realworkingdir);
-        foreach ($dir as $fileinfo) {
+        $dirs[] = new \DirectoryIterator($realworkingdir);
+        foreach ($dirs as $fileinfo) {
             if (!$fileinfo->isDot()) {
                 // Process files with the given extensions.
                 $ext = strtolower(pathinfo($fileinfo->getFilename(), PATHINFO_EXTENSION));
@@ -111,11 +107,11 @@ class widgetrepository {
         $fallbacklangs[] = 'en';
 
         // Load strings for current language first.
-        $allstrings = get_string_manager()->load_component_strings(self::COMPONENT, $currentlang) ?: [];
+        $allstrings = get_string_manager()->load_component_strings(constants::COMPONENT, $currentlang) ?: [];
 
         // Load fallback languages and merge missing keys.
         foreach ($fallbacklangs as $lang) {
-            $fallbackstrings = get_string_manager()->load_component_strings(self::COMPONENT, $lang) ?: [];
+            $fallbackstrings = get_string_manager()->load_component_strings(constants::COMPONENT, $lang) ?: [];
             // Merge only missing keys.
             foreach ($fallbackstrings as $key => $val) {
                 if (!isset($allstrings[$key])) {
@@ -286,7 +282,7 @@ class widgetrepository {
                 'key' => $key,
                 'name' => $repoentry['name'] ?? $key,
                 'status' => $status,
-                'statusname' => get_string($status, self::COMPONENT),
+                'statusname' => get_string($status, constants::COMPONENT),
                 'installedversion' => $installedversion,
                 'repoversion' => $repoversion,
                 'author' => $repoentry['author'] ?? '',
@@ -304,7 +300,7 @@ class widgetrepository {
                     'key' => $key,
                     'name' => $dbwidget->name ?? $key,
                     'status' => $status,
-                    'statusname' => get_string($status, self::COMPONENT),
+                    'statusname' => get_string($status, constants::COMPONENT),
                     'installedversion' => $dbwidget->version ?? '0.0.0',
                     'repoversion' => '----',
                     'author' => $dbwidget->author ?? '',

@@ -24,9 +24,12 @@
 /** @ts-ignore */
 import { call as fetchMany } from 'core/ajax';
 import { nullProtofy } from '../util';
+import Common from '../common';
+
+const { component } = Common;
 
 export class ExternalService {
-    static USER_PREFS_KEY = 'tiny_widgethub_userprefs';
+    static USER_PREFS_KEY = `${component}_userprefs`;
 
     /**
      * @param {number} contextid
@@ -58,7 +61,7 @@ export class ExternalService {
      */
     async getEditorData() {
         try {
-            const data = await this._fetch('tiny_widgethub_get_editordata',
+            const data = await this._fetch(`${component}_get_editordata`,
                 nullProtofy({ contextid: this.contextid }));
             return {
                 widgetlist: JSON.parse(data.widgetlist),
@@ -84,7 +87,7 @@ export class ExternalService {
      * @returns Promise<number[]>
      */
     deleteWidgets(ids) {
-        return this._fetch('tiny_widgethub_delete_widgets',
+        return this._fetch(`${component}_delete_widgets`,
             nullProtofy({ contextid: this.contextid, ids }));
     }
 
@@ -95,7 +98,7 @@ export class ExternalService {
      * @returns {Promise<{id: number, key: string, json?: string, yml?: string}[]>}
      */
     getWidgetDocuments(ids, includejson = true, includeother = false) {
-        return this._fetch('tiny_widgethub_get_widgetsdocuments',
+        return this._fetch(`${component}_get_widgetsdocuments`,
             nullProtofy({ contextid: this.contextid, ids, includejson, includeother }));
     }
 
@@ -104,7 +107,7 @@ export class ExternalService {
      * @returns {Promise<string>} The backup file url.
      */
     backupWidgets() {
-        return this._fetch('tiny_widgethub_get_backup', nullProtofy({
+        return this._fetch(`${component}_get_backup`, nullProtofy({
             contextid: this.contextid
         }));
     }
@@ -114,7 +117,7 @@ export class ExternalService {
      * @returns {Promise<number[]>}
      */
     getWidgetsNoYml() {
-        return this._fetch('tiny_widgethub_get_widgetsnoyml', nullProtofy({
+        return this._fetch(`${component}_get_widgetsnoyml`, nullProtofy({
             contextid: this.contextid
         }));
     }
@@ -125,7 +128,7 @@ export class ExternalService {
      * @returns {Promise<boolean[]>}
      */
     saveWidgetsYml(widgetsdata) {
-        return this._fetch('tiny_widgethub_save_widgetsyml', nullProtofy({
+        return this._fetch(`${component}_save_widgetsyml`, nullProtofy({
             contextid: this.contextid,
             widgets: widgetsdata
         }));
@@ -137,7 +140,7 @@ export class ExternalService {
      * @returns {Promise<boolean>}
      */
     setVisibility(id, visible) {
-        return this._fetch('tiny_widgethub_update_visible', nullProtofy({
+        return this._fetch(`${component}_update_visible`, nullProtofy({
             contextid: this.contextid, id, visible
         }));
     }

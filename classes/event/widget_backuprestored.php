@@ -24,6 +24,8 @@
 
 namespace tiny_widgethub\event;
 
+use tiny_widgethub\constants;
+
 /**
  * Event triggered when a widget backup is restored.
  */
@@ -42,7 +44,7 @@ class widget_backuprestored extends \core\event\base {
      * @return string The localised event name.
      */
     public static function get_name() {
-        return get_string('eventbackuprestored', 'tiny_widgethub');
+        return get_string('eventbackuprestored', constants::COMPONENT);
     }
 
     /**

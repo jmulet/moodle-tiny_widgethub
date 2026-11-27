@@ -125,7 +125,7 @@ class PreviewStrategyTiny {
             return false;
         }
         // Tell WidgetHub that the plugin definition has changed.
-        const plugin = tinyinstance.plugins['tiny_widgethub/plugin'];
+        const plugin = tinyinstance.plugins[`${component}/plugin`];
         if (typeof plugin?.widgetDefine !== 'function') {
             return false;
         }
@@ -156,7 +156,7 @@ class PreviewStrategyTiny {
         }
         tinyinstance.setContent(content);
         // Tell WidgetHub that the plugin definition has changed.
-        const plugin = tinyinstance.plugins['tiny_widgethub/plugin'];
+        const plugin = tinyinstance.plugins[`${component}/plugin`];
         if (typeof plugin?.widgetDefine === 'function') {
             plugin.widgetDefine(widget, css);
         }
@@ -702,7 +702,7 @@ export default class WidgetSettings {
                         form.submit();
                     };
 
-                    const trusted = (sessionStorage.getItem('tiny_widgethub_trusted') ?? '').split(',');
+                    const trusted = (sessionStorage.getItem(`${component}_trusted`) ?? '').split(',');
                     if (trusted.includes(this.widgetKey)) {
                         doSubmit();
                     } else {
@@ -715,7 +715,7 @@ export default class WidgetSettings {
                         ).then(() => {
                             if (this.widgetKey && !trusted.includes(this.widgetKey)) {
                                 trusted.push(this.widgetKey);
-                                sessionStorage.setItem('tiny_widgethub_trusted', trusted.join(','));
+                                sessionStorage.setItem(`${component}_trusted`, trusted.join(','));
                             }
                             doSubmit();
                             return;
@@ -813,7 +813,7 @@ export default class WidgetSettings {
         if (!bsUrl) {
             // Otherwise fallback to shipped assets.
             bsUrl = pathJoin(Config.wwwroot,
-                `lib/editor/tiny/plugins/widgethub/assets.php?type=js&name=bootstrap${bsVersion}&v=${Config.jsrev}`);
+                `lib/editor/tiny/plugins/${common.componentName}/assets.php?type=js&name=bootstrap${bsVersion}&v=${Config.jsrev}`);
         }
 
         if (!jqUrl && moodleVersion.startsWith('4')) {
@@ -827,7 +827,7 @@ export default class WidgetSettings {
             } catch (e) {
                 // Otherwise use the one shipped with the plugin.
                 jqUrl = pathJoin(Config.wwwroot,
-                    `lib/editor/tiny/plugins/widgethub/assets.php?type=js&name=jquery371&v=${Config.jsrev}`);
+                    `lib/editor/tiny/plugins/${common.componentName}/assets.php?type=js&name=jquery371&v=${Config.jsrev}`);
             }
         }
 

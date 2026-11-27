@@ -32,6 +32,7 @@ import { getContextMenuManager } from './contextactions';
 import { getExternalService } from './service/external_service';
 
 const pluginName = Common.pluginName;
+const { component } = Common;
 
 const showPluginOptName = getPluginOptionName(pluginName, 'showplugin');
 const managePluginOptName = getPluginOptionName(pluginName, 'manageplugin');
@@ -162,14 +163,14 @@ export function setWidgetDefinitions(editor, widget, css) {
 
     _cache.widgetDict = undefined;
     // Add css into editor's iframe.
-    const styleNode = editor.dom.get('tiny_widgethub-playground-style');
+    const styleNode = editor.dom.get(`${component}-playground-style`);
     if (styleNode) {
         editor.dom.remove(styleNode);
     }
     editor.dom.add(
         editor.dom.select('head')[0],
         'style',
-        { type: 'text/css', id: 'tiny_widgethub-playground-style' },
+        { type: 'text/css', id: `${component}-playground-style` },
         css ?? ''
     );
     // Reinit context menu (async method, no need to wait for it).
@@ -207,7 +208,7 @@ export const isShareCss = (editor) => {
  * @returns {boolean} - whether the editor is in playground mode
  */
 export const isPlaygroundMode = () => {
-    return document.body.classList.contains('tiny_widgethub-playground');
+    return document.body.classList.contains(`${component}-playground`);
 };
 
 /**

@@ -24,6 +24,8 @@
 
 namespace tiny_widgethub\form;
 
+use tiny_widgethub\constants;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/formslib.php');
@@ -74,7 +76,7 @@ class settingseditorform extends \moodleform {
         $saveclosebtn = $mform->createElement(
             'submit',
             'saveandclose',
-            get_string('saveandclose', 'tiny_widgethub'),
+            get_string('saveandclose', constants::COMPONENT),
             ['class' => 'mx-1 btn btn-secondary']
         );
         $mform->addElement('html', $saveclosebtn->toHtml());

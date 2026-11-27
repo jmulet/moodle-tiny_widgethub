@@ -414,7 +414,7 @@ function initializeEditor(editor) {
         if (!bsUrl) {
             // Otherwise fallback to shipped assets.
             bsUrl = pathJoin(Config.wwwroot,
-                `lib/editor/tiny/plugins/widgethub/assets.php?type=js&name=bootstrap${bsVersion}&v=${Config.jsrev}`);
+                `lib/editor/tiny/plugins/${Common.componentName}/assets.php?type=js&name=bootstrap${bsVersion}&v=${Config.jsrev}`);
         }
 
         if (!jqUrl && moodleVersion.startsWith('4')) {
@@ -431,7 +431,7 @@ function initializeEditor(editor) {
             } catch (e) {
                 // Otherwise use the one shipped with the plugin.
                 jqUrl = pathJoin(Config.wwwroot,
-                    `lib/editor/tiny/plugins/widgethub/assets.php?type=js&name=jquery371&v=${Config.jsrev}`);
+                    `lib/editor/tiny/plugins/${Common.componentName}/assets.php?type=js&name=jquery371&v=${Config.jsrev}`);
             }
         }
 

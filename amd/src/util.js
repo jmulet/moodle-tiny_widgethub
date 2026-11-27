@@ -626,7 +626,7 @@ export function loadScriptAsync(editor, src, integrity) {
 }
 
 /**
- * @deprecated Use native editor.dom.setStyle instead.
+ * Use native editor.dom.setStyle when possible.
  * @param {HTMLElement} target
  * @param {string} propName
  * @param {string} propValue

@@ -100,9 +100,9 @@ Changes:
   - Fix issue WidgetHub modal not showing after opening tiny_html dialog.
 
 == 1.5.6 ==
-  - Fix bug in cleanUnusedRequires when two or more widgets with differents selectors shared the same url.
-  - Updated libraries
-  - Fixed issues in security analysis.
-  - Removed preview in contextaction.
-  - All previews are sandboxed.
-  - Events are triggered on common widget actions.
+  - Fixed a bug in `cleanUnusedRequires` when multiple widgets with different selectors share the same URL.
+  - Triggered events on common widget actions.
+  - Enforced sandboxing across all previews.
+  - Removed preview support from `contextaction`.
+  - Resolved issues flagged in security analysis.
+  - Updated third-party libraries.

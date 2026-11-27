@@ -25,6 +25,9 @@
 import Config from 'core/config';
 import Templates from 'core/templates';
 import { genID } from '../util';
+import Common from '../common';
+
+const { component } = Common;
 
 /**
  * Generates a random request ID
@@ -122,7 +125,7 @@ export class Sandbox {
         let url = '';
         this._readyPromise = new Promise((/** @type {*} */ resolve, /** @type {*} */ reject) => {
             const onPostMessage = (/** @type {MessageEvent} */ event) => {
-                if (event.data?.type !== `tiny_widgethub_${this.initEventName}_init` ||
+                if (event.data?.type !== `${component}_${this.initEventName}_init` ||
                     event.source !== iframe.contentWindow || event.origin !== 'null') {
                     return;
                 }
@@ -146,7 +149,7 @@ export class Sandbox {
         });
 
         const moodleOrigin = window.location.origin;
-        const html = await Templates.render(`tiny_widgethub/${this.initEventName}`, {
+        const html = await Templates.render(`${component}/${this.initEventName}`, {
             wwwroot: Config.wwwroot,
             origin: moodleOrigin,
             jsrev: Config.jsrev || 1,

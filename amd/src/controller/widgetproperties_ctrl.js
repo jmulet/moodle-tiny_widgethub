@@ -25,6 +25,9 @@
 import { getFormCtrl } from '../controller/form_ctrl';
 import { getModalSrv } from '../service/modal_service';
 import { BindingsAdapter } from '../bindings';
+import Common from '../common';
+
+const { component } = Common;
 
 /**
  * @class
@@ -107,10 +110,10 @@ export class WidgetPropertiesCtrl {
         this.formCtrl.applyFieldWatchers(bodyElem, paramValues, widget, false, listenerTracker);
 
         // Bind accept action to modal
-        this.modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", () => {
+        this.modal.footer.find(`button.${component}-btn-secondary`).on("click", () => {
             this.close();
         });
-        this.modal.footer.find("button.tiny_widgethub-btn-primary").on("click", async () => {
+        this.modal.footer.find(`button.${component}-btn-primary`).on("click", async () => {
             if (formElem) {
                 const updatedValues = this.formCtrl.extractFormParameters(widget, formElem, true);
                 await this.bindingsAdapter?.setValues(updatedValues);

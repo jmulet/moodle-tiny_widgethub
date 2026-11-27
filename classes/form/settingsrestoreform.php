@@ -24,6 +24,8 @@
 
 namespace tiny_widgethub\form;
 
+use tiny_widgethub\constants;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/formslib.php');
@@ -54,14 +56,14 @@ class settingsrestoreform extends \moodleform {
         $mform->addElement(
             'selectyesno',
             'override',
-            get_string('overridewidgets', 'tiny_widgethub')
+            get_string('overridewidgets', constants::COMPONENT)
         );
 
         // Import configuration settings.
         $mform->addElement(
             'selectyesno',
             'config',
-            get_string('importconfig', 'tiny_widgethub')
+            get_string('importconfig', constants::COMPONENT)
         );
 
         $mform->setType('override', PARAM_INT);

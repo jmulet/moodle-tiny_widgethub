@@ -24,6 +24,8 @@
 
 namespace tiny_widgethub\event;
 
+use tiny_widgethub\constants;
+
 /**
  * Event triggered when the widget repository is synchronised.
  */
@@ -42,7 +44,7 @@ class repository_synced extends \core\event\base {
      * @return string The localised event name.
      */
     public static function get_name() {
-        return get_string('eventrepositorysynced', 'tiny_widgethub');
+        return get_string('eventrepositorysynced', constants::COMPONENT);
     }
 
     /**

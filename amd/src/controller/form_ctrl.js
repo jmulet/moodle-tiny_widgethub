@@ -27,6 +27,9 @@ import { getTemplateSrv } from '../service/template_service';
 import { getUserStorage } from '../service/userstorage_service';
 import { capitalize, cleanParameterName, genID, stream, toHexAlphaColor, toRgba, toNum } from '../util';
 import { Sandbox } from '../service/sandbox';
+import Common from '../common';
+
+const { component } = Common;
 
 const questionPopover = '{{#tooltip}}<button type="button" class="btn btn-link p-0" data-toggle="popover" data-trigger="hover" data-content="{{tooltip}}" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-content="{{tooltip}}"><i class="fa fas fa-question-circle text-info"></i></button>{{/tooltip}}';
 
@@ -56,7 +59,7 @@ export const Templates = Object.freeze(
 
       COLORTEMPLATE: `<div id="{{elementid}}" class="form-group row mx-1{{#hidden}} d-none{{/hidden}}"><label class="col-sm-5 col-form-label"  for="{{elementid}}_fntmpl" title="{{varname}}">{{vartitle}} ${questionPopover}</label>
    <div class="col-sm-7">
-   <span class="w-50 tiny_widgethub-pattern">
+   <span class="w-50 ${component}-pattern">
       <input type="color" id="{{elementid}}_fctmpl" name="{{varname}}" {{#disabled}}disabled{{/disabled}} value="{{defaultvalue}}"/>
    </span>
    <input type="range" id="{{elementid}}_fcatmpl" title="Opacity" name="{{varname}}_alpha" {{#disabled}}disabled{{/disabled}} value="{{defaultvalueAlpha}}" min="0" max="1" step="0.01"/>
@@ -98,7 +101,7 @@ export const Templates = Object.freeze(
       {{{itemControls}}}
    </div>`,
 
-      STATICTEMPLATE: `<div id="{{elementid}}" class="tiny_widgethub-static-param my-3 mx-1{{#hidden}} d-none{{/hidden}}"><strong>{{vartitle}}</strong>{{#tooltip}}<div class="small text-muted">{{tooltip}}</div>{{/tooltip}}</div>`,
+      STATICTEMPLATE: `<div id="{{elementid}}" class="${component}-static-param my-3 mx-1{{#hidden}} d-none{{/hidden}}"><strong>{{vartitle}}</strong>{{#tooltip}}<div class="small text-muted">{{tooltip}}</div>{{/tooltip}}</div>`,
    }));
 
 
@@ -318,7 +321,7 @@ export class FormCtrl {
          if (param.type === 'repeatable') {
             /** @type {any[]}  */
             const listValue = [];
-            elem.querySelectorAll(".list-group-item.tiny_widgethub-regularitem").forEach(subform => {
+            elem.querySelectorAll(`.list-group-item.${component}-regularitem`).forEach(subform => {
                /** @type {Record<string, any>} */
                const itemObj = Object.create(null);
                param.fields?.forEach(field => {
@@ -696,12 +699,12 @@ class RepeatableCtrl {
     */
    static createAddItem() {
       const li = document.createElement('li');
-      li.classList.add('list-group-item', 'position-relative', 'text-center', 'tiny_widgethub-additem');
+      li.classList.add('list-group-item', 'position-relative', 'text-center', `${component}-additem`);
 
       const button = document.createElement('button');
       button.type = 'button';
 
-      button.className = 'tiny_widgethub-addbtn btn btn-sm btn-outline-secondary bg-white text-secondary';
+      button.className = `${component}-addbtn btn btn-sm btn-outline-secondary bg-white text-secondary`;
 
       const icon = document.createElement('i');
       icon.className = 'fa fa-plus';
@@ -719,12 +722,12 @@ class RepeatableCtrl {
     */
    static createRegularItem(content, showDelBtn) {
       const li = document.createElement('li');
-      li.classList.add('list-group-item', 'd-flex', 'w-100', 'justify-content-between', 'align-items-center', 'tiny_widgethub-regularitem');
+      li.classList.add('list-group-item', 'd-flex', 'w-100', 'justify-content-between', 'align-items-center', `${component}-regularitem`);
       li.append(content);
       if (showDelBtn) {
          const button = document.createElement('button');
          button.type = 'button';
-         button.className = 'tiny_widgethub-removeitem btn btn-sm btn-outline-danger';
+         button.className = `${component}-removeitem btn btn-sm btn-outline-danger`;
 
          const icon = document.createElement('i');
          icon.className = 'fa fa-trash';
@@ -740,15 +743,15 @@ class RepeatableCtrl {
     * @private
     */
    _updateButtonStates() {
-      const count = this._ul.querySelectorAll('.list-group-item.tiny_widgethub-regularitem').length;
+      const count = this._ul.querySelectorAll(`.list-group-item.${component}-regularitem`).length;
 
       const canDelete = count > (this._opts.min ?? 1);
       /** @type {NodeListOf<HTMLButtonElement>} */
-      let buttons = this._ul.querySelectorAll('button.tiny_widgethub-removeitem');
+      let buttons = this._ul.querySelectorAll(`button.${component}-removeitem`);
       buttons.forEach(btn => (btn.disabled = !canDelete));
 
       const canAdd = this._opts.max === undefined || count < this._opts.max;
-      buttons = this._ul.querySelectorAll('button.tiny_widgethub-addbtn');
+      buttons = this._ul.querySelectorAll(`button.${component}-addbtn`);
       buttons.forEach(btn => (btn.disabled = !canAdd));
    }
 
@@ -771,7 +774,7 @@ class RepeatableCtrl {
          return;
       }
 
-      if (btn.classList.contains('tiny_widgethub-addbtn')) {
+      if (btn.classList.contains(`${component}-addbtn`)) {
          this._itemCount += 1;
          const content = this._itemBuilder(this._itemCount);
          const element = RepeatableCtrl.createRegularItem(content, true);
@@ -779,7 +782,7 @@ class RepeatableCtrl {
          // If new created repeatable item contains a filepicker, it must be initialized.
          this._onNewItem(element);
 
-      } else if (btn.classList.contains('tiny_widgethub-removeitem')) {
+      } else if (btn.classList.contains(`${component}-removeitem`)) {
          const separator = li.previousElementSibling;
          if (separator) {
             separator.remove();

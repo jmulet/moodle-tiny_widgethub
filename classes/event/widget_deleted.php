@@ -24,6 +24,8 @@
 
 namespace tiny_widgethub\event;
 
+use tiny_widgethub\constants;
+
 /**
  * Event triggered when a widget is deleted.
  */
@@ -42,7 +44,7 @@ class widget_deleted extends widget_base {
      * @return string The localised event name.
      */
     public static function get_name() {
-        return get_string('eventwidgetdeleted', 'tiny_widgethub');
+        return get_string('eventwidgetdeleted', constants::COMPONENT);
     }
 
     /**

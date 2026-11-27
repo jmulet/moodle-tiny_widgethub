@@ -106,7 +106,7 @@ export class WidgetPickerCtrl {
         let numshown = 0;
         const selectmode = this.isSelectMode();
         /** @type {NodeListOf<HTMLDivElement>} */
-        const allbtns = bodyForm.querySelectorAll(".tiny_widgethub-btn-group");
+        const allbtns = bodyForm.querySelectorAll(`.${component}-btn-group`);
         allbtns.forEach(el => {
             // Is supported in select mode?
             let visible = !selectmode || (selectmode && el.dataset.selectable === "true");
@@ -137,16 +137,16 @@ export class WidgetPickerCtrl {
         const numshown = this.setWidgetButtonsVisibility(this.body, searchtext);
         // If no button visible, show emptyList message
         /** @type {HTMLElement | null} */
-        const emptyListElem = this.body.querySelector(".tiny_widgethub-emptylist");
+        const emptyListElem = this.body.querySelector(`.${component}-emptylist`);
         if (emptyListElem) {
             setVisibility(emptyListElem, numshown == 0);
         }
 
         // Hide categories without any button visible
         /** @type {NodeListOf<HTMLDivElement>} */
-        const allcatgs = this.body.querySelectorAll(".tiny_widgethub-category");
+        const allcatgs = this.body.querySelectorAll(`.${component}-category`);
         allcatgs.forEach(el => {
-            const count = el.querySelectorAll(".tiny_widgethub-btn-group:not(.d-none)").length;
+            const count = el.querySelectorAll(`.${component}-btn-group:not(.d-none)`).length;
             setVisibility(el, count > 0);
         });
     }
@@ -166,7 +166,7 @@ export class WidgetPickerCtrl {
         }
 
         /** @type {HTMLElement | null | undefined} */
-        const group = el?.closest('.tiny_widgethub-btn-group');
+        const group = el?.closest(`.${component}-btn-group`);
         const key = group?.dataset?.key ?? '';
 
         const widget = widgetTable[key];
@@ -189,7 +189,7 @@ export class WidgetPickerCtrl {
      */
     showPreview(widgetHtml) {
         /** @type {HTMLDivElement | null | undefined} */
-        const previewElem = this.body?.querySelector("div.tiny_widgethub-preview");
+        const previewElem = this.body?.querySelector(`div.${component}-preview`);
         if (!previewElem) {
             return;
         }
@@ -239,7 +239,7 @@ export class WidgetPickerCtrl {
             this.previewAnimFrame = null;
         }
         /** @type {HTMLDivElement | null | undefined} */
-        const previewElem = this.body?.querySelector("div.tiny_widgethub-preview");
+        const previewElem = this.body?.querySelector(`div.${component}-preview`);
         if (previewElem) {
             previewElem.style.visibility = 'hidden';
         }
@@ -262,7 +262,7 @@ export class WidgetPickerCtrl {
 
         // Add select mode identifier to the header
         const blinkElem = document.createElement("SPAN");
-        blinkElem.classList.add("tiny_widgethub-blink", "d-none");
+        blinkElem.classList.add(`${component}-blink`, "d-none");
         const selectModeStr = await get_string('selectmode', component);
         blinkElem.innerHTML = `<span class="twh-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M48 115.8C38.2 107 32 94.2 32 80c0-26.5 21.5-48 48-48c14.2 0 27 6.2 35.8 16l344.4 0c8.8-9.8 21.6-16 35.8-16c26.5 0 48 21.5 48 48c0 14.2-6.2 27-16 35.8l0 280.4c9.8 8.8 16 21.6 16 35.8c0 26.5-21.5 48-48 48c-14.2 0-27-6.2-35.8-16l-344.4 0c-8.8 9.8-21.6 16-35.8 16c-26.5 0-48-21.5-48-48c0-14.2 6.2-27 16-35.8l0-280.4zM125.3 96c-4.8 13.6-15.6 24.4-29.3 29.3l0 261.5c13.6 4.8 24.4 15.6 29.3 29.3l325.5 0c4.8-13.6 15.6-24.4 29.3-29.3l0-261.5c-13.6-4.8-24.4-15.6-29.3-29.3L125.3 96zm2.7 64c0-17.7 14.3-32 32-32l128 0c17.7 0 32 14.3 32 32l0 96c0 17.7-14.3 32-32 32l-128 0c-17.7 0-32-14.3-32-32l0-96zM256 320l32 0c35.3 0 64-28.7 64-64l0-32 64 0c17.7 0 32 14.3 32 32l0 96c0 17.7-14.3 32-32 32l-128 0c-17.7 0-32-14.3-32-32l0-32z"/></svg>
@@ -275,7 +275,7 @@ export class WidgetPickerCtrl {
             const bs = window.bootstrap;
             // Bootstrap 5 ? (no jQuery plugins, uses JS class)
             if (bs && bs.ScrollSpy) {
-                const el = this.body.querySelector(".tiny_widgethub-categorycontainer");
+                const el = this.body.querySelector(`.${component}-categorycontainer`);
                 if (el) {
                     const instance = bs.ScrollSpy.getInstance(el)
                         || new bs.ScrollSpy(el, {});
@@ -284,7 +284,7 @@ export class WidgetPickerCtrl {
             } else {
                 // Bootstrap 4 ? (jQuery plugin exists)
                 /** @type {any} */
-                const $el = this.modal.body.find(".tiny_widgethub-categorycontainer");
+                const $el = this.modal.body.find(`.${component}-categorycontainer`);
                 $el.scrollspy('refresh');
             }
         } catch (ex) {
@@ -328,7 +328,7 @@ export class WidgetPickerCtrl {
 
         // Click on any widget button (bubbles)
         /** @type {NodeListOf<HTMLElement>} */
-        const allWidgetDivs = this.body.querySelectorAll('div.tiny_widgethub-categorycontainer, div.tiny_widgethub-recent');
+        const allWidgetDivs = this.body.querySelectorAll(`div.${component}-categorycontainer, div.${component}-recent`);
         allWidgetDivs.forEach((divElem) => {
             divElem.addEventListener('click',
                 /** @param {MouseEvent} event */
@@ -354,7 +354,7 @@ export class WidgetPickerCtrl {
         const funOut = (/** @type {any} */ evt) => {
             const movedFrom = evt.target;
             const movedTo = evt.relatedTarget;
-            if (movedFrom.classList.contains("tiny_widgethub-btn") && movedTo?.classList.contains("tiny_widgethub-btn")) {
+            if (movedFrom.classList.contains(`${component}-btn`) && movedTo?.classList.contains(`${component}-btn`)) {
                 const key1 = movedFrom?.parentElement?.dataset?.key;
                 const key2 = movedTo?.parentElement?.dataset?.key;
                 if (key1 != null && key1 == key2) {
@@ -370,7 +370,7 @@ export class WidgetPickerCtrl {
         };
 
         // Preview panel
-        const widgetButtons = this.body.querySelectorAll(".tiny_widgethub-btn-group > button");
+        const widgetButtons = this.body.querySelectorAll(`.${component}-btn-group > button`);
         widgetButtons.forEach(btn => {
             btn.addEventListener("mouseenter", funEnter);
             btn.addEventListener("mouseleave", funOut);
@@ -378,7 +378,7 @@ export class WidgetPickerCtrl {
 
         // Store current scroll
         // Get the element
-        const scrollPane = this.body.querySelector('.tiny_widgethub-categorycontainer');
+        const scrollPane = this.body.querySelector(`.${component}-categorycontainer`);
 
         // Add scroll listener with debounce
         scrollPane?.addEventListener('scroll', debounce(() => {
@@ -410,7 +410,7 @@ export class WidgetPickerCtrl {
                     <span class="badge badge-secondary text-truncate d-inline-block" style="max-width: 120px;" title="${esc(widgetDict[r.key].name)}">
                     ${esc(widgetDict[r.key].name)}</span></button>`)
                 .join('\n');
-            const recentDiv = this.body?.querySelector('.tiny_widgethub-recent');
+            const recentDiv = this.body?.querySelector(`.${component}-recent`);
             if (recentDiv) {
                 recentDiv.innerHTML = html;
             }
@@ -418,7 +418,7 @@ export class WidgetPickerCtrl {
         // Call filter function to make sure the list is updated.
         this.onSearchKeyup();
 
-        const spanBlink = this.header?.querySelector("span.tiny_widgethub-blink");
+        const spanBlink = this.header?.querySelector(`span.${component}-blink`);
         if (spanBlink) {
             if (selectmode) {
                 spanBlink.classList.remove("d-none");
@@ -433,7 +433,7 @@ export class WidgetPickerCtrl {
             if (!this.body) {
                 return;
             }
-            const scrollPane = this.body.querySelector('.tiny_widgethub-categorycontainer');
+            const scrollPane = this.body.querySelector(`.${component}-categorycontainer`);
             if (scrollPane && this.scrollPos > 0) {
                 scrollPane.scrollTop = this.scrollPos;
             }
@@ -460,19 +460,19 @@ export class WidgetPickerCtrl {
      * @param {string} rid The id of the widget picker.
      */
     updateView(mode, rid) {
-        const categoryContainer = this.body?.querySelector('.tiny_widgethub-categorycontainer');
+        const categoryContainer = this.body?.querySelector(`.${component}-categorycontainer`);
         const btnIcon = this.body?.querySelector(`#widget-view-toggle-btn${rid} .twh-icon`);
 
         if (mode === 'grid') {
-            categoryContainer?.classList?.add('tiny_widgethub-view-grid');
-            categoryContainer?.classList?.remove('tiny_widgethub-view-list');
+            categoryContainer?.classList?.add(`${component}-view-grid`);
+            categoryContainer?.classList?.remove(`${component}-view-list`);
             // Set icon to List (to switch back)
             if (btnIcon) {
                 btnIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M40 48C26.7 48 16 58.7 16 72v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V72c0-13.3-10.7-24-24-24H40zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zM16 232v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V232c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24zM40 368c-13.3 0-24 10.7-24 24v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V392c0-13.3-10.7-24-24-24H40z"/></svg>';
             }
         } else {
-            categoryContainer?.classList?.remove('tiny_widgethub-view-grid');
-            categoryContainer?.classList?.add('tiny_widgethub-view-list');
+            categoryContainer?.classList?.remove(`${component}-view-grid`);
+            categoryContainer?.classList?.add(`${component}-view-list`);
             // Set icon to Grid (to switch to grid)
             if (btnIcon) {
                 btnIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M0 72C0 49.9 17.9 32 40 32H88c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H40c-22.1 0-40-17.9-40-40V72zM0 232c0-22.1 17.9-40 40-40H88c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H40c-22.1 0-40-17.9-40-40V232zM128 392c0-22.1-17.9-40-40-40H40c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40V392zM160 72c0-22.1 17.9-32 40-32H248c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H200c-22.1 0-40-17.9-40-40V72zM160 232c0-22.1 17.9-40 40-40H248c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H200c-22.1 0-40-17.9-40-40V232zM288 392c0-22.1-17.9-40-40-40H200c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H248c22.1 0 40-17.9 40-40V392zM320 72c0-22.1 17.9-32 40-32H408c22.1 0 40 17.9 40 40V120c0 22.1-17.9 40-40 40H360c-22.1 0-40-17.9-40-40V72zM320 232c0-22.1 17.9-40 40-40H408c22.1 0 40 17.9 40 40V280c0 22.1-17.9 40-40 40H360c-22.1 0-40-17.9-40-40V232zM448 392c0-22.1-17.9-40-40-40H360c-22.1 0-40 17.9-40 40V440c0 22.1 17.9 40 40 40H408c22.1 0 40-17.9 40-40V392z"/></svg>';
@@ -654,7 +654,7 @@ export class WidgetPickerCtrl {
 
         let managepluginurl = '';
         if (isManagePlugin(this.editor)) {
-            managepluginurl = `${Config.wwwroot}/lib/editor/tiny/plugins/widgethub/settingsmanage.php`;
+            managepluginurl = `${Config.wwwroot}/lib/editor/tiny/plugins/${Common.componentName}/settingsmanage.php`;
         }
 
         return {
@@ -695,12 +695,12 @@ export class WidgetPickerCtrl {
         }
         await widget.loadDefinition(this.editor);
         /** @type {HTMLElement | undefined} */
-        const button = target.closest('button.tiny_widgethub-btn');
+        const button = target.closest(`button.${component}-btn`);
         // Check if it is a toggle button to autoset a filter
         if (button?.dataset?.auto) {
             const isSet = button.dataset.auto !== "true";
             button.dataset.auto = isSet + '';
-            toggleClass(button, 'tiny_widgethub-btn-primary', 'tiny_widgethub-btn-outline-primary');
+            toggleClass(button, `${component}-btn-primary`, `${component}-btn-outline-primary`);
             const key = widget.key;
             // Persist option
             const autoFilters = new Set(this.storage.getFromLocal('startup.filters', '').split(''));

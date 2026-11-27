@@ -35,12 +35,6 @@ require_once($CFG->libdir . '/adminlib.php');
  */
 class widgettable extends \admin_setting {
     /**
-     * Summary of TINY_CATEGORY
-     * @var string
-     */
-    public const TINY_CATEGORY = 'tiny_widgethub';
-
-    /**
      * Summary of visiblename
      * @var string
      */
@@ -105,10 +99,10 @@ class widgettable extends \admin_setting {
         global $PAGE, $OUTPUT;
         $widgets = self::get_list_widgets_config();
 
-        $tableid = 'tiny_widgethub_widgetlist';
+        $tableid = constants::COMPONENT . '_widgetlist';
         $selectallid = 'tiny_selectall';
         $deletebtnid = 'tiny_deletebtn';
-        $exportid = 'tiny_widgethub_export';
+        $exportid = constants::COMPONENT . '_export';
 
         // Prepare data for the template.
         $templatedata = [
@@ -137,9 +131,9 @@ class widgettable extends \admin_setting {
         ];
 
         // Render the Mustache template.
-        $finalhtml = $OUTPUT->render_from_template('tiny_widgethub/widgettable', $templatedata);
+        $finalhtml = $OUTPUT->render_from_template(constants::COMPONENT . '/widgettable', $templatedata);
 
-        $deletestr = get_string('delete', self::TINY_CATEGORY);
+        $deletestr = get_string('delete', constants::COMPONENT);
         $context = $PAGE->context ?? \context_system::instance();
         $jsparams = [
             'tableId' => $tableid,
@@ -149,12 +143,12 @@ class widgettable extends \admin_setting {
             'baseUrl' => $PAGE->url->out(false),
             'sesskey' => sesskey(),
             'confirmTitle' => $deletestr,
-            'confirmMessage' => get_string('confirmdelete', self::TINY_CATEGORY),
+            'confirmMessage' => get_string('confirmdelete', constants::COMPONENT),
             'confirmBtn' => $deletestr,
             'contextId' => $context->id,
         ];
 
-        $PAGE->requires->js_call_amd('tiny_widgethub/widgettable', 'init', [$jsparams]);
+        $PAGE->requires->js_call_amd(constants::COMPONENT . '/widgettable', 'init', [$jsparams]);
 
         return format_admin_setting(
             $this,

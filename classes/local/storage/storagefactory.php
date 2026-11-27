@@ -24,6 +24,8 @@
 
 namespace tiny_widgethub\local\storage;
 
+use tiny_widgethub\constants;
+
 /**
  * Class storagefactory
  *
@@ -90,7 +92,7 @@ abstract class storagefactory {
      */
     public static function get_editor_data(): array {
         // Try to get the widget index from cache.
-        $widgetindexcache = \cache::make('tiny_widgethub', 'index');
+        $widgetindexcache = \cache::make(constants::COMPONENT, 'index');
         $cached = $widgetindexcache->get('geteditordata');
         if (!$cached) {
             $storage = self::get_instance();

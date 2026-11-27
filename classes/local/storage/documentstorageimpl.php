@@ -24,16 +24,14 @@
 
 namespace tiny_widgethub\local\storage;
 
+use tiny_widgethub\constants;
+
 /**
  * Class documentstorageimpl
  *
  * File storage implementation used to manage local widget documents: json, yml, js and css.
  */
 class documentstorageimpl implements documentstorage {
-    /**
-     * Component name.
-     */
-    private const COMPONENT_NAME = 'tiny_widgethub';
     /**
      * File area for widget definitions.
      */
@@ -55,7 +53,7 @@ class documentstorageimpl implements documentstorage {
         $fs = get_file_storage();
         $file = $fs->get_file(
             $systemcontextid,
-            self::COMPONENT_NAME,
+            constants::COMPONENT,
             self::FILEAREA,
             $id,
             '/',
@@ -82,13 +80,13 @@ class documentstorageimpl implements documentstorage {
      */
     private static function save_filearea_document($id, $doc, string $ext): bool {
         if ($id === null || $id < 0) {
-            throw new \moodle_exception('invalid id ' . $id, 'tiny_widgethub');
+            throw new \moodle_exception('invalid id ' . $id, constants::COMPONENT);
         }
         $systemcontextid = \context_system::instance()->id;
         $fs = get_file_storage();
         $fileinfo = [
             'contextid' => $systemcontextid,
-            'component' => self::COMPONENT_NAME,
+            'component' => constants::COMPONENT,
             'filearea' => self::FILEAREA,
             'itemid' => $id,
             'filepath' => '/',
@@ -143,7 +141,7 @@ class documentstorageimpl implements documentstorage {
         if ($id === 0 && $ext === 'slim.json') {
             $ext = 'json';
         }
-        $cache = \cache::make('tiny_widgethub', 'documents');
+        $cache = \cache::make(constants::COMPONENT, 'documents');
         $key = $id . '_' . $ext;
         $doc = $cache->get($key);
         if ($doc === false) {
@@ -176,7 +174,7 @@ class documentstorageimpl implements documentstorage {
         $fs = get_file_storage();
         $file = $fs->get_file(
             $systemcontextid,
-            self::COMPONENT_NAME,
+            constants::COMPONENT,
             self::FILEAREA,
             $id,
             '/',
@@ -196,9 +194,9 @@ class documentstorageimpl implements documentstorage {
     public function save(int $id, $doc, string $ext = 'json'): bool {
         $result = self::save_filearea_document($id, $doc, $ext);
         if ($result) {
-            \cache::make('tiny_widgethub', 'documents')->delete($id . '_' . $ext);
+            \cache::make(constants::COMPONENT, 'documents')->delete($id . '_' . $ext);
             if ($ext === 'json' || $ext === 'slim.json') {
-                \cache::make('tiny_widgethub', 'index')->delete('geteditordata');
+                \cache::make(constants::COMPONENT, 'index')->delete('geteditordata');
             }
         }
         return $result;
@@ -214,9 +212,9 @@ class documentstorageimpl implements documentstorage {
     public function delete(int $id, string $ext = 'json'): bool {
         $result = self::save_filearea_document($id, null, $ext);
         if ($result) {
-            \cache::make('tiny_widgethub', 'documents')->delete($id . '_' . $ext);
+            \cache::make(constants::COMPONENT, 'documents')->delete($id . '_' . $ext);
             if ($ext === 'json' || $ext === 'slim.json') {
-                \cache::make('tiny_widgethub', 'index')->delete('geteditordata');
+                \cache::make(constants::COMPONENT, 'index')->delete('geteditordata');
             }
         }
         return $result;
@@ -229,13 +227,51 @@ class documentstorageimpl implements documentstorage {
      * @param bool $emptycache If true, it will empty the cache.
      */
     public function delete_all(int $id, bool $emptycache = true): void {
-        $cachedocuments = \cache::make('tiny_widgethub', 'documents');
+        $cachedocuments = \cache::make(constants::COMPONENT, 'documents');
         foreach (self::VALID_DOCUMENT_TYPES as $ext) {
             self::save_filearea_document($id, null, $ext);
             $cachedocuments->delete($id . '_' . $ext);
         }
         if ($emptycache) {
-            \cache::make('tiny_widgethub', 'index')->delete('geteditordata');
+            \cache::make(constants::COMPONENT, 'index')->delete('geteditordata');
         }
+    }
+
+    /**
+     * Get which document types exist for every id, using a single query.
+     *
+     * @param string[] $exts Document extensions to look for (e.g. ['json', 'yml']).
+     * @return array<int, array<string, true>> Map in the form of [id => [ext => true]].
+     */
+    public function get_existing_types(array $exts): array {
+        global $DB;
+        if (empty($exts)) {
+            return [];
+        }
+        $prefix = 'data.';
+        $filenames = array_map(fn($ext) => $prefix . $ext, array_values($exts));
+        [$insql, $params] = $DB->get_in_or_equal($filenames, SQL_PARAMS_NAMED, 'fn');
+        $params += [
+            'contextid' => \context_system::instance()->id,
+            'component' => constants::COMPONENT,
+            'filearea' => self::FILEAREA,
+            'filepath' => '/',
+        ];
+        // The unique id goes first and a recordset is used, so rows sharing an itemid are not lost.
+        $sql = "SELECT id, itemid, filename
+                  FROM {files}
+                 WHERE contextid = :contextid
+                   AND component = :component
+                   AND filearea = :filearea
+                   AND filepath = :filepath
+                   AND filename $insql";
+        $result = [];
+        $rs = $DB->get_recordset_sql($sql, $params);
+        foreach ($rs as $row) {
+            $ext = substr($row->filename, strlen($prefix));
+            $result[(int) $row->itemid][$ext] = true;
+        }
+        $rs->close();
+        return $result;
     }
 }

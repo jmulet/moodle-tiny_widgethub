@@ -24,6 +24,8 @@
 
 namespace tiny_widgethub\event;
 
+use tiny_widgethub\constants;
+
 /**
  * Event triggered when a widget is updated.
  */
@@ -42,7 +44,7 @@ class widget_updated extends widget_base {
      * @return string The localised event name.
      */
     public static function get_name() {
-        return get_string('eventwidgetupdated', 'tiny_widgethub');
+        return get_string('eventwidgetupdated', constants::COMPONENT);
     }
 
     /**

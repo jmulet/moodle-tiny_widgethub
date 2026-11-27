@@ -24,6 +24,7 @@ import { removeRndFromCtx } from '../util';
 import Config from 'core/config';
 import Common from '../common';
 const allCss = `${Config.wwwroot}/theme/styles.php/${Config.theme}/${Config.themerev}_1/all`;
+const { component } = Common;
 
 
 /**
@@ -94,7 +95,7 @@ export class WidgetParamsCtrl {
       this.formCtrl.attachRepeatable(bodyElem, this.widget, listenerTracker);
       this.formCtrl.attachPickers(bodyElem, listenerTracker);
       modal.footer.show();
-      modal.footer.find("button.tiny_widgethub-btn-secondary").on("click", async (evt) => {
+      modal.footer.find(`button.${component}-btn-secondary`).on("click", async (evt) => {
          evt.preventDefault();
          // Go back to main menú
          modal.hide();
@@ -102,7 +103,7 @@ export class WidgetParamsCtrl {
             await this.parentCtrl.handleAction();
          }
       });
-      modal.footer.find("button.tiny_widgethub-btn-primary").on("click", async (evt) => {
+      modal.footer.find(`button.${component}-btn-primary`).on("click", async (evt) => {
          evt.preventDefault();
          // Insert widget and close modal.
          const ctxFromDialogue = this.formCtrl.extractFormParameters(this.widget, formElem, true);

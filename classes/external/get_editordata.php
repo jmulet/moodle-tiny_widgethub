@@ -28,6 +28,7 @@ use core_external\external_api;
 use core_external\external_function_parameters;
 use core_external\external_single_structure;
 use core_external\external_value;
+use tiny_widgethub\constants;
 use tiny_widgethub\local\storage\storagefactory;
 
 /**
@@ -100,9 +101,9 @@ class get_editordata extends external_api {
         }
 
         $data = storagefactory::get_editor_data();
-        $additionalcss = get_config('tiny_widgethub', 'additionalcss') ?? '';
+        $additionalcss = get_config(constants::COMPONENT, 'additionalcss') ?? '';
         // Syntax key=value per line.
-        $cfg = self::parseconfig(get_config('tiny_widgethub', 'cfg') ?? '');
+        $cfg = self::parseconfig(get_config(constants::COMPONENT, 'cfg') ?? '');
         return [
             'widgetlist' => json_encode($data['widgetlist'] ?? []),
             'partials' => json_encode($data['partials'] ?? (object)[]),

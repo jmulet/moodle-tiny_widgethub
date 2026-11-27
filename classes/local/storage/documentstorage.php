@@ -72,4 +72,12 @@ interface documentstorage {
      * @param bool $emptycache If true, it will empty the cache.
      */
     public function delete_all(int $id, bool $emptycache = true): void;
+
+    /**
+     * Get which document types exist for every id, using a single query.
+     *
+     * @param string[] $exts Document extensions to look for (e.g. ['json', 'yml']).
+     * @return array<int, array<string, true>> Map in the form of [id => [ext => true]].
+     */
+    public function get_existing_types(array $exts): array;
 }

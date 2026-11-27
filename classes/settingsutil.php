@@ -47,24 +47,24 @@ class settingsutil {
         $items = [];
         // Decide whether to share page css into the editor's iframe.
         $items[] = new \admin_setting_configcheckbox(
-            'tiny_widgethub/sharecss',
-            'tiny_widgethub_sharecss',
-            get_string('sharecss', 'tiny_widgethub'),
+            constants::COMPONENT . '/sharecss',
+            constants::COMPONENT . '_sharecss',
+            get_string('sharecss', constants::COMPONENT),
             1
         );
         // Define additional CSS to include in the editor's iframe.
         $items[] = new \admin_setting_configtextarea(
-            'tiny_widgethub/additionalcss',
-            'tiny_widgethub_additionalcss',
-            get_string('additionalcss', 'tiny_widgethub'),
+            constants::COMPONENT . '/additionalcss',
+            constants::COMPONENT . '_additionalcss',
+            get_string('additionalcss', constants::COMPONENT),
             "html, body {\n height: initial!important;\n}",
             PARAM_RAW
         );
         // Define additional settings in key=value syntax per line.
         $items[] = new \admin_setting_configtextarea(
-            'tiny_widgethub/cfg',
-            'tiny_widgethub_cfg',
-            get_string('cfg', 'tiny_widgethub'),
+            constants::COMPONENT . '/cfg',
+            constants::COMPONENT . '_cfg',
+            get_string('cfg', constants::COMPONENT),
             "category.order=others:z1\noninit.refactor.bs5=0",
             PARAM_RAW
         );

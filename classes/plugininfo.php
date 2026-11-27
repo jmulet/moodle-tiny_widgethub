@@ -44,7 +44,7 @@ class plugininfo extends plugin implements
      */
     public static function get_available_buttons(): array {
         return [
-            'tiny_widgethub/widgethub',
+            constants::COMPONENT . '/widgethub',
         ];
     }
     /**
@@ -54,7 +54,7 @@ class plugininfo extends plugin implements
      */
     public static function get_available_menuitems(): array {
         return [
-            'tiny_widgethub/widgethub',
+            constants::COMPONENT . '/widgethub',
         ];
     }
 
@@ -99,13 +99,13 @@ class plugininfo extends plugin implements
                 'username' => $USER->username,
                 'roles' => array_values($userroles),
             ];
-            $params['userprefs'] = get_user_preferences('tiny_widgethub_userprefs', '');
+            $params['userprefs'] = get_user_preferences(constants::USERPREFERENCE, '');
             $params['courseid'] = $COURSE->id;
             $params['contextid'] = $context->id;
             $params['moodleversion'] = $CFG->release;
 
             // Configuration.
-            $params['sharecss'] = get_config('tiny_widgethub', 'sharecss') === '1';
+            $params['sharecss'] = get_config(constants::COMPONENT, 'sharecss') === '1';
         }
         return $params;
     }

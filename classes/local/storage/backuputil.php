@@ -25,6 +25,7 @@
 namespace tiny_widgethub\local\storage;
 
 use stdClass;
+use tiny_widgethub\constants;
 
 /**
  * Class backuputil
@@ -49,8 +50,8 @@ class backuputil {
         $zipfiles = [];
         // Must include a manifest file.
         $manifest = [
-            'plugin' => 'tiny_widgethub',
-            'version' => get_config('tiny_widgethub', 'version'),
+            'plugin' => constants::COMPONENT,
+            'version' => get_config(constants::COMPONENT, 'version'),
         ];
         $zipfiles['manifest.json'] = [json_encode($manifest)];
 
@@ -78,16 +79,16 @@ class backuputil {
             $zipfiles['partials.yml'] = [$partials];
         }
         // Include configuration data as cfg.txt.
-        $configdata = get_config('tiny_widgethub', 'cfg');
+        $configdata = get_config(constants::COMPONENT, 'cfg');
         if (!empty($configdata)) {
             $zipfiles['cfg.txt'] = [$configdata];
         }
         // Include config from additionalcss.
-        $additionalcss = get_config('tiny_widgethub', 'additionalcss');
+        $additionalcss = get_config(constants::COMPONENT, 'additionalcss');
         if (!empty($additionalcss)) {
             $zipfiles['additionalcss.txt'] = [$additionalcss];
         }
-        $filename = 'tiny_widgethub_backup_' . time() . '.whz';
+        $filename = constants::COMPONENT . '_backup_' . time() . '.whz';
         $context = \context_user::instance($USER->id);
 
         $draftitemid = file_get_unused_draft_itemid();
@@ -165,7 +166,7 @@ class backuputil {
             return self::make_log(false, 'No files found in the draft area.', 'error');
         }
         $file = reset($files); // Get the first file.
-        $tempdir = make_temp_directory('tiny_widgethub_backup');
+        $tempdir = make_temp_directory(constants::COMPONENT . '_backup');
         $tempzip = $tempdir . '/b' . $file->get_contenthash();
         $file->copy_content_to($tempzip);
         // Unzip the file.
@@ -181,10 +182,10 @@ class backuputil {
                 throw new \Exception('Invalid backup file. No manifest found.');
             }
             $manifest = json_decode($manifest, true);
-            if (empty($manifest) || ($manifest['plugin'] ?? '') !== 'tiny_widgethub') {
+            if (empty($manifest) || ($manifest['plugin'] ?? '') !== constants::COMPONENT) {
                 throw new \Exception('Invalid manifest found in the backup.');
             }
-            $currentversion = get_config('tiny_widgethub', 'version');
+            $currentversion = get_config(constants::COMPONENT, 'version');
             if ($manifest['version'] > $currentversion) {
                 throw new \Exception('Backup version is higher than the plugin version.');
             }
@@ -218,12 +219,12 @@ class backuputil {
             } else if ($filename === 'cfg.txt' && $configenabled) {
                 $logs[] = ['message' => 'Restoring ' . $filename];
                 $cfgdata = fix_utf8($zip->getFromName($filename));
-                set_config('cfg', $cfgdata, 'tiny_widgethub');
+                set_config('cfg', $cfgdata, constants::COMPONENT);
                 $restored++;
             } else if ($filename === 'additionalcss.txt' && $configenabled) {
                 $logs[] = ['message' => 'Restoring ' . $filename];
                 $additionalcss = fix_utf8($zip->getFromName($filename));
-                set_config('additionalcss', $additionalcss, 'tiny_widgethub');
+                set_config('additionalcss', $additionalcss, constants::COMPONENT);
                 $restored++;
             } else if ($ext === 'json') {
                 $jsondata = fix_utf8($zip->getFromName($filename));

@@ -24,6 +24,8 @@
 
 namespace tiny_widgethub\form;
 
+use tiny_widgethub\constants;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/formslib.php');
@@ -49,7 +51,7 @@ class settingssyncform extends \moodleform {
         $buttonarray[] = &$mform->createElement(
             'submit',
             'submitbutton',
-            get_string('syncrepository', 'tiny_widgethub'),
+            get_string('syncrepository', constants::COMPONENT),
             ['disabled' => 'disabled']
         );
         $buttonarray[] = &$mform->createElement('cancel');

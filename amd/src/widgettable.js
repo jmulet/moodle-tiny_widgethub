@@ -25,6 +25,9 @@ import Notification from 'core/notification';
 import { getExternalService } from './service/external_service';
 import { hashCode, spinElement, unspinElement } from './util';
 import { fromJSON as json2yaml } from './libs/yaml-lazy';
+import Common from './common';
+
+const { component } = Common;
 
 /**
  * Update the footer of the table.
@@ -138,7 +141,7 @@ export default {
         });
 
         // 2. SELECTION LOGIC (Checkboxes)
-        const checkSelector = '.tiny_widgethub-check';
+        const checkSelector = `.${component}-check`;
 
         // Function to update delete button state.
         const toggleDeleteBtn = () => {
@@ -295,7 +298,7 @@ export default {
                     now.getHours().toString().padStart(2, '0') +
                     now.getMinutes().toString().padStart(2, '0') +
                     now.getSeconds().toString().padStart(2, '0');
-                a.download = `tiny_widgethub_backup_${dateString}.whz`;
+                a.download = `${component}_backup_${dateString}.whz`;
                 a.click();
             } catch (ex) {
                 console.error(ex);

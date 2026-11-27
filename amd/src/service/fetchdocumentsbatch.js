@@ -22,9 +22,12 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import { getExternalService } from './external_service';
+import Common from '../common';
+
+const { component } = Common;
 
 export class FetchDocumentsBatch {
-    static METHOD_NAME = 'tiny_widgethub_get_widget_documents';
+    static METHOD_NAME = `${component}_get_widget_documents`;
     /**
      * @param {number} contextid Context ID.
      * @param {number} [delay] Time in ms to wait before flushing the queue.

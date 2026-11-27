@@ -20,6 +20,7 @@ use core_privacy\local\metadata\collection;
 use core_privacy\local\metadata\provider as metadata_provider;
 use core_privacy\local\request\user_preference_provider;
 use core_privacy\local\request\writer;
+use tiny_widgethub\constants;
 
 /**
  * Local WidgetHub plugin privacy details.
@@ -39,8 +40,8 @@ class provider implements
      */
     public static function get_metadata(collection $collection): collection {
         $collection->add_user_preference(
-            'tiny_widgethub_userprefs',
-            'privacy:metadata:userpreference:tiny_widgethub_userprefs'
+            constants::USERPREFERENCE,
+            'privacy:metadata:userpreference:' . constants::USERPREFERENCE
         );
         return $collection;
     }
@@ -52,15 +53,15 @@ class provider implements
      * @return void
      */
     public static function export_user_preferences(int $userid): void {
-        $preference = get_user_preferences('tiny_widgethub_userprefs', null, $userid);
+        $preference = get_user_preferences(constants::USERPREFERENCE, null, $userid);
         if ($preference !== null) {
-            $description = get_string('privacy:metadata:userpreference:tiny_widgethub_userprefs', 'tiny_widgethub');
+            $description = get_string('privacy:metadata:userpreference:' . constants::USERPREFERENCE, constants::COMPONENT);
             /** @var \context $context */
             $context = \context_system::instance();
             writer::with_context($context)
                 ->export_user_preference(
-                    'tiny_widgethub',
-                    'tiny_widgethub_userprefs',
+                    constants::COMPONENT,
+                    constants::USERPREFERENCE,
                     $preference,
                     $description
                 );

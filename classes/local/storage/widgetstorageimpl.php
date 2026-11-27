@@ -24,6 +24,7 @@
 
 namespace tiny_widgethub\local\storage;
 
+use tiny_widgethub\constants;
 use tiny_widgethub\local\storage\storagefactory;
 
 /**
@@ -32,11 +33,6 @@ use tiny_widgethub\local\storage\storagefactory;
  * Legacy implementation of the widgetstorage interface using Moodle config.
  */
 class widgetstorageimpl implements widgetstorage {
-    /**
-     * Component name.
-     */
-    private const COMPONENTNAME = 'tiny_widgethub';
-
     /** @var \stdClass Configuration object. */
     public $conf;
 
@@ -54,7 +50,7 @@ class widgetstorageimpl implements widgetstorage {
      * Constructor.
      */
     public function __construct() {
-        $this->conf = get_config(self::COMPONENTNAME);
+        $this->conf = get_config(constants::COMPONENT);
         $this->documentstorage = new documentstorageimpl();
         $this->index = $this->load_index();
     }
@@ -104,7 +100,7 @@ class widgetstorageimpl implements widgetstorage {
      * @return array
      */
     private function load_index(): array {
-        $cache = \cache::make('tiny_widgethub', 'index');
+        $cache = \cache::make(constants::COMPONENT, 'index');
         $index = $cache->get('fullindex');
         if ($index !== false) {
             return $index;
@@ -113,9 +109,9 @@ class widgetstorageimpl implements widgetstorage {
         global $DB;
         $sql = "SELECT itemid, source
         FROM {files}
-        WHERE component = 'tiny_widgethub' AND itemid > 0
+        WHERE component = :component AND itemid > 0
         AND filename = 'data.json' AND source IS NOT NULL";
-        $records = $DB->get_records_sql($sql);
+        $records = $DB->get_records_sql($sql, ['component' => constants::COMPONENT]);
         $index = [];
         foreach ($records as $itemid => $record) {
             $data = json_decode($record->source, true);
@@ -139,7 +135,7 @@ class widgetstorageimpl implements widgetstorage {
         $seq = $this->conf->seq ?? 0;
         $seq++;
         $this->conf->seq = $seq;
-        set_config('seq', $seq, self::COMPONENTNAME);
+        set_config('seq', $seq, constants::COMPONENT);
         return (int)$seq;
     }
 
@@ -149,7 +145,7 @@ class widgetstorageimpl implements widgetstorage {
      * @param array $raw
      */
     private function update_index($id, $raw) {
-        \cache::make('tiny_widgethub', 'index')->delete('fullindex');
+        \cache::make(constants::COMPONENT, 'index')->delete('fullindex');
         if ($raw === null || (empty($raw['key']) && empty($raw['name']))) {
             // Remove the widget from the index.
             unset($this->index[$id]);
@@ -159,7 +155,7 @@ class widgetstorageimpl implements widgetstorage {
             $key = $raw['key'] ?? '';
             if (!empty($key)) {
                 $name = $raw['name'] ?? $key;
-                $category = $raw['category'] ?? get_string('misc', self::COMPONENTNAME);
+                $category = $raw['category'] ?? get_string('misc', constants::COMPONENT);
                 $hidden = ($raw['hidden'] ?? false) ? 1 : 0;
                 $this->index[$id] = [
                     'id' => $id,
@@ -463,7 +459,7 @@ class widgetstorageimpl implements widgetstorage {
             ])->trigger();
         }
         if (!empty($deletedids)) {
-            \cache::make('tiny_widgethub', 'index')->delete_many(['fullindex', 'geteditordata']);
+            \cache::make(constants::COMPONENT, 'index')->delete_many(['fullindex', 'geteditordata']);
         }
         return $deletedids;
     }
@@ -549,19 +545,13 @@ class widgetstorageimpl implements widgetstorage {
      * @return array<int> Ids of widgets without yml created.
      */
     public function get_widgetsnoyml(): array {
+        // One query for all widgets instead of up to two file lookups per widget.
+        $has = $this->documentstorage->get_existing_types(['json', 'yml']);
         $ret = [];
-        // Check partials (id=0) which is not part of the index.
-        if (
-            $this->documentstorage->exists(storagefactory::PARTIALS_ID, 'json') &&
-            !$this->documentstorage->exists(storagefactory::PARTIALS_ID, 'yml')
-        ) {
-            $ret[] = storagefactory::PARTIALS_ID;
-        }
-        foreach (array_keys($this->index) as $id) {
-            if (
-                $this->documentstorage->exists($id, 'json') &&
-                !$this->documentstorage->exists($id, 'yml')
-            ) {
+        // Partials (id=0) are not part of the index, so check them first.
+        $ids = array_merge([storagefactory::PARTIALS_ID], array_keys($this->index));
+        foreach ($ids as $id) {
+            if (!empty($has[$id]['json']) && empty($has[$id]['yml'])) {
                 $ret[] = $id;
             }
         }

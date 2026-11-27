@@ -138,16 +138,8 @@ function checkTemplate(parsed) {
     if (engine === 'mustache') {
         return checkMustache(parsed);
     } else {
-        return checkEJS(parsed);
+        return parsed;
     }
-}
-
-/**
- * @param {*} parsed - The parsed widget
- * @returns {number} - The number of errors
- */
-function checkEJS(parsed) {
-    return parsed === null ? 1 : 0;
 }
 
 /**
